@@ -1,0 +1,159 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Program",
+      "program": "${workspaceFolder}/src/ctrl-q-cli.js",
+
+      // Import master items from Excel file
+      // "args": [
+      //   "importexcel",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--appid",
+      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "--userdir",
+      //   "LAB",
+      //   "--userid",
+      //   "goran",
+      //   "--file",
+      //   "/Users/goran/code/ctrl-q-cli/test/variables.xlsx",
+      //   "--sheet",
+      //   "Sales",
+      //   "--columnflag",
+      //   "0",
+      //   "--columnname",
+      //   "5",
+      //   "--columndescr",
+      //   "10",
+      //   "--columnlabel",
+      //   "6",
+      //   "--columnexpr",
+      //   "1",
+      //   "--columntag",
+      //   "7"
+      // ]
+
+      // Create dimension
+      // "args": [
+      //     "createdim",
+      //     "--host",
+      //     "192.168.100.109",
+      //     "--appid",
+      //     "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //     "--itemname",
+      //     "Dimension 2b",
+      //     "--expression",
+      //     "",
+      //     "--userdir",
+      //     "LAB",
+      //     "--userid",
+      //     "goran"
+      // ]
+
+      //   Get dimension
+      // "args": [
+      //   "getdim",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--appid",
+      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "--outputformat",
+      //   "table",
+      //   "--userdir",
+      //   "LAB",
+      //   "--userid",
+      //   "goran"
+      // ]
+
+      //   Delete dimension
+      // "args": [
+      //   "deletedim",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--appid",
+      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "--userdir",
+      //   "LAB",
+      //   "--userid",
+      //   "goran",
+      //   "--itemid",
+      //   "28dc1d7d-52a4-41ff-b5a1-bca33efbb47c, 59f91744-f663-4d25-ac54-84e37eb6c49a,076b0d76-a873-4fb2-86eb-f413a6ffd1da"
+      // ]
+
+      //   Get measure
+      // "args": [
+      //   "getmeasure",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--appid",
+      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "--outputformat",
+      //   "table",
+      //   "--userdir",
+      //   "LAB",
+      //   "--userid",
+      //   "goran"
+      // ]
+
+      //   Delete measure
+      // "args": [
+      //   "deletemeasure",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--appid",
+      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "--userdir",
+      //   "LAB",
+      //   "--userid",
+      //   "goran",
+      //   "--itemid",
+      //   "9bf5115a-76c1-45ee-a4ed-5f2fc4090c89,9d19481d-e65c-4cec-a8f4-b21c29bb7976"
+      // ]
+
+      //   Scramble field
+      // "args": [
+      //   "scramblefield",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--appid",
+      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   // "477821a8-6a8d-4ede-a245-7190da9d522e",
+      //   "--userdir",
+      //   // "INTERNAL",
+      //   "LAB",
+      //   "--userid",
+      //   // "sa_api",
+      //   "goran",
+      //   "--fieldname",
+      //   "Expression1,Dim1,AsciiAlpha",
+      //   "--separator",
+      //   ",",
+      //   "--newappname",
+      //   "__ScrambledTest1",
+      //   "--loglevel",
+      //   "silly"
+      // ]
+
+      //   Get script
+      "args": [
+        "getscript",
+        "--host",
+        "192.168.100.109",
+        "--appid",
+        "a3e0f5d2-000a-464f-998d-33d333b175d7",
+        "--userdir",
+        "LAB",
+        "--userid",
+        "goran",
+        "--loglevel",
+        "verbose"
+      ]
+    }
+  ]
+}

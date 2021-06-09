@@ -1,0 +1,20 @@
+{
+  "name": "ctrl-q-cli",
+  "version": "0.1.0",
+  "description": "Command line tool for interacting with Qlik Sense Enterprise servers",
+  "main": "ctrl-q-cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "commander": "^7.2.0",
+    "enigma.js": "^2.7.3",
+    "fs-extra": "^10.0.0",
+    "node-xlsx": "^0.16.1",
+    "table": "^6.7.1",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.5"
+  }
+}
