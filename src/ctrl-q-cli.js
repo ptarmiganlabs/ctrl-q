@@ -22,7 +22,7 @@ const program = new Command();
  */
 (async () => {
   // Basic app info
-  program.version(appVersion).description('This is a utility for performing CRUD operations on Qlik Sense master items.');
+  program.version(appVersion).description('This is a command line utility for interacting with Qlik Sense Enterprise on Windows servers.\nAmong other things the tool manipulates master items and scrambles in-app data.');
 
   // Import dimensions/measures from definitions in Excel file
   program

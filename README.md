@@ -28,7 +28,8 @@ List available commands using the --help option:
 ➜  src node ctrl-q-cli.js --help
 Usage: ctrl-q-cli [options] [command]
 
-This is a utility for performing CRUD operations on Qlik Sense master items.
+This is a command line utility for interacting with Qlik Sense Enterprise on Windows servers.
+Among other things the tool manipulates master items and scrambles in-app data.
 
 Options:
   -V, --version            output the version number
@@ -41,7 +42,7 @@ Commands:
   getdim [options]         get info about one or more master dimensions
   deletedim [options]      delete master dimension(s)
   scramblefield [options]  scramble one or more fields in an app. A new app with the scrambled data is created.
-  getscript [options]      get script from Qlik Sense app.
+  getscript [options]      get script from Qlik Sense app
   help [command]           display help for command
 ➜  src
 ```
@@ -86,7 +87,13 @@ node ctrl-q-cli.js importexcel --host 192.168.100.109 --appid a3e0f5d2-000a-464f
 
 ### Scramble
 
-Scrambles a field in an app using Qlik Sense's internal scrambling feature
+Scrambles one or more fields in an app using Qlik Sense's internal scrambling feature.  
+
+Note:  
+
+- If more than one field is to be scrambled, the indidivudal field names should be separated by the character or string specified in the `--separator` option. 
+- The entire list of field names (the `--fieldname` option) should be surrounded by double quotes.
+- A new app with the scrambled data will be created. Specify its name in the `--newappname` option.
 
 ```bash
 node ctrl-q-cli.js scramblefield --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --userdir LAB --userid goran --fieldname Expression1,Dim1,AsciiAlpha --separator , --newappname __ScrambledTest1 --loglevel silly
