@@ -35,6 +35,11 @@ var consoleTableConfig = {
   },
 };
 
+/**
+ * 
+ * @param {*} options 
+ * @param {*} command 
+ */
 const getMasterDimension = async (options, command) => {
   try {
     // Set log level

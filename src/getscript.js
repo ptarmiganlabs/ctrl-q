@@ -4,6 +4,11 @@ const enigma = require('enigma.js');
 const { setupEnigmaConnection } = require('./enigma.js');
 const { logger, setLoggingLevel } = require('./globals.js');
 
+/**
+ * 
+ * @param {*} options 
+ * @param {*} command 
+ */
 const getScript = async (options, command) => {
   try {
     // Set log level

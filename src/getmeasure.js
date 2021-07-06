@@ -34,6 +34,11 @@ var consoleTableConfig = {
   },
 };
 
+/**
+ * 
+ * @param {*} options 
+ * @param {*} command 
+ */
 const getMasterMeasure = async (options, command) => {
   try {
     // Set log level

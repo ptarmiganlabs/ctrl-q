@@ -5,6 +5,11 @@ const { setupEnigmaConnection } = require('./enigma.js');
 var xlsx = require('node-xlsx').default;
 const { logger, setLoggingLevel } = require('./globals.js');
 
+/**
+ * 
+ * @param {*} options 
+ * @param {*} command 
+ */
 const importFromExcel = async (options, command) => {
   try {
     // Set log level
@@ -48,12 +53,6 @@ const importFromExcel = async (options, command) => {
         qData: {
           dim: '/qDim',
           info: '/qDimInfos',
-          // grouping: '/qDim/qGrouping',
-          // info: '/qDimInfos',
-          // title: '/qMetaDef/title',
-          // tags: '/qMetaDef/tags',
-          // expression: '/qDim',
-          // description: '/qMetaDef/description',
         },
       },
     };

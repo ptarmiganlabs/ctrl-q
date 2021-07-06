@@ -3,6 +3,11 @@
 const enigma = require('enigma.js');
 const { setupEnigmaConnection } = require('./enigma.js');
 
+/**
+ * 
+ * @param {*} options 
+ * @param {*} command 
+ */
 const createMasterDimension = async (options, command) => {
   try {
     console.log('Create master dimension');
@@ -201,7 +206,6 @@ const createMasterDimension = async (options, command) => {
       const a = await app.createDimension(testData1);
 
       const b = await app.saveObjects();
-      // console.log(b);
 
       // const genericDimObj = await app.createObject(dimensionCall);
       // // const a = await dimObj.getInfo();
