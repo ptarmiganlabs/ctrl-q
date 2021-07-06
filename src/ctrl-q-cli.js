@@ -13,7 +13,6 @@ const { importFromExcel } = require('./importexcel.js');
 const { scrambleField } = require('./scramblefield.js');
 const { getScript } = require('./getscript.js');
 
-
 const program = new Command();
 
 /**
@@ -22,7 +21,11 @@ const program = new Command();
  */
 (async () => {
   // Basic app info
-  program.version(appVersion).description('This is a command line utility for interacting with Qlik Sense Enterprise on Windows servers.\nAmong other things the tool manipulates master items and scrambles in-app data.');
+  program
+    .version(appVersion)
+    .description(
+      'This is a command line utility for interacting with Qlik Sense Enterprise on Windows servers.\nAmong other things the tool manipulates master items and scrambles in-app data.'
+    );
 
   // Import dimensions/measures from definitions in Excel file
   program
@@ -225,8 +228,7 @@ const program = new Command();
     .requiredOption('--prefix <prefix>', 'Qlik Sense virtual proxy prefix', '')
     .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
     .requiredOption('--userdir <directory>', 'user directory for user to connect with')
-    .requiredOption('--userid <userid>', 'user ID for user to connect with')
-
+    .requiredOption('--userid <userid>', 'user ID for user to connect with');
 
   // Parse command line params
   let a = await program.parseAsync(process.argv);

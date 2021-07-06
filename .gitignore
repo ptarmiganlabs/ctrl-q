@@ -1,6 +1,6 @@
 # Project specific ignores
 cert/
-
+launch.json
 
 # Logs
 logs
