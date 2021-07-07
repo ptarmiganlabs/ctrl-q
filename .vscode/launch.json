@@ -86,6 +86,21 @@
       //   "28dc1d7d-52a4-41ff-b5a1-bca33efbb47c, 59f91744-f663-4d25-ac54-84e37eb6c49a,076b0d76-a873-4fb2-86eb-f413a6ffd1da"
       // ]
 
+      //   Get bookmark
+      "args": [
+        "getbookmark",
+        "--host",
+        "192.168.100.109",
+        "--appid",
+        "a3e0f5d2-000a-464f-998d-33d333b175d7",
+        "--outputformat",
+        "json",
+        "--userdir",
+        "LAB",
+        "--userid",
+        "goran"
+      ]
+
       //   Get measure
       // "args": [
       //   "getmeasure",
@@ -141,19 +156,19 @@
       // ]
 
       //   Get script
-      "args": [
-        "getscript",
-        "--host",
-        "192.168.100.109",
-        "--appid",
-        "a3e0f5d2-000a-464f-998d-33d333b175d7",
-        "--userdir",
-        "LAB",
-        "--userid",
-        "goran",
-        "--loglevel",
-        "verbose"
-      ]
+      // "args": [
+      //   "getscript",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--appid",
+      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "--userdir",
+      //   "LAB",
+      //   "--userid",
+      //   "goran",
+      //   "--loglevel",
+      //   "verbose"
+      // ]
     }
   ]
 }
