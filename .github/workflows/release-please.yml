@@ -11,5 +11,4 @@ jobs:
         with:
           release-type: node
           package-name: ctrl-q-cli
-          # path: src
           default-branch: main
