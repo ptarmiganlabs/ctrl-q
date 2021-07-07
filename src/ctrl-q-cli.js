@@ -8,6 +8,8 @@ const { deleteMasterDimension } = require('./deletedim.js');
 const { getMasterMeasure } = require('./getmeasure.js');
 const { deleteMasterMeasure } = require('./deletemeasure.js');
 
+const { getBookmark } = require('./getbookmark.js');
+
 const { importFromExcel } = require('./importexcel.js');
 
 const { scrambleField } = require('./scramblefield.js');
@@ -40,7 +42,7 @@ const program = new Command();
     .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
     .option('--port <port>', 'Qlik Sense server engine port', '4747')
     .option('--schemaversion <string>', 'Qlik Sense engine schema version', '12.612.0')
-    .requiredOption('--appid <id>', 'Qlik Sense app whose master items should be modified')
+    .requiredOption('--appid <id>', 'Qlik Sense app ID')
     .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
     .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
     .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
@@ -74,7 +76,7 @@ const program = new Command();
     .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
     .option('--port <port>', 'Qlik Sense server engine port', '4747')
     .option('--schemaversion <string>', 'Qlik Sense engine schema version', '12.612.0')
-    .requiredOption('--appid <id>', 'Qlik Sense app whose master items should be modified')
+    .requiredOption('--appid <id>', 'Qlik Sense app ID')
     .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
     .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
     .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
@@ -99,7 +101,7 @@ const program = new Command();
     .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
     .option('--port <port>', 'Qlik Sense server engine port', '4747')
     .option('--schemaversion <string>', 'Qlik Sense engine schema version', '12.612.0')
-    .requiredOption('--appid <id>', 'Qlik Sense app whose master items should be modified')
+    .requiredOption('--appid <id>', 'Qlik Sense app ID')
     .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
     .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
     .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
@@ -123,7 +125,7 @@ const program = new Command();
     .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
     .option('--port <port>', 'Qlik Sense server engine port', '4747')
     .option('--schemaversion <string>', 'Qlik Sense engine schema version', '12.612.0')
-    .requiredOption('--appid <id>', 'Qlik Sense app whose master items should be modified')
+    .requiredOption('--appid <id>', 'Qlik Sense app ID')
     .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
     .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
     .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
@@ -172,7 +174,7 @@ const program = new Command();
     .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
     .option('--port <port>', 'Qlik Sense server engine port', '4747')
     .option('--schemaversion <string>', 'Qlik Sense engine schema version', '12.612.0')
-    .requiredOption('--appid <id>', 'Qlik Sense app whose master items should be modified')
+    .requiredOption('--appid <id>', 'Qlik Sense app ID')
     .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
     .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
     .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
@@ -196,7 +198,7 @@ const program = new Command();
     .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
     .option('--port <port>', 'Qlik Sense server engine port', '4747')
     .option('--schemaversion <string>', 'Qlik Sense engine schema version', '12.612.0')
-    .requiredOption('--appid <id>', 'Qlik Sense app whose master items should be modified')
+    .requiredOption('--appid <id>', 'Qlik Sense app ID')
     .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
     .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
     .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
@@ -221,7 +223,7 @@ const program = new Command();
     .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
     .option('--port <port>', 'Qlik Sense server engine port', '4747')
     .option('--schemaversion <string>', 'Qlik Sense engine schema version', '12.612.0')
-    .requiredOption('--appid <id>', 'Qlik Sense app whose master items should be modified')
+    .requiredOption('--appid <id>', 'Qlik Sense app ID')
     .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
     .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
     .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
@@ -229,6 +231,32 @@ const program = new Command();
     .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
     .requiredOption('--userdir <directory>', 'user directory for user to connect with')
     .requiredOption('--userid <userid>', 'user ID for user to connect with');
+
+  // Get bookmark command
+  program
+    .command('getbookmark')
+    .description('get info about one or more bookmarks')
+    .action(async (options, command) => {
+      logger.verbose('appid=' + options.appid);
+      logger.verbose('itemid=' + options.itemid);
+      getBookmark(options, command);
+    })
+    .option('--loglevel <level>', 'log level (error, warning, info, verbose, debug, silly). "Info" level is default', 'info')
+    .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+    .option('--port <port>', 'Qlik Sense server engine port', '4747')
+    .option('--schemaversion <string>', 'Qlik Sense engine schema version', '12.612.0')
+    .requiredOption('--appid <id>', 'Qlik Sense app ID')
+    .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+    .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+    .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+    .requiredOption('--prefix <prefix>', 'Qlik Sense virtual proxy prefix', '')
+    .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+    .requiredOption('--userdir <directory>', 'user directory for user to connect with')
+    .requiredOption('--userid <userid>', 'user ID for user to connect with')
+
+    .option('--itemid <id>', 'bookmark to retrieve. If not specified all bookmarks will be retrieved')
+    .option('--outputformat <json|table>', 'output format', 'json');
+
 
   // Parse command line params
   let a = await program.parseAsync(process.argv);
