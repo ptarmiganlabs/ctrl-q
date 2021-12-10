@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.0.1](https://www.github.com/ptarmiganlabs/ctrl-q-cli/compare/v1.0.0...v1.0.1) (2021-12-10)
+
+
+### Bug Fixes
+
+* **deps:** update dependency node-xlsx to ^0.17.0 ([a622226](https://www.github.com/ptarmiganlabs/ctrl-q-cli/commit/a6222266c4e2751788686ab2a8d9eb9cf08e67f7))
+
 ## 1.0.0 (2021-07-07)
 
 
