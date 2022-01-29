@@ -9,7 +9,7 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
-    "commander": "^8.0.0",
+    "commander": "^9.0.0",
     "enigma.js": "^2.7.3",
     "fs-extra": "^10.0.0",
     "node-xlsx": "^0.17.0",
