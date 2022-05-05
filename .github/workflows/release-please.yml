@@ -30,9 +30,12 @@ jobs:
           command: manifest
 
       - name: Show output from Release-Please
-        # if: ${{ steps.release.outputs.releases_created }}
-        run: |
-          echo "All outputs     : ${{ toJSON(steps.release.outputs) }}"
+        if: always()
+        env:
+          RELEASE_PLEASE_OUTPUT: ${{ toJSON(steps.release.outputs) }}
+        # echo "All outputs     : ${{ toJSON(steps.release.outputs) }}"
+        # run: echo ${{ toJSON(steps.release.outputs) }}
+        run: echo "$RELEASE_PLEASE_OUTPUT"
 
       - name: Show output from Release-Please
         # if: ${{ steps.release.outputs.releases_created }}
