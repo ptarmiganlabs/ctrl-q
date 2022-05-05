@@ -30,7 +30,7 @@ jobs:
         # if: ${{ steps.release.outputs.releases_created }}
         run: |
           echo "All outputs     : ${{ steps.release.outputs }}"
-          echo ${{ steps.release.outputs }} | jq .
+          echo "$(${{ steps.release.outputs }} | jq .)"
           echo ""
           echo "release_created : ${{ steps.release.outputs.release_created }}"
           echo "releases_created: ${{ steps.release.outputs.releases_created }}"
