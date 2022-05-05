@@ -1,19 +1,19 @@
 const { Command, Option } = require('commander');
 const { logger, appVersion, getLoggingLevel, setLoggingLevel } = require('./globals.js');
 
-const { getMasterDimension } = require('./getdim.js');
-const { createMasterDimension } = require('./createdim.js');
-const { deleteMasterDimension } = require('./deletedim.js');
+const { getMasterDimension } = require('./lib/getdim.js');
+const { createMasterDimension } = require('./lib/createdim.js');
+const { deleteMasterDimension } = require('./lib/deletedim.js');
 
-const { getMasterMeasure } = require('./getmeasure.js');
-const { deleteMasterMeasure } = require('./deletemeasure.js');
+const { getMasterMeasure } = require('./lib/getmeasure.js');
+const { deleteMasterMeasure } = require('./lib/deletemeasure.js');
 
-const { getBookmark } = require('./getbookmark.js');
+const { getBookmark } = require('./lib/getbookmark.js');
 
-const { importFromExcel } = require('./importexcel.js');
+const { importFromExcel } = require('./lib/importexcel.js');
 
-const { scrambleField } = require('./scramblefield.js');
-const { getScript } = require('./getscript.js');
+const { scrambleField } = require('./lib/scramblefield.js');
+const { getScript } = require('./lib/getscript.js');
 
 const program = new Command();
 
@@ -26,7 +26,7 @@ const program = new Command();
   program
     .version(appVersion)
     .description(
-      'This is a command line utility for interacting with Qlik Sense Enterprise on Windows servers.\nAmong other things the tool manipulates master items and scrambles in-app data.'
+      'This is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.\nAmong other things the tool manipulates master items and scrambles in-app data.'
     );
 
   // Import dimensions/measures from definitions in Excel file

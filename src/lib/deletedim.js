@@ -2,19 +2,19 @@
 
 const enigma = require('enigma.js');
 const { setupEnigmaConnection } = require('./enigma.js');
-const { logger, setLoggingLevel } = require('./globals.js');
+const { logger, setLoggingLevel } = require('../globals.js');
 
 /**
  * 
  * @param {*} options 
  * @param {*} command 
  */
-const getScript = async (options, command) => {
+const deleteMasterDimension = async (options, command) => {
   try {
     // Set log level
     setLoggingLevel(options.loglevel);
 
-    logger.verbose('Get app script');
+    logger.verbose('Delete master dimension(s)');
     logger.debug('Options: ' + JSON.stringify(options, null, 2));
 
     // Configure Enigma.js
@@ -33,21 +33,21 @@ const getScript = async (options, command) => {
     var app = await global.openDoc(options.appid, '', '', '', false);
     logger.verbose(`Opened app ${options.appid}.`);
 
-    // Get app script
-    const appScript = await app.getScriptEx();
+    // Create array of dimensions to be deleted
+    let deleteItems = options.itemid.split(',');
+    deleteItems = deleteItems.map((item) => item.trim());
 
-    if (appScript) {
-      logger.verbose('----- Script metadata -----');
-      logger.verbose(`Created date: ${appScript.qMeta.createdDate}`);
-      logger.verbose(`Modified date: ${appScript.qMeta.modifiedDate}`);
-      logger.verbose('----- End script metadata -----');
-      console.log(`${appScript.qScript}`);
-    } else {
-      logger.error(`Failed getting script for app ${options.appid}`);
+    for (const item of deleteItems) {
+      const res = await app.destroyDimension(item);
+      if (res !== true) {
+        logger.error(`Failed deleting dimension with id ${item} in app ${options.appid}`);
+      } else {
+        logger.verbose(`Deleted dimension with id ${item}`);
+      }
     }
 
     if ((await session.close()) === true) {
-      logger.verbose(`Closed session after retrieving script from app ${options.appid} on host ${options.host}`);
+      logger.verbose(`Closed session after managing master items in app ${options.appid} on host ${options.host}`);
     } else {
       logger.error(`Error closing session for app ${options.appid} on host ${options.host}`);
     }
@@ -57,5 +57,5 @@ const getScript = async (options, command) => {
 };
 
 module.exports = {
-  getScript,
+  deleteMasterDimension,
 };

@@ -4,7 +4,7 @@ const SenseUtilities = require('enigma.js/sense-utilities');
 const WebSocket = require('ws');
 const fs = require('fs-extra');
 const path = require('path');
-const { logger } = require('./globals.js');
+const { logger } = require('../globals.js');
 
 
 /**

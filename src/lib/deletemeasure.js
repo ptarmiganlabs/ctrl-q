@@ -2,19 +2,19 @@
 
 const enigma = require('enigma.js');
 const { setupEnigmaConnection } = require('./enigma.js');
-const { logger, setLoggingLevel } = require('./globals.js');
+const { logger, setLoggingLevel } = require('../globals.js');
 
 /**
  * 
  * @param {*} options 
  * @param {*} command 
  */
-const deleteMasterDimension = async (options, command) => {
+const deleteMasterMeasure = async (options, command) => {
   try {
     // Set log level
     setLoggingLevel(options.loglevel);
 
-    logger.verbose('Delete master dimension(s)');
+    logger.verbose('Delete master measure(s)');
     logger.debug('Options: ' + JSON.stringify(options, null, 2));
 
     // Configure Enigma.js
@@ -33,20 +33,20 @@ const deleteMasterDimension = async (options, command) => {
     var app = await global.openDoc(options.appid, '', '', '', false);
     logger.verbose(`Opened app ${options.appid}.`);
 
-    // Create array of dimensions to be deleted
+    // Create array of measures to be deleted
     let deleteItems = options.itemid.split(',');
     deleteItems = deleteItems.map((item) => item.trim());
 
     for (const item of deleteItems) {
-      const res = await app.destroyDimension(item);
+      const res = await app.destroyMeasure(item);
       if (res !== true) {
-        logger.error(`Failed deleting dimension with id ${item} in app ${options.appid}`);
-      } else {
-        logger.verbose(`Deleted dimension with id ${item}`);
+        logger.error(`Failed deleting measure with id ${item} in app ${options.appid}`);
+      }else {
+        logger.verbose(`Deleted measure with id ${item}`);
       }
     }
 
-    if ((await session.close()) === true) {
+    if ((await session.close()) == true) {
       logger.verbose(`Closed session after managing master items in app ${options.appid} on host ${options.host}`);
     } else {
       logger.error(`Error closing session for app ${options.appid} on host ${options.host}`);
@@ -57,5 +57,5 @@ const deleteMasterDimension = async (options, command) => {
 };
 
 module.exports = {
-  deleteMasterDimension,
+  deleteMasterMeasure,
 };
