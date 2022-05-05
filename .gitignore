@@ -2,6 +2,18 @@
 cert/
 launch.json
 
+
+src/node_modules/*
+
+doc/*
+npm-debug.log
+.DS_Store
+
+release/*
+src/release/*
+
+testdata/*
+
 # Logs
 logs
 *.log
