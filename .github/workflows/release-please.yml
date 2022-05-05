@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: Show github.ref
         run: echo "$GITHUB_REF"
+        
+      - name: Install tools
+        run: sudo apt-get install jq
 
       - uses: google-github-actions/release-please-action@v3
         id: release
