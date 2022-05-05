@@ -29,11 +29,14 @@ jobs:
         with:
           command: manifest
 
-      - name: Show output from Release-Please 3
+      - name: Show output from Release-Please
         # if: ${{ steps.release.outputs.releases_created }}
         run: |
-          echo "All outputs     : ${{ steps.release.outputs }}"
           echo "All outputs     : ${{ toJSON(steps.release.outputs) }}"
+
+      - name: Show output from Release-Please
+        # if: ${{ steps.release.outputs.releases_created }}
+        run: |
           echo "release_created : ${{ steps.release.outputs.release_created }}"
           echo "releases_created: ${{ steps.release.outputs.releases_created }}"
           echo "draft           : ${{ steps.release.outputs['src--draft'] }}"
