@@ -3,7 +3,7 @@
 const enigma = require('enigma.js');
 const { setupEnigmaConnection } = require('./enigma.js');
 var xlsx = require('node-xlsx').default;
-const { logger, setLoggingLevel } = require('./globals.js');
+const { logger, setLoggingLevel } = require('../globals.js');
 
 /**
  * 

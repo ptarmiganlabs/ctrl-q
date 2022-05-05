@@ -2,7 +2,7 @@
 
 const enigma = require('enigma.js');
 const { setupEnigmaConnection } = require('./enigma.js');
-const { logger, setLoggingLevel } = require('./globals.js');
+const { logger, setLoggingLevel } = require('../globals.js');
 
 /**
  * 

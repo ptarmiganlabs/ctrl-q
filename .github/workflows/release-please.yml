@@ -29,6 +29,8 @@ jobs:
       - name: Show output from Release-Please 3
         # if: ${{ steps.release.outputs.releases_created }}
         run: |
+          echo "All outputs     : ${{ steps.release.outputs }}"
+          echo ""
           echo "releases_created: ${{ steps.release.outputs.releases_created }}"
           echo "draft           : ${{ steps.release.outputs['src--draft'] }}"
           echo "path            : ${{ steps.release.outputs['src--path'] }}"
@@ -41,67 +43,67 @@ jobs:
           echo "patch           : ${{ steps.release.outputs['src--patch'] }}"
           echo "sha             : ${{ steps.release.outputs['src--sha'] }}"
 
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-  #     - name: Install dependencies
-  #       run: |
-  #         cd src
-  #         npm install
+      - name: Install dependencies
+        run: |
+          cd src
+          npm install
 
-  #     - name: Run Snyk to check for vulnerabilities
-  #       uses: snyk/actions/node@master
-  #       continue-on-error: true
-  #       env:
-  #         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-  #       with:
-  #         args: --file=./src/package.json --sarif-file-output=snyk.sarif
-  #         # command: test
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --file=./src/package.json --sarif-file-output=snyk.sarif
+          # command: test
           
-  #     - name: Upload Snyk result to GitHub Code Scanning
-  #       uses: github/codeql-action/upload-sarif@v2
-  #       with:
-  #         sarif_file: snyk.sarif
+      - name: Upload Snyk result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.sarif
 
-  #     - name: Install tool for creating stand-alone executables
-  #       if: ${{ steps.release.outputs.releases_created }}
-  #       run: npm install -g pkg
+      - name: Install tool for creating stand-alone executables
+        if: ${{ steps.release.outputs.releases_created }}
+        run: npm install -g pkg
 
-  #     - name: Package stand-alone binaries
-  #       if: ${{ steps.release.outputs.releases_created }}
-  #         # mkdir release/alpine
-  #       run: |
-  #         ls -la
-  #         mkdir release
-  #         mkdir release/macos
-  #         mkdir release/win
-  #         mkdir release/linux
-  #         pkg src/butler.js --config src/package.json --output release/macos/${DIST_FILE_NAME} --targets node16-macos-x64 --compress GZip
-  #         pkg src/butler.js --config src/package.json --output release/win/${DIST_FILE_NAME}.exe --targets node16-win-x64 --compress GZip
-  #         pkg src/butler.js --config src/package.json --output release/linux/${DIST_FILE_NAME} --targets node16-linux-x64 --compress GZip
+      - name: Package stand-alone binaries
+        if: ${{ steps.release.outputs.releases_created }}
+          # mkdir release/alpine
+        run: |
+          ls -la
+          mkdir release
+          mkdir release/macos
+          mkdir release/win
+          mkdir release/linux
+          pkg src/ctrl-q-cli.js --config package.json --output release/macos/${DIST_FILE_NAME} --targets node16-macos-x64 --compress GZip
+          pkg src/ctrl-q-cli.js --config package.json --output release/win/${DIST_FILE_NAME}.exe --targets node16-win-x64 --compress GZip
+          pkg src/ctrl-q-cli.js --config package.json --output release/linux/${DIST_FILE_NAME} --targets node16-linux-x64 --compress GZip
 
-  #     - name: Debug
-  #       if: ${{ steps.release.outputs.releases_created }}
-  #       run: |
-  #         ls -la
-  #         ls -la release
-  #         ls -la release/macos
-  #         ls -la release/win
-  #         ls -la release/linux
+      - name: Debug
+        if: ${{ steps.release.outputs.releases_created }}
+        run: |
+          ls -la
+          ls -la release
+          ls -la release/macos
+          ls -la release/win
+          ls -la release/linux
 
-  #     - name: Upload macOS build artifacts
-  #       if: ${{ steps.release.outputs.releases_created }}
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: binaries-macos
-  #         path: release/macos/*
+      - name: Upload macOS build artifacts
+        if: ${{ steps.release.outputs.releases_created }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries-macos
+          path: release/macos/*
 
-  #     - name: Upload Windows build artifacts
-  #       if: ${{ steps.release.outputs.releases_created }}
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: binaries-win
-  #         path: release/win/*
+      - name: Upload Windows build artifacts
+        if: ${{ steps.release.outputs.releases_created }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries-win
+          path: release/win/*
 
   # release-macos:
   #   needs: release-please
