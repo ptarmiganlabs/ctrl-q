@@ -29,6 +29,8 @@ jobs:
       - name: Show output from Release-Please 3
         # if: ${{ steps.release.outputs.releases_created }}
         run: |
+          echo "All outputs     : ${{ steps.release.outputs }}"
+          echo ""
           echo "releases_created: ${{ steps.release.outputs.releases_created }}"
           echo "draft           : ${{ steps.release.outputs['src--draft'] }}"
           echo "path            : ${{ steps.release.outputs['src--path'] }}"
