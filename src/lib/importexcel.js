@@ -125,6 +125,7 @@ const importMasterItemFromExcel = async (options) => {
             // Loop through all rows
             // eslint-disable-next-line no-restricted-syntax
             for (const row of sheet.data) {
+                logger.debug(`Current row master item type: ${row[colPosMasterItemType]}`);
                 if (row[colPosMasterItemType] === 'dim-single') {
                     // A master dimension of type "single" should be created based on the current row
 

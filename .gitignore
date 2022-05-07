@@ -12,8 +12,6 @@ npm-debug.log
 release/*
 src/release/*
 
-testdata/*
-
 # Logs
 logs
 *.log
