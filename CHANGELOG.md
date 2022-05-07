@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.0.0](https://github.com/ptarmiganlabs/ctrl-q-cli/compare/ctrl-q-cli-v1.3.0...ctrl-q-cli-v2.0.0) (2022-05-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* Refactor options when importing master items from Excel file
+* Refactor all commands to be <entity>-<verb>
+* Refactor parameter names for import-master-items-from-Excel command
+* Change all commands to be <entity>-<verb>
+
+### Features
+
+* Add delete-all option to master item delete commands ([d0719cc](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/d0719cc8b3dcc9aef46fc1d61749948edabe6230))
+* Add dry-run option to master item delete commands ([d0719cc](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/d0719cc8b3dcc9aef46fc1d61749948edabe6230))
+* Add option to limit how many master items are imported from Excel file ([d0719cc](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/d0719cc8b3dcc9aef46fc1d61749948edabe6230))
+* Add option to select auth method to Sense server ([d0719cc](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/d0719cc8b3dcc9aef46fc1d61749948edabe6230)), closes [#31](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/31) [#30](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/30) [#29](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/29) [#32](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/32) [#38](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/38) [#39](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/39)
+* Add option to select authentication method to Sense server ([c426894](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/c42689442a7262e4186c04f5b9c2a8c0e3755ed9)), closes [#31](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/31)
+* Add optional limit to how many master items are imported from Excel file ([c426894](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/c42689442a7262e4186c04f5b9c2a8c0e3755ed9))
+* Refactor all commands to be <entity>-<verb> ([d0719cc](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/d0719cc8b3dcc9aef46fc1d61749948edabe6230))
+* Refactor options when importing master items from Excel file ([d0719cc](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/d0719cc8b3dcc9aef46fc1d61749948edabe6230))
+
+
+### Refactoring
+
+* Change all commands to be <entity>-<verb> ([c426894](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/c42689442a7262e4186c04f5b9c2a8c0e3755ed9)), closes [#32](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/32)
+* Refactor parameter names for import-master-items-from-Excel command ([c426894](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/c42689442a7262e4186c04f5b9c2a8c0e3755ed9))
+
 ## [1.3.0](https://github.com/ptarmiganlabs/ctrl-q-cli/compare/ctrl-q-cli-v1.2.0...ctrl-q-cli-v1.3.0) (2022-05-05)
 
 
