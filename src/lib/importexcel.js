@@ -24,9 +24,8 @@ const getColumnPos = (options, colName, colNameArray) => {
 /**
  *
  * @param {*} options
- * @param {*} command
  */
-const importFromExcel = async (options) => {
+const importMasterItemFromExcel = async (options) => {
     try {
         // Set log level
         setLoggingLevel(options.loglevel);
@@ -311,6 +310,13 @@ const importFromExcel = async (options) => {
     }
 };
 
+const importMasterItemFromFile = (options) => {
+    if (options.fileType === 'excel') {
+        // Source file type is Excel
+        importMasterItemFromExcel(options);
+    }
+};
+
 module.exports = {
-    importFromExcel,
+    importMasterItemFromFile,
 };

@@ -10,7 +10,7 @@ const { deleteMasterMeasure } = require('./lib/deletemeasure');
 
 const { getBookmark } = require('./lib/getbookmark');
 
-const { importFromExcel } = require('./lib/importexcel');
+const { importMasterItemFromFile } = require('./lib/importexcel');
 
 const { scrambleField } = require('./lib/scramblefield');
 const { getScript } = require('./lib/getscript');
@@ -50,7 +50,7 @@ const program = new Command();
 
                 sharedParamAssertOptions(options);
                 masterItemImportAssertOptions(options);
-                importFromExcel(options);
+                importMasterItemFromFile(options);
             } catch (err) {
                 logger.error(`IMPORT EXCEL: ${err}`);
             }
@@ -67,18 +67,19 @@ const program = new Command();
         .requiredOption('--userdir <directory>', 'user directory for user to connect with')
         .requiredOption('--userid <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-t, --import-type <type>', 'import type').choices(['excel']).default('excel'))
+        .addOption(new Option('-t, --file-type <type>', 'source file type').choices(['excel']).default('excel'))
         .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
         .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
-        .requiredOption('--file <filename>', 'Excel file containing master item definitions')
+        .addOption(new Option('--file-type <type>', 'format of source file').choices(['excel']).default('excel'))
+        .requiredOption('--file <filename>', 'file containing master item definitions')
         .requiredOption('--sheet <name>', 'name of Excel sheet where dim/measure flag column is found')
         .addOption(
             new Option(
                 '--col-ref-by <reftype>',
-                'how to refer to columns in the Excel file. Options are by name or by position (zero based)'
+                'how to refer to columns in the source file. Options are by name or by position (zero based)'
             )
                 .choices(['name', 'position'])
                 .default('name')
