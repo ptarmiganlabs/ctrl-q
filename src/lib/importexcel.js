@@ -126,29 +126,29 @@ const importFromExcel = async (options) => {
             // Loop through all rows
             // eslint-disable-next-line no-restricted-syntax
             for (const row of sheet.data) {
-                if (row[colPosMasterItemType] === 'dim') {
-                    // A master dimension should be created based on the current row
+                if (row[colPosMasterItemType] === 'dim-single') {
+                    // A master dimension of type "single" should be created based on the current row
 
                     // Data that should be written to new dimension
-                    let dimData = {
+                    let dimSingleData = {
                         qInfo: {
                             qType: 'dimension',
                         },
                         qDim: {
                             // title: row[parseInt(options.columnname, 10)],
                             qGrouping: 'N',
-                            qFieldDefs: [row[parseInt(options.columnexpr, 10)]],
+                            qFieldDefs: [row[colPosMasterItemExpr]],
                             // qFieldLabels: [row[parseInt(options.columnexpr, 10)]],
                             qFieldLabels: [],
-                            qLabelExpression:
-                                row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
-                                    ? row[parseInt(options.columnlabel, 10)]
-                                    : `'${row[parseInt(options.columnlabel, 10)]}'`,
+                            qLabelExpression: row[colPosMasterItemLabel],
+                            // row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
+                            //     ? row[parseInt(options.columnlabel, 10)]
+                            //     : `'${row[parseInt(options.columnlabel, 10)]}'`,
                         },
                         qMetaDef: {
-                            title: row[parseInt(options.columnname, 10)],
-                            description: row[parseInt(options.columndescr, 10)],
-                            tags: row[parseInt(options.columntag, 10)].split(','),
+                            title: row[colPosMasterItemName],
+                            description: row[colPosMasterItemDescr],
+                            tags: row[colPosMasterItemTag].split(','),
                             owner: {
                                 userId: options.userid,
                                 userDirectory: options.userdir,
@@ -158,34 +158,32 @@ const importFromExcel = async (options) => {
 
                     // Test if a master dimension with the given title already exists.
                     // If it does, update it rather than creating a new one.
-                    const existingItem = dimObj.qDimensionList.qItems.find(
-                        (item) => item.qMeta.title === row[parseInt(options.columnname, 10)]
-                    );
+                    const existingItem = dimObj.qDimensionList.qItems.find((item) => item.qMeta.title === row[colPosMasterItemName]);
                     if (existingItem) {
                         // An existing master dimension has same name as the one being created.
 
                         // Get existing dimension (that should be updated)
                         const existingDim = await app.getDimension(existingItem.qInfo.qId);
 
-                        dimData = {
+                        dimSingleData = {
                             qInfo: {
                                 qType: 'dimension',
                             },
                             qDim: {
                                 qGrouping: 'N',
-                                qFieldDefs: [row[parseInt(options.columnexpr, 10)]],
+                                qFieldDefs: [row[colPosMasterItemExpr]],
                                 qFieldLabels: [],
-                                title: row[parseInt(options.columnname, 10)],
-                                qLabelExpression:
-                                    row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
-                                        ? row[parseInt(options.columnlabel, 10)]
-                                        : `'${row[parseInt(options.columnlabel, 10)]}'`,
+                                title: row[colPosMasterItemName],
+                                qLabelExpression: row[colPosMasterItemLabel],
+                                // row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
+                                //     ? row[parseInt(options.columnlabel, 10)]
+                                //     : `'${row[parseInt(options.columnlabel, 10)]}'`,
                                 // coloring: colorBlock,
                             },
                             qMetaDef: {
-                                title: row[parseInt(options.columnname, 10)],
-                                description: row[parseInt(options.columndescr, 10)],
-                                tags: row[parseInt(options.columntag, 10)].split(','),
+                                title: row[colPosMasterItemName],
+                                description: row[colPosMasterItemDescr],
+                                tags: row[colPosMasterItemTag].split(','),
                                 // masterScriptId: t.msId,
                                 // owner: {
                                 //   userId: options.userid,
@@ -195,8 +193,8 @@ const importFromExcel = async (options) => {
                         };
 
                         // Update existing dimension with new data
-                        const res = await existingDim.setProperties(dimData);
-                        logger.info(`Updated existing dimension "${dimData.qMetaDef.title}"`);
+                        const res = await existingDim.setProperties(dimSingleData);
+                        logger.info(`Updated existing dimension "${dimSingleData.qMetaDef.title}"`);
 
                         importCount += 1;
                         if (importCount === parseInt(options.limitImportCount, 10)) {
@@ -204,8 +202,8 @@ const importFromExcel = async (options) => {
                         }
                     } else {
                         // Create a new master dimension in the app
-                        const res = await app.createDimension(dimData);
-                        logger.info(`Created new dimension "${dimData.qMetaDef.title}"`);
+                        const res = await app.createDimension(dimSingleData);
+                        logger.info(`Created new dimension "${dimSingleData.qMetaDef.title}"`);
 
                         importCount += 1;
                         if (importCount === parseInt(options.limitImportCount, 10)) {
@@ -251,7 +249,6 @@ const importFromExcel = async (options) => {
                         // An existing master measure has same name as the one being created.
 
                         // Get existing measure (that should be updated)
-                        // eslint-disable-next-line no-await-in-loop
                         const existingMeasure = await app.getMeasure(existingItem.qInfo.qId);
 
                         measureData = {
@@ -283,7 +280,6 @@ const importFromExcel = async (options) => {
                         };
 
                         // Update existing measure with new data
-                        // eslint-disable-next-line no-await-in-loop
                         const res = await existingMeasure.setProperties(measureData);
                         logger.info(`Updated existing measure "${measureData.qMetaDef.title}"`);
 
@@ -293,8 +289,6 @@ const importFromExcel = async (options) => {
                         }
                     } else {
                         // Create a new master measure in the app
-
-                        // eslint-disable-next-line no-await-in-loop
                         const res = await app.createMeasure(measureData);
                         logger.info(`Created new measure "${measureData.qMetaDef.title}"`);
 
