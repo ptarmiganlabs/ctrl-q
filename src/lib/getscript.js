@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 const enigma = require('enigma.js');
 const { setupEnigmaConnection } = require('./enigma');
 const { logger, setLoggingLevel } = require('../globals');
@@ -6,9 +5,8 @@ const { logger, setLoggingLevel } = require('../globals');
 /**
  *
  * @param {*} options
- * @param {*} command
  */
-const getScript = async (options, command) => {
+const getScript = async (options) => {
     try {
         // Set log level
         setLoggingLevel(options.loglevel);
@@ -41,7 +39,7 @@ const getScript = async (options, command) => {
             logger.info(`Created date: ${appScript.qMeta.createdDate}`);
             logger.info(`Modified date: ${appScript.qMeta.modifiedDate}`);
             logger.info('----- End script metadata -----');
-            console.log(`${appScript.qScript}`);
+            logger.info(`\n${appScript.qScript}`);
         } else {
             logger.error(`Failed getting script for app ${options.appid}`);
         }

@@ -26,7 +26,7 @@ const getColumnPos = (options, colName, colNameArray) => {
  * @param {*} options
  * @param {*} command
  */
-const importFromExcel = async (options, command) => {
+const importFromExcel = async (options) => {
     try {
         // Set log level
         setLoggingLevel(options.loglevel);
