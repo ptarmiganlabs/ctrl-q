@@ -35,7 +35,8 @@
     "node-xlsx": "^0.21.0",
     "table": "^6.8.0",
     "winston": "^3.7.2",
-    "winston-daily-rotate-file": "^4.6.1"
+    "winston-daily-rotate-file": "^4.6.1",
+    "ws": "^8.6.0"
   },
   "devDependencies": {
     "prettier": "2.6.2",

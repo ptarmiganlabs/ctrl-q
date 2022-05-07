@@ -15,7 +15,15 @@ const { importFromExcel } = require('./lib/importexcel');
 const { scrambleField } = require('./lib/scramblefield');
 const { getScript } = require('./lib/getscript');
 
-const { sharedParamAssertOptions, importExcelAssertOptions } = require('./lib/assert-options');
+const {
+    sharedParamAssertOptions,
+    masterItemImportAssertOptions,
+    masterItemMeasureDeleteAssertOptions,
+    masterItemDimDeleteAssertOptions,
+    masterItemGetAssertOptions,
+    getScriptAssertOptions,
+    getBookmarkAssertOptions,
+} = require('./lib/assert-options');
 
 const program = new Command();
 
@@ -35,14 +43,14 @@ const program = new Command();
     program
         .command('master-item-import')
         .description('create master items based on definitions in an file on disk')
-        .action(async (options, command) => {
+        .action(async (options) => {
             try {
                 logger.verbose(`appid=${options.appid}`);
                 logger.verbose(`itemid=${options.itemid}`);
 
                 sharedParamAssertOptions(options);
-                // importExcelAssertOptions(options);
-                importFromExcel(options, command);
+                masterItemImportAssertOptions(options);
+                importFromExcel(options);
             } catch (err) {
                 logger.error(`IMPORT EXCEL: ${err}`);
             }
@@ -61,7 +69,6 @@ const program = new Command();
 
         .addOption(new Option('-t, --import-type <type>', 'import type').choices(['excel']).default('excel'))
         .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
-        .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
@@ -96,10 +103,14 @@ const program = new Command();
     program
         .command('master-item-measure-get')
         .description('get info about one or more master measures')
-        .action(async (options, command) => {
+        .action(async (options) => {
             logger.verbose(`appid=${options.appid}`);
             logger.verbose(`itemid=${options.itemid}`);
-            getMasterMeasure(options, command);
+
+            sharedParamAssertOptions(options);
+            masterItemGetAssertOptions(options);
+
+            getMasterMeasure(options);
         })
         .addOption(
             new Option('--loglevel <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
@@ -115,21 +126,27 @@ const program = new Command();
 
         .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
         .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-        .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
-        .option('--itemid <id>', 'master measure to retrieve. If not specified all measures will be retrieved')
-        .option('--outputformat <json|table>', 'output format', 'json');
+        .addOption(
+            new Option('--id-type <type>', 'type of identifier passed in the --master-item option').choices(['id', 'name']).default('name')
+        )
+        .option('--master-item <ids...>', 'master measure to retrieve. If not specified all measures will be retrieved')
+        .addOption(new Option('--output-format <format>', 'output format').choices(['json', 'table']).default('json'));
 
     // Delete measure command
     program
         .command('master-item-measure-delete')
         .description('delete master measure(s)')
-        .action(async (options, command) => {
+        .action(async (options) => {
             logger.verbose(`appid=${options.appid}`);
             logger.verbose(`itemid=${options.itemid}`);
-            deleteMasterMeasure(options, command);
+
+            sharedParamAssertOptions(options);
+            masterItemMeasureDeleteAssertOptions(options);
+
+            deleteMasterMeasure(options);
         })
         .addOption(
             new Option('--loglevel <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
@@ -145,20 +162,25 @@ const program = new Command();
 
         .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
         .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-        .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
-        .requiredOption('--itemid <id|ids>', 'IDs of master measure(s) to be deleted. Multiple IDs should be comma separated');
+        .addOption(new Option('--id-type <type>', 'type of identifier passed in the --master-item option').choices(['id', 'name']))
+        .option('--master-item <ids...>', 'names or IDs of master measures to be deleted. Multiple IDs should be space separated')
+        .option('--delete-all', 'delete all master measures')
+        .option('--dry-run', 'do a dry run, i.e. do not delete anything - just show what would be deleted');
 
     // Get dimension command
     program
         .command('master-item-dim-get')
         .description('get info about one or more master dimensions')
-        .action(async (options, command) => {
+        .action(async (options) => {
             logger.verbose(`appid=${options.appid}`);
             logger.verbose(`itemid=${options.itemid}`);
-            getMasterDimension(options, command);
+
+            sharedParamAssertOptions(options);
+
+            getMasterDimension(options);
         })
         .addOption(
             new Option('--loglevel <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
@@ -167,49 +189,34 @@ const program = new Command();
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
         .option('--schemaversion <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--appid <id>', 'Qlik Sense app ID')
-        .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-        .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
-        .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
         .requiredOption('--prefix <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
         .requiredOption('--userdir <directory>', 'user directory for user to connect with')
         .requiredOption('--userid <userid>', 'user ID for user to connect with')
 
-        .option('--itemid <id>', 'master dimension to retrieve. If not specified all dimensions will be retrieved')
-        .option('--outputformat <json|table>', 'output format', 'json');
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
-    // Create dimension command
-    // program
-    //   .command('createdim')
-    //   .description('create a new master dimension')
-    //   .action(async (options, command) => {
-    // logger.verbose('appid=' + options.appid);
-    // logger.verbose('itemid=' + options.itemid);
-    //     createMasterDimension(options, command);
-    //   })
-    //   .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-    //   .option('--port <port>', 'Qlik Sense server engine port', '4747')
-    //   .option('--schemaversion <string>', 'Qlik Sense engine schema version', '12.612.0')
-    //   .requiredOption('--appid <id>', 'Qlik Sense app whose master items should be modified')
-    //   .requiredOption('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-    //   .requiredOption('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
-    //   .requiredOption('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
-    //   .requiredOption('--prefix <prefix>', 'Qlik Sense virtual proxy prefix', '')
-    //   .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
-    //   .requiredOption('--userdir <directory>', 'user directory for user to connect with')
-    //   .requiredOption('--userid <userid>', 'user ID for user to connect with')
-
-    //   .requiredOption('--itemname <name>', 'name of master item to be created')
-    //   .requiredOption('--expression <expression>', 'expression to use for new master item')
+        .addOption(
+            new Option('--id-type <type>', 'type of identifier passed in the --master-item option').choices(['id', 'name']).default('name')
+        )
+        .option('--master-item <ids...>', 'master measure to retrieve. If not specified all measures will be retrieved')
+        .addOption(new Option('--output-format <format>', 'output format').choices(['json', 'table']).default('json'));
 
     // Delete dimension command
     program
         .command('master-item-dim-delete')
         .description('delete master dimension(s)')
-        .action(async (options, command) => {
+        .action(async (options) => {
             logger.verbose(`appid=${options.appid}`);
             logger.verbose(`itemid=${options.itemid}`);
-            deleteMasterDimension(options, command);
+
+            sharedParamAssertOptions(options);
+            masterItemDimDeleteAssertOptions(options);
+
+            deleteMasterDimension(options);
         })
         .addOption(
             new Option('--loglevel <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
@@ -225,20 +232,25 @@ const program = new Command();
 
         .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
         .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-        .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
-        .requiredOption('--itemid <id|ids>', 'IDs of master dimension(s) to be deleted. Multiple IDs should be comma separated');
+        .addOption(new Option('--id-type <type>', 'type of identifier passed in the --master-item option').choices(['id', 'name']))
+        .option('--master-item <ids...>', 'names or IDs of master dimensions to be deleted. Multiple IDs should be space separated')
+        .option('--delete-all', 'delete all master dimensions')
+        .option('--dry-run', 'do a dry run, i.e. do not delete anything - just show what would be deleted');
 
     // Scramble field command
     program
         .command('field-scramble')
         .description('scramble one or more fields in an app. A new app with the scrambled data is created.')
-        .action(async (options, command) => {
+        .action(async (options) => {
             logger.verbose(`appid=${options.appid}`);
             logger.verbose(`fieldname=${options.fieldname}`);
-            scrambleField(options, command);
+
+            sharedParamAssertOptions(options);
+
+            scrambleField(options);
         })
         .addOption(
             new Option('--loglevel <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
@@ -254,24 +266,23 @@ const program = new Command();
 
         .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
         .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-        .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
-        .requiredOption(
-            '--fieldname <name|names>',
-            'name of field(s) to be scrambled. Separate field names with <separator> character/string'
-        )
-        .requiredOption('--separator <char|string>', 'character or string to be used as separator between field names', ',')
-        .requiredOption('--newappname <name>', 'name of new app that will contain scrambled data');
+        .requiredOption('--field-name <names...>', 'name of field(s) to be scrambled')
+        .requiredOption('--new-app-name <name>', 'name of new app that will contain scrambled data');
 
     // Get script command
     program
         .command('script-get')
         .description('get script from Qlik Sense app')
-        .action(async (options, command) => {
+        .action(async (options) => {
             logger.verbose(`appid=${options.appid}`);
-            getScript(options, command);
+
+            sharedParamAssertOptions(options);
+            getScriptAssertOptions(options);
+
+            getScript(options);
         })
         .addOption(
             new Option('--loglevel <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
@@ -286,13 +297,6 @@ const program = new Command();
         .requiredOption('--userid <userid>', 'user ID for user to connect with')
 
         .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
-        .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-        .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-        .option('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
-        .option('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
-
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
-        .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem');
@@ -301,10 +305,14 @@ const program = new Command();
     program
         .command('bookmark-get')
         .description('get info about one or more bookmarks')
-        .action(async (options, command) => {
+        .action(async (options) => {
             logger.verbose(`appid=${options.appid}`);
             logger.verbose(`itemid=${options.itemid}`);
-            getBookmark(options, command);
+
+            sharedParamAssertOptions(options);
+            getBookmarkAssertOptions(options);
+
+            getBookmark(options);
         })
         .addOption(
             new Option('--loglevel <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
@@ -320,12 +328,16 @@ const program = new Command();
 
         .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
         .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-        .option('--certfile <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--certkeyfile <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--rootcertfile <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
-        .option('--itemid <id>', 'bookmark to retrieve. If not specified all bookmarks will be retrieved')
-        .option('--outputformat <json|table>', 'output format', 'json');
+        .addOption(
+            new Option('--id-type <type>', 'type of bookmark identifier passed in the --bookmark option')
+                .choices(['id', 'name'])
+                .default('name')
+        )
+        .option('--bookmark <bookmarks...>', 'bookmark to retrieve. If not specified all bookmarks will be retrieved')
+        .option('--output-format <json|table>', 'output format', 'json');
 
     // Parse command line params
     await program.parseAsync(process.argv);
