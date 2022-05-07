@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.1.0](https://github.com/ptarmiganlabs/ctrl-q-cli/compare/ctrl-q-cli-v2.0.0...ctrl-q-cli-v2.1.0) (2022-05-07)
+
+
+### Features
+
+* Add test data Excel file for master item import ([74ecd00](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/74ecd00a541c6e1fd50e0c94525bdbc32b98c6c1)), closes [#45](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/45) [#47](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/47)
+
+
+### Refactoring
+
+* Add better debug logging when importing master items ([74ecd00](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/74ecd00a541c6e1fd50e0c94525bdbc32b98c6c1))
+
 ## [2.0.0](https://github.com/ptarmiganlabs/ctrl-q-cli/compare/ctrl-q-cli-v1.3.0...ctrl-q-cli-v2.0.0) (2022-05-07)
 
 

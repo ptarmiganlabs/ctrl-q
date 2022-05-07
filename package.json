@@ -1,6 +1,6 @@
 {
   "name": "ctrl-q-cli",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Command line tool for interacting with Qlik Sense Enterprise servers",
   "main": "./src/ctrl-q-cli.js",
   "scripts": {
