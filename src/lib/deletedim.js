@@ -95,7 +95,7 @@ const deleteMasterDimension = async (options) => {
         } else {
             // eslint-disable-next-line no-restricted-syntax
             for (const item of deleteMasterItems) {
-                if (options.dryRun === false) {
+                if (options.dryRun === undefined || options.dryRun === false) {
                     // eslint-disable-next-line no-await-in-loop
                     const res = await app.destroyDimension(item.qInfo.qId);
                     if (res !== true) {
