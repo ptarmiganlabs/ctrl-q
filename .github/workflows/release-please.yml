@@ -14,7 +14,7 @@ jobs:
     env:
       GITHUB_REF: ${{ github.ref }}
       GITHUB_TOKEN: ${{ secrets.PAT }}
-      DIST_FILE_NAME: ctrl-q-cli
+      DIST_FILE_NAME: ctrl-q
     steps:
       - name: Show github.ref
         run: echo "$GITHUB_REF"
@@ -88,9 +88,9 @@ jobs:
           mkdir release/macos
           mkdir release/win
           mkdir release/linux
-          pkg src/ctrl-q-cli.js --config package.json --output release/macos/${DIST_FILE_NAME} --targets node16-macos-x64 --compress GZip
-          pkg src/ctrl-q-cli.js --config package.json --output release/win/${DIST_FILE_NAME}.exe --targets node16-win-x64 --compress GZip
-          pkg src/ctrl-q-cli.js --config package.json --output release/linux/${DIST_FILE_NAME} --targets node16-linux-x64 --compress GZip
+          pkg src/ctrl-q.js --config package.json --output release/macos/${DIST_FILE_NAME} --targets node16-macos-x64 --compress GZip
+          pkg src/ctrl-q.js --config package.json --output release/win/${DIST_FILE_NAME}.exe --targets node16-win-x64 --compress GZip
+          pkg src/ctrl-q.js --config package.json --output release/linux/${DIST_FILE_NAME} --targets node16-linux-x64 --compress GZip
 
       - name: Debug
         if: ${{ steps.release.outputs.releases_created }}
@@ -126,7 +126,7 @@ jobs:
 
     if: ${{ needs.release-please.outputs.releases_created }} 
     env:
-      DIST_FILE_NAME: ctrl-q-cli
+      DIST_FILE_NAME: ctrl-q
     steps:
       - name: Release tag and upload url from previous job
         run: |
@@ -214,7 +214,7 @@ jobs:
     # timeout-minutes: 15
     if: ${{ needs.release-please.outputs.releases_created }} 
     env:
-      DIST_FILE_NAME: ctrl-q-cli
+      DIST_FILE_NAME: ctrl-q
     steps:
       - name: Release tag and upload url from previous job
         run: |

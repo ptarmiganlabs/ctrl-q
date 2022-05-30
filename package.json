@@ -1,8 +1,8 @@
 {
-  "name": "ctrl-q-cli",
+  "name": "ctrl-q",
   "version": "2.1.0",
   "description": "Command line tool for interacting with Qlik Sense Enterprise servers",
-  "main": "./src/ctrl-q-cli.js",
+  "main": "./src/ctrl-q.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,7 +24,7 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "commander": "^9.2.0",
+    "commander": "^9.3.0",
     "enigma.js": "^2.9.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -35,12 +35,12 @@
     "node-xlsx": "^0.21.0",
     "table": "^6.8.0",
     "winston": "^3.7.2",
-    "winston-daily-rotate-file": "^4.6.1",
-    "ws": "^8.6.0"
+    "winston-daily-rotate-file": "^4.7.1",
+    "ws": "^8.7.0"
   },
   "devDependencies": {
     "prettier": "2.6.2",
-    "snyk": "1.915.0"
+    "snyk": "^1.942.0"
   },
   "pkg": {
     "scripts": [

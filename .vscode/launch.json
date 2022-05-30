@@ -10,51 +10,60 @@
       "name": "Launch Program",
       "program": "${workspaceFolder}/src/ctrl-q-cli.js",
 
-      // Import master items from Excel file
+      // Import master items from Excel file, using column names
       // "args": [
-      //   "importexcel",
+      //   "master-item-import",
+      //   "--auth-type",
+      //   "cert",
       //   "--host",
       //   "192.168.100.109",
       //   "--appid",
-      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
       //   "--userdir",
       //   "LAB",
       //   "--userid",
       //   "goran",
       //   "--file",
-      //   "/Users/goran/code/ctrl-q-cli/test/variables.xlsx",
+      //   "/Users/goran/code/ctrl-q-cli/testdata/Variable List CRM.xlsx",
       //   "--sheet",
-      //   "Sales",
-      //   "--columnflag",
-      //   "0",
-      //   "--columnname",
-      //   "5",
-      //   "--columndescr",
-      //   "10",
-      //   "--columnlabel",
-      //   "6",
-      //   "--columnexpr",
-      //   "1",
-      //   "--columntag",
-      //   "7"
+      //   "CRM",
+      //   "--col-ref-by",
+      //   "name",
+      //   "--col-item-type",
+      //   "ctrl-q Master item type",
+      //   "--col-master-item-name",
+      //   "Master Item Name",
+      //   "--col-master-item-descr",
+      //   "ctrl-q Description variable",
+      //   "--col-master-item-label",
+      //   "ctrl-q Label variable",
+      //   "--col-master-item-expr",
+      //   "ctrl-q Expression variable",
+      //   "--col-master-item-tag",
+      //   "Tag",
+      //   // "--limit-import-count",
+      //   // "5"
       // ]
 
-      // Create dimension
-      // "args": [
-      //     "createdim",
-      //     "--host",
-      //     "192.168.100.109",
-      //     "--appid",
-      //     "a3e0f5d2-000a-464f-998d-33d333b175d7",
-      //     "--itemname",
-      //     "Dimension 2b",
-      //     "--expression",
-      //     "",
-      //     "--userdir",
-      //     "LAB",
-      //     "--userid",
-      //     "goran"
-      // ]
+      // Delete master measure
+      "args": [
+        "master-item-measure-delete",
+        "--auth-type",
+        "cert",
+        "--host",
+        "192.168.100.109",
+        "--appid",
+        "2933711d-6638-41d4-a2d2-6dd2d965208b",
+        "--userdir",
+        "LAB",
+        "--userid",
+        "goran",
+        "--id-type",
+        "name",
+        // "--master-item",
+        // "# No. of Contacts (LY)",
+        "--delete-all"
+      ]
 
       //   Get dimension
       // "args": [
@@ -70,98 +79,154 @@
       //   "--userid",
       //   "goran"
       // ]
-
+      
       //   Delete dimension
       // "args": [
-      //   "deletedim",
+      //   "master-item-dim-delete",
+      //   "--auth-type",
+      //   "cert",
       //   "--host",
       //   "192.168.100.109",
       //   "--appid",
-      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
       //   "--userdir",
       //   "LAB",
       //   "--userid",
       //   "goran",
-      //   "--itemid",
-      //   "28dc1d7d-52a4-41ff-b5a1-bca33efbb47c, 59f91744-f663-4d25-ac54-84e37eb6c49a,076b0d76-a873-4fb2-86eb-f413a6ffd1da"
+      //   "--id-type",
+      //   "name",
+      //   "--master-item",
+      //   "Dim2",
+      //   "Dim3"
       // ]
 
-      //   Get bookmark
-      "args": [
-        "getbookmark",
-        "--host",
-        "192.168.100.109",
-        "--appid",
-        "a3e0f5d2-000a-464f-998d-33d333b175d7",
-        "--outputformat",
-        "json",
-        "--userdir",
-        "LAB",
-        "--userid",
-        "goran"
-      ]
+      //   Get all bookmark by name
+    //   "args": [
+    //     "bookmark-get",
+    //     "--auth-type",
+    //     "cert",
+    //     "--host",
+    //     "192.168.100.109",
+    //     "--appid",
+    //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
+    //     "--userdir",
+    //     "LAB",
+    //     "--userid",
+    //     "goran",
+    //     "--id-type",
+    //     "id",
+    //     // "--bookmark",
+    //     // "Bookmark 1",
+    //     // "Bookmark 3",
+    //     "--output-format",
+    //     "table"
+    // ]
 
-      //   Get measure
+      //   Get measure by id
       // "args": [
-      //   "getmeasure",
+      //   "master-item-measure-get",
+      //   "--auth-type",
+      //   "cert",
       //   "--host",
       //   "192.168.100.109",
       //   "--appid",
-      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
-      //   "--outputformat",
-      //   "table",
-      //   "--userdir",
-      //   "LAB",
-      //   "--userid",
-      //   "goran"
-      // ]
-
-      //   Delete measure
-      // "args": [
-      //   "deletemeasure",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--appid",
-      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
       //   "--userdir",
       //   "LAB",
       //   "--userid",
       //   "goran",
-      //   "--itemid",
-      //   "9bf5115a-76c1-45ee-a4ed-5f2fc4090c89,9d19481d-e65c-4cec-a8f4-b21c29bb7976"
-      // ]
+      //   "--id-type",
+      //   "id",
+      //   "--master-item",
+      //   "d9b03666-3010-43a0-92ed-9e0e4cda4dae",
+      //   "f992239e-0a66-400c-b974-fcb90e1b554e",
+      //   "--output-format",
+      //   "table"
+      // ]      
 
-      //   Scramble field
+      //   Get measure by name
       // "args": [
-      //   "scramblefield",
+      //   "master-item-measure-get",
+      //   "--auth-type",
+      //   "cert",
       //   "--host",
       //   "192.168.100.109",
       //   "--appid",
-      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
-      //   // "477821a8-6a8d-4ede-a245-7190da9d522e",
+      //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
       //   "--userdir",
-      //   // "INTERNAL",
       //   "LAB",
       //   "--userid",
-      //   // "sa_api",
       //   "goran",
-      //   "--fieldname",
-      //   "Expression1,Dim1,AsciiAlpha",
-      //   "--separator",
-      //   ",",
-      //   "--newappname",
-      //   "__ScrambledTest1",
-      //   "--loglevel",
-      //   "silly"
+      //   "--id-type",
+      //   "name",
+      //   "--master-item",
+      //   "# No. of Contacts (LY)",
+      //    "# No. of Contacts Index2",
+      //   "--output-format",
+      //   "table"
+      // ]   
+
+      //   Delete measure by id
+      // "args": [
+      //   "master-item-measure-delete",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--appid",
+      //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
+      //   "--userdir",
+      //   "LAB",
+      //   "--userid",
+      //   "goran",
+      //   "--id-type",
+      //   "id",
+      //   "--master-item",
+      //   "77ead64e-8bf3-4cd4-bc97-ae45b7521081",
+      //   "7dde35ea-4cd7-43f5-a83e-40bb0d45339b"
       // ]
 
-      //   Get script
+      //   Delete measure by name
+      // "args": [
+      //   "master-item-measure-delete",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--appid",
+      //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
+      //   "--userdir",
+      //   "LAB",
+      //   "--userid",
+      //   "goran",
+      //   "--id-type",
+      //   "name",
+      //   "--master-item",
+      //   "# No. of Contacts",
+      //   // "# No. of Contacts (LY)"
+      // ]
+
+        // Scramble field
+      // "args": [
+      //   "field-scramble",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--appid",
+      //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
+      //   "--userdir",
+      //   "LAB",
+      //   "--userid",
+      //   "goran",
+      //   "--field-name",
+      //   "Dim4",
+      //   "Dim2",
+      //   "--new-app-name",
+      //   "New scrambled app"
+      // ]
+
+      //   // Get script
       // "args": [
       //   "getscript",
       //   "--host",
       //   "192.168.100.109",
       //   "--appid",
-      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "deba4bcf-47e4-472e-97b2-4fe8d6498e11",
       //   "--userdir",
       //   "LAB",
       //   "--userid",

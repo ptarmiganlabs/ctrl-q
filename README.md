@@ -1,16 +1,56 @@
-# ctrl-q-cli
+# Ctrl-Q
 
-A cross platform, command line tool for interacting with Qlik Sense Enterprise on Windows.
+Ctrl-Q is a cross platform, command line tool for interacting with client-managed Qlik Sense Enterprise on Windows.  
+Ctrl-Q is open source with a permissive MIT license.
 
-The tool is designed to be easily extensible if/when additional features are needed.  
-In other words: If some feature available in the QSEoW APIs, it can most likely be added to ctrl-q-api without too much effort.
+The tool is designed to be easily extensible if/when additional features are needed.
 
-## Install
+Focus is on slightly more complex use cases that are not handled out of the box by other tools such as [Qlik's official Qlik CLI tool](https://qlik.dev/libraries-and-tools/qlik-cli) or Adam Haydon's [Qlik CLI Windows](https://github.com/ahaydon/Qlik-Cli-Windows) tool.  
+Both are exceptional tools and extremely useful, but especially when it comes to interactions with the Qlik Sense engine they fall a bit short.
 
-Ctrl-Q CLI is built using [Node.js](https://nodejs.org/en/).  
-The most recent LTS version should work.
+Ctrl-Q also tries to fill niches that are not covered by the various members of the Butler family of open source SenseOps tools.
 
-Clone the repository then run `npm install` to download all dependencies.
+The Butler tools each focus on a specific feature (or features in the case of [the original Butler tool](https://github.com/ptarmiganlabs/butler)) and goes fairly deep in those areas.  
+For example, [Butler SOS](https://github.com/ptarmiganlabs/butler-sos) focus on getting real-time metrics and events out of Sense and into a wide range of target databases and monitoring tools.  
+Butler Sheet Icons creates sheet thumbnails for Sense apps - but offers lots of flexibility and power around that use case.
+
+Ctrl-Q instead focus on specific, high-value uses cases that tend to be vary time consuming to do manually.  
+
+Automated creation of master items is an example.  
+Manually creating hundreds of master items can take hours or days.  
+Having the definitions in an Excel file and then using Ctrl-Q shorten that time to minutes - at least once that Excel file has been created.  
+A bonus is that the process can be included in CI/CD pipelines, with increased reusability and app quality as a result.
+
+Maybe Qlik's CLI tool will evolve to include more of these use cases and engine-focused features too - great if so.  
+Until then Ctrl-Q can hopefully make life a bit easier for Sense developers and admins out there.
+
+Enjoy!
+
+## Contents
+
+- [Ctrl-Q](#ctrl-q)
+  - [Contents](#contents)
+  - [Getting started](#getting-started)
+  - [Logging](#logging)
+  - [Commands](#commands)
+  - [Commands](#commands-1)
+    - [Bookmarks](#bookmarks)
+      - [List bookmarks](#list-bookmarks)
+    - [Measures](#measures)
+      - [List measures](#list-measures)
+      - [Delete measures](#delete-measures)
+    - [Dimensions](#dimensions)
+    - [Import](#import)
+    - [Scramble](#scramble)
+    - [Get script](#get-script)
+
+## Getting started
+
+There is no need to install Ctrl-Q. Just download and run.  
+The GitHub [release page](https://github.com/ptarmiganlabs/ctrl-q/releases) has ready-to-run binaries for Windows and macOS
+
+The macOS binary is security scanned and signed by Apple, using their standard notarization process.  
+This means you won't get those annoying warnings when using the app.
 
 ## Logging
 
@@ -18,63 +58,63 @@ Logging is controlled by the --loglevel option.
 
 Valid values are (in order of increasing verbosity): error, warning, info, verbose, debug, silly.
 
-When using log level silly all websocket communication to/from the Sense server will be logged to the console.
+Note: When using log level silly all websocket communication to/from the Sense server will be logged to the console. This means *lots* of log output.
 
 ## Commands
 
 List available commands using the --help option:
 
 ```bash
-➜ node ctrl-q-cli.js --help
-Usage: ctrl-q-cli [options] [command]
+➜  tools ./ctrl-q --help
+Usage: ctrl-q [options] [command]
 
-This is a command line utility for interacting with Qlik Sense Enterprise on Windows servers.
+Ctrl-Q is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.
 Among other things the tool manipulates master items and scrambles in-app data.
 
 Options:
-  -V, --version            output the version number
-  -h, --help               display help for command
+  -V, --version                         output the version number
+  -h, --help                            display help for command
 
 Commands:
-  importexcel [options]    create master items based on definitions in an Excel file
-  getmeasure [options]     get info about one or more master measures
-  deletemeasure [options]  delete master measure(s)
-  getdim [options]         get info about one or more master dimensions
-  deletedim [options]      delete master dimension(s)
-  scramblefield [options]  scramble one or more fields in an app. A new app with the scrambled data is created.
-  getscript [options]      get script from Qlik Sense app
-  getbookmark [options]    get info about one or more bookmarks
-  help [command]           display help for command
-➜ 
+  master-item-import [options]          create master items based on definitions in an file on disk
+  master-item-measure-get [options]     get info about one or more master measures
+  master-item-measure-delete [options]  delete master measure(s)
+  master-item-dim-get [options]         get info about one or more master dimensions
+  master-item-dim-delete [options]      delete master dimension(s)
+  field-scramble [options]              scramble one or more fields in an app. A new app with the scrambled data is created.
+  script-get [options]                  get script from Qlik Sense app
+  bookmark-get [options]                get info about one or more bookmarks
+  help [command]                        display help for command
+➜  tools
 ```
 
-## Testing
+## Commands
 
 ### Bookmarks
 
-List bookmarks
+#### List bookmarks
 
 ```bash
-➜ node ctrl-q-cli.js getbookmark --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --outputformat table --userdir LAB --userid goran --loglevel verbose
+➜  tools ./ctrl-q-cli bookmark-get --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --userdir LAB --userid goran --loglevel info --certfile ~/code/secret/pro2win1-nopwd/client.pem --certkeyfile ~/code/secret/pro2win1-nopwd/client_key.pem
+2022-05-28T15:26:06.463Z info: Get bookmarks
+2022-05-28T15:26:06.825Z info: Bookmarks
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                                                 Bookmarks (1 bookmarks found in the app)                                                                                                                                 │
+├──────────────────────────────────────┬──────────┬───────────┬─────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬───────────┤
+│ Id                                   │ Type     │ Title     │ Description     │ Bookmark definition                                                                                  │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner     │
+├──────────────────────────────────────┼──────────┼───────────┼─────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┤
+│ 81ec0c0d-c90c-431b-8c19-eff4048de404 │ bookmark │ Bookmark1 │ BM1 description │ {"qStateData":[{"qStateName":"$","qFieldItems":[{"qDef":{"qName":"Dim1","qType":"PRESENT"},"qSelectI │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-07-06T15:09:38.565Z │ 2021-07-06T15:09:38.565Z │ LAB\goran │
+│                                      │          │           │                 │ nfo":{"qRangeLo":"NaN","qRangeHi":"NaN","qNumberFormat":{"qType":"U","qnDec":10,"qUseThou":0},"qRang │          │           │                          │                          │                          │           │
+│                                      │          │           │                 │ eInfo":[],"qContinuousRangeInfo":[]},"qValues":[],"qExcludedValues":[]}]}],"qUtcModifyTime":44383.71 │          │           │                          │                          │                          │           │
+│                                      │          │           │                 │ 498842593,"qVariableItems":[],"qPatches":[]}                                                         │          │           │                          │                          │                          │           │
+└──────────────────────────────────────┴──────────┴───────────┴─────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴───────────┘
 
-2021-07-07T06:18:18.477Z verbose: Get bookmarks
-2021-07-07T06:18:18.592Z verbose: Created session to server 192.168.100.109, engine version is 12.878.3.
-2021-07-07T06:18:18.998Z verbose: Opened app a3e0f5d2-000a-464f-998d-33d333b175d7.
-2021-07-07T06:18:19.081Z info: Bookmarks
-┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                                                                                                                                                                                                       Bookmarks (1 bookmarks found in the app)                                                                                                                                                                                                                                                                        │
-├──────────────────────────────────────┬──────────┬───────────┬──────────────────────────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬───────────┤
-│ Id                                   │ Type     │ Title     │ Description                              │ Bookmark definition                                                                                                                                                                                                                                                                                                                                      │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner     │
-├──────────────────────────────────────┼──────────┼───────────┼──────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┤
-│ 81ec0c0d-c90c-431b-8c19-eff4048de404 │ bookmark │ Bookmark1 │ BM1 description                          │ {"qStateData":[{"qStateName":"$","qFieldItems":[{"qDef":{"qName":"Dim1","qType":"PRESENT"},"qSelectInfo":{"qRangeLo":"NaN","qRangeHi":"NaN","qNumberFormat":{"qType":"U","qnDec":10,"qUseThou":0},"qRangeInfo":[],"qContinuousRangeInfo":[]},"qValues":[],"qExcludedValues":[]}]}],"qUtcModifyTime":44383.71498842593,"qVariableItems":[],"qPatches":[]} │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-07-06T15:09:38.565Z │ 2021-07-06T15:09:38.565Z │ LAB\goran │
-└──────────────────────────────────────┴──────────┴───────────┴──────────────────────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴───────────┘
-
-2021-07-07T06:18:19.116Z verbose: Closed session after managing bookmarks in app a3e0f5d2-000a-464f-998d-33d333b175d7 on host 192.168.100.109
+➜  tools
 ```
 
 ### Measures
 
-List measures
+#### List measures
 
 ```bash
 ➜ node ctrl-q-cli.js getmeasure --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --outputformat table --userdir LAB --userid goran --loglevel verbose
@@ -95,7 +135,7 @@ List measures
 2021-07-06T09:34:47.256Z verbose : Closed session after managing master items in app a3e0f5d2-000a-464f-998d-33d333b175d7 on host 192.168.100.109
 ```
 
-Delete measures
+#### Delete measures
 
 ```bash
 ➜ node ctrl-q-cli.js deletemeasure --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --userdir LAB --userid goran --itemid "8ad641cd-73bc-4605-8bef-529cd2e507d1, af0d7c76-22f6-435a-be68-434a6b158bd1" --loglevel verbose
