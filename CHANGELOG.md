@@ -1,5 +1,12 @@
 # Changelog
 
+### [2.1.1](https://github.com/ptarmiganlabs/ctrl-q-cli/compare/ctrl-q-cli-v2.1.0...ctrl-q-cli-v2.1.1) (2022-05-08)
+
+
+### Bug Fixes
+
+* Dry-run always used when used --delete-all ([fa0b7db](https://github.com/ptarmiganlabs/ctrl-q-cli/commit/fa0b7dbca8716fe649ac79fa34cc760235470f1e)), closes [#51](https://github.com/ptarmiganlabs/ctrl-q-cli/issues/51)
+
 ## [2.1.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v2.0.0...ctrl-q-v2.1.0) (2022-05-07)
 
 
