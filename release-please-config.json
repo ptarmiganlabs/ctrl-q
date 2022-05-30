@@ -30,7 +30,7 @@
   ],
   "packages": {
     ".": {
-      "package-name": "ctrl-q-cli"
+      "package-name": "ctrl-q"
     }
   }
 }

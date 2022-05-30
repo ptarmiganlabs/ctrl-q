@@ -36,7 +36,7 @@ const program = new Command();
     program
         .version(appVersion)
         .description(
-            'qtrl-q-cli is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.\nAmong other things the tool manipulates master items and scrambles in-app data.'
+            'Ctrl-Q is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.\nAmong other things the tool manipulates master items and scrambles in-app data.'
         );
 
     // Import dimensions/measures from definitions in Excel file
