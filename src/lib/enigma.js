@@ -29,7 +29,7 @@ const setupEnigmaConnection = (options) => {
         url: SenseUtilities.buildUrl({
             host: options.host,
             port: options.port,
-            prefix: options.prefix,
+            prefix: options.virtualProxy,
             secure: options.secure,
             appId: options.appId,
         }),
