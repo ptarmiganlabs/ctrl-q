@@ -54,7 +54,7 @@ This means you won't get those annoying warnings when using the app.
 
 ## Logging
 
-Logging is controlled by the --loglevel option.
+Logging is controlled by the --log-level option.
 
 Valid values are (in order of increasing verbosity): error, warning, info, verbose, debug, silly.
 
@@ -95,7 +95,7 @@ Commands:
 #### List bookmarks
 
 ```bash
-➜  tools ./ctrl-q-cli bookmark-get --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --userdir LAB --userid goran --loglevel info --certfile ~/code/secret/pro2win1-nopwd/client.pem --certkeyfile ~/code/secret/pro2win1-nopwd/client_key.pem
+➜  tools ./ctrl-q bookmark-get --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran --log-level info --auth-cert-file ~/code/secret/pro2win1-nopwd/client.pem --auth-cert-key-file ~/code/secret/pro2win1-nopwd/client_key.pem
 2022-05-28T15:26:06.463Z info: Get bookmarks
 2022-05-28T15:26:06.825Z info: Bookmarks
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -117,7 +117,7 @@ Commands:
 #### List measures
 
 ```bash
-➜ node ctrl-q-cli.js getmeasure --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --outputformat table --userdir LAB --userid goran --loglevel verbose
+➜ node ctrl-q.js getmeasure --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --outputformat table --auth-user-dir LAB --auth-user-id goran --log-level verbose
 
 2021-07-06T09:34:46.707Z : Get master measure(s)
 2021-07-06T09:34:46.822Z : Created session to server 192.168.100.109, engine version is 12.878.3.
@@ -138,7 +138,7 @@ Commands:
 #### Delete measures
 
 ```bash
-➜ node ctrl-q-cli.js deletemeasure --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --userdir LAB --userid goran --itemid "8ad641cd-73bc-4605-8bef-529cd2e507d1, af0d7c76-22f6-435a-be68-434a6b158bd1" --loglevel verbose
+➜ node ctrl-q.js deletemeasure --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --itemid "8ad641cd-73bc-4605-8bef-529cd2e507d1, af0d7c76-22f6-435a-be68-434a6b158bd1" --log-level verbose
 ```
 
 ### Dimensions
@@ -146,7 +146,7 @@ Commands:
 List dimensions
 
 ```bash
-➜ node ctrl-q-cli.js getdim --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --outputformat table --userdir LAB --userid goran --loglevel verbose
+➜ node ctrl-q.js getdim --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --outputformat table --auth-user-dir LAB --auth-user-id goran --log-level verbose
 
 2021-07-06T09:42:09.881Z : Get master dimension(s)
 2021-07-06T09:42:09.999Z : Created session to server 192.168.100.109, engine version is 12.878.3.
@@ -174,7 +174,7 @@ List dimensions
 Delete dimensions
 
 ```bash
-➜ node ctrl-q-cli.js deletedim --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --userdir LAB --userid goran --itemid "b7d9a7f1-8361-4300-ad68-af5ae38cdb8d, a6ed0a7f-0065-4c21-b0ac-1b1250e0d71d" --loglevel verbose
+➜ node ctrl-q.js deletedim --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --itemid "b7d9a7f1-8361-4300-ad68-af5ae38cdb8d, a6ed0a7f-0065-4c21-b0ac-1b1250e0d71d" --log-level verbose
 ```
 
 ### Import
@@ -184,25 +184,25 @@ Import dimensions and measures from Excel file.
 First let's take a look at the command options:
 
 ```bash
-➜ node ctrl-q-cli.js importexcel --help
+➜ node ctrl-q.js importexcel --help
 
-Usage: ctrl-q-cli importexcel [options]
+Usage: ctrl-q importexcel [options]
 
 create master items based on definitions in an Excel file
 
 Options:
-  --loglevel <level>        log level (error, warning, info, verbose, debug, silly). "Info" level is default (default: "info")
+  --log-level <level>        log level (error, warning, info, verbose, debug, silly). "Info" level is default (default: "info")
   --host <host>             Qlik Sense server IP/FQDN
   --port <port>             Qlik Sense server engine port (default: "4747")
-  --schemaversion <string>  Qlik Sense engine schema version (default: "12.612.0")
-  --appid <id>              Qlik Sense app whose master items should be modified
-  --certfile <file>         Qlik Sense certificate file (exported from QMC) (default: "./cert/client.pem")
-  --certkeyfile <file>      Qlik Sense certificate key file (exported from QMC) (default: "./cert/client_key.pem")
-  --rootcertfile <file>     Qlik Sense root certificate file (exported from QMC) (default: "./cert/root.pem")
+  --schema-version <string>  Qlik Sense engine schema version (default: "12.612.0")
+  --app-id <id>              Qlik Sense app whose master items should be modified
+  --auth-cert-file <file>         Qlik Sense certificate file (exported from QMC) (default: "./cert/client.pem")
+  --auth-cert-key-file <file>      Qlik Sense certificate key file (exported from QMC) (default: "./cert/client_key.pem")
+  --auth-root-cert-file <file>     Qlik Sense root certificate file (exported from QMC) (default: "./cert/root.pem")
   --prefix <prefix>         Qlik Sense virtual proxy prefix (default: "")
   --secure <true|false>     connection to Qlik Sense engine is via https (default: true)
-  --userdir <directory>     user directory for user to connect with
-  --userid <userid>         user ID for user to connect with
+  --auth-user-dir <directory>     user directory for user to connect with
+  --auth-user-id <userid>         user ID for user to connect with
   --file <filename>         Excel file containing master item definitions
   --sheet <name>            name of Excel sheet where dim/measure flag column is found
   --columnflag <number>     column number (zero based) where dim/measure flag is found. Use "dim" in that column to create master dimension, "measure" for master measure
@@ -216,7 +216,7 @@ Options:
 
 
 ```bash
-node ctrl-q-cli.js importexcel --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --userdir LAB --userid goran --file "/Users/goran/code/ctrl-q-cli/test/variables.xlsx" --sheet Sales --columnflag 0 --columnname 5 --columndescr 10 --columnlabel 6 --columnexpr 1 --columntag 7 --loglevel verbose
+node ctrl-q.js importexcel --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --file "/Users/goran/code/ctrl-q/test/variables.xlsx" --sheet Sales --columnflag 0 --columnname 5 --columndescr 10 --columnlabel 6 --columnexpr 1 --columntag 7 --log-level verbose
 ```
 
 ### Scramble
@@ -230,7 +230,7 @@ Note:
 - A new app with the scrambled data will be created. Specify its name in the `--newappname` option.
 
 ```bash
-➜ node ctrl-q-cli.js scramblefield --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --userdir LAB --userid goran --fieldname Expression1,Dim1,AsciiAlpha --separator , --newappname __ScrambledTest1 --loglevel silly
+➜ node ctrl-q.js scramblefield --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --fieldname Expression1,Dim1,AsciiAlpha --separator , --newappname __ScrambledTest1 --log-level silly
 
 2021-07-06T09:44:19.277Z verbose: Scramble field
 2021-07-06T09:44:19.778Z verbose: Created session to server 192.168.100.109, engine version is 12.878.3.
@@ -246,7 +246,7 @@ Note:
 Get script and associated metadata for a Sense app
 
 ```bash
-➜ node ctrl-q-cli.js getscript --host 192.168.100.109 --appid a3e0f5d2-000a-464f-998d-33d333b175d7 --userdir LAB --userid goran --loglevel verbose
+➜ node ctrl-q.js getscript --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --log-level verbose
 
 2021-07-06T09:44:55.221Z verbose: Get app script
 2021-07-06T09:44:55.333Z verbose: Created session to server 192.168.100.109, engine version is 12.878.3.

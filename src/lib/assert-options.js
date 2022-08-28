@@ -8,6 +8,14 @@ const sharedParamAssertOptions = (options) => {
     }
 };
 
+const userActivityCustomPropertyAssertOptions = (options) => {
+    // If certificate authentication is used: certs and user dir/id must be present.
+    if (options.authType === 'cert' && (!options.authUserDir || !options.authUserId)) {
+        logger.error('User directory and user ID are mandatory options when using certificate for authenticating with Sense');
+        process.exit(1);
+    }
+};
+
 const masterItemImportAssertOptions = (options) => {
     if (options.colRefBy === undefined || !options.colRefBy) {
         logger.error(
@@ -83,6 +91,7 @@ const getBookmarkAssertOptions = (options) => {
 
 module.exports = {
     sharedParamAssertOptions,
+    userActivityCustomPropertyAssertOptions,
     masterItemImportAssertOptions,
     masterItemMeasureDeleteAssertOptions,
     masterItemDimDeleteAssertOptions,

@@ -21,17 +21,6 @@ logTransports.push(
     })
 );
 
-// Logging to disk
-// logTransports.push(
-//     new winston.transports.DailyRotateFile({
-//         dirname: path.join(__dirname, config.get('Butler.logDirectory')),
-//         filename: 'butler.%DATE%.log',
-//         level: config.get('Butler.logLevel'),
-//         datePattern: 'YYYY-MM-DD',
-//         maxFiles: '30d',
-//     }),
-// );
-
 const logger = winston.createLogger({
     transports: logTransports,
     format: winston.format.combine(

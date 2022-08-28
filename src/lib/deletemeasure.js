@@ -10,7 +10,7 @@ const { logger, setLoggingLevel } = require('../globals');
 const deleteMasterMeasure = async (options) => {
     try {
         // Set log level
-        setLoggingLevel(options.loglevel);
+        setLoggingLevel(options.logLevel);
 
         logger.info('Delete master measures');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
@@ -19,7 +19,7 @@ const deleteMasterMeasure = async (options) => {
         const configEnigma = setupEnigmaConnection(options);
 
         const session = enigma.create(configEnigma);
-        if (options.loglevel === 'silly') {
+        if (options.logLevel === 'silly') {
             // eslint-disable-next-line no-console
             session.on('traffic:sent', (data) => console.log('sent:', data));
             // eslint-disable-next-line no-console
@@ -30,8 +30,8 @@ const deleteMasterMeasure = async (options) => {
         const engineVersion = await global.engineVersion();
         logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
 
-        const app = await global.openDoc(options.appid, '', '', '', false);
-        logger.verbose(`Opened app ${options.appid}.`);
+        const app = await global.openDoc(options.appId, '', '', '', false);
+        logger.verbose(`Opened app ${options.appId}.`);
 
         // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/definitions-NxLibraryMeasureDef.html
         const measureCall = {
@@ -97,7 +97,7 @@ const deleteMasterMeasure = async (options) => {
                     if (res !== true) {
                         logger.error(`Failed deleting measure "${item.qMeta.title}", id=${item.qInfo.qId} in app "${item.qInfo.qId}"`);
                     } else {
-                        logger.info(`Deleted master item measure "${item.qMeta.title}", id=${item.qInfo.qId} in app "${options.appid}"`);
+                        logger.info(`Deleted master item measure "${item.qMeta.title}", id=${item.qInfo.qId} in app "${options.appId}"`);
                     }
                 } else {
                     logger.info(`DRY RUN: Delete of master item measure "${item.qMeta.title}", id=${item.qInfo.qId} would happen here`);
@@ -106,12 +106,12 @@ const deleteMasterMeasure = async (options) => {
         }
 
         if ((await app.destroySessionObject(genericMeasureObj.id)) === true) {
-            logger.debug(`Destroyed session object after managing master items in app ${options.appid} on host ${options.host}`);
+            logger.debug(`Destroyed session object after managing master items in app ${options.appId} on host ${options.host}`);
 
             if ((await session.close()) === true) {
-                logger.verbose(`Closed session after managing master items in app ${options.appid} on host ${options.host}`);
+                logger.verbose(`Closed session after managing master items in app ${options.appId} on host ${options.host}`);
             } else {
-                logger.error(`Error closing session for app ${options.appid} on host ${options.host}`);
+                logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
             }
         } else {
             logger.error(`Error destroying session object for master dimenions`);

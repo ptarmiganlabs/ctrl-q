@@ -22,7 +22,7 @@ const setupEnigmaConnection = (options) => {
     logger.debug('Prepping for Enigma connection...');
 
     // eslint-disable-next-line global-require
-    const qixSchema = require(`enigma.js/schemas/${options.schemaversion}`);
+    const qixSchema = require(`enigma.js/schemas/${options.schemaVersion}`);
 
     return {
         schema: qixSchema,
@@ -31,14 +31,14 @@ const setupEnigmaConnection = (options) => {
             port: options.port,
             prefix: options.prefix,
             secure: options.secure,
-            appId: options.appid,
+            appId: options.appId,
         }),
         createSocket: (url) =>
             new WebSocket(url, {
-                key: readCert(path.resolve(__dirname, options.certkeyfile)),
-                cert: readCert(path.resolve(__dirname, options.certfile)),
+                key: readCert(path.resolve(__dirname, options.authCertKeyFile)),
+                cert: readCert(path.resolve(__dirname, options.authCertFile)),
                 headers: {
-                    'X-Qlik-User': `UserDirectory=${options.userdir};UserId=${options.userid}`,
+                    'X-Qlik-User': `UserDirectory=${options.authUserDir};UserId=${options.authUserId}`,
                 },
                 rejectUnauthorized: false,
             }),

@@ -40,7 +40,7 @@ const consoleTableConfig = {
 const getBookmark = async (options) => {
     try {
         // Set log level
-        setLoggingLevel(options.loglevel);
+        setLoggingLevel(options.logLevel);
 
         logger.info('Get bookmarks');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
@@ -49,7 +49,7 @@ const getBookmark = async (options) => {
         const configEnigma = setupEnigmaConnection(options);
 
         const session = enigma.create(configEnigma);
-        if (options.loglevel === 'silly') {
+        if (options.logLevel === 'silly') {
             // eslint-disable-next-line no-console
             session.on('traffic:sent', (data) => console.log('sent:', data));
             // eslint-disable-next-line no-console
@@ -60,8 +60,8 @@ const getBookmark = async (options) => {
         const engineVersion = await global.engineVersion();
         logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
 
-        const app = await global.openDoc(options.appid, '', '', '', false);
-        logger.verbose(`Opened app ${options.appid}.`);
+        const app = await global.openDoc(options.appId, '', '', '', false);
+        logger.verbose(`Opened app ${options.appId}.`);
 
         // Get bookmarks in app
         const bookmarkCall = {
@@ -157,7 +157,7 @@ const getBookmark = async (options) => {
                     bookmark.qMeta.publishTime,
                     bookmark.qMeta.createdDate,
                     bookmark.qMeta.modifiedDate,
-                    `${bookmark.qMeta.owner.userDirectory}\\${bookmark.qMeta.owner.userId}`,
+                    `${bookmark.qMeta.owner.authUserDirectory}\\${bookmark.qMeta.owner.authUserId}`,
                 ]);
             }
 
@@ -168,12 +168,12 @@ const getBookmark = async (options) => {
         }
 
         if ((await app.destroySessionObject(genericBookmarkObj.id)) === true) {
-            logger.debug(`Destroyed session object after managing bookmarks in app ${options.appid} on host ${options.host}`);
+            logger.debug(`Destroyed session object after managing bookmarks in app ${options.appId} on host ${options.host}`);
 
             if ((await session.close()) === true) {
-                logger.verbose(`Closed session after managing bookmarks in app ${options.appid} on host ${options.host}`);
+                logger.verbose(`Closed session after managing bookmarks in app ${options.appId} on host ${options.host}`);
             } else {
-                logger.error(`Error closing session for app ${options.appid} on host ${options.host}`);
+                logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
             }
         } else {
             logger.error(`Error destroying session object for bookmarks`);

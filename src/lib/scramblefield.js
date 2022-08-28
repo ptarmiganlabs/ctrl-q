@@ -10,7 +10,7 @@ const { logger, setLoggingLevel } = require('../globals');
 const scrambleField = async (options) => {
     try {
         // Set log level
-        setLoggingLevel(options.loglevel);
+        setLoggingLevel(options.logLevel);
 
         logger.info('Scramble field');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
@@ -19,7 +19,7 @@ const scrambleField = async (options) => {
         const configEnigma = setupEnigmaConnection(options);
 
         const session = enigma.create(configEnigma);
-        if (options.loglevel == 'silly') {
+        if (options.logLevel == 'silly') {
             // eslint-disable-next-line no-console
             session.on('traffic:sent', (data) => console.log('sent:', data));
             // eslint-disable-next-line no-console
@@ -30,8 +30,8 @@ const scrambleField = async (options) => {
         const engineVersion = await global.engineVersion();
         logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
 
-        const app = await global.openDoc(options.appid, '', '', '', false);
-        logger.verbose(`Opened app ${options.appid}.`);
+        const app = await global.openDoc(options.appId, '', '', '', false);
+        logger.verbose(`Opened app ${options.appId}.`);
 
         // Fields to be scrambled are availbel in array options.fieldName;
 
@@ -58,9 +58,9 @@ const scrambleField = async (options) => {
             logger.info(`Scrambled data written to new app "${options.newAppName}" with app ID: ${newAppId}`);
 
             if ((await session.close()) == true) {
-                logger.verbose(`Closed session after managing master items in app ${options.appid} on host ${options.host}`);
+                logger.verbose(`Closed session after managing master items in app ${options.appId} on host ${options.host}`);
             } else {
-                logger.error(`Error closing session for app ${options.appid} on host ${options.host}`);
+                logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
             }
         }
     } catch (err) {
