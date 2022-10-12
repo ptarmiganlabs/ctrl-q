@@ -96,7 +96,7 @@ const program = new Command();
     //         '365',
     //     ]);
 
-    // Import dimensions/measures from definitions in Excel file
+    // Import dimensions/measures from definitions in Excel file 
     program
         .command('master-item-import')
         .description('create master items based on definitions in an file on disk')
