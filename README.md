@@ -64,8 +64,8 @@ Note: When using log level silly all websocket communication to/from the Sense s
 
 List available commands using the --help option:
 
-```bash
-➜  tools ./ctrl-q --help
+```
+C:\tools\ctrl-q>ctrl-q.exe --help
 Usage: ctrl-q [options] [command]
 
 Ctrl-Q is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.
@@ -85,7 +85,8 @@ Commands:
   script-get [options]                  get script from Qlik Sense app
   bookmark-get [options]                get info about one or more bookmarks
   help [command]                        display help for command
-➜  tools
+
+C:\tools\ctrl-q>
 ```
 
 ## Commands
