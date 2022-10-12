@@ -297,6 +297,10 @@ const importMasterItemFromExcel = async (options) => {
                             break;
                         }
                     }
+                } else {
+                    logger.warn(
+                        `Found an unknown master item type: "${row[colPosMasterItemType]}". Ignoring this line in the imported file.`
+                    );
                 }
             }
         }
