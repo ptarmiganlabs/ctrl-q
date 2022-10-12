@@ -63,7 +63,7 @@ const program = new Command();
     //     })
     //     .addOption(
     //         new Option('--log-level <level>', 'log level')
-    //             .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
+    //             .choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly'])
     //             .default('info')
     //     )
     //     .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
@@ -113,9 +113,7 @@ const program = new Command();
             }
         })
         .addOption(
-            new Option('--log-level <level>', 'log level')
-                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
-                .default('info')
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -172,9 +170,7 @@ const program = new Command();
             getMasterMeasure(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level')
-                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
-                .default('info')
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -210,9 +206,7 @@ const program = new Command();
             deleteMasterMeasure(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level')
-                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
-                .default('info')
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -246,9 +240,7 @@ const program = new Command();
             getMasterDimension(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level')
-                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
-                .default('info')
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -284,9 +276,7 @@ const program = new Command();
             deleteMasterDimension(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level')
-                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
-                .default('info')
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -320,9 +310,7 @@ const program = new Command();
             scrambleField(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level')
-                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
-                .default('info')
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -354,9 +342,7 @@ const program = new Command();
             getScript(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level')
-                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
-                .default('info')
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -386,9 +372,7 @@ const program = new Command();
             getBookmark(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level')
-                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
-                .default('info')
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
