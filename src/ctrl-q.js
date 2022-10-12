@@ -96,10 +96,10 @@ const program = new Command();
     //         '365',
     //     ]);
 
-    // Import dimensions/measures from definitions in Excel file 
+    // Import dimensions/measures from definitions in Excel file
     program
         .command('master-item-import')
-        .description('create master items based on definitions in an file on disk')
+        .description('create master items based on definitions in a file on disk')
         .action(async (options) => {
             try {
                 logger.verbose(`appid=${options.appId}`);
@@ -227,7 +227,7 @@ const program = new Command();
         .option('--delete-all', 'delete all master measures')
         .option('--dry-run', 'do a dry run, i.e. do not delete anything - just show what would be deleted');
 
-    // Get dimension command 
+    // Get dimension command
     program
         .command('master-item-dim-get')
         .description('get info about one or more master dimensions')
