@@ -3,7 +3,7 @@ const enigma = require('enigma.js');
 const xlsx = require('node-xlsx').default;
 
 const { setupEnigmaConnection } = require('./enigma');
-const { logger, setLoggingLevel } = require('../globals');
+const { logger, setLoggingLevel, isPkg, execPath } = require('../globals');
 
 /**
  * Find of column's positioon (zero based) given a column name.
@@ -29,6 +29,9 @@ const importMasterItemFromExcel = async (options) => {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
+
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info(`Import master items from definitions in Excel file "${options.file}"`);
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);

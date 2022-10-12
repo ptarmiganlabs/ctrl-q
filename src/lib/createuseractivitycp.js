@@ -1,7 +1,7 @@
 const qrsInteract = require('qrs-interact');
 const path = require('path');
 
-const { logger, setLoggingLevel } = require('../globals');
+const { logger, setLoggingLevel, isPkg, execPath } = require('../globals');
 const {
     getUserActivityProfessional,
     getUserActivityAnalyzer,
@@ -30,6 +30,9 @@ const createUserActivityCustomProperty = async (options) => {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
+
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Create custom property for tracking user activity in QMC');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);

@@ -3,7 +3,7 @@ const WebSocket = require('ws');
 const fs = require('fs-extra');
 const path = require('path');
 
-const { logger } = require('../globals');
+const { logger, execPath } = require('../globals');
 
 /**
  * Helper function to read the contents of the certificate files:
@@ -35,8 +35,8 @@ const setupEnigmaConnection = (options) => {
         }),
         createSocket: (url) =>
             new WebSocket(url, {
-                key: readCert(path.resolve(__dirname, options.authCertKeyFile)),
-                cert: readCert(path.resolve(__dirname, options.authCertFile)),
+                key: readCert(path.resolve(execPath, options.authCertKeyFile)),
+                cert: readCert(path.resolve(execPath, options.authCertFile)),
                 headers: {
                     'X-Qlik-User': `UserDirectory=${options.authUserDir};UserId=${options.authUserId}`,
                 },

@@ -1,5 +1,5 @@
 const { Command, Option } = require('commander');
-const { logger, appVersion, getLoggingLevel, setLoggingLevel } = require('./globals');
+const { logger, appVersion, getLoggingLevel, setLoggingLevel, isPkg, execPath } = require('./globals');
 
 const { createUserActivityCustomProperty } = require('./lib/createuseractivitycp');
 
@@ -259,7 +259,7 @@ const program = new Command();
         .addOption(
             new Option('--id-type <type>', 'type of identifier passed in the --master-item option').choices(['id', 'name']).default('name')
         )
-        .option('--master-item <ids...>', 'master measure to retrieve. If not specified all measures will be retrieved')
+        .option('--master-item <ids...>', 'master measure to retrieve. If not specified all dimensions will be retrieved')
         .addOption(new Option('--output-format <format>', 'output format').choices(['json', 'table']).default('json'));
 
     // Delete dimension command

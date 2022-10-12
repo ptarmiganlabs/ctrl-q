@@ -1,4 +1,5 @@
 const winston = require('winston');
+const upath = require('upath');
 require('winston-daily-rotate-file');
 
 // Get app version from package.json file
@@ -30,6 +31,10 @@ const logger = winston.createLogger({
     ),
 });
 
+// Are we running as standalone app or not?
+const isPkg = typeof process.pkg !== 'undefined';
+const execPath = isPkg ? upath.dirname(process.execPath) : __dirname;
+
 // Functions to get/set current console logging level
 const getLoggingLevel = () => logTransports.find((transport) => transport.name === 'console').level;
 
@@ -42,4 +47,6 @@ module.exports = {
     appVersion,
     getLoggingLevel,
     setLoggingLevel,
+    execPath,
+    isPkg
 };

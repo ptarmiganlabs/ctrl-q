@@ -2,7 +2,7 @@ const enigma = require('enigma.js');
 const { table } = require('table');
 
 const { setupEnigmaConnection } = require('./enigma');
-const { logger, setLoggingLevel } = require('../globals');
+const { logger, setLoggingLevel, isPkg, execPath } = require('../globals');
 
 const consoleTableConfig = {
     border: {
@@ -41,6 +41,9 @@ const getBookmark = async (options) => {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
+
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Get bookmarks');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
