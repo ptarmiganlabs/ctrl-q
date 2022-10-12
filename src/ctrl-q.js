@@ -227,7 +227,7 @@ const program = new Command();
         .option('--delete-all', 'delete all master measures')
         .option('--dry-run', 'do a dry run, i.e. do not delete anything - just show what would be deleted');
 
-    // Get dimension command
+    // Get dimension command 
     program
         .command('master-item-dim-get')
         .description('get info about one or more master dimensions')
