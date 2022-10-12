@@ -14,6 +14,14 @@ const userActivityCustomPropertyAssertOptions = (options) => {
         logger.error('User directory and user ID are mandatory options when using certificate for authenticating with Sense');
         process.exit(1);
     }
+
+    // Ensure activity buckets are all integers
+    options.activityBuckets = options.activityBuckets.map( (item) => parseInt(item, 10));
+    logger.verbose(`User activity buckets: ${options.activityBuckets}`);
+
+    // Sort activity buckets
+    options.activityBuckets.sort((a, b) => a - b);
+    return options;
 };
 
 const masterItemImportAssertOptions = (options) => {

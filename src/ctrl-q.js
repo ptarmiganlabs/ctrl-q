@@ -43,54 +43,58 @@ const program = new Command();
         );
 
     // Create custom properties for tracking user activity buckets, i.e. how long ago a user was last active (last login) in Sense
-    program
-        .command('user-activity-cp-create')
-        .description(
-            'create custom property and populate it with values ("activity buckets") indicating how long ago users last logged into Sense'
-        )
-        .action(async (options) => {
-            try {
-                logger.verbose(`appid=${options.appId}`);
-                logger.verbose(`itemid=${options.itemid}`);
+    // program
+    //     .command('user-activity-cp-create')
+    //     .description(
+    //         'create custom property and populate it with values ("activity buckets") indicating how long ago users last logged into Sense'
+    //     )
+    //     .action(async (options) => {
+    //         try {
+    //             let optionsLocal = options;
+    //             logger.verbose(`appid=${options.appId}`);
+    //             logger.verbose(`itemid=${options.itemid}`);
 
-                sharedParamAssertOptions(options);
-                userActivityCustomPropertyAssertOptions(options);
-                createUserActivityCustomProperty(options);
-            } catch (err) {
-                logger.error(`USER ACTIVITY CP: ${err}`);
-            }
-        })
-        .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
-        )
-        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense repository API port', '4242')
-        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
-        .option('--auth-user-dir <directory>', 'user directory for user to connect with', 'Internal')
-        .option('--auth-user-id <userid>', 'user ID for user to connect with', 'sa_repository')
+    //             sharedParamAssertOptions(options);
+    //             optionsLocal = userActivityCustomPropertyAssertOptions(options);
+    //             createUserActivityCustomProperty(optionsLocal);
+    //         } catch (err) {
+    //             logger.error(`USER ACTIVITY CP: ${err}`);
+    //         }
+    //     })
+    //     .addOption(
+    //         new Option('--log-level <level>', 'log level')
+    //             .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
+    //             .default('info')
+    //     )
+    //     .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+    //     .option('--port <port>', 'Qlik Sense repository API port', '4242')
+    //     .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+    //     .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+    //     .option('--auth-user-dir <directory>', 'user directory for user to connect with', 'Internal')
+    //     .option('--auth-user-id <userid>', 'user ID for user to connect with', 'sa_repository')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
-        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
-        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
-        .option('--jwt <JWT>', 'JSON Web Token (JWT) to use for authenticating with Qlik Sense', '')
+    //     .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
+    //     .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+    //     .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+    //     .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+    //     .option('--jwt <JWT>', 'JSON Web Token (JWT) to use for authenticating with Qlik Sense', '')
 
-        .requiredOption('--custom-property-name <name>', 'Name of custom property that will hold user activity buckets')
-        .addOption(
-            new Option('--force <true|false>', 'forcibly overwrite and replace custom property and its values if it already exists')
-                .choices(['true', 'false'])
-                .default('false')
-        )
-        .option('--activity-buckets <buckets...>', 'custom property values/user activity buckets to be defined. In days.', [
-            '1',
-            '7',
-            '14',
-            '30',
-            '90',
-            '180',
-            '365',
-        ]);
+    //     .requiredOption('--user-directory <name>', 'name of user directory whose users will be updated with activity info')
+    //     .requiredOption('--custom-property-name <name>', 'name of custom property that will hold user activity buckets')
+    //     .addOption(
+    //         new Option('--force <true|false>', 'forcibly overwrite and replace custom property and its values if it already exists')
+    //             .choices(['true', 'false'])
+    //             .default('false')
+    //     )
+    //     .option('--activity-buckets <buckets...>', 'custom property values/user activity buckets to be defined. In days.', [
+    //         '1',
+    //         '7',
+    //         '14',
+    //         '30',
+    //         '90',
+    //         '180',
+    //         '365',
+    //     ]);
 
     // Import dimensions/measures from definitions in Excel file
     program
@@ -109,7 +113,9 @@ const program = new Command();
             }
         })
         .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
+            new Option('--log-level <level>', 'log level')
+                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
+                .default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -166,7 +172,9 @@ const program = new Command();
             getMasterMeasure(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
+            new Option('--log-level <level>', 'log level')
+                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
+                .default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -202,7 +210,9 @@ const program = new Command();
             deleteMasterMeasure(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
+            new Option('--log-level <level>', 'log level')
+                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
+                .default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -236,7 +246,9 @@ const program = new Command();
             getMasterDimension(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
+            new Option('--log-level <level>', 'log level')
+                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
+                .default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -272,7 +284,9 @@ const program = new Command();
             deleteMasterDimension(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
+            new Option('--log-level <level>', 'log level')
+                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
+                .default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -306,7 +320,9 @@ const program = new Command();
             scrambleField(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
+            new Option('--log-level <level>', 'log level')
+                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
+                .default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -338,7 +354,9 @@ const program = new Command();
             getScript(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
+            new Option('--log-level <level>', 'log level')
+                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
+                .default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
@@ -368,7 +386,9 @@ const program = new Command();
             getBookmark(options);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly']).default('info')
+            new Option('--log-level <level>', 'log level')
+                .choices(['error', 'warning', 'info', 'verbose', 'debug', 'silly'])
+                .default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
         .option('--port <port>', 'Qlik Sense server engine port', '4747')
