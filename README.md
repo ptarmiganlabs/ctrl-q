@@ -12,7 +12,7 @@ Ctrl-Q also tries to fill niches that are not covered by the various members of 
 
 The Butler tools each focus on a specific feature (or features in the case of [the original Butler tool](https://github.com/ptarmiganlabs/butler)) and goes fairly deep in those areas.  
 For example, [Butler SOS](https://github.com/ptarmiganlabs/butler-sos) focus on getting real-time metrics and events out of Sense and into a wide range of target databases and monitoring tools.  
-Butler Sheet Icons creates sheet thumbnails for Sense apps - but offers lots of flexibility and power around that use case.
+[Butler Sheet Icons](https://github.com/ptarmiganlabs/butler-sheet-icons) creates sheet thumbnails for Sense apps - but offers lots of flexibility and power around that use case.
 
 Ctrl-Q instead focus on specific, high-value uses cases that tend to be vary time consuming to do manually.  
 
@@ -56,7 +56,7 @@ This means you won't get those annoying warnings when using the app.
 
 Logging is controlled by the --log-level option.
 
-Valid values are (in order of increasing verbosity): error, warning, info, verbose, debug, silly.
+Valid values are (in order of increasing verbosity): error, warn, info, verbose, debug, silly.
 
 Note: When using log level silly all websocket communication to/from the Sense server will be logged to the console. This means *lots* of log output.
 
@@ -76,7 +76,7 @@ Options:
   -h, --help                            display help for command
 
 Commands:
-  master-item-import [options]          create master items based on definitions in an file on disk
+  master-item-import [options]          create master items based on definitions in a file on disk
   master-item-measure-get [options]     get info about one or more master measures
   master-item-measure-delete [options]  delete master measure(s)
   master-item-dim-get [options]         get info about one or more master dimensions
@@ -94,87 +94,103 @@ Commands:
 
 #### List bookmarks
 
-```bash
-➜  tools ./ctrl-q bookmark-get --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran --log-level info --auth-cert-file ~/code/secret/pro2win1-nopwd/client.pem --auth-cert-key-file ~/code/secret/pro2win1-nopwd/client_key.pem
-2022-05-28T15:26:06.463Z info: Get bookmarks
-2022-05-28T15:26:06.825Z info: Bookmarks
-┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                                                                 Bookmarks (1 bookmarks found in the app)                                                                                                                                 │
-├──────────────────────────────────────┬──────────┬───────────┬─────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬───────────┤
-│ Id                                   │ Type     │ Title     │ Description     │ Bookmark definition                                                                                  │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner     │
-├──────────────────────────────────────┼──────────┼───────────┼─────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┤
-│ 81ec0c0d-c90c-431b-8c19-eff4048de404 │ bookmark │ Bookmark1 │ BM1 description │ {"qStateData":[{"qStateName":"$","qFieldItems":[{"qDef":{"qName":"Dim1","qType":"PRESENT"},"qSelectI │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-07-06T15:09:38.565Z │ 2021-07-06T15:09:38.565Z │ LAB\goran │
-│                                      │          │           │                 │ nfo":{"qRangeLo":"NaN","qRangeHi":"NaN","qNumberFormat":{"qType":"U","qnDec":10,"qUseThou":0},"qRang │          │           │                          │                          │                          │           │
-│                                      │          │           │                 │ eInfo":[],"qContinuousRangeInfo":[]},"qValues":[],"qExcludedValues":[]}]}],"qUtcModifyTime":44383.71 │          │           │                          │                          │                          │           │
-│                                      │          │           │                 │ 498842593,"qVariableItems":[],"qPatches":[]}                                                         │          │           │                          │                          │                          │           │
-└──────────────────────────────────────┴──────────┴───────────┴─────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴───────────┘
+```
+C:\tools\ctrl-q>ctrl-q.exe bookmark-get --host <IP> --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran
+2022-10-12T18:05:35.615Z info: Get bookmarks
+2022-10-12T18:05:36.000Z info: Bookmarks
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                                                      Bookmarks (1 bookmarks found in the app)                                                                                                                                      │
+├──────────────────────────────────────┬──────────┬───────────┬─────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬─────────────────────┤
+│ Id                                   │ Type     │ Title     │ Description     │ Bookmark definition                                                                                  │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner               │
+├──────────────────────────────────────┼──────────┼───────────┼─────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┤
+│ 81ec0c0d-c90c-431b-8c19-eff4048de404 │ bookmark │ Bookmark1 │ BM1 description │ {"qStateData":[{"qStateName":"$","qFieldItems":[{"qDef":{"qName":"Dim1","qType":"PRESENT"},"qSelectI │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-07-06T15:09:38.565Z │ 2021-07-06T15:09:38.565Z │ undefined\undefined │
+│                                      │          │           │                 │ nfo":{"qRangeLo":"NaN","qRangeHi":"NaN","qNumberFormat":{"qType":"U","qnDec":10,"qUseThou":0},"qRang │          │           │                          │                          │                          │                     │
+│                                      │          │           │                 │ eInfo":[],"qContinuousRangeInfo":[]},"qValues":[],"qExcludedValues":[]}]}],"qUtcModifyTime":44383.71 │          │           │                          │                          │                          │                     │
+│                                      │          │           │                 │ 498842593,"qVariableItems":[],"qPatches":[]}                                                         │          │           │                          │                          │                          │                     │
+└──────────────────────────────────────┴──────────┴───────────┴─────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴─────────────────────┘
 
-➜  tools
+
+C:\tools\ctrl-q>
 ```
 
 ### Measures
 
 #### List measures
 
-```bash
-➜ node ctrl-q.js getmeasure --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --outputformat table --auth-user-dir LAB --auth-user-id goran --log-level verbose
+```
+C:\tools\ctrl-q>ctrl-q.exe master-item-measure-get --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran
+2022-10-12T19:47:37.416Z info: Get master measures
+2022-10-12T19:47:37.893Z info:
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                                                                                              Measures (6 measures found in the app)                                                                                                                                                                               │
+├──────────────────────────────────────┬─────────┬────────────────────────┬───────────────────────────────────────────────────┬──────────────────┬──────────────────┬──────────────────────┬───────────┬───────────────────────────────────────┬──────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬─────────────────────┬───────────┤
+│ Id                                   │ Type    │ Title                  │ Description                                       │ Label            │ Label expression │ Definition           │ Coloring  │ Number format                         │ Grouping │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner               │ Tags      │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┼───────────┤
+│ 04bf8dc9-a354-41f5-ad57-cb445c725479 │ measure │ Revenue EUR            │ Revenue during selected time period.              │ ='Revenue'       │ ='Revenue'       │ Sum(Revenue)         │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ undefined\undefined │ Sales     │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┼───────────┤
+│ 44a56d5b-1fe4-4e71-b3dd-5695275ce687 │ measure │ Profit EUR             │ Profit during selected time period.               │ ='Profit'        │ ='Profit'        │ Sum(Profit)          │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ undefined\undefined │ Sales     │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┼───────────┤
+│ 57b1e128-014a-42e4-991e-ab2cc9124b7a │ measure │ Revenue EUR (LY)       │ Revenue during last year.                         │ ='Revenue LY'    │ ='Revenue LY'    │ Sum(Revenue_LY)      │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ undefined\undefined │ Sales, LY │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┼───────────┤
+│ 81f92d37-b201-4752-9314-33af74a57d94 │ measure │ No. of sold units (LY) │ Number of units sold last year.                   │ ='Sold units LY' │ ='Sold units LY' │ Sum(UnitsInOrder_LY) │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ undefined\undefined │ Sales, LY │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┼───────────┤
+│ bcbed8aa-f76f-40ee-ba23-ae8a9a58f7c5 │ measure │ No. of sold units      │ Number of units sold during selected time period. │ ='Sold units'    │ ='Sold units'    │ =Sum(UnitsInOrder)   │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ undefined\undefined │ Sales     │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┼───────────┤
+│ c147058b-2ca9-4991-a44a-8656db3574c1 │ measure │ Profit EUR (LY)        │ Profit during last year                           │ ='Profit LY'     │ ='Profit LY'     │ Sum(Profit_LY)       │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ undefined\undefined │ Sales, LY │
+└──────────────────────────────────────┴─────────┴────────────────────────┴───────────────────────────────────────────────────┴──────────────────┴──────────────────┴──────────────────────┴───────────┴───────────────────────────────────────┴──────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴─────────────────────┴───────────┘
 
-2021-07-06T09:34:46.707Z : Get master measure(s)
-2021-07-06T09:34:46.822Z : Created session to server 192.168.100.109, engine version is 12.878.3.
-2021-07-06T09:34:47.154Z : Opened app a3e0f5d2-000a-464f-998d-33d333b175d7.
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                                                                                                                                                 Measures (2 measures found in the app)                                                                                                                                                                                                                  │
-├──────────────────────────────────────┬─────────┬─────────────────────────────┬──────────────────────────────────────────┬─────────────────────────────┬──────────────────────────────────────┬──────────────────────────────┬─────────────────────────────────────────────┬───────────────────────────────────────┬──────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬───────────┬──────────────────────┤
-│ Id                                   │ Type    │ Title                       │ Description                              │ Label                       │ Label expression                     │ Definition                   │ Coloring                                    │ Number format                         │ Grouping │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner     │ Tags                 │
-├──────────────────────────────────────┼─────────┼─────────────────────────────┼──────────────────────────────────────────┼─────────────────────────────┼──────────────────────────────────────┼──────────────────────────────┼─────────────────────────────────────────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼──────────────────────┤
-│ LKYyWDm                              │ measure │ Master measure 1            │ Description for master measure 1         │ Master measure 1            │ 'Label expr for master measure 1'    │ sum(Expression1)             │ {"baseColor":{"color":"#99cfcd","index":2}} │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-06-08T11:18:47.216Z │ 2021-06-08T11:18:47.216Z │ LAB\goran │ My awesome tag,Tag 2 │
-├──────────────────────────────────────┼─────────┼─────────────────────────────┼──────────────────────────────────────────┼─────────────────────────────┼──────────────────────────────────────┼──────────────────────────────┼─────────────────────────────────────────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼──────────────────────┤
-│ tXgP                                 │ measure │ Master measure 2            │ 'Description for master measure 2'       │ Master measure 2            │ 'Label expr for master measure 2'    │ Avg(Expression2)             │ {"baseColor":{"color":"#a16090","index":9}} │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-06-08T11:53:15.543Z │ 2021-06-08T11:53:15.543Z │ LAB\goran │ Tag 1,Tag 2,Tag 3    │
-└──────────────────────────────────────┴─────────┴─────────────────────────────┴──────────────────────────────────────────┴─────────────────────────────┴──────────────────────────────────────┴──────────────────────────────┴─────────────────────────────────────────────┴───────────────────────────────────────┴──────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴───────────┴──────────────────────┘
 
-2021-07-06T09:34:47.256Z verbose : Closed session after managing master items in app a3e0f5d2-000a-464f-998d-33d333b175d7 on host 192.168.100.109
+C:\tools\ctrl-q>
 ```
 
 #### Delete measures
 
-```bash
-➜ node ctrl-q.js deletemeasure --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --itemid "8ad641cd-73bc-4605-8bef-529cd2e507d1, af0d7c76-22f6-435a-be68-434a6b158bd1" --log-level verbose
+```
+C:\tools\ctrl-q>ctrl-q.exe master-item-measure-delete --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --id-type id --master-item 44a56d5b-1fe4-4e71-b3dd-5695275ce687 c147058b-2ca9-4991-a44a-8656db3574c1
+2022-10-12T19:48:42.395Z info: Delete master measures
+2022-10-12T19:48:42.774Z info: Deleted master item measure "Profit EUR", id=44a56d5b-1fe4-4e71-b3dd-5695275ce687 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+2022-10-12T19:48:42.776Z info: Deleted master item measure "Profit EUR (LY)", id=c147058b-2ca9-4991-a44a-8656db3574c1 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+
+C:\tools\ctrl-q>
 ```
 
 ### Dimensions
 
 List dimensions
 
-```bash
-➜ node ctrl-q.js getdim --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --outputformat table --auth-user-dir LAB --auth-user-id goran --log-level verbose
-
-2021-07-06T09:42:09.881Z : Get master dimension(s)
-2021-07-06T09:42:09.999Z : Created session to server 192.168.100.109, engine version is 12.878.3.
-2021-07-06T09:42:10.416Z : Opened app a3e0f5d2-000a-464f-998d-33d333b175d7.
-┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                                                                                                                                                      Dimensions (3 dimensions found in the app)                                                                                                                                                                                                                      │
-├──────────────────────────────────────┬───────────┬─────────────────┬──────────────────────────────────────────┬──────────────────────────────────────────┬──────────────────────────────────────────┬──────────────────────────────────────────┬──────────────────┬─────────────────┬──────────────────────────────────────────┬──────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬───────────┬──────────────────────┤
-│ Id                                   │ Type      │ Title           │ Description (static)                     │ Description (from expression)            │ Description expression                   │ Label expression                         │ Definition count │ Definition      │ Coloring                                 │ Grouping │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner     │ Tags                 │
-├──────────────────────────────────────┼───────────┼─────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼──────────────────┼─────────────────┼──────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼──────────────────────┤
-│ mjEfUrd                              │ dimension │ Dimension 1     │                                          │ Master dimension description             │ 'Master dimension' & chr(32) & 'descript │ ='Label expression for master' & chr(32) │ 1                │ Dim1            │ {"changeHash":"0.5143626022511367","colo │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-06-04T15:43:56.505Z │ 2021-06-06T20:32:39.750Z │ LAB\goran │ My awesome tag,tag 1 │
-│                                      │           │                 │                                          │                                          │ ion'                                     │ & 'dim 1'                                │                  │                 │ rMapRef":"mjEfUrd","baseColor":{"color": │          │          │           │                          │                          │                          │           │                      │
-│                                      │           │                 │                                          │                                          │                                          │                                          │                  │                 │ "#87205d","index":7}}                    │          │          │           │                          │                          │                          │           │                      │
-├──────────────────────────────────────┼───────────┼─────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼──────────────────┼─────────────────┼──────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼──────────────────────┤
-│ UPRBXKf                              │ dimension │ Dimension 2     │ Description for dimension 2              │                                          │                                          │ 'label expression for dimension 2'       │ 1                │ Dim2            │ {"changeHash":"0.03484771814318943"}     │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-06-06T20:28:24.565Z │ 2021-06-06T20:28:24.565Z │ LAB\goran │                      │
-├──────────────────────────────────────┼───────────┼─────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼──────────────────────────────────────────┼──────────────────┼─────────────────┼──────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼──────────────────────┤
-│ JDWuPK                               │ dimension │ Dimension 2-3-1 │ Description for 2-3-1                    │                                          │                                          │                                          │ 3                │ Dim2            │ {"changeHash":"0.5399463179200534","base │ H        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-06-07T02:31:02.093Z │ 2021-06-07T02:31:02.093Z │ LAB\goran │ My awesome tag       │
-│                                      │           │                 │                                          │                                          │                                          │                                          │                  │ Dim3            │ Color":{"color":"#ffffff","index":1}}    │          │          │           │                          │                          │                          │           │                      │
-│                                      │           │                 │                                          │                                          │                                          │                                          │                  │ Dim1            │                                          │          │          │           │                          │                          │                          │           │                      │
-└──────────────────────────────────────┴───────────┴─────────────────┴──────────────────────────────────────────┴──────────────────────────────────────────┴──────────────────────────────────────────┴──────────────────────────────────────────┴──────────────────┴─────────────────┴──────────────────────────────────────────┴──────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴───────────┴──────────────────────┘
+```
+C:\tools\ctrl-q>ctrl-q.exe master-item-dim-get --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran
+2022-10-12T19:49:33.971Z info: Get master dimensions
+2022-10-12T19:49:34.370Z info:
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                                                                                                                                         Dimensions (4 dimensions found in the app)                                                                                                                                                                                                         │
+├──────────────────────────────────────┬───────────┬─────────────────┬────────────────────────────────┬───────────────────────────────┬────────────────────────┬──────────────────┬──────────────────┬─────────────┬───────────────────────────────────────────────────────────────────────────────┬──────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬─────────────────────┬────────────────┤
+│ Id                                   │ Type      │ Title           │ Description (static)           │ Description (from expression) │ Description expression │ Label expression │ Definition count │ Definition  │ Coloring                                                                      │ Grouping │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner               │ Tags           │
+├──────────────────────────────────────┼───────────┼─────────────────┼────────────────────────────────┼───────────────────────────────┼────────────────────────┼──────────────────┼──────────────────┼─────────────┼───────────────────────────────────────────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┼────────────────┤
+│ 41070084-7bd3-4dc6-95a6-44131114ed6a │ dimension │ Salesperson     │ The person who sold the unit.  │                               │                        │ ='Salesperson'   │ 1                │ Salesperson │ undefined                                                                     │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ undefined\undefined │ Staff, Sales   │
+├──────────────────────────────────────┼───────────┼─────────────────┼────────────────────────────────┼───────────────────────────────┼────────────────────────┼──────────────────┼──────────────────┼─────────────┼───────────────────────────────────────────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┼────────────────┤
+│ 85f05898-a483-4caa-8f90-011c6dc48c6b │ dimension │ Sales month     │ Date in which a unit was sold. │                               │                        │ ='Sales month'   │ 1                │ Month_Sales │ undefined                                                                     │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ undefined\undefined │ Sales calendar │
+├──────────────────────────────────────┼───────────┼─────────────────┼────────────────────────────────┼───────────────────────────────┼────────────────────────┼──────────────────┼──────────────────┼─────────────┼───────────────────────────────────────────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┼────────────────┤
+│ 866fc972-76fb-49c4-bceb-2db959d1d59e │ dimension │ Country         │ Country where a unit was sold. │                               │                        │ ='Country'       │ 1                │ Country     │ undefined                                                                     │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ undefined\undefined │ Geo            │
+├──────────────────────────────────────┼───────────┼─────────────────┼────────────────────────────────┼───────────────────────────────┼────────────────────────┼──────────────────┼──────────────────┼─────────────┼───────────────────────────────────────────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼─────────────────────┼────────────────┤
+│ JDWuPK                               │ dimension │ Dimension 2-3-1 │ Description for 2-3-1          │                               │                        │                  │ 3                │ Dim2        │ {"changeHash":"0.5399463179200534","baseColor":{"color":"#ffffff","index":1}} │ H        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-06-07T02:31:02.093Z │ 2021-06-07T02:31:02.093Z │ undefined\undefined │ My awesome tag │
+│                                      │           │                 │                                │                               │                        │                  │                  │ Dim3        │                                                                               │          │          │           │                          │                          │                          │                     │                │
+│                                      │           │                 │                                │                               │                        │                  │                  │ Dim1        │                                                                               │          │          │           │                          │                          │                          │                     │                │
+└──────────────────────────────────────┴───────────┴─────────────────┴────────────────────────────────┴───────────────────────────────┴────────────────────────┴──────────────────┴──────────────────┴─────────────┴───────────────────────────────────────────────────────────────────────────────┴──────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴─────────────────────┴────────────────┘
 
 
-2021-07-06T09:42:10.526Z : Closed session after managing master items in app a3e0f5d2-000a-464f-998d-33d333b175d7 on host 192.168.100.109
+C:\tools\ctrl-q>
 ```
 
 Delete dimensions
 
-```bash
-➜ node ctrl-q.js deletedim --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --itemid "b7d9a7f1-8361-4300-ad68-af5ae38cdb8d, a6ed0a7f-0065-4c21-b0ac-1b1250e0d71d" --log-level verbose
+```
+C:\tools\ctrl-q>ctrl-q.exe master-item-dim-delete --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --id-type id --master-item 41070084-7bd3-4dc6-95a6-44131114ed6a 85f05898-a483-4caa-8f90-011c6dc48c6b
+2022-10-12T19:50:34.097Z info: Delete master dimensions
+2022-10-12T19:50:34.475Z info: Deleted master item dimension "Salesperson", id=41070084-7bd3-4dc6-95a6-44131114ed6a in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+2022-10-12T19:50:34.476Z info: Deleted master item dimension "Sales month", id=85f05898-a483-4caa-8f90-011c6dc48c6b in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+
+C:\tools\ctrl-q>
 ```
 
 ### Import
@@ -183,40 +199,58 @@ Import dimensions and measures from Excel file.
 
 First let's take a look at the command options:
 
-```bash
-➜ node ctrl-q.js importexcel --help
+```
+C:\tools\ctrl-q>ctrl-q.exe master-item-import --help
+Usage: ctrl-q master-item-import [options]
 
-Usage: ctrl-q importexcel [options]
-
-create master items based on definitions in an Excel file
+create master items based on definitions in a file on disk
 
 Options:
-  --log-level <level>        log level (error, warning, info, verbose, debug, silly). "Info" level is default (default: "info")
-  --host <host>             Qlik Sense server IP/FQDN
-  --port <port>             Qlik Sense server engine port (default: "4747")
-  --schema-version <string>  Qlik Sense engine schema version (default: "12.612.0")
-  --app-id <id>              Qlik Sense app whose master items should be modified
-  --auth-cert-file <file>         Qlik Sense certificate file (exported from QMC) (default: "./cert/client.pem")
-  --auth-cert-key-file <file>      Qlik Sense certificate key file (exported from QMC) (default: "./cert/client_key.pem")
-  --auth-root-cert-file <file>     Qlik Sense root certificate file (exported from QMC) (default: "./cert/root.pem")
-  --prefix <prefix>         Qlik Sense virtual proxy prefix (default: "")
-  --secure <true|false>     connection to Qlik Sense engine is via https (default: true)
-  --auth-user-dir <directory>     user directory for user to connect with
-  --auth-user-id <userid>         user ID for user to connect with
-  --file <filename>         Excel file containing master item definitions
-  --sheet <name>            name of Excel sheet where dim/measure flag column is found
-  --columnflag <number>     column number (zero based) where dim/measure flag is found. Use "dim" in that column to create master dimension, "measure" for master measure
-  --columnname <number>     column number (zero based) to use as master item name
-  --columndescr <number>    column number (zero based) to use as master item description (default: "")
-  --columnlabel <number>    column number (zero based) to use as master item label (default: "")
-  --columnexpr <number>     column number (zero based) to use as master item expression
-  --columntag <number>      column number (zero based) to use as master item tags
-  -h, --help                display help for command
-  ```
+  --log-level <level>                                log level (choices: "error", "warn", "info", "verbose", "debug", "silly", default: "info")
+  --host <host>                                      Qlik Sense server IP/FQDN
+  --port <port>                                      Qlik Sense server engine port (default: "4747")
+  --schema-version <string>                          Qlik Sense engine schema version (default: "12.612.0")
+  --app-id <id>                                      Qlik Sense app ID
+  --virtual-proxy <prefix>                           Qlik Sense virtual proxy prefix (default: "")
+  --secure <true|false>                              connection to Qlik Sense engine is via https (default: true)
+  --auth-user-dir <directory>                        user directory for user to connect with
+  --auth-user-id <userid>                            user ID for user to connect with
+  -a, --auth-type <type>                             authentication type (choices: "cert", default: "cert")
+  --auth-cert-file <file>                            Qlik Sense certificate file (exported from QMC) (default: "./cert/client.pem")
+  --auth-cert-key-file <file>                        Qlik Sense certificate key file (exported from QMC) (default: "./cert/client_key.pem")
+  --auth-root-cert-file <file>                       Qlik Sense root certificate file (exported from QMC) (default: "./cert/root.pem")
+  -t, --file-type <type>                             source file type (choices: "excel", default: "excel")
+  --file <filename>                                  file containing master item definitions
+  --sheet <name>                                     name of Excel sheet where dim/measure flag column is found
+  --col-ref-by <reftype>                             how to refer to columns in the source file. Options are by name or by position (zero based) (choices: "name", "position", default: "name")
+  --col-item-type <column position or name>          column where dim/measure flag is found. Use "dim" in that column to create master dimension, "measure" for master measure
+  --col-master-item-name <column position or name>   column number (zero based) to use as master item name
+  --col-master-item-descr <column position or name>  column number (zero based) to use as master item description
+  --col-master-item-label <column position or name>  column number (zero based) to use as master item label
+  --col-master-item-expr <column position or name>   column number (zero based) to use as master item expression
+  --col-master-item-tag <column position or name>    column number (zero based) to use as master item tags
+  --limit-import-count <number>                      import at most x number of master items from the Excel file. Defaults to 0 = no limit (default: 0)
+  -h, --help                                         display help for command
 
+C:\tools\ctrl-q>
+```
 
-```bash
-node ctrl-q.js importexcel --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --file "/Users/goran/code/ctrl-q/test/variables.xlsx" --sheet Sales --columnflag 0 --columnname 5 --columndescr 10 --columnlabel 6 --columnexpr 1 --columntag 7 --log-level verbose
+```
+C:\tools\ctrl-q>ctrl-q.exe master-item-import --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --auth-type cert --file-type excel --file ./ctrl-q-testdata.xlsx --sheet Sales --col-ref-by name --col-item-type "Master item type" --col-master-item-name "Master Item Name" --col-master-item-descr "Description" --col-master-item-label "Label" --col-master-item-expr "Expression" --col-master-item-tag "Tag"
+2022-10-12T18:24:54.320Z info: Import master items from definitions in Excel file "./ctrl-q-testdata.xlsx"
+2022-10-12T18:24:54.753Z warn: Found an unknown master item type: "Master item type". Ignoring this line in the imported file.
+2022-10-12T18:24:54.794Z info: Created new measure "No. of sold units"
+2022-10-12T18:24:54.839Z info: Created new measure "No. of sold units (LY)"
+2022-10-12T18:24:54.877Z info: Created new measure "Revenue EUR"
+2022-10-12T18:24:54.922Z info: Created new measure "Revenue EUR (LY)"
+2022-10-12T18:24:54.962Z info: Created new measure "Profit EUR"
+2022-10-12T18:24:54.962Z warn: Found an unknown master item type: "measur". Ignoring this line in the imported file.
+2022-10-12T18:24:55.002Z info: Created new measure "Profit EUR (LY)"
+2022-10-12T18:24:55.039Z info: Created new dimension "Country"
+2022-10-12T18:24:55.089Z info: Created new dimension "Sales month"
+2022-10-12T18:24:55.137Z info: Created new dimension "Salesperson"
+
+C:\tools\ctrl-q>
 ```
 
 ### Scramble
@@ -229,32 +263,29 @@ Note:
 - The entire list of field names (the `--fieldname` option) should be surrounded by double quotes.
 - A new app with the scrambled data will be created. Specify its name in the `--newappname` option.
 
-```bash
-➜ node ctrl-q.js scramblefield --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --fieldname Expression1,Dim1,AsciiAlpha --separator , --newappname __ScrambledTest1 --log-level silly
+```
+C:\tools\ctrl-q>ctrl-q.exe field-scramble --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --field-name Expression1 Dim1 AsciiAlpha --new-app-name __ScrambledTest1
+2022-10-12T20:12:36.002Z info: Scramble field
+2022-10-12T20:12:36.742Z info: Scrambled field "Expression1"
+2022-10-12T20:12:36.748Z info: Scrambled field "Dim1"
+2022-10-12T20:12:36.753Z info: Scrambled field "AsciiAlpha"
+2022-10-12T20:12:38.015Z info: Scrambled data written to new app "__ScrambledTest1" with app ID: 016573df-cd8c-43e9-a448-535698b440f0
 
-2021-07-06T09:44:19.277Z verbose: Scramble field
-2021-07-06T09:44:19.778Z verbose: Created session to server 192.168.100.109, engine version is 12.878.3.
-2021-07-06T09:44:20.104Z verbose: Opened app a3e0f5d2-000a-464f-998d-33d333b175d7.
-2021-07-06T09:44:20.121Z info: Scrambled field "Expression1"
-2021-07-06T09:44:20.140Z info: Scrambled field "Dim1"
-2021-07-06T09:44:20.158Z info: Scrambled field "AsciiAlpha"
-2021-07-06T09:44:20.891Z verbose: Closed session after managing master items in app a3e0f5d2-000a-464f-998d-33d333b175d7 on host 192.168.100.109
+C:\tools\ctrl-q>
 ```
 
 ### Get script
 
 Get script and associated metadata for a Sense app
 
-```bash
-➜ node ctrl-q.js getscript --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --log-level verbose
-
-2021-07-06T09:44:55.221Z verbose: Get app script
-2021-07-06T09:44:55.333Z verbose: Created session to server 192.168.100.109, engine version is 12.878.3.
-2021-07-06T09:44:55.689Z verbose: Opened app a3e0f5d2-000a-464f-998d-33d333b175d7.
-2021-07-06T09:44:55.705Z verbose: ----- Script metadata -----
-2021-07-06T09:44:55.706Z verbose: Created date: 2021-06-03T22:04:52.283Z
-2021-07-06T09:44:55.706Z verbose: Modified date: 2021-06-04T15:42:23.759Z
-2021-07-06T09:44:55.706Z verbose: ----- End script metadata -----
+```
+C:\tools\ctrl-q>ctrl-q.exe script-get --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran
+2022-10-12T20:13:37.771Z info: ----- Script metadata -----
+2022-10-12T20:13:37.772Z info: App id: a3e0f5d2-000a-464f-998d-33d333b175d7
+2022-10-12T20:13:37.778Z info: Created date: 2021-06-03T22:04:52.283Z
+2022-10-12T20:13:37.779Z info: Modified date: 2021-06-04T15:42:23.759Z
+2022-10-12T20:13:37.780Z info: ----- End script metadata -----
+2022-10-12T20:13:37.782Z info:
 ///$tab Main
 SET ThousandSep=',';
 SET DecimalSep='.';
@@ -306,6 +337,6 @@ Autogenerate 1000
  While Rand()<=0.5 or IterNo()=1;
 
  Comment Field Dim1 With "This is a field comment";
-2021-07-06T09:44:55.725Z verbose: Closed session after retrieving script from app a3e0f5d2-000a-464f-998d-33d333b175d7 on host 192.168.100.109
-```
 
+C:\tools\ctrl-q>
+```
