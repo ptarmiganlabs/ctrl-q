@@ -8,6 +8,22 @@ const sharedParamAssertOptions = (options) => {
     }
 };
 
+const userActivityCustomPropertyAssertOptions = (options) => {
+    // If certificate authentication is used: certs and user dir/id must be present.
+    if (options.authType === 'cert' && (!options.authUserDir || !options.authUserId)) {
+        logger.error('User directory and user ID are mandatory options when using certificate for authenticating with Sense');
+        process.exit(1);
+    }
+
+    // Ensure activity buckets are all integers
+    options.activityBuckets = options.activityBuckets.map( (item) => parseInt(item, 10));
+    logger.verbose(`User activity buckets: ${options.activityBuckets}`);
+
+    // Sort activity buckets
+    options.activityBuckets.sort((a, b) => a - b);
+    return options;
+};
+
 const masterItemImportAssertOptions = (options) => {
     if (options.colRefBy === undefined || !options.colRefBy) {
         logger.error(
@@ -83,6 +99,7 @@ const getBookmarkAssertOptions = (options) => {
 
 module.exports = {
     sharedParamAssertOptions,
+    userActivityCustomPropertyAssertOptions,
     masterItemImportAssertOptions,
     masterItemMeasureDeleteAssertOptions,
     masterItemDimDeleteAssertOptions,
