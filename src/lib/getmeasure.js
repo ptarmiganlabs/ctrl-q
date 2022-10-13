@@ -2,7 +2,7 @@ const enigma = require('enigma.js');
 const { table } = require('table');
 
 const { setupEnigmaConnection } = require('./enigma');
-const { logger, setLoggingLevel } = require('../globals');
+const { logger, setLoggingLevel, isPkg, execPath } = require('../globals');
 
 const consoleTableConfig = {
     border: {
@@ -40,7 +40,10 @@ const consoleTableConfig = {
 const getMasterMeasure = async (options) => {
     try {
         // Set log level
-        setLoggingLevel(options.loglevel);
+        setLoggingLevel(options.logLevel);
+
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Get master measures');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
@@ -49,7 +52,7 @@ const getMasterMeasure = async (options) => {
         const configEnigma = setupEnigmaConnection(options);
 
         const session = enigma.create(configEnigma);
-        if (options.loglevel === 'silly') {
+        if (options.logLevel === 'silly') {
             // eslint-disable-next-line no-console
             session.on('traffic:sent', (data) => console.log('sent:', data));
             // eslint-disable-next-line no-console
@@ -60,8 +63,8 @@ const getMasterMeasure = async (options) => {
         const engineVersion = await global.engineVersion();
         logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
 
-        const app = await global.openDoc(options.appid, '', '', '', false);
-        logger.verbose(`Opened app ${options.appid}.`);
+        const app = await global.openDoc(options.appId, '', '', '', false);
+        logger.verbose(`Opened app ${options.appId}.`);
 
         // Get master measures
         // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/definitions-NxLibraryMeasureDef.html
@@ -172,7 +175,7 @@ const getMasterMeasure = async (options) => {
                     measure.qMeta.publishTime,
                     measure.qMeta.createdDate,
                     measure.qMeta.modifiedDate,
-                    `${measure.qMeta.owner.userDirectory}\\${measure.qMeta.owner.userId}`,
+                    `${measure.qMeta.owner.authUserDirectory}\\${measure.qMeta.owner.authUserId}`,
                     measure.qMeta.tags,
                 ]);
             }
@@ -184,12 +187,12 @@ const getMasterMeasure = async (options) => {
         }
 
         if ((await app.destroySessionObject(genericMeasureObj.id)) === true) {
-            logger.debug(`Destroyed session object after managing master items in app ${options.appid} on host ${options.host}`);
+            logger.debug(`Destroyed session object after managing master items in app ${options.appId} on host ${options.host}`);
 
             if ((await session.close()) === true) {
-                logger.verbose(`Closed session after getting master item measures in app ${options.appid} on host ${options.host}`);
+                logger.verbose(`Closed session after getting master item measures in app ${options.appId} on host ${options.host}`);
             } else {
-                logger.error(`Error closing session for app ${options.appid} on host ${options.host}`);
+                logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
             }
         } else {
             logger.error(`Error destroying session object for master measures`);

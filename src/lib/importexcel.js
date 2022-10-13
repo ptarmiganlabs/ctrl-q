@@ -3,7 +3,7 @@ const enigma = require('enigma.js');
 const xlsx = require('node-xlsx').default;
 
 const { setupEnigmaConnection } = require('./enigma');
-const { logger, setLoggingLevel } = require('../globals');
+const { logger, setLoggingLevel, isPkg, execPath } = require('../globals');
 
 /**
  * Find of column's positioon (zero based) given a column name.
@@ -28,7 +28,10 @@ const getColumnPos = (options, colName, colNameArray) => {
 const importMasterItemFromExcel = async (options) => {
     try {
         // Set log level
-        setLoggingLevel(options.loglevel);
+        setLoggingLevel(options.logLevel);
+
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info(`Import master items from definitions in Excel file "${options.file}"`);
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
@@ -66,7 +69,7 @@ const importMasterItemFromExcel = async (options) => {
         const configEnigma = setupEnigmaConnection(options);
 
         const session = enigma.create(configEnigma);
-        if (options.loglevel === 'silly') {
+        if (options.logLevel === 'silly') {
             // eslint-disable-next-line no-console
             session.on('traffic:sent', (data) => console.log('sent:', data));
             // eslint-disable-next-line no-console
@@ -77,8 +80,8 @@ const importMasterItemFromExcel = async (options) => {
         const engineVersion = await global.engineVersion();
         logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
 
-        const app = await global.openDoc(options.appid, '', '', '', false);
-        logger.verbose(`Opened app ${options.appid}.`);
+        const app = await global.openDoc(options.appId, '', '', '', false);
+        logger.verbose(`Opened app ${options.appId}.`);
 
         // Get list of all existing master dimensions and measures
 
@@ -150,8 +153,8 @@ const importMasterItemFromExcel = async (options) => {
                             description: row[colPosMasterItemDescr],
                             tags: row[colPosMasterItemTag].split(','),
                             owner: {
-                                userId: options.userid,
-                                userDirectory: options.userdir,
+                                userId: options.authUserId,
+                                userDirectory: options.authUserDir,
                             },
                         },
                     };
@@ -186,8 +189,8 @@ const importMasterItemFromExcel = async (options) => {
                                 tags: row[colPosMasterItemTag].split(','),
                                 // masterScriptId: t.msId,
                                 // owner: {
-                                //   userId: options.userid,
-                                //   userDirectory: options.userdir,
+                                //   userId: options.authUserId,
+                                //   userDirectory: options.authUserDir,
                                 // },
                             },
                         };
@@ -236,8 +239,8 @@ const importMasterItemFromExcel = async (options) => {
                             tags: row[colPosMasterItemTag].split(','),
                             // masterScriptId:t.msId
                             // owner: {
-                            //   userId: options.userid,
-                            //   userDirectory: options.userdir,
+                            //   userId: options.authUserId,
+                            //   userDirectory: options.authUserDir,
                             // },
                         },
                     };
@@ -273,8 +276,8 @@ const importMasterItemFromExcel = async (options) => {
                                 tags: row[colPosMasterItemTag].split(','),
                                 // masterScriptId:t.msId
                                 // owner: {
-                                //   userId: options.userid,
-                                //   userDirectory: options.userdir,
+                                //   userId: options.authUserId,
+                                //   userDirectory: options.authUserDir,
                                 // },
                             },
                         };
@@ -297,14 +300,18 @@ const importMasterItemFromExcel = async (options) => {
                             break;
                         }
                     }
+                } else {
+                    logger.warn(
+                        `Found an unknown master item type: "${row[colPosMasterItemType]}". Ignoring this line in the imported file.`
+                    );
                 }
             }
         }
 
         if ((await session.close()) === true) {
-            logger.verbose(`Closed session after adding/updating master items in app ${options.appid} on host ${options.host}`);
+            logger.verbose(`Closed session after adding/updating master items in app ${options.appId} on host ${options.host}`);
         } else {
-            logger.error(`Error closing session for app ${options.appid} on host ${options.host}`);
+            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
         }
     } catch (err) {
         logger.error(err.stack);

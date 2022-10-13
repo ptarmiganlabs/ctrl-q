@@ -1,7 +1,7 @@
 const enigma = require('enigma.js');
 
 const { setupEnigmaConnection } = require('./enigma');
-const { logger, setLoggingLevel } = require('../globals');
+const { logger, setLoggingLevel, isPkg, execPath } = require('../globals');
 
 /**
  *
@@ -9,6 +9,12 @@ const { logger, setLoggingLevel } = require('../globals');
  */
 const createMasterDimension = async (options) => {
     try {
+        // Set log level
+        setLoggingLevel(options.logLevel);
+
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started from ${execPath}`);
+
         logger.info('Create master dimension');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
@@ -21,8 +27,8 @@ const createMasterDimension = async (options) => {
         const engineVersion = await global.engineVersion();
         console.log(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
 
-        const app = await global.openDoc(options.appid, '', '', '', false);
-        console.log(`Opened app ${options.appid}.`);
+        const app = await global.openDoc(options.appId, '', '', '', false);
+        console.log(`Opened app ${options.appId}.`);
 
         // Get master dimensions
         const dimensionCall = {
@@ -232,7 +238,7 @@ const createMasterDimension = async (options) => {
             //         dimension.qMeta.publishTime,
             //         dimension.qMeta.createdDate,
             //         dimension.qMeta.modifiedDate,
-            //         dimension.qMeta.owner.userDirectory + '\\' + dimension.qMeta.owner.userId,
+            //         dimension.qMeta.owner.authUserDirectory + '\\' + dimension.qMeta.owner.authUserId,
             //         dimension.qMeta.tags,
             //       ]);
             //     }
@@ -241,9 +247,9 @@ const createMasterDimension = async (options) => {
         }
 
         if ((await session.close()) == true) {
-            console.log(`Closed session after managing master items in app ${options.appid} on host ${options.host}`);
+            console.log(`Closed session after managing master items in app ${options.appId} on host ${options.host}`);
         } else {
-            console.log(`Error closing session for app ${options.appid} on host ${options.host}`);
+            console.log(`Error closing session for app ${options.appId} on host ${options.host}`);
         }
     } catch (err) {
         console.log(err);

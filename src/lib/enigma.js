@@ -3,7 +3,7 @@ const WebSocket = require('ws');
 const fs = require('fs-extra');
 const path = require('path');
 
-const { logger } = require('../globals');
+const { logger, execPath } = require('../globals');
 
 /**
  * Helper function to read the contents of the certificate files:
@@ -22,23 +22,23 @@ const setupEnigmaConnection = (options) => {
     logger.debug('Prepping for Enigma connection...');
 
     // eslint-disable-next-line global-require
-    const qixSchema = require(`enigma.js/schemas/${options.schemaversion}`);
+    const qixSchema = require(`enigma.js/schemas/${options.schemaVersion}`);
 
     return {
         schema: qixSchema,
         url: SenseUtilities.buildUrl({
             host: options.host,
             port: options.port,
-            prefix: options.prefix,
+            prefix: options.virtualProxy,
             secure: options.secure,
-            appId: options.appid,
+            appId: options.appId,
         }),
         createSocket: (url) =>
             new WebSocket(url, {
-                key: readCert(path.resolve(__dirname, options.certkeyfile)),
-                cert: readCert(path.resolve(__dirname, options.certfile)),
+                key: readCert(path.resolve(execPath, options.authCertKeyFile)),
+                cert: readCert(path.resolve(execPath, options.authCertFile)),
                 headers: {
-                    'X-Qlik-User': `UserDirectory=${options.userdir};UserId=${options.userid}`,
+                    'X-Qlik-User': `UserDirectory=${options.authUserDir};UserId=${options.authUserId}`,
                 },
                 rejectUnauthorized: false,
             }),
