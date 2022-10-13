@@ -1,11 +1,22 @@
-# Ctrl-Q
+<h1 align="center">Ctrl-Q</h1>
+<h2 align="center">Ctrl-Q makes life easier for Qlik Sense admins and developers.<br><br>
 
-Ctrl-Q is a cross platform, command line tool for interacting with client-managed Qlik Sense Enterprise on Windows.  
-Ctrl-Q is open source with a permissive MIT license.
+It is a cross platform, command line tool for interacting with client-managed Qlik Sense Enterprise on Windows.</h2>
+<h3 align="center">Ctrl-Q is designed to be easily extensible if/when additional features are needed.<br>
+It is open source with a permissive MIT license.<br><br>
+</h3>
 
-The tool is designed to be easily extensible if/when additional features are needed.
+<p align="center">
+<a href="https://github.com/ptarmiganlabs/ctrl-q"><img src="https://img.shields.io/badge/Source---" alt="Source"></a>
+<a href="https://github.com/ptarmiganlabs/ctrl-q/actions/workflows/release-please.yml"><img src="https://github.com/ptarmiganlabs/ctrl-q/actions/workflows/release-please.yml/badge.svg" alt="Continuous Integration"></a>
+<a href="https://github.com/ptarmiganlabs/ctrl-q/releases"><img src="https://img.shields.io/github/downloads/ptarmiganlabs/ctrl-q/total.svg?label=downloads" /></a>
+<img src="https://hits.dwyl.com/ptarmiganlabs/ctrl-q.svg" />
+</p>
+<br>
+<br>
 
-Focus is on slightly more complex use cases that are not handled out of the box by other tools such as [Qlik's official Qlik CLI tool](https://qlik.dev/libraries-and-tools/qlik-cli) or Adam Haydon's [Qlik CLI Windows](https://github.com/ahaydon/Qlik-Cli-Windows) tool.  
+
+The focus of Ctrl-Q is on slightly more complex use cases that are not handled out of the box by other tools such as [Qlik's official Qlik CLI tool](https://qlik.dev/libraries-and-tools/qlik-cli) or Adam Haydon's [Qlik CLI Windows](https://github.com/ahaydon/Qlik-Cli-Windows) tool.  
 Both are exceptional tools and extremely useful, but especially when it comes to interactions with the Qlik Sense engine they fall a bit short.
 
 Ctrl-Q also tries to fill niches that are not covered by the various members of the Butler family of open source SenseOps tools.
@@ -28,21 +39,22 @@ Enjoy!
 
 ## Contents
 
-- [Ctrl-Q](#ctrl-q)
-  - [Contents](#contents)
-  - [Getting started](#getting-started)
-  - [Logging](#logging)
-  - [Commands](#commands)
-  - [Commands](#commands-1)
-    - [Bookmarks](#bookmarks)
-      - [List bookmarks](#list-bookmarks)
-    - [Measures](#measures)
-      - [List measures](#list-measures)
-      - [Delete measures](#delete-measures)
-    - [Dimensions](#dimensions)
-    - [Import](#import)
-    - [Scramble](#scramble)
-    - [Get script](#get-script)
+- [Contents](#contents)
+- [Getting started](#getting-started)
+- [Logging](#logging)
+- [Commands](#commands)
+- [Commands](#commands-1)
+  - [Bookmarks](#bookmarks)
+    - [List bookmarks](#list-bookmarks)
+  - [Measures](#measures)
+    - [List measures](#list-measures)
+    - [Delete measures](#delete-measures)
+  - [Dimensions](#dimensions)
+    - [List dimensions](#list-dimensions)
+    - [Delete dimensions](#delete-dimensions)
+  - [Import](#import)
+  - [Scramble](#scramble)
+  - [Get script](#get-script)
 
 ## Getting started
 
@@ -157,7 +169,7 @@ C:\tools\ctrl-q>
 
 ### Dimensions
 
-List dimensions
+#### List dimensions
 
 ```
 C:\tools\ctrl-q>ctrl-q.exe master-item-dim-get --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran
@@ -183,7 +195,7 @@ C:\tools\ctrl-q>ctrl-q.exe master-item-dim-get --host 192.168.100.109 --app-id a
 C:\tools\ctrl-q>
 ```
 
-Delete dimensions
+#### Delete dimensions
 
 ```
 C:\tools\ctrl-q>ctrl-q.exe master-item-dim-delete --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --id-type id --master-item 41070084-7bd3-4dc6-95a6-44131114ed6a 85f05898-a483-4caa-8f90-011c6dc48c6b
