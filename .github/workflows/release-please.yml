@@ -68,7 +68,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --file=./src/package.json --sarif-file-output=snyk.sarif
+          args: --file=./package.json --sarif-file-output=snyk.sarif
           # command: test
           
       - name: Upload Snyk result to GitHub Code Scanning
