@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.0.0...ctrl-q-v3.0.1) (2022-10-13)
+
+
+### Bug Fixes
+
+* Fix broken Linux build ([7772733](https://github.com/ptarmiganlabs/ctrl-q/commit/77727336e7f5798c19e21cbb2651a2c7786460d6))
+
 ## [3.0.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v2.1.1...ctrl-q-v3.0.0) (2022-10-13)
 
 
