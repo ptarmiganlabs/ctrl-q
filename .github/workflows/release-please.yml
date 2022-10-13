@@ -220,7 +220,7 @@ jobs:
 
     if: ${{ needs.release-please.outputs.releases_created }} 
     env:
-      DIST_FILE_NAME: butler
+      DIST_FILE_NAME: ctrl-q
     steps:
       - name: Release tag and upload url from previous job
         run: |
