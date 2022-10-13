@@ -125,6 +125,8 @@ const importMasterItemFromExcel = async (options) => {
         // Loop through rows in Excel file, extracting data for rows flagged as master items
         let importCount = 0;
         if (sheet && sheet.data.length > 0) {
+            let rowCount = 0;
+
             // Loop through all rows
             // eslint-disable-next-line no-restricted-syntax
             for (const row of sheet.data) {
@@ -301,10 +303,15 @@ const importMasterItemFromExcel = async (options) => {
                         }
                     }
                 } else {
-                    logger.warn(
-                        `Found an unknown master item type: "${row[colPosMasterItemType]}". Ignoring this line in the imported file.`
-                    );
+                    // Don't warn if it's the first line/header in the Excel file
+                    // eslint-disable-next-line no-lonely-if
+                    if (rowCount !== 0) {
+                        logger.warn(
+                            `Found an unknown master item type: "${row[colPosMasterItemType]}". Ignoring this line in the imported file.`
+                        );
+                    }
                 }
+                rowCount += 1;
             }
         }
 
