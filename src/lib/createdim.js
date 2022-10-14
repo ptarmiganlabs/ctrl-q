@@ -25,10 +25,10 @@ const createMasterDimension = async (options) => {
         const global = await session.open();
 
         const engineVersion = await global.engineVersion();
-        console.log(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
+        logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
 
         const app = await global.openDoc(options.appId, '', '', '', false);
-        console.log(`Opened app ${options.appId}.`);
+        logger.verbose(`Opened app ${options.appId}.`);
 
         // Get master dimensions
         const dimensionCall = {
@@ -246,13 +246,13 @@ const createMasterDimension = async (options) => {
             // }
         }
 
-        if ((await session.close()) == true) {
-            console.log(`Closed session after managing master items in app ${options.appId} on host ${options.host}`);
+        if ((await session.close()) === true) {
+            logger.verbose(`Closed session after managing master items in app ${options.appId} on host ${options.host}`);
         } else {
-            console.log(`Error closing session for app ${options.appId} on host ${options.host}`);
+            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
         }
     } catch (err) {
-        console.log(err);
+        logger.error(`Error destroying session object for master dimenions`);
     }
 };
 

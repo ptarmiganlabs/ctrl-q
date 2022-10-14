@@ -1,5 +1,6 @@
 const winston = require('winston');
 const upath = require('upath');
+const { promises: Fs } = require('fs');
 require('winston-daily-rotate-file');
 
 // Get app version from package.json file
@@ -42,11 +43,41 @@ const setLoggingLevel = (newLevel) => {
     logTransports.find((transport) => transport.name === 'console').level = newLevel;
 };
 
+// Check file existence
+async function exists(pathToCheck) {
+    try {
+        await Fs.access(pathToCheck);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+const verifyFileExists = (file) =>
+    // eslint-disable-next-line no-async-promise-executor, no-unused-vars
+    new Promise(async (resolve, reject) => {
+        try {
+            logger.debug(`Checking if file ${file} exists`);
+
+            const fileExists = await exists(file);
+
+            if (fileExists === true) {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        } catch (err) {
+            logger.error(`Error while checking if file ${file} exists: ${JSON.stringify(err, null, 2)}`);
+            resolve(false);
+        }
+    });
+
 module.exports = {
     logger,
     appVersion,
     getLoggingLevel,
     setLoggingLevel,
     execPath,
-    isPkg
+    isPkg,
+    verifyFileExists,
 };

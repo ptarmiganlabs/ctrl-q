@@ -22,7 +22,7 @@ const scrambleField = async (options) => {
         const configEnigma = setupEnigmaConnection(options);
 
         const session = enigma.create(configEnigma);
-        if (options.logLevel == 'silly') {
+        if (options.logLevel === 'silly') {
             // eslint-disable-next-line no-console
             session.on('traffic:sent', (data) => console.log('sent:', data));
             // eslint-disable-next-line no-console
@@ -51,7 +51,7 @@ const scrambleField = async (options) => {
                     // eslint-disable-next-line no-await-in-loop
                     const res = await app.scramble(field);
                     logger.info(`Scrambled field "${field}"`);
-                } catch(err) {
+                } catch (err) {
                     logger.error(`Failed scrambling field "${field}". Please make sure it exists in the app.`);
                 }
             }
@@ -60,7 +60,7 @@ const scrambleField = async (options) => {
             const newAppId = await app.saveAs(options.newAppName);
             logger.info(`Scrambled data written to new app "${options.newAppName}" with app ID: ${newAppId}`);
 
-            if ((await session.close()) == true) {
+            if ((await session.close()) === true) {
                 logger.verbose(`Closed session after managing master items in app ${options.appId} on host ${options.host}`);
             } else {
                 logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);

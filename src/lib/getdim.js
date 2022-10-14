@@ -42,7 +42,7 @@ const getMasterDimension = async (options) => {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
- 
+
         logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
@@ -54,7 +54,9 @@ const getMasterDimension = async (options) => {
 
         const session = enigma.create(configEnigma);
         if (options.logLevel === 'silly') {
+            // eslint-disable-next-line no-console
             session.on('traffic:sent', (data) => console.log('sent:', data));
+            // eslint-disable-next-line no-console
             session.on('traffic:received', (data) => console.log('received:', data));
         }
         const global = await session.open();

@@ -12,7 +12,7 @@ const { deleteMasterMeasure } = require('./lib/deletemeasure');
 
 const { getBookmark } = require('./lib/getbookmark');
 
-const { importMasterItemFromFile } = require('./lib/importexcel');
+const { importMasterItemFromFile } = require('./lib/import-masteritem-excel');
 
 const { scrambleField } = require('./lib/scramblefield');
 const { getScript } = require('./lib/getscript');
