@@ -26,7 +26,7 @@ The Butler tools each focus on a specific feature (or features in the case of [t
 For example, [Butler SOS](https://github.com/ptarmiganlabs/butler-sos) focus on getting real-time metrics and events out of Sense and into a wide range of target databases and monitoring tools.  
 [Butler Sheet Icons](https://github.com/ptarmiganlabs/butler-sheet-icons) creates sheet thumbnails for Sense apps - but offers lots of flexibility and power around that use case.
 
-Ctrl-Q instead focus on specific, high-value uses cases that tend to be vary time consuming to do manually.  
+Ctrl-Q instead focus on specific, high-value uses cases that tend to be very time consuming and/or error prone to do manually.  
 
 Automated creation of master items is an example.  
 Manually creating hundreds of master items can take hours or days.  
