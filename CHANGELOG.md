@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.3](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.1.2...ctrl-q-v3.1.3) (2022-10-14)
+
+
+### Documentation
+
+* Add animated demo of Ctrl-Q to README file ([3f555ac](https://github.com/ptarmiganlabs/ctrl-q/commit/3f555ac5aafc2f145ec9ff73d644d04f992cf520))
+
 ## [3.1.2](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.1.1...ctrl-q-v3.1.2) (2022-10-14)
 
 
