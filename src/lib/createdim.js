@@ -19,7 +19,7 @@ const createMasterDimension = async (options) => {
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
         // Configure Enigma.js
-        const configEnigma = setupEnigmaConnection(options);
+        const configEnigma = await setupEnigmaConnection(options);
 
         const session = enigma.create(configEnigma);
         const global = await session.open();
