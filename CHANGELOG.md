@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.1.2](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.1.1...ctrl-q-v3.1.2) (2022-10-14)
+
+
+### Bug Fixes
+
+* Table headings now left aligned instead of centered ([5e6c591](https://github.com/ptarmiganlabs/ctrl-q/commit/5e6c5911866491d3f00742f3517b8096bc6f3a56)), closes [#89](https://github.com/ptarmiganlabs/ctrl-q/issues/89)
+
+
+### Documentation
+
+* Describe how animated captures of terminal sessions are done ([34e73c9](https://github.com/ptarmiganlabs/ctrl-q/commit/34e73c95b730f57ef8405bfb86b676c15238c2b5))
+
 ## [3.1.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.1.0...ctrl-q-v3.1.1) (2022-10-14)
 
 
