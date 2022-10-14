@@ -3,10 +3,14 @@
 <h1 align="center">Ctrl-Q makes life easier for Qlik Sense admins and developers.<br><br>
 
 It is a cross platform, command line tool for interacting with client-managed Qlik Sense Enterprise on Windows.</h2>
-<h2 align="center">Ctrl-Q is designed to be easily extensible if/when additional features are needed.<br>
-It is open source with a permissive MIT license.<br><br>
-</h2>
 
+<p align="center">
+<img src="./docs/terminal_captures/ctrl-q_demo_1.gif" width="800">
+</p>
+<br>
+<h2 align="center">Ctrl-Q is designed to be easily extensible if/when additional features are needed.<br>
+It is open source with a permissive MIT license.<br>
+</h2>
 <p align="center">
 <a href="https://github.com/ptarmiganlabs/ctrl-q"><img src="https://img.shields.io/badge/Source---" alt="Source"></a>
 <a href="https://github.com/ptarmiganlabs/ctrl-q/actions/workflows/release-please.yml"><img src="https://github.com/ptarmiganlabs/ctrl-q/actions/workflows/release-please.yml/badge.svg" alt="Continuous Integration"></a>
@@ -107,7 +111,7 @@ C:\tools\ctrl-q>
 #### List bookmarks
 
 ```
-C:\tools\ctrl-q>ctrl-q.exe bookmark-get --host <IP> --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran
+C:\tools\ctrl-q>ctrl-q.exe bookmark-get --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran
 2022-10-12T18:05:35.615Z info: Get bookmarks
 2022-10-12T18:05:36.000Z info: Bookmarks
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
