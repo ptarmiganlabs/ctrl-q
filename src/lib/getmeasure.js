@@ -151,8 +151,8 @@ const getMasterMeasure = async (options) => {
             ]);
 
             consoleTableConfig.header = {
-                alignment: 'center',
-                content: `Measures (${getMasterItems.length} measures found in the app)`,
+                alignment: 'left',
+                content: `Measures (${getMasterItems.length} measure(s) found in the app)`,
             };
 
             // eslint-disable-next-line no-restricted-syntax

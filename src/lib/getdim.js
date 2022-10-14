@@ -162,8 +162,8 @@ const getMasterDimension = async (options) => {
             ]);
 
             consoleTableConfig.header = {
-                alignment: 'center',
-                content: `Dimensions (${getMasterItems.length} dimensions found in the app)`,
+                alignment: 'left',
+                content: `Dimensions (${getMasterItems.length} dimension(s) found in the app)`,
             };
 
             // eslint-disable-next-line no-restricted-syntax
