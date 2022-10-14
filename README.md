@@ -44,7 +44,6 @@ Enjoy!
 - [Getting started](#getting-started)
 - [Logging](#logging)
 - [Commands](#commands)
-- [Commands](#commands-1)
   - [Bookmarks](#bookmarks)
     - [List bookmarks](#list-bookmarks)
   - [Measures](#measures)
@@ -102,8 +101,6 @@ Commands:
 
 C:\tools\ctrl-q>
 ```
-
-## Commands
 
 ### Bookmarks
 
