@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.1.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.0.1...ctrl-q-v3.1.0) (2022-10-14)
+
+
+### Features
+
+* Verify that files on disk exist before trying to open them + better error messages when files do not exist ([ff74012](https://github.com/ptarmiganlabs/ctrl-q/commit/ff740126fef06e726dd0453b1a12ed0ae52c0044)), closes [#81](https://github.com/ptarmiganlabs/ctrl-q/issues/81)
+
+
+### Bug Fixes
+
+* Don't warn for header row in Excel file when importing master items ([2ef9d0e](https://github.com/ptarmiganlabs/ctrl-q/commit/2ef9d0ee75391ac3b4aa2566993b1976070c0e67)), closes [#82](https://github.com/ptarmiganlabs/ctrl-q/issues/82)
+
+
+### Documentation
+
+* Fixing typos, adding logo ([39afc11](https://github.com/ptarmiganlabs/ctrl-q/commit/39afc115e1353604c0ab5f101ff087ff7560d876))
+* Remove example files as they are already included in the README ([0743eeb](https://github.com/ptarmiganlabs/ctrl-q/commit/0743eeb47a02c03bbbbd70177d36442d377ac1bf))
+
+
+### Refactoring
+
+* General code cleanup and restructuring ([c43941e](https://github.com/ptarmiganlabs/ctrl-q/commit/c43941ee3a1a31ed1ef1fb60559e097c8c25e589))
+
+
+### Miscellaneous
+
+* **deps:** Updated dependencies ([55368ea](https://github.com/ptarmiganlabs/ctrl-q/commit/55368ea3e42abd5f6f9ea91c0792d8fe7928ea34))
+
 ## [3.0.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.0.0...ctrl-q-v3.0.1) (2022-10-13)
 
 
