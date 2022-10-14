@@ -143,8 +143,8 @@ const getBookmark = async (options) => {
             ]);
 
             consoleTableConfig.header = {
-                alignment: 'center',
-                content: `Bookmarks (${getBookmarks.length} bookmarks found in the app)`,
+                alignment: 'left',
+                content: `Bookmarks (${getBookmarks.length} bookmark(s) found in the app)`,
             };
 
             // eslint-disable-next-line no-restricted-syntax
