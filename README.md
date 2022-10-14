@@ -1,10 +1,11 @@
-<h1 align="center">Ctrl-Q</h1>
-<h2 align="center">Ctrl-Q makes life easier for Qlik Sense admins and developers.<br><br>
+<p align="center"><img src="docs/ctrl-q_2.png"><p>
+
+<h1 align="center">Ctrl-Q makes life easier for Qlik Sense admins and developers.<br><br>
 
 It is a cross platform, command line tool for interacting with client-managed Qlik Sense Enterprise on Windows.</h2>
-<h3 align="center">Ctrl-Q is designed to be easily extensible if/when additional features are needed.<br>
+<h2 align="center">Ctrl-Q is designed to be easily extensible if/when additional features are needed.<br>
 It is open source with a permissive MIT license.<br><br>
-</h3>
+</h2>
 
 <p align="center">
 <a href="https://github.com/ptarmiganlabs/ctrl-q"><img src="https://img.shields.io/badge/Source---" alt="Source"></a>
@@ -53,6 +54,7 @@ Enjoy!
     - [List dimensions](#list-dimensions)
     - [Delete dimensions](#delete-dimensions)
   - [Import](#import)
+    - [Import master items from Excel file](#import-master-items-from-excel-file)
   - [Scramble](#scramble)
   - [Get script](#get-script)
 
@@ -208,7 +210,9 @@ C:\tools\ctrl-q>
 
 ### Import
 
-Import dimensions and measures from Excel file.
+#### Import master items from Excel file
+
+This command imports dimensions and measures into master items in a Sense app.
 
 First let's take a look at the command options:
 
