@@ -3,7 +3,7 @@ const enigma = require('enigma.js');
 const xlsx = require('node-xlsx').default;
 
 const { setupEnigmaConnection } = require('./enigma');
-const { logger, setLoggingLevel, isPkg, execPath } = require('../globals');
+const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../globals');
 
 /**
  * Find of column's positioon (zero based) given a column name.
@@ -36,6 +36,15 @@ const importMasterItemFromExcel = async (options) => {
         logger.info(`Import master items from definitions in Excel file "${options.file}"`);
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
+        // Verify Master items Excel file exists
+        const excelFileExists = await verifyFileExists(options.file);
+        if (excelFileExists === false) {
+            logger.error(`Missing master item Excel file ${options.file}. Aborting`);
+            process.exit(1);
+        } else {
+            logger.verbose(`Master item Excel file ${options.file} found`);
+        }
+
         // Parse Excel file
         const workSheetsFromFile = xlsx.parse(options.file);
 
@@ -66,7 +75,7 @@ const importMasterItemFromExcel = async (options) => {
         const colPosMasterItemTag = getColumnPos(options, options.colMasterItemTag, sheet.data[0]);
 
         // Configure Enigma.js
-        const configEnigma = setupEnigmaConnection(options);
+        const configEnigma = await setupEnigmaConnection(options);
 
         const session = enigma.create(configEnigma);
         if (options.logLevel === 'silly') {
