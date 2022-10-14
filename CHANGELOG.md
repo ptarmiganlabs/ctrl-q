@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.1.0...ctrl-q-v3.1.1) (2022-10-14)
+
+
+### Bug Fixes
+
+* Get rid of race condition causing commands to fail sometimes ([6a4b364](https://github.com/ptarmiganlabs/ctrl-q/commit/6a4b3643c721dd470324bc727a37644c039434d7))
+
 ## [3.1.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.0.1...ctrl-q-v3.1.0) (2022-10-14)
 
 
