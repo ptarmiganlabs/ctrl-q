@@ -21,6 +21,30 @@
 
 ### Miscellaneous
 
+* **main:** release ctrl-q 3.2.0 ([3b97671](https://github.com/ptarmiganlabs/ctrl-q/commit/3b97671615ccbe66a973337c716a0eb170e63d02))
+* **main:** release ctrl-q 3.2.0 ([61b986a](https://github.com/ptarmiganlabs/ctrl-q/commit/61b986a7f024961bdcfad5f4909dfe377539993a))
+
+## [3.2.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.2.0...ctrl-q-v3.2.0) (2022-10-16)
+
+
+### Features
+
+* Add signing of Windows binaries ([0f98464](https://github.com/ptarmiganlabs/ctrl-q/commit/0f984643335c88450974e73f0068b4bf8bd44b1a))
+* Test enhanced virus scan as part of build process ([ed92bb4](https://github.com/ptarmiganlabs/ctrl-q/commit/ed92bb46c285c93fd08ad7eadb5f0e5846a83b08))
+
+
+### Bug Fixes
+
+* Find working solution for virus scanner. ([9e16e0a](https://github.com/ptarmiganlabs/ctrl-q/commit/9e16e0ae4f0193ad8ab152b6a84c8f541aa1e090))
+
+
+### Documentation
+
+* Update README wrt security ([fc29ead](https://github.com/ptarmiganlabs/ctrl-q/commit/fc29ead7fb1f8d1d6b3bf1398c52fa468d15f9be))
+
+
+### Miscellaneous
+
 * **main:** release ctrl-q 3.2.0 ([61b986a](https://github.com/ptarmiganlabs/ctrl-q/commit/61b986a7f024961bdcfad5f4909dfe377539993a))
 
 ## [3.2.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.1.3...ctrl-q-v3.2.0) (2022-10-16)
