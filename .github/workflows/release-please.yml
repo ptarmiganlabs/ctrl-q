@@ -115,19 +115,6 @@ jobs:
             ./release/win/*
             ./release/linux/*
 
-      # Upload to VirusTotal monitor
-      - name: VirusTotal Monitor Scan
-        uses: crazy-max/ghaction-virustotal@v3
-        if: ${{ steps.release.outputs.releases_created }}
-        with:
-          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
-          vt_monitor: true
-          monitor_path: /ghaction-virustotal
-          files: |
-            ./release/macos/*
-            ./release/win/*
-            ./release/linux/*
-
       - name: Debug
         if: ${{ steps.release.outputs.releases_created }}
         run: |
