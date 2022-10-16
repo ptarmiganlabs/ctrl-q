@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.2.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.1.3...ctrl-q-v3.2.0) (2022-10-16)
+
+
+### Features
+
+* Test enhanced virus scan as part of build process ([ed92bb4](https://github.com/ptarmiganlabs/ctrl-q/commit/ed92bb46c285c93fd08ad7eadb5f0e5846a83b08))
+
+
+### Documentation
+
+* Update README wrt security ([fc29ead](https://github.com/ptarmiganlabs/ctrl-q/commit/fc29ead7fb1f8d1d6b3bf1398c52fa468d15f9be))
+
 ## [3.1.3](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.1.2...ctrl-q-v3.1.3) (2022-10-14)
 
 
