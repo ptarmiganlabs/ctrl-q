@@ -42,11 +42,15 @@ Until then Ctrl-Q can hopefully make life a bit easier for Sense developers and 
 
 Enjoy!
 
-## Contents
+# Contents
 
 - [Contents](#contents)
 - [Getting started](#getting-started)
 - [Logging](#logging)
+- [Security](#security)
+  - [Virus scanning](#virus-scanning)
+    - [Positive scan vs false positives](#positive-scan-vs-false-positives)
+  - [Signed binaries](#signed-binaries)
 - [Commands](#commands)
   - [Bookmarks](#bookmarks)
     - [List bookmarks](#list-bookmarks)
@@ -61,7 +65,7 @@ Enjoy!
   - [Scramble](#scramble)
   - [Get script](#get-script)
 
-## Getting started
+# Getting started
 
 There is no need to install Ctrl-Q. Just download and run.  
 The GitHub [release page](https://github.com/ptarmiganlabs/ctrl-q/releases) has ready-to-run binaries for Windows and macOS
@@ -69,7 +73,7 @@ The GitHub [release page](https://github.com/ptarmiganlabs/ctrl-q/releases) has 
 The macOS binary is security scanned and signed by Apple, using their standard notarization process.  
 This means you won't get those annoying warnings when using the app.
 
-## Logging
+# Logging
 
 Logging is controlled by the --log-level option.
 
@@ -77,7 +81,58 @@ Valid values are (in order of increasing verbosity): error, warn, info, verbose,
 
 Note: When using log level silly all websocket communication to/from the Sense server will be logged to the console. This means *lots* of log output.
 
-## Commands
+# Security
+
+Ctrl-Q is open source and you have access to all source code.  
+It is **your own responsibility** to determine if Ctrl-Q is suitable for **your** use case.
+The creators of Ctrl-Q, including Ptarmigan Labs, Göran Sander or any other contributor, can and must never be held liable to past or future security issues of Ctrl-Q.
+If you have security concerns or ideas around Ctrl-Q, please get involved in the project and contribute to making it better!
+
+    If you discover a serious bug with Ctrl-Q that may pose a security problem, please disclose it confidentially to security@ptarmiganlabs.com first, so it can be assessed and hopefully fixed prior to being exploited. Please do not raise GitHub issues for serious security-related doubts or problems.
+
+Various steps are taken to ensure that Ctrl-Q is as secure as possible.  
+
+does not contain harmful or malicious software, but no such steps are guaranteed to be 100% complete.
+While these steps greatly improves security no such steps can give a 100% guarantee to catch all issues.
+It is ultimately **you** as the user of Ctrl-Q that must decide whether the tool is safe to use **for your use case**.  
+
+The information in this section intends to provide guidance in that decision process.
+
+## Virus scanning
+
+Every time a Ctrl-Q release is done the created binaries are sent to [VirusTotal](https://www.virustotal.com/) for scanning.  
+VirusTotal acts as an aggregated virus scanner that sends the Ctrl-Q binaries to dozens of anti-virus scanners, including many of the major, established ones.  
+
+Links to the VirusTotal scan report are included in each release notes, making it easy to check the status of each binary:
+
+![VirusTotal scans as part of Ctrl-Q release notes](docs/virustotal_release_4.png "VirusTotal scans as part of Ctrl-Q release notes")
+
+A VirusTotal scan that reports "no risks found" can look like this:
+
+![VirusTotal scans with no risks found](docs/virustotal_scan_clear_4.png "VirusTotal scans with no risks found")
+
+### Positive scan vs false positives
+
+If one or more of the security vendors used by VirusTotal reports an issue you have to make a decision.  
+Is it a real issue or a false positive?
+
+You have to decide this yourself, but some general lines of thought can be:
+
+    Is it a single vendor that reports the Ctrl-Q binary file to be a risk, or several vendors?
+    If one vendor reports an issue and 60+ vendors don't, you might be looking at a false positive.
+
+But again - at the end of the day it's **you** that must make that decision.
+
+A scan where a single security vendor reports an issue can look like this:
+
+![VirusTotal scans with one issue found](docs/virustotal_scan_1_issue_4.png "VirusTotal scans with one issue found")
+
+## Signed binaries
+
+The macOS version is signed and notarized by Apple's standard process.  
+A warning may still be shown first time the app is started. This is expected and normal.
+
+# Commands
 
 List available commands using the --help option:
 
@@ -106,9 +161,9 @@ Commands:
 C:\tools\ctrl-q>
 ```
 
-### Bookmarks
+## Bookmarks
 
-#### List bookmarks
+### List bookmarks
 
 ```
 C:\tools\ctrl-q>ctrl-q.exe bookmark-get --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran
@@ -129,9 +184,9 @@ C:\tools\ctrl-q>ctrl-q.exe bookmark-get --host 192.168.100.109 --app-id a3e0f5d2
 C:\tools\ctrl-q>
 ```
 
-### Measures
+## Measures
 
-#### List measures
+### List measures
 
 ```
 C:\tools\ctrl-q>ctrl-q.exe master-item-measure-get --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran
@@ -159,7 +214,7 @@ C:\tools\ctrl-q>ctrl-q.exe master-item-measure-get --host 192.168.100.109 --app-
 C:\tools\ctrl-q>
 ```
 
-#### Delete measures
+### Delete measures
 
 ```
 C:\tools\ctrl-q>ctrl-q.exe master-item-measure-delete --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --id-type id --master-item 44a56d5b-1fe4-4e71-b3dd-5695275ce687 c147058b-2ca9-4991-a44a-8656db3574c1
@@ -170,9 +225,9 @@ C:\tools\ctrl-q>ctrl-q.exe master-item-measure-delete --host 192.168.100.109 --a
 C:\tools\ctrl-q>
 ```
 
-### Dimensions
+## Dimensions
 
-#### List dimensions
+### List dimensions
 
 ```
 C:\tools\ctrl-q>ctrl-q.exe master-item-dim-get --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --output-format table --auth-user-dir LAB --auth-user-id goran
@@ -198,7 +253,7 @@ C:\tools\ctrl-q>ctrl-q.exe master-item-dim-get --host 192.168.100.109 --app-id a
 C:\tools\ctrl-q>
 ```
 
-#### Delete dimensions
+### Delete dimensions
 
 ```
 C:\tools\ctrl-q>ctrl-q.exe master-item-dim-delete --host 192.168.100.109 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 --auth-user-dir LAB --auth-user-id goran --id-type id --master-item 41070084-7bd3-4dc6-95a6-44131114ed6a 85f05898-a483-4caa-8f90-011c6dc48c6b
@@ -209,9 +264,9 @@ C:\tools\ctrl-q>ctrl-q.exe master-item-dim-delete --host 192.168.100.109 --app-i
 C:\tools\ctrl-q>
 ```
 
-### Import
+## Import
 
-#### Import master items from Excel file
+### Import master items from Excel file
 
 This command imports dimensions and measures into master items in a Sense app.
 
@@ -271,7 +326,7 @@ C:\tools\ctrl-q>ctrl-q.exe master-item-import --host 192.168.100.109 --app-id a3
 C:\tools\ctrl-q>
 ```
 
-### Scramble
+## Scramble
 
 Scrambles one or more fields in an app using Qlik Sense's internal scrambling feature.  
 
@@ -292,7 +347,7 @@ C:\tools\ctrl-q>ctrl-q.exe field-scramble --host 192.168.100.109 --app-id a3e0f5
 C:\tools\ctrl-q>
 ```
 
-### Get script
+## Get script
 
 Get script and associated metadata for a Sense app
 
