@@ -1,4 +1,7 @@
 {
+  "release-as": "3.2.0",
+  "last-release-sha": "33a13a149f1d451e10aacf014a264355ca68506d",
+
   "release-type": "node",
   "draft": true,
   "changelog-sections": [
