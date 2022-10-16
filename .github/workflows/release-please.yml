@@ -102,6 +102,36 @@ jobs:
           ls -la release/macos
           ls -la release/win
           ls -la release/linux
+          mkdir ghaction-virustotal
+
+      - name: VirusTotal Scan
+        if: ${{ steps.release.outputs.releases_created }}
+        uses: crazy-max/ghaction-virustotal@v3
+        with:
+          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          request_rate: 4
+          files: |
+            ./release/macos/*
+            ./release/win/*
+            ./release/linux/*
+
+      # Upload to VirusTotal monitor
+      - name: VirusTotal Monitor Scan
+        uses: crazy-max/ghaction-virustotal@v3
+        if: ${{ steps.release.outputs.releases_created }}
+        with:
+          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          vt_monitor: true
+          monitor_path: /ghaction-virustotal
+          files: |
+            ./release/macos/*
+            ./release/win/*
+            ./release/linux/*
+
+      - name: Debug
+        if: ${{ steps.release.outputs.releases_created }}
+        run: |
+          ls -la ghaction-virustotal
 
       - name: Upload macOS build artifacts
         if: ${{ steps.release.outputs.releases_created }}

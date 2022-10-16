@@ -88,7 +88,11 @@ It is **your own responsibility** to determine if Ctrl-Q is suitable for **your*
 The creators of Ctrl-Q, including Ptarmigan Labs, Göran Sander or any other contributor, can and must never be held liable to past or future security issues of Ctrl-Q.
 If you have security concerns or ideas around Ctrl-Q, please get involved in the project and contribute to making it better!
 
-    If you discover a serious bug with Ctrl-Q that may pose a security problem, please disclose it confidentially to security@ptarmiganlabs.com first, so it can be assessed and hopefully fixed prior to being exploited. Please do not raise GitHub issues for serious security-related doubts or problems.
+    If you discover a serious bug with Ctrl-Q that may pose a security problem, please disclose it  
+    confidentially to security@ptarmiganlabs.com first, so it can be assessed and hopefully fixed  
+    prior to being exploited.  
+    
+    Please do not raise GitHub issues for serious security-related doubts or problems.
 
 Various steps are taken to ensure that Ctrl-Q is as secure as possible.  
 
