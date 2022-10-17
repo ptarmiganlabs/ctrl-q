@@ -94,14 +94,6 @@ If you have security concerns or ideas around Ctrl-Q, please get involved in the
     
     Please do not raise GitHub issues for serious security-related doubts or problems.
 
-Various steps are taken to ensure that Ctrl-Q is as secure as possible.  
-
-does not contain harmful or malicious software, but no such steps are guaranteed to be 100% complete.
-While these steps greatly improves security no such steps can give a 100% guarantee to catch all issues.
-It is ultimately **you** as the user of Ctrl-Q that must decide whether the tool is safe to use **for your use case**.  
-
-The information in this section intends to provide guidance in that decision process.
-
 ## Virus scanning
 
 Every time a Ctrl-Q release is done the created binaries are sent to [VirusTotal](https://www.virustotal.com/) for scanning.  
@@ -133,8 +125,10 @@ A scan where a single security vendor reports an issue can look like this:
 
 ## Signed binaries
 
-The macOS version is signed and notarized by Apple's standard process.  
+The macOS executable binary is signed and notarized by Apple's standard process.  
 A warning may still be shown first time the app is started. This is expected and normal.
+
+The Windows executable binary is signed by "Ptarmigan Labs AB".
 
 # Commands
 
