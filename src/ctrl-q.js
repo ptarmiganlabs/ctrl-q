@@ -1,10 +1,9 @@
 const { Command, Option } = require('commander');
-const { logger, appVersion, getLoggingLevel, setLoggingLevel, isPkg, execPath } = require('./globals');
+const { logger, appVersion } = require('./globals');
 
-const { createUserActivityCustomProperty } = require('./lib/createuseractivitycp');
+// const { createUserActivityCustomProperty } = require('./lib/createuseractivitycp');
 
 const { getMasterDimension } = require('./lib/getdim');
-const { createMasterDimension } = require('./lib/createdim');
 const { deleteMasterDimension } = require('./lib/deletedim');
 
 const { getMasterMeasure } = require('./lib/getmeasure');
@@ -16,16 +15,18 @@ const { importMasterItemFromFile } = require('./lib/import-masteritem-excel');
 
 const { scrambleField } = require('./lib/scramblefield');
 const { getScript } = require('./lib/getscript');
+const { getTask } = require('./lib/task/gettask');
 
 const {
     sharedParamAssertOptions,
-    userActivityCustomPropertyAssertOptions,
+    // userActivityCustomPropertyAssertOptions,
     masterItemImportAssertOptions,
     masterItemMeasureDeleteAssertOptions,
     masterItemDimDeleteAssertOptions,
     masterItemGetAssertOptions,
     getScriptAssertOptions,
     getBookmarkAssertOptions,
+    getTaskAssertOptions,
 } = require('./lib/assert-options');
 
 const program = new Command();
@@ -395,6 +396,69 @@ const program = new Command();
         )
         .option('--bookmark <bookmarks...>', 'bookmark to retrieve. If not specified all bookmarks will be retrieved')
         .option('--output-format <json|table>', 'output format', 'json');
+
+    // Get tasks command
+    program
+        .command('task-get')
+        .description('get info about one or more tasks')
+        .action(async (options) => {
+            logger.verbose(`appid=${options.appId}`);
+            logger.verbose(`itemid=${options.itemid}`);
+
+            sharedParamAssertOptions(options);
+            getTaskAssertOptions(options);
+
+            getTask(options);
+        })
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port', '4242')
+        .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+
+        .addOption(new Option('--task-type <type>', 'type of tasks to list').choices(['reload']).default('reload'))
+        .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve')
+        // .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve')
+
+        .addOption(new Option('--output-format <format>', 'output format').choices(['table', 'tree']).default('tree'))
+        .addOption(new Option('--output-dest <dest>', 'where to send task info').choices(['screen', 'file']).default('screen'))
+        .addOption(new Option('--output-file-name <name>', 'file name to store task info in').default(''))
+        .addOption(new Option('--output-file-format <format>', 'file type/format').choices(['excel', 'csv', 'json']).default('excel'))
+        .option('--output-file-overwrite', 'overwrite output file without asking')
+
+        .addOption(new Option('--text-color <show>', 'use colored text in task views').choices(['yes', 'no']).default('yes'))
+
+        .option('--tree-icons', 'display task status icons in tree view')
+        .addOption(
+            new Option('--tree-details [detail...]', 'display details for each task in tree view')
+                .choices(['taskid', 'laststart', 'laststop', 'nextstart', 'appname', 'appstream'])
+                .default('')
+        )
+
+        .addOption(
+            new Option('--table-details [detail...]', 'which aspects of tasks should be included in table view')
+                .choices([
+                    'common',
+                    'lastexecution',
+                    'tag',
+                    'customproperty',
+                    'schematrigger',
+                    'compositetrigger',
+                    'comptimeconstraint',
+                    'comprule',
+                ])
+                .default('')
+        );
 
     // Parse command line params
     await program.parseAsync(process.argv);

@@ -1,23 +1,9 @@
 const SenseUtilities = require('enigma.js/sense-utilities');
 const WebSocket = require('ws');
-const fs = require('fs-extra');
 const path = require('path');
 
-const { logger, execPath, verifyFileExists } = require('../globals');
+const { logger, execPath, verifyFileExists, readCert } = require('../globals');
 
-/**
- * Helper function to read the contents of the certificate files:
- * @param {*} filename
- * @returns
- */
-const readCert = (filename) => fs.readFileSync(filename);
-
-/**
- *
- * @param {*} options
- * @param {*} command
- * @returns
- */
 const setupEnigmaConnection = async (options) => {
     logger.debug('Prepping for Enigma connection...');
 
