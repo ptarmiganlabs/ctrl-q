@@ -1,6 +1,8 @@
-const { logger } = require('../globals');
+const path = require('path');
 
-const sharedParamAssertOptions = (options) => {
+const { logger, execPath, verifyFileExists } = require('../../globals');
+
+const sharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
     if (options.authType === undefined || !options.authType) {
         logger.error('Mandatory option --auth-type is missing. Use it to specify how authorization with Qlik Sense will be done.');
@@ -8,7 +10,24 @@ const sharedParamAssertOptions = (options) => {
     }
 
     // Verify that certificate files exists (if specified)
-    // TODO
+    const fileCert = path.resolve(execPath, options.authCertFile);
+    const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+
+    const fileCertExists = await verifyFileExists(fileCert);
+    if (fileCertExists === false) {
+        logger.error(`Missing certificate key file ${fileCert}. Aborting`);
+        process.exit(1);
+    } else {
+        logger.verbose(`Certificate file ${fileCert} found`);
+    }
+
+    const fileCertKeyExists = await verifyFileExists(fileCertKey);
+    if (fileCertKeyExists === false) {
+        logger.error(`Missing certificate key file ${fileCertKey}. Aborting`);
+        process.exit(1);
+    } else {
+        logger.verbose(`Certificate key file ${fileCertKey} found`);
+    }
 };
 
 const userActivityCustomPropertyAssertOptions = (options) => {
@@ -108,7 +127,11 @@ const getBookmarkAssertOptions = (options) => {
 // eslint-disable-next-line no-unused-vars
 const getTaskAssertOptions = (options) => {
     // TODO --task-id and --task-tag only for task tables, not trees
+};
 
+// eslint-disable-next-line no-unused-vars
+const setTaskCustomPropertyAssertOptions = (options) => {
+    //
 };
 
 module.exports = {
@@ -121,4 +144,5 @@ module.exports = {
     getScriptAssertOptions,
     getBookmarkAssertOptions,
     getTaskAssertOptions,
+    setTaskCustomPropertyAssertOptions,
 };

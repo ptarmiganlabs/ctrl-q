@@ -1,7 +1,7 @@
 const qrsInteract = require('qrs-interact');
 const path = require('path');
 
-const { logger, setLoggingLevel, isPkg, execPath } = require('../globals');
+const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
 const {
     getUserActivityProfessional,
     getUserActivityAnalyzer,
@@ -184,7 +184,7 @@ const createUserActivityCustomProperty = async (options) => {
                         break;
                     }
                 }
-                
+
                 // Set custom property for user
                 try {
                     result = await qrsInteractInstance.Post(

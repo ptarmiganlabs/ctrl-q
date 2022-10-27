@@ -2,8 +2,8 @@ const axios = require('axios');
 const path = require('path');
 const nanoid = require('nanoid');
 
-const { logger, execPath, verifyFileExists } = require('../../globals');
-const { setupQRSConnection } = require('../qrs');
+const { logger, execPath } = require('../../globals');
+const { setupQRSConnection } = require('../util/qrs');
 const { QlikSenseTask } = require('./class_task');
 const { QlikSenseSchemaEvents } = require('./class_allschemaevents');
 const { QlikSenseCompositeEvents } = require('./class_allcompositeevents');
@@ -51,22 +51,6 @@ class QlikSenseTasks {
             // Make sure certificates exist
             this.fileCert = path.resolve(execPath, options.authCertFile);
             this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-
-            const fileCertExists = await verifyFileExists(this.fileCert);
-            if (fileCertExists === false) {
-                logger.error(`Missing certificate key file ${this.fileCert}. Aborting`);
-                process.exit(1);
-            } else {
-                logger.verbose(`Certificate key file ${this.fileCert} found`);
-            }
-
-            const fileCertKeyExists = await verifyFileExists(this.fileCertKey);
-            if (fileCertKeyExists === false) {
-                logger.error(`Missing certificate key file ${this.fileCertKey}. Aborting`);
-                process.exit(1);
-            } else {
-                logger.verbose(`Certificate key file ${this.fileCertKey} found`);
-            }
 
             this.qlikSenseSchemaEvents = new QlikSenseSchemaEvents();
             await this.qlikSenseSchemaEvents.init(options);
@@ -119,6 +103,7 @@ class QlikSenseTasks {
                 }
 
                 const axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
                     path: '/qrs/reloadtask/full',

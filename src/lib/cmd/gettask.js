@@ -6,8 +6,8 @@ const { stringify } = require('csv-stringify/sync');
 const yesno = require('yesno');
 
 const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../../globals');
-const { QlikSenseTasks } = require('./class_alltasks');
-const { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } = require('../lookups');
+const { QlikSenseTasks } = require('../task/class_alltasks');
+const { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } = require('../util/lookups');
 
 const consoleTableConfig = {
     border: {

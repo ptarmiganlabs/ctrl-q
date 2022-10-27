@@ -2,7 +2,7 @@ const axios = require('axios');
 const path = require('path');
 
 const { logger, execPath, verifyFileExists } = require('../../globals');
-const { setupQRSConnection } = require('../qrs');
+const { setupQRSConnection } = require('../util/qrs');
 const { QlikSenseCompositeEvent } = require('./class_compositeevent');
 
 class QlikSenseCompositeEvents {
@@ -19,22 +19,6 @@ class QlikSenseCompositeEvents {
             // Make sure certificates exist
             this.fileCert = path.resolve(execPath, options.authCertFile);
             this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-
-            const fileCertExists = await verifyFileExists(this.fileCert);
-            if (fileCertExists === false) {
-                logger.error(`Missing certificate key file ${this.fileCert}. Aborting`);
-                process.exit(1);
-            } else {
-                logger.verbose(`Certificate key file ${this.fileCert} found`);
-            }
-
-            const fileCertKeyExists = await verifyFileExists(this.fileCertKey);
-            if (fileCertKeyExists === false) {
-                logger.error(`Missing certificate key file ${this.fileCertKey}. Aborting`);
-                process.exit(1);
-            } else {
-                logger.verbose(`Certificate key file ${this.fileCertKey} found`);
-            }
         } catch (err) {
             logger.error(`GET COMPOSITE EVENT: ${err}`);
         }
@@ -56,6 +40,7 @@ class QlikSenseCompositeEvents {
                 logger.debug('GET SCHEMAEVENT: Starting get composite events from QSEoW');
 
                 const axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
                     path: '/qrs/compositeevent/full',

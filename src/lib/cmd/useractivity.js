@@ -1,4 +1,4 @@
-const { logger } = require('../globals');
+const { logger } = require('../../globals');
 
 function getUserActivityProfessional(qrsInteractInstance) {
     // eslint-disable-next-line no-unused-vars, no-async-promise-executor

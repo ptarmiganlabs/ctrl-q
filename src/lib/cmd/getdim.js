@@ -1,8 +1,8 @@
 const enigma = require('enigma.js');
 const { table } = require('table');
 
-const { setupEnigmaConnection } = require('./enigma');
-const { logger, setLoggingLevel, isPkg, execPath } = require('../globals');
+const { setupEnigmaConnection } = require('../util/enigma');
+const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
 
 const consoleTableConfig = {
     border: {

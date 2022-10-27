@@ -2,7 +2,7 @@ const { Duration } = require('luxon');
 const { randomWords } = require('random-words');
 
 const { logger } = require('../../globals');
-const { mapTaskExecutionStatus } = require('../lookups');
+const { mapTaskExecutionStatus } = require('../util/lookups');
 
 function getSchemaText(incrementOption, incrementDescription) {
     let schemaText = '';
