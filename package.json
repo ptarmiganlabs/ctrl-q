@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "prettier": "2.7.1",
-    "snyk": "1.1029.0"
+    "snyk": "1.1044.0"
   },
   "pkg": {
     "scripts": [
