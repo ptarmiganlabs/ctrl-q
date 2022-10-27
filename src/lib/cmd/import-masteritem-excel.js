@@ -2,8 +2,8 @@
 const enigma = require('enigma.js');
 const xlsx = require('node-xlsx').default;
 
-const { setupEnigmaConnection } = require('./enigma');
-const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../globals');
+const { setupEnigmaConnection } = require('../util/enigma');
+const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../util/enigma');
 
 /**
  * Find of column's positioon (zero based) given a column name.

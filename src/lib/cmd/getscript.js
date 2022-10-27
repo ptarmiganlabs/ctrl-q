@@ -1,6 +1,6 @@
 const enigma = require('enigma.js');
-const { setupEnigmaConnection } = require('./enigma');
-const { logger, setLoggingLevel, isPkg, execPath } = require('../globals');
+const { setupEnigmaConnection } = require('../util/enigma');
+const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
 
 /**
  *

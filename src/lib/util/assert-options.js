@@ -1,14 +1,38 @@
-const { logger } = require('../globals');
+const path = require('path');
 
-const sharedParamAssertOptions = (options) => {
+const { logger, execPath, verifyFileExists } = require('../../globals');
+
+const sharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
     if (options.authType === undefined || !options.authType) {
         logger.error('Mandatory option --auth-type is missing. Use it to specify how authorization with Qlik Sense will be done.');
         process.exit(1);
     }
+
+    // Verify that certificate files exists (if specified)
+    const fileCert = path.resolve(execPath, options.authCertFile);
+    const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+
+    const fileCertExists = await verifyFileExists(fileCert);
+    if (fileCertExists === false) {
+        logger.error(`Missing certificate key file ${fileCert}. Aborting`);
+        process.exit(1);
+    } else {
+        logger.verbose(`Certificate file ${fileCert} found`);
+    }
+
+    const fileCertKeyExists = await verifyFileExists(fileCertKey);
+    if (fileCertKeyExists === false) {
+        logger.error(`Missing certificate key file ${fileCertKey}. Aborting`);
+        process.exit(1);
+    } else {
+        logger.verbose(`Certificate key file ${fileCertKey} found`);
+    }
 };
 
 const userActivityCustomPropertyAssertOptions = (options) => {
+    const newOptions = options;
+
     // If certificate authentication is used: certs and user dir/id must be present.
     if (options.authType === 'cert' && (!options.authUserDir || !options.authUserId)) {
         logger.error('User directory and user ID are mandatory options when using certificate for authenticating with Sense');
@@ -16,12 +40,12 @@ const userActivityCustomPropertyAssertOptions = (options) => {
     }
 
     // Ensure activity buckets are all integers
-    options.activityBuckets = options.activityBuckets.map( (item) => parseInt(item, 10));
+    newOptions.activityBuckets = options.activityBuckets.map((item) => parseInt(item, 10));
     logger.verbose(`User activity buckets: ${options.activityBuckets}`);
 
     // Sort activity buckets
     options.activityBuckets.sort((a, b) => a - b);
-    return options;
+    return newOptions;
 };
 
 const masterItemImportAssertOptions = (options) => {
@@ -85,15 +109,28 @@ const masterItemDimDeleteAssertOptions = (options) => {
     }
 };
 
+// eslint-disable-next-line no-unused-vars
 const masterItemGetAssertOptions = (options) => {
     //
 };
 
+// eslint-disable-next-line no-unused-vars
 const getScriptAssertOptions = (options) => {
     //
 };
 
+// eslint-disable-next-line no-unused-vars
 const getBookmarkAssertOptions = (options) => {
+    //
+};
+
+// eslint-disable-next-line no-unused-vars
+const getTaskAssertOptions = (options) => {
+    // TODO --task-id and --task-tag only for task tables, not trees
+};
+
+// eslint-disable-next-line no-unused-vars
+const setTaskCustomPropertyAssertOptions = (options) => {
     //
 };
 
@@ -106,4 +143,6 @@ module.exports = {
     masterItemGetAssertOptions,
     getScriptAssertOptions,
     getBookmarkAssertOptions,
+    getTaskAssertOptions,
+    setTaskCustomPropertyAssertOptions,
 };

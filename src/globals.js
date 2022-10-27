@@ -1,6 +1,7 @@
 const winston = require('winston');
 const upath = require('upath');
 const { promises: Fs } = require('fs');
+const fs = require('fs');
 require('winston-daily-rotate-file');
 
 // Get app version from package.json file
@@ -43,27 +44,16 @@ const setLoggingLevel = (newLevel) => {
     logTransports.find((transport) => transport.name === 'console').level = newLevel;
 };
 
-// Check file existence
-async function exists(pathToCheck) {
-    try {
-        await Fs.access(pathToCheck);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
-const verifyFileExists = (file) =>
+const verifyFileExists = async (file) =>
     // eslint-disable-next-line no-async-promise-executor, no-unused-vars
     new Promise(async (resolve, reject) => {
         try {
             logger.debug(`Checking if file ${file} exists`);
 
-            const fileExists = await exists(file);
-
-            if (fileExists === true) {
+            try {
+                await Fs.access(file);
                 resolve(true);
-            } else {
+            } catch {
                 resolve(false);
             }
         } catch (err) {
@@ -71,6 +61,32 @@ const verifyFileExists = (file) =>
             resolve(false);
         }
     });
+
+const generateXrfKey = () => {
+    let xrfString = '';
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < 16; i++) {
+        if (Math.floor(Math.random() * 2) === 0) {
+            xrfString += Math.floor(Math.random() * 10).toString();
+        } else {
+            const charNumber = Math.floor(Math.random() * 26);
+            if (Math.floor(Math.random() * 2) === 0) {
+                // lowercase letter
+                xrfString += String.fromCharCode(charNumber + 97);
+            } else {
+                xrfString += String.fromCharCode(charNumber + 65);
+            }
+        }
+    }
+    return xrfString;
+};
+
+/**
+ * Helper function to read the contents of the certificate files:
+ * @param {*} filename
+ * @returns
+ */
+const readCert = (filename) => fs.readFileSync(filename);
 
 module.exports = {
     logger,
@@ -80,4 +96,6 @@ module.exports = {
     execPath,
     isPkg,
     verifyFileExists,
+    generateXrfKey,
+    readCert,
 };

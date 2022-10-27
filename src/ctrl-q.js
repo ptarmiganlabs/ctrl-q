@@ -1,32 +1,38 @@
 const { Command, Option } = require('commander');
-const { logger, appVersion, getLoggingLevel, setLoggingLevel, isPkg, execPath } = require('./globals');
 
-const { createUserActivityCustomProperty } = require('./lib/createuseractivitycp');
+const { logger, appVersion, setLoggingLevel } = require('./globals');
+const { logStartupInfo } = require('./lib/util/log');
 
-const { getMasterDimension } = require('./lib/getdim');
-const { createMasterDimension } = require('./lib/createdim');
-const { deleteMasterDimension } = require('./lib/deletedim');
+// const { createUserActivityCustomProperty } = require('./lib/createuseractivitycp');
 
-const { getMasterMeasure } = require('./lib/getmeasure');
-const { deleteMasterMeasure } = require('./lib/deletemeasure');
+const { getMasterDimension } = require('./lib/cmd/getdim');
+const { deleteMasterDimension } = require('./lib/cmd/deletedim');
 
-const { getBookmark } = require('./lib/getbookmark');
+const { getMasterMeasure } = require('./lib/cmd/getmeasure');
+const { deleteMasterMeasure } = require('./lib/cmd/deletemeasure');
 
-const { importMasterItemFromFile } = require('./lib/import-masteritem-excel');
+const { getBookmark } = require('./lib/cmd/getbookmark');
 
-const { scrambleField } = require('./lib/scramblefield');
-const { getScript } = require('./lib/getscript');
+const { importMasterItemFromFile } = require('./lib/cmd/import-masteritem-excel');
+
+const { scrambleField } = require('./lib/cmd/scramblefield');
+const { getScript } = require('./lib/cmd/getscript');
+
+const { getTask } = require('./lib/cmd/gettask');
+const { setTaskCustomProperty } = require('./lib/cmd/settaskcp');
 
 const {
     sharedParamAssertOptions,
-    userActivityCustomPropertyAssertOptions,
+    // userActivityCustomPropertyAssertOptions,
     masterItemImportAssertOptions,
     masterItemMeasureDeleteAssertOptions,
     masterItemDimDeleteAssertOptions,
     masterItemGetAssertOptions,
     getScriptAssertOptions,
     getBookmarkAssertOptions,
-} = require('./lib/assert-options');
+    getTaskAssertOptions,
+    setTaskCustomPropertyAssertOptions,
+} = require('./lib/util/assert-options');
 
 const program = new Command();
 
@@ -40,7 +46,16 @@ const program = new Command();
         .version(appVersion)
         .description(
             'Ctrl-Q is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.\nAmong other things the tool manipulates master items and scrambles in-app data.'
-        );
+        )
+        .hook('preAction', (thisCommand, actionCommand) => {
+            const options = actionCommand.opts();
+
+            // Set log level & show startup info
+            setLoggingLevel(options.logLevel);
+            logStartupInfo(options, 'task-custom-property-set', 'Update task custom property with new values');
+
+            logger.verbose(`About to call action handler for subcommand: ${actionCommand.name()}`);
+        });
 
     // Create custom properties for tracking user activity buckets, i.e. how long ago a user was last active (last login) in Sense
     // program
@@ -51,10 +66,7 @@ const program = new Command();
     //     .action(async (options) => {
     //         try {
     //             let optionsLocal = options;
-    //             logger.verbose(`appid=${options.appId}`);
-    //             logger.verbose(`itemid=${options.itemid}`);
-
-    //             sharedParamAssertOptions(options);
+    //             await sharedParamAssertOptions(options);
     //             optionsLocal = userActivityCustomPropertyAssertOptions(options);
     //             createUserActivityCustomProperty(optionsLocal);
     //         } catch (err) {
@@ -102,10 +114,7 @@ const program = new Command();
         .description('create master items based on definitions in a file on disk')
         .action(async (options) => {
             try {
-                logger.verbose(`appid=${options.appId}`);
-                logger.verbose(`itemid=${options.itemid}`);
-
-                sharedParamAssertOptions(options);
+                await sharedParamAssertOptions(options);
                 masterItemImportAssertOptions(options);
                 importMasterItemFromFile(options);
             } catch (err) {
@@ -161,10 +170,7 @@ const program = new Command();
         .command('master-item-measure-get')
         .description('get info about one or more master measures')
         .action(async (options) => {
-            logger.verbose(`appid=${options.appId}`);
-            logger.verbose(`itemid=${options.itemid}`);
-
-            sharedParamAssertOptions(options);
+            await sharedParamAssertOptions(options);
             masterItemGetAssertOptions(options);
 
             getMasterMeasure(options);
@@ -197,10 +203,7 @@ const program = new Command();
         .command('master-item-measure-delete')
         .description('delete master measure(s)')
         .action(async (options) => {
-            logger.verbose(`appid=${options.appId}`);
-            logger.verbose(`itemid=${options.itemid}`);
-
-            sharedParamAssertOptions(options);
+            await sharedParamAssertOptions(options);
             masterItemMeasureDeleteAssertOptions(options);
 
             deleteMasterMeasure(options);
@@ -232,10 +235,7 @@ const program = new Command();
         .command('master-item-dim-get')
         .description('get info about one or more master dimensions')
         .action(async (options) => {
-            logger.verbose(`appid=${options.appId}`);
-            logger.verbose(`itemid=${options.itemid}`);
-
-            sharedParamAssertOptions(options);
+            await sharedParamAssertOptions(options);
 
             getMasterDimension(options);
         })
@@ -267,10 +267,7 @@ const program = new Command();
         .command('master-item-dim-delete')
         .description('delete master dimension(s)')
         .action(async (options) => {
-            logger.verbose(`appid=${options.appId}`);
-            logger.verbose(`itemid=${options.itemid}`);
-
-            sharedParamAssertOptions(options);
+            await sharedParamAssertOptions(options);
             masterItemDimDeleteAssertOptions(options);
 
             deleteMasterDimension(options);
@@ -302,10 +299,7 @@ const program = new Command();
         .command('field-scramble')
         .description('scramble one or more fields in an app. A new app with the scrambled data is created.')
         .action(async (options) => {
-            logger.verbose(`appid=${options.appId}`);
-            logger.verbose(`fieldname=${options.fieldname}`);
-
-            sharedParamAssertOptions(options);
+            await sharedParamAssertOptions(options);
 
             scrambleField(options);
         })
@@ -334,9 +328,7 @@ const program = new Command();
         .command('script-get')
         .description('get script from Qlik Sense app')
         .action(async (options) => {
-            logger.verbose(`appid=${options.appId}`);
-
-            sharedParamAssertOptions(options);
+            await sharedParamAssertOptions(options);
             getScriptAssertOptions(options);
 
             getScript(options);
@@ -363,10 +355,7 @@ const program = new Command();
         .command('bookmark-get')
         .description('get info about one or more bookmarks')
         .action(async (options) => {
-            logger.verbose(`appid=${options.appId}`);
-            logger.verbose(`itemid=${options.itemid}`);
-
-            sharedParamAssertOptions(options);
+            await sharedParamAssertOptions(options);
             getBookmarkAssertOptions(options);
 
             getBookmark(options);
@@ -395,6 +384,106 @@ const program = new Command();
         )
         .option('--bookmark <bookmarks...>', 'bookmark to retrieve. If not specified all bookmarks will be retrieved')
         .option('--output-format <json|table>', 'output format', 'json');
+
+    // Get tasks command
+    program
+        .command('task-get')
+        .description('get info about one or more tasks')
+        .action(async (options) => {
+            await sharedParamAssertOptions(options);
+            getTaskAssertOptions(options);
+
+            getTask(options);
+        })
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port', '4242')
+        .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+
+        .addOption(new Option('--task-type <type>', 'type of tasks to list').choices(['reload']).default('reload'))
+        .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve')
+        // .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve')
+
+        .addOption(new Option('--output-format <format>', 'output format').choices(['table', 'tree']).default('tree'))
+        .addOption(new Option('--output-dest <dest>', 'where to send task info').choices(['screen', 'file']).default('screen'))
+        .addOption(new Option('--output-file-name <name>', 'file name to store task info in').default(''))
+        .addOption(new Option('--output-file-format <format>', 'file type/format').choices(['excel', 'csv', 'json']).default('excel'))
+        .option('--output-file-overwrite', 'overwrite output file without asking')
+
+        .addOption(new Option('--text-color <show>', 'use colored text in task views').choices(['yes', 'no']).default('yes'))
+
+        .option('--tree-icons', 'display task status icons in tree view')
+        .addOption(
+            new Option('--tree-details [detail...]', 'display details for each task in tree view')
+                .choices(['taskid', 'laststart', 'laststop', 'nextstart', 'appname', 'appstream'])
+                .default('')
+        )
+
+        .addOption(
+            new Option('--table-details [detail...]', 'which aspects of tasks should be included in table view')
+                .choices([
+                    'common',
+                    'lastexecution',
+                    'tag',
+                    'customproperty',
+                    'schematrigger',
+                    'compositetrigger',
+                    'comptimeconstraint',
+                    'comprule',
+                ])
+                .default('')
+        );
+
+    // Set tasks command
+    program
+        .command('task-custom-property-set')
+        .description('update a custom property of one or more tasks')
+        .action(async (options) => {
+            await sharedParamAssertOptions(options);
+            setTaskCustomPropertyAssertOptions(options);
+
+            setTaskCustomProperty(options);
+        })
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port', '4242')
+        .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+
+        .addOption(new Option('--task-type <type>', 'type of tasks to list').choices(['reload']).default('reload'))
+        .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve')
+        .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve')
+
+        .requiredOption('--custom-property-name <name>', 'name of custom property that will be updated')
+        .requiredOption('--custom-property-value <values...>', 'one or more values name of custom property that will be updated')
+        .option('--overwrite', 'overwrite output file without asking')
+        .addOption(
+            new Option('--update-mode <mode>', 'append or replace value(s) to existing custom property')
+                .choices(['append', 'replace'])
+                .default('append')
+        )
+        .option('--dry-run', 'do a dry run, i.e. do not modify any reload tasks - just show what would be updated');
 
     // Parse command line params
     await program.parseAsync(process.argv);
