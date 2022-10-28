@@ -52,7 +52,8 @@ const program = new Command();
 
             // Set log level & show startup info
             setLoggingLevel(options.logLevel);
-            logStartupInfo(options, 'task-custom-property-set', 'Update task custom property with new values');
+            // eslint-disable-next-line no-underscore-dangle
+            logStartupInfo(options, actionCommand._name, actionCommand._description);
 
             logger.verbose(`About to call action handler for subcommand: ${actionCommand.name()}`);
         });
