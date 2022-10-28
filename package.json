@@ -31,7 +31,7 @@
     "commander": "^9.4.1",
     "csv-stringify": "^6.2.0",
     "enigma.js": "^2.10.0",
-    "eslint": "^8.25.0",
+    "eslint": "^8.26.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
@@ -47,12 +47,12 @@
     "upath": "^2.0.1",
     "winston": "^3.8.2",
     "winston-daily-rotate-file": "^4.7.1",
-    "ws": "^8.9.0",
+    "ws": "^8.10.0",
     "yesno": "^0.4.0"
   },
   "devDependencies": {
     "prettier": "2.7.1",
-    "snyk": "1.1029.0"
+    "snyk": "^1.1044.0"
   },
   "pkg": {
     "scripts": [
