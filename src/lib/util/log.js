@@ -11,6 +11,8 @@ const logStartupInfo = (options, cmd, cmdDesc) => {
     logger.info(`|              : ${cmdDesc}`);
     logger.info(`| `);
     logger.info(`| Run Ctrl-Q with the '--help' option to see a list of all available options for this command.`);
+    logger.info(`| `);
+    logger.info(`| https://github.com/ptarmiganlabs/ctrl-q`);
     logger.info('----------------------------------------------------------');
     logger.info(``);
     logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
