@@ -3,6 +3,144 @@ const yesno = require('yesno');
 const { logger } = require('../../globals');
 const { getCustomProperty, getTasksFromQseow, updateReloadTask } = require('../task/task_qrs');
 
+const updateTask = async (options, customPropertyDef, task) =>
+    new Promise(async (resolve, reject) => {
+        logger.info(`Starting updating custom property "${options.customPropertyName}" of task "${task.name}" with ID=${task.id}`);
+
+        const newPayload = {
+            task: {
+                id: task.id,
+                createdDate: task.createdDate,
+                modifiedDate: task.modifiedDate,
+                modifiedByUserName: task.modifiedByUserName,
+                customProperties: task?.customProperties.map((item) => ({
+                    definition: { id: item.definition.id, name: item.definition.name },
+                    value: item.value,
+                })),
+                app: task.app,
+                isManuallyTriggered: task.isManuallyTriggered,
+                operational: task.operational,
+                isPartialReload: task.isPartialReload,
+                name: task.name,
+                taskType: task.taskType,
+                enabled: task.enabled,
+                taskSessionTimeout: task.taskSessionTimeout,
+                maxRetries: task.maxRetries,
+                tags: task.tags,
+                privileges: task.privileges,
+                schemaPath: task.schemaPath,
+            },
+            compositeEventsToDelete: [],
+            schemaEventsToDelete: [],
+            compositeEvents: [],
+            schemaEvents: [],
+        };
+
+        // Does the task already have values in the CP that is to be updated?
+        if (task.customProperties.find((item) => item.definition.name === options.customPropertyName)) {
+            // Custom property already exists/is set to some value for this task
+
+            // Should new values be replacing or appended to existing values?
+            if (options.updateMode === 'append') {
+                // eslint-disable-next-line no-restricted-syntax
+                for (const newCpValue of options.customPropertyValue) {
+                    // Don't append a value if it's already set for the custom property
+                    if (!newPayload.task?.customProperties?.find((item) => item.value === newCpValue))
+                        newPayload.task?.customProperties?.push({
+                            definition: { id: customPropertyDef[0].id, name: customPropertyDef[0].name },
+                            value: newCpValue,
+                        });
+                }
+            } else if (options.updateMode === 'replace') {
+                // First clear the custom property, then add the values provided via --custom-property-value
+                const cp = newPayload.task?.customProperties.filter(
+                    (existingCustomProperty) => existingCustomProperty.definition.name !== options.customPropertyName
+                );
+                newPayload.task.customProperties = cp;
+
+                // Now add the new CP values
+                // eslint-disable-next-line no-restricted-syntax
+                for (const newCpValue of options.customPropertyValue) {
+                    newPayload.task?.customProperties?.push({
+                        definition: { id: customPropertyDef[0].id, name: customPropertyDef[0].name },
+                        value: newCpValue,
+                    });
+                }
+            }
+
+            let updateResult = false;
+
+            // Update task
+            if (!options.overwrite) {
+                let ok;
+                logger.info();
+                if (options.updateMode === 'replace') {
+                    // eslint-disable-next-line no-await-in-loop
+                    ok = await yesno({
+                        question: `                               Replace current values in custom property "${options.customPropertyName}" with new ones? (y/n)`,
+                    });
+                } else if (options.updateMode === 'append') {
+                    // eslint-disable-next-line no-await-in-loop
+                    ok = await yesno({
+                        question: `                               Append new values to custom property "${options.customPropertyName}"? (y/n)`,
+                    });
+                }
+                logger.info();
+
+                if (ok === true) {
+                    // Yes, write CP values to QRS
+                    logger.debug(`SET RELOAD TASK CP: Update payload for task ${task.id}: ${JSON.stringify(newPayload, null, 2)}`);
+
+                    if (options.dryRun === undefined || options.dryRun === false) {
+                        // eslint-disable-next-line no-await-in-loop
+                        updateResult = await updateReloadTask(options, newPayload);
+                    } else {
+                        logger.info(`DRY RUN: Update of task custom property ${task.customPropertyName} would happen here.`);
+                    }
+                } else {
+                    logger.info(`Did not update task "${task.name}"`);
+                }
+            } else if (options.dryRun === undefined || options.dryRun === false) {
+                // eslint-disable-next-line no-await-in-loop
+                updateResult = await updateReloadTask(options, newPayload);
+            } else {
+                logger.info(`DRY RUN: Update of task custom property ${task.customPropertyName} would happen here.`);
+            }
+
+            if (updateResult) {
+                logger.info(`   ...Custom property "${options.customPropertyName}" on task "${task.name}" successfully updated.`);
+                resolve();
+                return;
+            }
+            logger.error(`   ...Custom property "${options.customPropertyName}" on task "${task.name}" could not be updated.`);
+            reject();
+        } else {
+            // Custom property does NOT already have the custom property set for this task.
+
+            // Add CP values to task
+            // eslint-disable-next-line no-restricted-syntax
+            for (const newCpValue of options.customPropertyValue) {
+                newPayload.task?.customProperties?.push({
+                    definition: { id: customPropertyDef[0].id, name: customPropertyDef[0].name },
+                    value: newCpValue,
+                });
+            }
+
+            // Update task
+            logger.debug(`SET RELOAD TASK CP: Update payload for task ${task.id}: ${JSON.stringify(newPayload, null, 2)}`);
+            // eslint-disable-next-line no-await-in-loop
+            const updateResult = await updateReloadTask(options, newPayload);
+
+            if (updateResult) {
+                logger.info(`   ...Custom property "${options.customPropertyName}" on task "${task.name}" successfully updated.`);
+                resolve();
+                return;
+            }
+            logger.error(`   ...Custom property "${options.customPropertyName}" on task "${task.name}" could not be updated.`);
+            reject();
+        }
+    });
+
 const setTaskCustomProperty = async (options) => {
     try {
         // == Meta code ==
@@ -46,136 +184,28 @@ const setTaskCustomProperty = async (options) => {
         // Get tasks
         const taskList = await getTasksFromQseow(options);
 
-        // eslint-disable-next-line no-restricted-syntax
-        for (const task of taskList) {
-            logger.info(``);
-            logger.info(`-----------------------------------------------------------`);
-            logger.info(`Processing task "${task.name}" with ID=${task.id}`);
+        if (taskList === undefined) {
+            logger.error(`No details for specified tasks found in Qlik Sense`);
+        } else {
+            // Log which tasks will be processed
+            logger.info(`Number of tasks that will be updated: ${taskList.length}`);
 
-            const newPayload = {
-                task: {
-                    id: task.id,
-                    createdDate: task.createdDate,
-                    modifiedDate: task.modifiedDate,
-                    modifiedByUserName: task.modifiedByUserName,
-                    customProperties: task?.customProperties.map((item) => ({
-                        definition: { id: item.definition.id, name: item.definition.name },
-                        value: item.value,
-                    })),
-                    app: task.app,
-                    isManuallyTriggered: task.isManuallyTriggered,
-                    operational: task.operational,
-                    isPartialReload: task.isPartialReload,
-                    name: task.name,
-                    taskType: task.taskType,
-                    enabled: task.enabled,
-                    taskSessionTimeout: task.taskSessionTimeout,
-                    maxRetries: task.maxRetries,
-                    tags: task.tags,
-                    privileges: task.privileges,
-                    schemaPath: task.schemaPath,
-                },
-                compositeEventsToDelete: [],
-                schemaEventsToDelete: [],
-                compositeEvents: [],
-                schemaEvents: [],
-            };
+            // const updateTasks = [];
+            // eslint-disable-next-line no-restricted-syntax
+            for (const task of taskList) {
+                // updateTasks.push(updateTask(options, customPropertyDef, task));
 
-            // Does the task already have values in the CP that is to be updated?
-            if (task.customProperties.find((item) => item.definition.name === options.customPropertyName)) {
-                // Custom property already exists/is set to some value for this task
+                logger.info(``);
+                logger.info(`-----------------------------------------------------------`);
+                logger.info(`Processing task "${task.name}" with ID=${task.id}`);
 
-                // Should new values be replacing or appended to existing values?
-                if (options.updateMode === 'append') {
-                    // eslint-disable-next-line no-restricted-syntax
-                    for (const newCpValue of options.customPropertyValue) {
-                        // Don't append a value if it's already set for the custom property
-                        if (!newPayload.task?.customProperties?.find((item) => item.value === newCpValue))
-                            newPayload.task?.customProperties?.push({
-                                definition: { id: customPropertyDef[0].id, name: customPropertyDef[0].name },
-                                value: newCpValue,
-                            });
-                    }
-                } else if (options.updateMode === 'replace') {
-                    // First clear the custom property, then add the values provided via --custom-property-value
-                    const cp = newPayload.task?.customProperties.filter(
-                        (existingCustomProperty) => existingCustomProperty.definition.name !== options.customPropertyName
-                    );
-                    newPayload.task.customProperties = cp;
-
-                    // Now add the new CP values
-                    // eslint-disable-next-line no-restricted-syntax
-                    for (const newCpValue of options.customPropertyValue) {
-                        newPayload.task?.customProperties?.push({
-                            definition: { id: customPropertyDef[0].id, name: customPropertyDef[0].name },
-                            value: newCpValue,
-                        });
-                    }
-                }
-
-                let updateResult = false;
-
-                // Update task
-                if (!options.overwrite) {
-                    let ok;
-                    logger.info();
-                    if (options.updateMode === 'replace') {
-                        // eslint-disable-next-line no-await-in-loop
-                        ok = await yesno({
-                            question: `                               Replace current values in custom property "${options.customPropertyName}" with new ones? (y/n)`,
-                        });
-                    } else if (options.updateMode === 'append') {
-                        // eslint-disable-next-line no-await-in-loop
-                        ok = await yesno({
-                            question: `                               Append new values to custom property "${options.customPropertyName}"? (y/n)`,
-                        });
-                    }
-                    logger.info();
-
-                    if (ok === true) {
-                        // Yes, write CP values to QRS
-                        logger.debug(`SET RELOAD TASK CP: Update payload for task ${task.id}: ${JSON.stringify(newPayload, null, 2)}`);
-
-                        if (options.dryRun === undefined || options.dryRun === false) {
-                            // eslint-disable-next-line no-await-in-loop
-                            updateResult = await updateReloadTask(options, newPayload);
-                        } else {
-                            logger.info(`DRY RUN: Update of task custom property ${task.customPropertyName} would happen here.`);
-                        }
-                    } else {
-                        logger.info(`Did not update task "${task.name}"`);
-                    }
-                } else if (options.dryRun === undefined || options.dryRun === false) {
-                    // eslint-disable-next-line no-await-in-loop
-                    updateResult = await updateReloadTask(options, newPayload);
-                } else {
-                    logger.info(`DRY RUN: Update of task custom property ${task.customPropertyName} would happen here.`);
-                }
-
-                if (updateResult) {
-                    logger.info(`Custom property "${options.customPropertyName}" on task "${task.name}" successfully updated.`);
-                }
-                // else {
-                //     logger.error(`Failed updating custom property "${options.customPropertyName}" on task "${task.name}".`);
-                // }
-            } else {
-                // Custom property NOT set for this task.
-
-                // Add CP values to task
-                // eslint-disable-next-line no-restricted-syntax
-                for (const newCpValue of options.customPropertyValue) {
-                    newPayload.task?.customProperties?.push({
-                        definition: { id: customPropertyDef[0].id, name: customPropertyDef[0].name },
-                        value: newCpValue,
-                    });
-                }
-
-                // Update task
-                logger.debug(`SET RELOAD TASK CP: Update payload for task ${task.id}: ${JSON.stringify(newPayload, null, 2)}`);
                 // eslint-disable-next-line no-await-in-loop
-                const result = await updateReloadTask(options, newPayload);
-                logger.debug(`SET RELOAD TASK CP: Update successful=${result}`);
+                const res = await updateTask(options, customPropertyDef, task);
+                logger.debug(`Custom property update result: ${res}`);
             }
+
+            // await Promise.all(updateTasks);
+            // logger.debug('Update task custom property: All promises resolved');
         }
     } catch (err) {
         logger.error(`SET RELOAD TASK CP: ${err.stack}`);

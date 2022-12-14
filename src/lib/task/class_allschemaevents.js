@@ -50,7 +50,8 @@ class QlikSenseSchemaEvents {
                     .request(axiosConfig)
                     .then((result) => {
                         logger.debug(`GET SCHEMA EVENT: Result=${result.status}`);
-                        const schemaEvents = JSON.parse(result.data);
+                        // const schemaEvents = JSON.parse(result.data);
+                        const schemaEvents = result.data;
                         logger.info(`GET SCHEMA EVENT: # events: ${schemaEvents.length}`);
 
                         this.clear();

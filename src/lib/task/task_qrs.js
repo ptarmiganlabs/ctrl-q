@@ -10,13 +10,14 @@ const { getCertFilePaths } = require('../util/cert');
 // const { QlikSenseTasks } = require('./class_alltasks');
 // const { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } = require('../util/lookups');
 
-// https://stackoverflow.com/questions/9229645/remove-duplicate-values-from-js-array
-function uniqByTaskId(a) {
-    const seen = new Set();
-    return a.filter((item) => {
-        const k = item.id;
-        return seen.has(k) ? false : seen.add(k);
-    });
+function uniqueByTaskKeys(array, keys) {
+    const filtered = array.filter(
+        (
+            (s) => (o) =>
+                ((k) => !s.has(k) && s.add(k))(keys.map((k) => o[k]).join('|'))
+        )(new Set())
+    );
+    return filtered;
 }
 
 const getCustomProperty = async (options) => {
@@ -29,7 +30,7 @@ const getCustomProperty = async (options) => {
         // Build QRS query string using custom property name
         const filter = encodeURIComponent(`name eq '${options.customPropertyName}'`);
 
-        const axiosConfig = setupQRSConnection(options, {
+        const axiosConfig = await setupQRSConnection(options, {
             method: 'get',
             fileCert: certFilesFullPath.fileCert,
             fileCertKey: certFilesFullPath.fileCertKey,
@@ -39,15 +40,17 @@ const getCustomProperty = async (options) => {
 
         // Query QRS for tasks based on task IDs
         const result = await axios.request(axiosConfig);
-        logger.debug(`GET CUSTOM PROPERTY: Result=result.status`);
-        if (JSON.parse(result.data).length > 0) {
+        logger.debug(`GET CUSTOM PROPERTY: Result=${result.status}`);
+        // if (JSON.parse(result.data).length > 0) {
+        if (result.data.length > 0) {
             // Custom property found
-            cp = JSON.parse(result.data);
+            // cp = JSON.parse(result.data);
+            cp = result.data;
         } else {
             cp = false;
         }
     } catch (err) {
-        logger.error(`GET TASK QRS (ID): ${err.stack}`);
+        logger.error(`GET CP FROM QRS: ${err.stack}`);
     }
     return cp;
 };
@@ -75,7 +78,30 @@ const getTasksFromQseow = async (options) => {
             logger.debug(`GET TASK 1: QRS query filter: ${filter}`);
         }
 
-        let axiosConfig = setupQRSConnection(options, {
+        if (options.taskTag && options?.taskTag.length >= 1) {
+            if (filter.length === 0) {
+                if (options.taskTag && options?.taskTag.length >= 1) {
+                    // At least one task tag specified
+                    filter += encodeURIComponent(`tags.name eq '${options.taskTag[0]}'`);
+                }
+                if (options.taskTag && options?.taskTag.length >= 2) {
+                    // Add remaining task tags, if any
+                    for (let i = 1; i < options.taskTag.length; i += 1) {
+                        filter += encodeURIComponent(` or tags.name eq '${options.taskTag[i]}'`);
+                    }
+                    logger.debug(`GET TASK 2: QRS query filter: ${filter}`);
+                }
+            } else {
+                // Add remaining task tags, if any
+                for (let i = 0; i < options.taskTag.length; i += 1) {
+                    filter += encodeURIComponent(` or tags.name eq '${options.taskTag[i]}'`);
+                }
+                logger.debug(`GET TASK 2: QRS query filter: ${filter}`);
+            }
+        }
+        logger.debug(`GET TASK: Final QRS query filter: ${filter}`);
+
+        const axiosConfig = await setupQRSConnection(options, {
             method: 'get',
             fileCert,
             fileCertKey,
@@ -83,10 +109,12 @@ const getTasksFromQseow = async (options) => {
             filter,
         });
 
+        logger.debug(`QRS connection config: ${JSON.stringify(axiosConfig, null, 2)}}`);
+
         // Query QRS for tasks based on task IDs
-        let result = await axios.request(axiosConfig);
+        const result = await axios.request(axiosConfig);
         logger.debug(`GET TASK: Result=result.status`);
-        let tmpTaskList = JSON.parse(result.data);
+        const tmpTaskList = result.data;
 
         //
         // Build QRS query string using task tags
@@ -103,28 +131,15 @@ const getTasksFromQseow = async (options) => {
             logger.debug(`GET TASK 2: QRS query filter: ${filter}`);
         }
 
-        axiosConfig = setupQRSConnection(options, {
-            method: 'get',
-            fileCert,
-            fileCertKey,
-            path: '/qrs/reloadtask/full',
-            filter,
-        });
-
-        // Query QRS for tasks based on task IDs
-        result = await axios.request(axiosConfig);
-        logger.debug(`GET TASK: Result=result.status`);
-        if (result.data.length > 0) {
-            tmpTaskList = tmpTaskList.concat(JSON.parse(result.data));
-        }
-
         // Remove duplicates from task list
-        taskList = uniqByTaskId(tmpTaskList);
+        taskList = uniqueByTaskKeys(tmpTaskList, ['id']);
+
         logger.debug(`GET TASK 3: List of tasks: ${JSON.stringify(taskList)}`);
+        return taskList;
     } catch (err) {
-        logger.error(`GET TASK QRS (ID): ${err.stack}`);
+        logger.error(`GET TASKS FROM QRS: ${err.stack}`);
+        return false;
     }
-    return taskList;
 };
 
 const updateReloadTask = async (options, payload) => {
@@ -132,7 +147,7 @@ const updateReloadTask = async (options, payload) => {
         // Get cert files
         const certFilesFullPath = await getCertFilePaths(options);
 
-        const axiosConfig = setupQRSConnection(options, {
+        const axiosConfig = await setupQRSConnection(options, {
             method: 'post',
             fileCert: certFilesFullPath.fileCert,
             fileCertKey: certFilesFullPath.fileCertKey,
@@ -144,7 +159,7 @@ const updateReloadTask = async (options, payload) => {
         const result = await axios.request(axiosConfig);
         logger.debug(`UPDATE RELOAD TASK CUSTOM PROPERTY: Result=${result.status}`);
     } catch (err) {
-        logger.error(`GET TASK QRS (ID): ${err.stack}`);
+        logger.error(`UPDATE RELOAD TASK: ${err.stack}`);
         return false;
     }
     return true;
