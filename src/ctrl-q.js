@@ -454,7 +454,7 @@ const program = new Command();
             await sharedParamAssertOptions(options);
             setTaskCustomPropertyAssertOptions(options);
 
-            setTaskCustomProperty(options);
+            await setTaskCustomProperty(options);
         })
         .addOption(
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
