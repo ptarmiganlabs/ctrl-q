@@ -109,8 +109,12 @@ const getTask = async (options) => {
                 }
             }
 
-            // Add new top level node with clock/scheduler emoji
-            taskTree = [{ text: '⏰', children: taskTree }];
+            // Add new top level node with clock/scheduler emoji, if tree icons are enabled
+            if (options.treeIcons) {
+                taskTree = [{ text: '⏰ --==| Scheduled tasks |==--', children: taskTree }];
+            } else {
+                taskTree = [{ text: '--==| Scheduled tasks |==--', children: taskTree }];
+            }
 
             // Add unscheduled tasks that are also top level tasks.
             const unscheduledTasks = qlikSenseTasks.taskNetwork.nodes.filter((node) => {
@@ -254,10 +258,12 @@ const getTask = async (options) => {
                     }
                 }
 
+                row = [taskCount, 'Reload'];
+
                 if (columnBlockShow.common) {
                     tmpRow = [
-                        taskCount,
-                        'Reload',
+                        // taskCount,
+                        // 'Reload',
                         task.taskName,
                         task.taskId,
                         task.taskEnabled,
@@ -465,6 +471,16 @@ const getTask = async (options) => {
 
                                 if (columnBlockShow.lastexecution) {
                                     tmpRow = [...Array(5).fill('')];
+                                    row = row.concat(tmpRow);
+                                }
+
+                                if (columnBlockShow.tag) {
+                                    tmpRow = [...Array(1).fill('')];
+                                    row = row.concat(tmpRow);
+                                }
+
+                                if (columnBlockShow.customproperty) {
+                                    tmpRow = [...Array(1).fill('')];
                                     row = row.concat(tmpRow);
                                 }
 
