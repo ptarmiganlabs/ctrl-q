@@ -28,7 +28,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "0.27.2",
-    "commander": "^9.4.1",
+    "commander": "^10.0.0",
     "csv-stringify": "^6.2.3",
     "enigma.js": "^2.10.0",
     "eslint": "^8.29.0",
