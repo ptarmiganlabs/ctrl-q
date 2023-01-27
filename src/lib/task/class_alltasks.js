@@ -1,41 +1,23 @@
 const axios = require('axios');
 const path = require('path');
-const nanoid = require('nanoid');
+const { v4: uuidv4, validate } = require('uuid');
 
 const { logger, execPath } = require('../../globals');
 const { setupQRSConnection } = require('../util/qrs');
+const {
+    taskFileColumnHeaders,
+    mapTaskType,
+    mapDaylightSavingTime,
+    mapEventType,
+    mapIncrementOption,
+    mapRuleState,
+} = require('../util/lookups');
 const { QlikSenseTask } = require('./class_task');
 const { QlikSenseSchemaEvents } = require('./class_allschemaevents');
 const { QlikSenseCompositeEvents } = require('./class_allcompositeevents');
-
-// function getSchemaText(incrementOption, incrementDescription) {
-//     let schemaText = '';
-
-//     /**
-//      * IncrementOption:
-//         "0: once",
-//         "1: hourly",
-//             incrementDescription: Repeat after each 'minutes hours 0 0 '
-//         "2: daily",
-//             incrementDescription: Repeat after each '0 0 days 0 '
-//         "3: weekly",
-//         "4: monthly"
-//      */
-
-//     if (incrementOption === 0) {
-//         schemaText = 'Once';
-//     } else if (incrementOption === 1) {
-//         schemaText = 'Hourly';
-//     } else if (incrementOption === 2) {
-//         schemaText = 'Daily';
-//     } else if (incrementOption === 3) {
-//         schemaText = 'Weekly';
-//     } else if (incrementOption === 4) {
-//         schemaText = 'Monthly';
-//     }
-
-//     return schemaText;
-// }
+const { getTagIdByName } = require('../util/tag');
+const { getCustomPropertyIdByName } = require('../util/customproperties');
+const { taskExistById } = require('../util/task');
 
 class QlikSenseTasks {
     // eslint-disable-next-line no-useless-constructor
@@ -47,6 +29,9 @@ class QlikSenseTasks {
         try {
             this.taskList = [];
             this.options = options;
+
+            // Map that will map fake task IDs (used in source file) with real task IDs after tasks have been created in Sense
+            this.taskIdMap = new Map();
 
             // Make sure certificates exist
             this.fileCert = path.resolve(execPath, options.authCertFile);
@@ -76,14 +61,711 @@ class QlikSenseTasks {
         this.taskList = [];
     }
 
+    getColumnPosFromHeaderRow(headerRow) {
+        taskFileColumnHeaders.taskCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskCounter.name);
+        taskFileColumnHeaders.taskType.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskType.name);
+        taskFileColumnHeaders.taskName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskName.name);
+        taskFileColumnHeaders.taskId.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskId.name);
+        taskFileColumnHeaders.taskEnabled.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskEnabled.name);
+        taskFileColumnHeaders.taskSessionTimeout.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.taskSessionTimeout.name
+        );
+        taskFileColumnHeaders.taskMaxRetries.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskMaxRetries.name);
+        taskFileColumnHeaders.appId.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.appId.name);
+        taskFileColumnHeaders.appName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.appName.name);
+        taskFileColumnHeaders.isPartialReload.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.isPartialReload.name);
+        taskFileColumnHeaders.isManuallyTriggered.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.isManuallyTriggered.name
+        );
+        taskFileColumnHeaders.taskStatus.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskStatus.name);
+        taskFileColumnHeaders.taskStarted.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskStarted.name);
+        taskFileColumnHeaders.taskEnded.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskEnded.name);
+        taskFileColumnHeaders.taskDuration.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskDuration.name);
+        taskFileColumnHeaders.taskExecutionNode.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskExecutionNode.name);
+        taskFileColumnHeaders.taskTags.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskTags.name);
+        taskFileColumnHeaders.taskCustomProperties.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.taskCustomProperties.name
+        );
+        taskFileColumnHeaders.eventCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventCounter.name);
+        taskFileColumnHeaders.eventType.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventType.name);
+        taskFileColumnHeaders.eventName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventName.name);
+        taskFileColumnHeaders.eventEnabled.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventEnabled.name);
+        taskFileColumnHeaders.eventCreatedDate.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventCreatedDate.name);
+        taskFileColumnHeaders.eventModifiedDate.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventModifiedDate.name);
+        taskFileColumnHeaders.eventModifiedBy.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventModifiedBy.name);
+        taskFileColumnHeaders.schemaIncrementOption.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.schemaIncrementOption.name
+        );
+        taskFileColumnHeaders.schemaIncrementDescription.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.schemaIncrementDescription.name
+        );
+        taskFileColumnHeaders.daylightSavingsTime.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.daylightSavingsTime.name
+        );
+        taskFileColumnHeaders.schemaStart.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.schemaStart.name);
+        taskFileColumnHeaders.scheamExpiration.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.scheamExpiration.name);
+        taskFileColumnHeaders.schemaFilterDescription.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.schemaFilterDescription.name
+        );
+        taskFileColumnHeaders.schemaTimeZone.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.schemaTimeZone.name);
+        taskFileColumnHeaders.timeConstraintSeconds.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.timeConstraintSeconds.name
+        );
+        taskFileColumnHeaders.timeConstraintMinutes.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.timeConstraintMinutes.name
+        );
+        taskFileColumnHeaders.timeConstraintHours.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.timeConstraintHours.name
+        );
+        taskFileColumnHeaders.timeConstraintDays.pos = headerRow.findIndex(
+            (item) => item === taskFileColumnHeaders.timeConstraintDays.name
+        );
+        taskFileColumnHeaders.ruleCount.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleCount.name);
+        taskFileColumnHeaders.ruleState.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleState.name);
+        taskFileColumnHeaders.ruleTaskName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleTaskName.name);
+        taskFileColumnHeaders.ruleTaskId.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleTaskId.name);
+
+        this.taskFileColumnHeaders = taskFileColumnHeaders;
+    }
+
     // Add new task
-    addTask(task, anonymizeTaskNames) {
-        const newTask = new QlikSenseTask(task, anonymizeTaskNames);
+    async addTask(source, task, anonymizeTaskNames) {
+        const newTask = new QlikSenseTask();
+        await newTask.init(source, task, anonymizeTaskNames, this.options, this.fileCert, this.fileCertKey);
         this.taskList.push(newTask);
     }
 
+    async getTaskModelFromFile(tasksFromFile) {
+        // eslint-disable-next-line no-async-promise-executor
+        return new Promise(async (resolve, reject) => {
+            try {
+                logger.debug('GET TASK: Starting get tasks from data in file');
+
+                this.clear();
+
+                // Figure out which data is in which column
+                this.getColumnPosFromHeaderRow(tasksFromFile.data[0]);
+
+                // We now have all info about the task. Store it to the internal task data structure
+                this.taskNetwork = { nodes: [], edges: [], tasks: [] };
+                const nodesWithEvents = new Set();
+
+                // Find max task counter = number of tasks to be imported
+                // This can be tricky for Excel files, as these can contain empty rows that are still saved in the file on disk.
+                // Somehow we need to determine which rows should be treated as input data.
+                // The criteria is that the "Task counter" column should either be a heading (i.e. "Task counter") or a number.
+                const taskImportCount = Math.max(
+                    ...tasksFromFile.data.map((item) => {
+                        if (item.length === 0) {
+                            // Empty row
+                            return -1;
+                        }
+
+                        if (item[taskFileColumnHeaders.taskCounter.pos] === taskFileColumnHeaders.taskCounter.name) {
+                            // This is the header row
+                            return -1;
+                        }
+
+                        return item[taskFileColumnHeaders.taskCounter.pos];
+                    })
+                );
+
+                // Loop over all tasks in source file
+                for (let i = 1; i <= taskImportCount; i += 1) {
+                    // Get all rows associated with this task
+                    // One row will contain task data, other rows will contain event data associated with the task.
+                    const taskRows = tasksFromFile.data.filter((item) => item[taskFileColumnHeaders.taskCounter.pos] === i);
+                    logger.debug(
+                        `GET QS TASK FROM FILE: Processing task #${i} of ${taskImportCount}. Data being used:\n${JSON.stringify(
+                            taskRows,
+                            null,
+                            2
+                        )}`
+                    );
+
+                    // Create a fake ID for this task. Used to associate task with schema/composite events
+                    // const fakeTaskId = `task-${nanoid.nanoid()}`;
+                    const fakeTaskId = `reload-task-${uuidv4()}`;
+
+                    let currentTask = null;
+                    // Get task specific data for the current task
+                    // The row containing task data will have a "Reload" in the task type column
+                    const taskData = taskRows.filter(
+                        (item) =>
+                            item[taskFileColumnHeaders.taskType.pos] &&
+                            item[taskFileColumnHeaders.taskType.pos].trim().toLowerCase() === 'reload'
+                    );
+                    if (taskData?.length !== 1) {
+                        logger.error(`Incorrect task input data:\n${JSON.stringify(taskRows, null, 2)}`);
+                        process.exit(1);
+                    } else {
+                        // eslint-disable-next-line prefer-destructuring
+                        // currentTask = taskData[0];
+
+                        // Create task object using same structure as results from QRS API
+                        currentTask = {
+                            id: taskData[0][taskFileColumnHeaders.taskId.pos],
+                            name: taskData[0][taskFileColumnHeaders.taskName.pos],
+                            taskType: mapTaskType.get(taskData[0][taskFileColumnHeaders.taskType.pos]),
+                            enabled: taskData[0][taskFileColumnHeaders.taskEnabled.pos],
+                            taskSessionTimeout: taskData[0][taskFileColumnHeaders.taskSessionTimeout.pos],
+                            maxRetries: taskData[0][taskFileColumnHeaders.taskMaxRetries.pos],
+                            isManuallyTriggered: taskData[0][taskFileColumnHeaders.isManuallyTriggered.pos],
+                            isPartialReload: taskData[0][taskFileColumnHeaders.isPartialReload.pos],
+                            app: {
+                                id: taskData[0][taskFileColumnHeaders.appId.pos],
+                                name: taskData[0][taskFileColumnHeaders.appName.pos],
+                            },
+                            tags: [],
+                            customProperties: [],
+                            schemaPath: 'ReloadTask',
+                            schemaEvents: [],
+                            compositeEvents: [],
+                            prelCompositeEvents: [],
+                        };
+
+                        // Add tags to task object
+                        if (taskData[0][taskFileColumnHeaders.taskTags.pos]) {
+                            const tmpTags = taskData[0][taskFileColumnHeaders.taskTags.pos]
+                                .split('/')
+                                .filter((item) => item.trim().length !== 0)
+                                .map((item) => item.trim());
+
+                            // eslint-disable-next-line no-restricted-syntax
+                            for (const item of tmpTags) {
+                                // eslint-disable-next-line no-await-in-loop
+                                const tagId = await getTagIdByName(item, this.options, this.fileCert, this.fileCertKey);
+                                currentTask.tags.push({
+                                    id: tagId,
+                                    name: item,
+                                });
+                            }
+                        }
+
+                        // Add custom properties to task object
+                        if (taskData[0][taskFileColumnHeaders.taskCustomProperties.pos]) {
+                            const tmpCustomProperties = taskData[0][taskFileColumnHeaders.taskCustomProperties.pos]
+                                .split('/')
+                                .filter((item) => item.trim().length !== 0)
+                                .map((cp) => cp.trim());
+
+                            // eslint-disable-next-line no-restricted-syntax
+                            for (const item of tmpCustomProperties) {
+                                const tmpCustomProperty = item
+                                    .split('=')
+                                    .filter((item2) => item2.trim().length !== 0)
+                                    .map((cp) => cp.trim());
+
+                                if (tmpCustomProperty?.length === 2) {
+                                    // eslint-disable-next-line no-await-in-loop
+                                    const customPropertyId = await getCustomPropertyIdByName(
+                                        tmpCustomProperty[0],
+                                        this.options,
+                                        this.fileCert,
+                                        this.fileCertKey
+                                    );
+                                    currentTask.customProperties.push({
+                                        definition: {
+                                            id: customPropertyId,
+                                            name: tmpCustomProperty[0].trim(),
+                                        },
+                                        value: tmpCustomProperty[1].trim(),
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    // Get schema events for this task, storing the info using the same strcture as returned from QRS API
+                    const schemaEventRows = taskRows.filter(
+                        (item) =>
+                            item[taskFileColumnHeaders.eventType.pos] &&
+                            item[taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'schema'
+                    );
+                    if (!schemaEventRows || schemaEventRows?.length === 0) {
+                        logger.verbose(`No schema events for task "${currentTask.name}"`);
+                    } else {
+                        logger.verbose(`${schemaEventRows.length} schema event(s) for task "${currentTask.name}"`);
+
+                        // Add schema edges and start/trigger nodes
+                        // eslint-disable-next-line no-restricted-syntax
+                        for (const schemaEventRow of schemaEventRows) {
+                            // Create object using same format that Sense uses for schema events
+                            const schemaEvent = {
+                                enabled: schemaEventRow[taskFileColumnHeaders.eventEnabled.pos],
+                                eventType: mapEventType.get(schemaEventRow[taskFileColumnHeaders.eventType.pos]),
+                                name: schemaEventRow[taskFileColumnHeaders.eventName.pos],
+                                daylightSavingTime: mapDaylightSavingTime.get(
+                                    schemaEventRow[taskFileColumnHeaders.daylightSavingsTime.pos]
+                                ),
+                                timeZone: schemaEventRow[taskFileColumnHeaders.schemaTimeZone.pos],
+                                startDate: schemaEventRow[taskFileColumnHeaders.schemaStart.pos],
+                                expirationDate: schemaEventRow[taskFileColumnHeaders.scheamExpiration.pos],
+                                schemaFilterDescription: [schemaEventRow[taskFileColumnHeaders.schemaFilterDescription.pos]],
+                                incrementDescription: schemaEventRow[taskFileColumnHeaders.schemaIncrementDescription.pos],
+                                incrementOption: mapIncrementOption.get(schemaEventRow[taskFileColumnHeaders.schemaIncrementOption.pos]),
+                                reloadTask: {
+                                    id: fakeTaskId,
+                                },
+                                schemaPath: 'SchemaEvent',
+                            };
+
+                            this.qlikSenseSchemaEvents.addSchemaEvent(schemaEvent);
+
+                            // Add schema event to network representation of tasks
+                            // Create an id for this node
+                            const nodeId = `schema-event-${uuidv4()}`;
+
+                            // Add schema trigger nodes. These represent the implicit starting nodes that a schema event really are
+                            this.taskNetwork.nodes.push({
+                                id: nodeId,
+                                metaNodeType: 'schedule', // Meta nodes are not Sense tasks, but rather nodes representing task-like properties (e.g. a starting point for a reload chain)
+                                metaNode: true,
+                                isTopLevelNode: true,
+                                label: schemaEvent.name,
+                                enabled: schemaEvent.enabled,
+
+                                completeSchemaEvent: schemaEvent,
+                            });
+
+                            this.taskNetwork.edges.push({
+                                from: nodeId,
+                                to: schemaEvent.reloadTask.id,
+                            });
+
+                            // Keep a note that this node has associated events
+                            nodesWithEvents.add(schemaEvent.reloadTask.id);
+
+                            // Add this schema event to the current task
+                            // Remove reference to task ID first though
+                            delete schemaEvent.reloadTask.id;
+                            delete schemaEvent.reloadTask;
+                            currentTask.schemaEvents.push(schemaEvent);
+                        }
+                    }
+
+                    // Get composite events for this task
+                    // NB: This will only get the main row for each composite event.
+                    // Each such main row is followed by one or more event rule rows, that each share the same value in the "Event counter" column
+                    const compositeEventRows = taskRows.filter(
+                        (item) =>
+                            item[taskFileColumnHeaders.eventType.pos] &&
+                            item[taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'composite'
+                    );
+                    if (!compositeEventRows || compositeEventRows?.length === 0) {
+                        logger.verbose(`No composite events for task "${currentTask.name}"`);
+                    } else {
+                        logger.verbose(`${compositeEventRows.length} composite event(s) for task "${currentTask.name}"`);
+
+                        // Loop over all composite events, adding them and their event rules
+                        // eslint-disable-next-line no-restricted-syntax
+                        for (const compositeEventRow of compositeEventRows) {
+                            // Get value in "Event counter" column for this composite event, then get array of all associated event rules
+                            const compositeEventCounter = compositeEventRow[taskFileColumnHeaders.eventCounter.pos];
+                            const compositeEventRules = taskRows.filter(
+                                (item) =>
+                                    item[taskFileColumnHeaders.eventCounter.pos] === compositeEventCounter &&
+                                    item[taskFileColumnHeaders.ruleCount.pos] > 0
+                            );
+
+                            // Create an object using same format that Sense uses for composite events
+                            const compositeEvent = {
+                                // id: 'aa2d95ec-2f21-48c9-a97c-6c5b98253ad1',
+                                timeConstraint: {
+                                    days: compositeEventRow[taskFileColumnHeaders.timeConstraintDays.pos],
+                                    hours: compositeEventRow[taskFileColumnHeaders.timeConstraintHours.pos],
+                                    minutes: compositeEventRow[taskFileColumnHeaders.timeConstraintMinutes.pos],
+                                    seconds: compositeEventRow[taskFileColumnHeaders.timeConstraintSeconds.pos],
+                                },
+                                compositeRules: [],
+                                name: compositeEventRow[taskFileColumnHeaders.eventName.pos],
+                                enabled: compositeEventRow[taskFileColumnHeaders.eventEnabled.pos],
+                                eventType: mapEventType.get(compositeEventRow[taskFileColumnHeaders.eventType.pos]),
+                                reloadTask: {
+                                    id: fakeTaskId,
+                                },
+                                schemaPath: 'CompositeEvent',
+                            };
+
+                            // Add rules
+                            // eslint-disable-next-line no-restricted-syntax
+                            for (const rule of compositeEventRules) {
+                                // Does the upstream task pointed to by the composite rule exist?
+                                // If it *does* exist it means it's a real, existing task in QSEoW that should be used.
+                                // If it is not a valid guis or does not exist, it's (best case) a referefence to some other task in the task definitions file.
+                                // If the task pointed to by the rule doesn't exist in Sense and doesn't point to some other task in the file, an error should be shown.
+                                if (validate(rule[taskFileColumnHeaders.ruleTaskId.pos])) {
+                                    // eslint-disable-next-line no-await-in-loop
+                                    const taskExists = await taskExistById(
+                                        rule[taskFileColumnHeaders.ruleTaskId.pos],
+                                        this.options,
+                                        this.fileCert,
+                                        this.fileCertKey
+                                    );
+
+                                    if (taskExists) {
+                                        // Add task ID to mapping table that will be used later when building the composite event data structures
+                                        // In this case we're adding a task ID that maps to itself, indicating that it's a task that already exists in QSEoW.
+                                        this.taskIdMap.set(
+                                            rule[taskFileColumnHeaders.ruleTaskId.pos],
+                                            rule[taskFileColumnHeaders.ruleTaskId.pos]
+                                        );
+                                    }
+                                } else {
+                                    logger.verbose(
+                                        `ANALYZE COMPOSITE EVENT: "${rule[taskFileColumnHeaders.ruleTaskId.pos]}" is not a valid UUID`
+                                    );
+                                }
+
+                                compositeEvent.compositeRules.push({
+                                    // id: ,
+                                    ruleState: mapRuleState.get(rule[taskFileColumnHeaders.ruleState.pos]),
+                                    reloadTask: {
+                                        id: rule[taskFileColumnHeaders.ruleTaskId.pos],
+                                    },
+                                });
+                            }
+
+                            this.qlikSenseCompositeEvents.addCompositeEvent(compositeEvent);
+
+                            // Add schema event to network representation of tasks
+                            if (compositeEvent.compositeRules.length === 1) {
+                                // This trigger has exactly ONE upstream task
+                                // For triggers with >1 upstream task we want an extra meta node to represent the waiting of all upstream tasks to finish
+
+                                this.taskNetwork.edges.push({
+                                    from: compositeEvent.compositeRules[0].reloadTask.id,
+                                    to: compositeEvent.reloadTask.id,
+
+                                    completeCompositeEvent: compositeEvent,
+                                    rule: compositeEvent.compositeRules,
+                                    // color: compositeEvent.enabled ? '#9FC2F7' : '#949298',
+                                    // color: edgeColor,
+                                    // dashes: compositeEvent.enabled ? false : [15, 15],
+                                    // title: compositeEvent.name + '<br>' + 'asdasd',
+                                    // label: compositeEvent.name,
+                                });
+
+                                // Keep a note that this node has associated events
+                                nodesWithEvents.add(compositeEvent.compositeRules[0].reloadTask.id);
+                                nodesWithEvents.add(compositeEvent.reloadTask.id);
+                            } else {
+                                // There are more than one task involved in triggering a downstream task.
+                                // Insert a proxy node that represents a Qlik Sense composite event
+
+                                const nodeId = `composite-event-${uuidv4()}`;
+                                this.taskNetwork.nodes.push({
+                                    id: nodeId,
+                                    label: '',
+                                    enabled: true,
+                                    metaNodeType: 'composite',
+                                    metaNode: true,
+                                });
+                                nodesWithEvents.add(nodeId);
+
+                                // Add edges from upstream tasks to the new meta node
+                                // eslint-disable-next-line no-restricted-syntax
+                                for (const rule of compositeEvent.compositeRules) {
+                                    this.taskNetwork.edges.push({
+                                        from: rule.reloadTask.id,
+                                        to: nodeId,
+
+                                        completeCompositeEvent: compositeEvent,
+                                        rule,
+                                    });
+                                }
+
+                                // Add edge from new meta node to current node
+                                this.taskNetwork.edges.push({
+                                    from: nodeId,
+                                    to: compositeEvent.reloadTask.id,
+                                });
+                            }
+
+                            // Add this composite event to the current task
+                            currentTask.prelCompositeEvents.push(compositeEvent);
+                        }
+                    }
+
+                    // Add task as node in task network
+                    // NB: A top level node is defined as:
+                    // 1. A task whose taskID does not show up in the "to" field of any edge.
+
+                    // eslint-disable-next-line no-restricted-syntax
+                    this.taskNetwork.nodes.push({
+                        id: currentTask.id,
+                        metaNode: false,
+                        isTopLevelNode: !this.taskNetwork.edges.find((edge) => edge.to === currentTask.taskId),
+                        label: currentTask.name,
+                        enabled: currentTask.enabled,
+
+                        completeTaskObject: currentTask,
+
+                        // Tabulator columns
+                        taskId: currentTask.id,
+                        taskName: currentTask.name,
+                        taskEnabled: currentTask.enabled,
+                        appId: currentTask.app.id,
+                        appName: 'N/A',
+                        appPublished: 'N/A',
+                        appStream: 'N/A',
+                        taskMaxRetries: currentTask.maxRetries,
+                        taskLastExecutionStartTimestamp: 'N/A',
+                        taskLastExecutionStopTimestamp: 'N/A',
+                        taskLastExecutionDuration: 'N/A',
+                        taskLastExecutionExecutingNodeName: 'N/A',
+                        taskNextExecutionTimestamp: 'N/A',
+                        taskLastStatus: 'N/A',
+                        taskTags: currentTask.tags.map((tag) => tag.name),
+                        taskCustomProperties: currentTask.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`),
+                    });
+
+                    // We now have a basic task object including tags and custom properties.
+                    // Schema events are included but composite events are only partially there, as they may need
+                    // IDs of tasks that have not yet been created.
+                    // Still, store all info for composite evets and then do another loop where those events are created for
+                    // tasks for which they are defined.
+                    //
+                    // The strategey is to first create all tasks, then add composite events.
+                    // Only then can we be sure all composite events refer to existing tasks.
+
+                    // Store this task object to the task list
+                    // Parameters are
+                    // source, task data, anonymize task names
+
+                    if (this.options.dryRun === false || this.options.dryRun === undefined) {
+                        // eslint-disable-next-line no-await-in-loop
+                        const newTaskId = await this.createReloadTaskInQseow(currentTask);
+
+                        // Add mapping between fake task ID used when creating task network and actual, newly created task ID
+                        this.taskIdMap.set(fakeTaskId, newTaskId);
+
+                        // Add mapping between fake task ID specified in source file and actual, newly created task ID
+                        if (currentTask.id) {
+                            this.taskIdMap.set(currentTask.id, newTaskId);
+                        }
+
+                        currentTask.idRef = currentTask.id;
+                        currentTask.id = newTaskId;
+
+                        // eslint-disable-next-line no-await-in-loop
+                        await this.addTask('from_file', currentTask, false);
+                    } else {
+                        logger.info(`DRY RUN: Creating reloading task in QSEoW "${currentTask.name}"`);
+                    }
+
+                }
+
+                // Get task IDs for upstream tasks that composite events are connected to
+                this.qlikSenseCompositeEvents.compositeEventList.map((item) => {
+                    const a = item;
+                    a.compositeEvent.reloadTask.id = this.taskIdMap.get(item.compositeEvent.reloadTask.id);
+
+                    a.compositeEvent.compositeRules.map((item2) => {
+                        const b = item2;
+                        const id = this.taskIdMap.get(item2.reloadTask.id);
+                        if (id !== undefined && validate(id) === true) {
+                            b.reloadTask.id = id;
+                        } else if (this.options.dryRun === false || this.options.dryRun === undefined) {
+                            logger.error(
+                                `PREPARING COMPOSITE EVENT: Invalid upstream task ID "${b.reloadTask.id}" in rule for composite event "${a.compositeEvent.name}" `
+                            );
+                            b.reloadTask.id = null;
+                        }
+                        return b;
+                    });
+                    return a;
+                });
+
+                // Loop over all composite events in the source file, create missing ones where needed
+                logger.info('-------------------------------------------------------------------');
+                logger.info('Creating composite events for the just created tasks...');
+                // eslint-disable-next-line no-restricted-syntax
+                for (const { compositeEvent } of this.qlikSenseCompositeEvents.compositeEventList) {
+                    if (this.options.dryRun === false || this.options.dryRun === undefined) {
+                        // eslint-disable-next-line no-await-in-loop
+                        await this.createCompositeEventInQseow(compositeEvent);
+                    } else {
+                        logger.info(`DRY RUN: Creating composite event "${compositeEvent.name}"`);
+                    }
+                }
+
+                // Add tasks to network array in plain, non-hierarchical format
+                this.taskNetwork.tasks = this.taskList;
+
+                // return this.taskList;
+                resolve(this.taskList);
+            } catch (err) {
+                logger.error(`GET QS TASK FROM FILE 1: ${err}`);
+                reject(err);
+            }
+            // return null;
+        });
+    }
+
+    createCompositeEventInQseow(newCompositeEvent) {
+        // eslint-disable-next-line no-async-promise-executor
+        return new Promise(async (resolve, reject) => {
+            try {
+                logger.debug('CREATE COMPOSITE EVENT IN QSEOW: Starting');
+
+                // Build a body for the API call
+                const body = newCompositeEvent;
+
+                // Save task to QSEoW
+                const axiosConfig = setupQRSConnection(this.options, {
+                    method: 'post',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/compositeevent',
+                    body,
+                });
+
+                axios
+                    .request(axiosConfig)
+                    .then((result) => {
+                        logger.info(
+                            `CREATE COMPOSITE EVENT IN QSEOW: "${newCompositeEvent.name}", upstream task ID=${result.data.reloadTask.id}. Result: ${result.status}/${result.statusText}.`
+                        );
+                        if (result.status === 201) {
+                            resolve(result.data.id);
+                        } else {
+                            reject();
+                        }
+                    })
+                    .catch((err) => {
+                        logger.error(`CREATE COMPOSITE EVENT IN QSEOW 1: ${err}`);
+                    });
+            } catch (err) {
+                logger.error(`CREATE COMPOSITE EVENT IN QSEOW 2: ${err}`);
+                reject(err);
+            }
+        });
+    }
+
+    createReloadTaskInQseow(newTask) {
+        // eslint-disable-next-line no-async-promise-executor
+        return new Promise(async (resolve, reject) => {
+            try {
+                logger.debug('CREATE RELOAD TASK IN QSEOW: Starting');
+
+                // Build a body for the API call
+                const body = {
+                    task: {
+                        app: {
+                            id: newTask.app.id,
+                        },
+                        name: newTask.name,
+                        isManuallyTriggered: newTask.isManuallyTriggered,
+                        isPartialReload: newTask.isPartialReload,
+                        taskType: newTask.taskType,
+                        enabled: newTask.enabled,
+                        taskSessionTimeout: newTask.taskSessionTimeout,
+                        maxRetries: newTask.maxRetries,
+                        tags: newTask.tags,
+                        customProperties: newTask.customProperties,
+                        schemaPath: 'ReloadTask',
+                    },
+                    schemaEvents: newTask.schemaEvents,
+                };
+
+                // Save task to QSEoW
+                const axiosConfig = setupQRSConnection(this.options, {
+                    method: 'post',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/reloadtask/create',
+                    body,
+                });
+
+                axios.request(axiosConfig).then((result) => {
+                    logger.info(
+                        `CREATE RELOAD TASK IN QSEOW: "${newTask.name}", new task id: ${result.data.id}. Result: ${result.status}/${result.statusText}.`
+                    );
+                    if (result.status === 201) {
+                        resolve(result.data.id);
+                    } else {
+                        reject();
+                    }
+                });
+            } catch (err) {
+                logger.error(`CREATE RELOAD TASK IN QSEOW 1: ${err}`);
+                reject(err);
+            }
+        });
+    }
+
+    saveTaskModelToQseow() {
+        // eslint-disable-next-line no-async-promise-executor
+        return new Promise(async (resolve, reject) => {
+            try {
+                logger.debug('SAVE TASKS TO QSEOW: Starting save tasks to QSEoW');
+
+                // eslint-disable-next-line no-restricted-syntax
+                for (const task of this.taskList) {
+                    // logger.debug(`Saving task "${}" with ID=${} to QSEoW`);
+
+                    // eslint-disable-next-line no-await-in-loop
+                    await new Promise((resolve2, reject2) => {
+                        // Build a body for the API call
+                        const body = {
+                            task: {
+                                app: {
+                                    id: task.appId,
+                                },
+                                name: task.taskName,
+                                isManuallyTriggered: task.isManuallyTriggered,
+                                isPartialReload: task.isPartialReload,
+                                taskType: task.taskType,
+                                enabled: task.taskEnabled,
+                                taskSessionTimeout: task.taskSessionTimeout,
+                                maxRetries: task.taskMaxRetries,
+                                tags: task.taskTags,
+                                customProperties: task.taskCustomProperties,
+                                schemaPath: 'ReloadTask',
+                            },
+                            schemaEvents: task.schemaEvents,
+                            compositeEvents: task.compositeEvents,
+                        };
+
+                        // Save task to QSEoW
+                        const axiosConfig = setupQRSConnection(this.options, {
+                            method: 'post',
+                            fileCert: this.fileCert,
+                            fileCertKey: this.fileCertKey,
+                            path: '/qrs/reloadtask/create',
+                            body,
+                        });
+
+                        try {
+                            axios.request(axiosConfig).then((result) => {
+                                logger.info(
+                                    `SAVE TASK TO QSEOW: Task name: "${task.taskName}", Result: ${result.status}/${result.statusText}`
+                                );
+                                if (result.status === 201) {
+                                    resolve2();
+                                } else {
+                                    reject2();
+                                }
+                            });
+                        } catch (err) {
+                            logger.error(`SAVE TASK TO QSEOW 2: ${err}`);
+                            reject2();
+                        }
+                    });
+                    logger.debug(`SAVE TASK TO QSEOW: Done saving task "${task.taskName}"`);
+                }
+                resolve();
+            } catch (err) {
+                logger.error(`SAVE TASK TO QSEOW 3: ${err}`);
+                reject(err);
+            }
+        });
+    }
+
     getTasksFromQseow() {
-        return new Promise((resolve, reject) => {
+        // eslint-disable-next-line no-async-promise-executor
+        return new Promise(async (resolve, reject) => {
             try {
                 logger.debug('GET TASK: Starting get tasks from QSEoW');
 
@@ -102,7 +784,7 @@ class QlikSenseTasks {
                     logger.debug(`GET TASK: QRS query filter: ${filter}`);
                 }
 
-                const axiosConfig = setupQRSConnection(this.options, {
+                const axiosConfig = await setupQRSConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -116,22 +798,16 @@ class QlikSenseTasks {
                         logger.debug(`GET TASK: Result=result.status`);
                         // const tasks = JSON.parse(result.data);
                         const tasks = result.data;
-                        logger.info(`GET TASK: # tasks: ${tasks.length}`);
+                        logger.verbose(`GET TASK: # tasks: ${tasks.length}`);
 
                         // TODO
                         // Determine whether task name anonymisation should be done
                         const anonymizeTaskNames = false;
-                        // if (
-                        //     settingsFile.hasConfigValue('settings.anonymizeTaskNames.enable') &&
-                        //     configFile.settings.anonymizeTaskNames.enable == true
-                        // ) {
-                        //     anonymizeTaskNames = true;
-                        // }
 
                         this.clear();
                         for (let i = 0; i < tasks.length; i += 1) {
                             if (tasks[i].taskType === 0) {
-                                this.addTask(tasks[i], anonymizeTaskNames);
+                                this.addTask('from_qseow', tasks[i], anonymizeTaskNames);
                             }
                         }
                         resolve(this.taskList);
@@ -334,15 +1010,6 @@ class QlikSenseTasks {
                 subTree.taskCustomProperties = task.completeTaskObject.customProperties.map((el) => `${el.definition.name}=${el.value}`);
                 subTree.completeTaskObject = task.completeTaskObject;
 
-                // if (_.has(task, 'completeTaskObject.operational.lastExecutionResult.status')) {
-                //   // let a = task.operational.lastExecutionResult.status;
-                //   let b = g.g.taskExecutionStatusLookup.filter((el) => {
-                //     return el.status === task.operational.lastExecutionResult.status;
-                //   });
-                //   subTree.taskLastStatus = b[0].desc;
-                // } else {
-                //   subTree.taskLastStatus = '?';
-                // }
                 if (newTreeLevel <= 2) {
                     subTree = kids.concat([[newTreeLevel, task.taskName, task.taskId, task.taskEnabled]]);
                 } else {
@@ -381,10 +1048,6 @@ class QlikSenseTasks {
             try {
                 logger.debug('GET TASK: Getting task model from QSEoW');
 
-                // g.g.qlikSenseTasks.clear();
-                // g.g.qlikSenseSchemaEvents.clear();
-                // g.g.qlikSenseCompositeEvents.clear();
-
                 this.getTasksFromQseow()
                     .then((result1) => this.qlikSenseSchemaEvents.getSchemaEventsFromQseow())
                     .then((result2) => this.qlikSenseCompositeEvents.getCompositeEventsFromQseow())
@@ -405,7 +1068,7 @@ class QlikSenseTasks {
                             // Only include task schedules
                             if (schemaEvent.schemaEvent.reloadTask !== null) {
                                 // Add schema trigger nodes. These represent the implicit starting nodes that a schema event really are
-                                const nodeId = nanoid.nanoid();
+                                const nodeId = `node-${uuidv4()}`;
                                 this.taskNetwork.nodes.push({
                                     id: nodeId,
                                     metaNodeType: 'schedule', // Meta nodes are not Sense tasks, but rather nodes representing task-like properties (e.g. a starting point for a reload chain)
@@ -454,10 +1117,10 @@ class QlikSenseTasks {
                                     nodesWithEvents.add(compositeEvent.compositeEvent.reloadTask.id);
                                 } else {
                                     // There are more than one task involved in triggering a downstream task.
-                                    // Insert a proxy node that represents a Qlik Sense compositive event
+                                    // Insert a proxy node that represents a Qlik Sense composite event
 
                                     // TODO
-                                    const nodeId = nanoid.nanoid();
+                                    const nodeId = `node-${uuidv4()}`;
                                     this.taskNetwork.nodes.push({
                                         id: nodeId,
                                         label: '',
@@ -489,7 +1152,8 @@ class QlikSenseTasks {
                             }
                         }
 
-                        // A top level node is defined as:
+                        // Add all regular Sense tasks as nodes in task network
+                        // NB: A top level node is defined as:
                         // 1. A task whose taskID does not show up in the "to" field of any edge.
 
                         // eslint-disable-next-line no-restricted-syntax

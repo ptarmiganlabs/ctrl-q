@@ -35,11 +35,11 @@ class QlikSenseCompositeEvents {
     }
 
     getCompositeEventsFromQseow() {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
                 logger.debug('GET SCHEMAEVENT: Starting get composite events from QSEoW');
 
-                const axiosConfig = setupQRSConnection(this.options, {
+                const axiosConfig = await setupQRSConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -52,7 +52,7 @@ class QlikSenseCompositeEvents {
                         logger.debug(`GET COMPOSITE EVENT: Result=${result.status}`);
                         // const compositeEvents = JSON.parse(result.data);
                         const compositeEvents = result.data;
-                        logger.info(`GET COMPOSITE EVENT: # events: ${compositeEvents.length}`);
+                        logger.verbose(`GET COMPOSITE EVENT: Total number of composite events: ${compositeEvents.length}`);
 
                         this.clear();
                         // eslint-disable-next-line no-plusplus

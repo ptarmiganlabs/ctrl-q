@@ -20,6 +20,7 @@ const { getScript } = require('./lib/cmd/getscript');
 
 const { getTask } = require('./lib/cmd/gettask');
 const { setTaskCustomProperty } = require('./lib/cmd/settaskcp');
+const { importTaskFromFile } = require('./lib/cmd/importtask');
 
 const {
     sharedParamAssertOptions,
@@ -32,6 +33,7 @@ const {
     getBookmarkAssertOptions,
     getTaskAssertOptions,
     setTaskCustomPropertyAssertOptions,
+    taskImportAssertOptions,
 } = require('./lib/util/assert-options');
 
 const program = new Command();
@@ -446,7 +448,7 @@ const program = new Command();
                 .default('')
         );
 
-    // Set tasks command
+    // Set custom property on tasks command
     program
         .command('task-custom-property-set')
         .description('update a custom property of one or more tasks')
@@ -485,6 +487,56 @@ const program = new Command();
                 .default('append')
         )
         .option('--dry-run', 'do a dry run, i.e. do not modify any reload tasks - just show what would be updated');
+
+    // Import tasks from definitions in Excel/CSV file
+    program
+        .command('task-import')
+        .description('create tasks based on definitions in a file on disk')
+        .action(async (options) => {
+            try {
+                await sharedParamAssertOptions(options);
+                taskImportAssertOptions(options);
+                importTaskFromFile(options);
+            } catch (err) {
+                logger.error(`IMPORT TASK: ${err}`);
+            }
+        })
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+
+        .addOption(new Option('-t, --file-type <type>', 'source file type').choices(['excel', 'csv']).default('excel'))
+        .requiredOption('--file-name <filename>', 'file containing task definitions')
+        .requiredOption('--sheet-name <name>', 'name of Excel sheet where task info is found')
+        // .addOption(
+        //     new Option(
+        //         '--col-ref-by <reftype>',
+        //         'how to refer to columns in the source file. Options are by name or by position (zero based)'
+        //     )
+        //         .choices(['name', 'position'])
+        //         .default('name')
+        // )
+
+        .addOption(new Option('--update-mode <mode>', 'create new or update existing tasks').choices(['create']).default('create'))
+
+        .requiredOption(
+            '--limit-import-count <number>',
+            'import at most x number of tasks from the Excel file. Defaults to 0 = no limit',
+            0
+        )
+        .option('--dry-run', 'do a dry run, i.e. do not create any reload tasks - just show what would be done');
 
     // Parse command line params
     await program.parseAsync(process.argv);
