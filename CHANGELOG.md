@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.3.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.2.0...ctrl-q-v3.3.0) (2023-01-27)
+
+
+### Features
+
+* Add command for listing/exporting info about reload tasks ([9c1e0c9](https://github.com/ptarmiganlabs/ctrl-q/commit/9c1e0c9b5aeb87f5e150819ac7cd3810f3d6bbed)), closes [#105](https://github.com/ptarmiganlabs/ctrl-q/issues/105)
+* Log Ctrl-Q info to console on startup ([9dccc3c](https://github.com/ptarmiganlabs/ctrl-q/commit/9dccc3cc7de18fa8694c16c530b9e7c3c5584dd8)), closes [#110](https://github.com/ptarmiganlabs/ctrl-q/issues/110)
+* New command for bulk import of reload tasks ([30bd69a](https://github.com/ptarmiganlabs/ctrl-q/commit/30bd69a69d8faff6271b83b6dc024b0cde27d767)), closes [#79](https://github.com/ptarmiganlabs/ctrl-q/issues/79)
+* New command for updating reload task custom properties ([288672b](https://github.com/ptarmiganlabs/ctrl-q/commit/288672b2af635158b3a7590ad84899e56f83abc8)), closes [#106](https://github.com/ptarmiganlabs/ctrl-q/issues/106)
+
+
+### Bug Fixes
+
+* Incorrect owner shown for bookmarks, measures & dimensions ([b571619](https://github.com/ptarmiganlabs/ctrl-q/commit/b571619d8a858d511e13123173127e624e00b9cb)), closes [#121](https://github.com/ptarmiganlabs/ctrl-q/issues/121)
+* Logging to console fails when importing master items from Excel file ([d81a36b](https://github.com/ptarmiganlabs/ctrl-q/commit/d81a36b079f88d344c251daf0e9780242eb364ae)), closes [#112](https://github.com/ptarmiganlabs/ctrl-q/issues/112)
+
+
+### Miscellaneous
+
+* **deps:** Update dependencies to stay safe and secure ([af88014](https://github.com/ptarmiganlabs/ctrl-q/commit/af88014e035d85403355a25f6a8e835e258ba847))
+* **deps:** Update dependencies to stay secure and performant ([7881750](https://github.com/ptarmiganlabs/ctrl-q/commit/78817506c5d2bb49954ffc01a9b900d9c90d57fa))
+* Update dependencies to stay safe and secure ([25d48c7](https://github.com/ptarmiganlabs/ctrl-q/commit/25d48c72122d1bca62d97bbfc99d3b498ee771e7))
+
 ## [3.2.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.2.0...ctrl-q-v3.2.0) (2022-10-16)
 
 
