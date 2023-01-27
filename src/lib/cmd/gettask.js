@@ -84,7 +84,7 @@ const getTask = async (options) => {
         logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
-        logger.info('Get tasks');
+        logger.verbose('Get tasks');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
         // Get reload tasks
@@ -142,7 +142,7 @@ const getTask = async (options) => {
 
             // Output task tree to correct destination
             if (options.outputDest === 'screen') {
-                logger.info(`# top level tasks: ${taskTree.length}`);
+                logger.info(`# rows in tree: ${taskTree.length}`);
                 logger.info(`\n${tree(taskTree)}`);
             } else if (options.outputDest === 'file') {
                 logger.verbose(`Writing task tree to disk file "${options.outputFileName}"`);
@@ -262,12 +262,10 @@ const getTask = async (options) => {
 
                 if (columnBlockShow.common) {
                     tmpRow = [
-                        // taskCount,
-                        // 'Reload',
                         task.taskName,
                         task.taskId,
                         task.taskEnabled,
-                        task.taskTimeout,
+                        task.taskSessionTimeout,
                         task.taskMaxRetries,
                         task.appId,
                         task.isPartialReload,
@@ -288,13 +286,13 @@ const getTask = async (options) => {
                 }
 
                 if (columnBlockShow.tag) {
-                    tmpRow = [task.taskTags.join(' / ')];
-                    row = row.concat(tmpRow);
+                    tmpRow = [task.taskTags.map((item) => item.name).join(' / ')];
+                    row = row.concat(tmpRow[0]);
                 }
 
                 if (columnBlockShow.customproperty) {
-                    tmpRow = [task.taskCustomProperties.join(' / ')];
-                    row = row.concat(tmpRow);
+                    tmpRow = [task.taskCustomProperties.map((item) => `${item.definition.name}=${item.value}`).join(' / ')];
+                    row = row.concat(tmpRow[0]);
                 }
 
                 if (options.tableDetails === true || options.tableDetails === '') {
@@ -329,7 +327,7 @@ const getTask = async (options) => {
                 if (columnBlockShow.schematrigger) {
                     // eslint-disable-next-line no-restricted-syntax
                     for (const event of schemaEventsForThisTask) {
-                        row = [taskCount, 'Reload'];
+                        row = [taskCount, ''];
 
                         if (columnBlockShow.common) {
                             tmpRow = [...Array(8).fill('')];
@@ -395,7 +393,7 @@ const getTask = async (options) => {
                 if (columnBlockShow.compositetrigger || columnBlockShow.comptimeconstraint || columnBlockShow.comprule) {
                     // eslint-disable-next-line no-restricted-syntax
                     for (const event of compositeEventsForThisTask) {
-                        row = [taskCount, 'Reload'];
+                        row = [taskCount, ''];
 
                         if (columnBlockShow.common) {
                             tmpRow = [...Array(8).fill('')];
@@ -462,7 +460,7 @@ const getTask = async (options) => {
                         if (columnBlockShow.comprule) {
                             // eslint-disable-next-line no-restricted-syntax
                             for (const rule of event.compositeEvent.compositeRules) {
-                                row = [taskCount, 'Reload'];
+                                row = [taskCount, ''];
 
                                 if (columnBlockShow.common) {
                                     tmpRow = [...Array(8).fill('')];
@@ -484,15 +482,10 @@ const getTask = async (options) => {
                                     row = row.concat(tmpRow);
                                 }
 
-                                // if (
-                                //     options.tableDetails === true ||
-                                //     options.tableDetails?.find((item) => item === 'schematrigger') ||
-                                //     options.tableDetails?.find((item) => item === 'compositetrigger')
-                                // ) {
                                 // Include general event columns if schema or composite columns should be shown
-                                tmpRow = [eventCount, mapEventType.get(event.compositeEvent.eventType)];
+                                // tmpRow = [eventCount, mapEventType.get(event.compositeEvent.eventType)];
+                                tmpRow = [eventCount, ''];
                                 row = row.concat(tmpRow);
-                                // }
 
                                 if (columnBlockShow.schematrigger) {
                                     tmpRow = [...Array(12).fill('')];
@@ -528,23 +521,23 @@ const getTask = async (options) => {
             }
 
             // Add column headers
-            let headerRow = ['Task\ncounter', 'Task type'];
+            let headerRow = ['Task counter', 'Task type'];
 
             if (columnBlockShow.common) {
                 headerRow = headerRow.concat([
                     'Task name',
                     'Task id',
-                    'Task\nenabled',
-                    'Task\ntimeout',
-                    'Task\nretries',
+                    'Task enabled',
+                    'Task timeout',
+                    'Task retries',
                     'App id',
-                    'Partial\nreload',
-                    'Manually\ntriggered',
+                    'Partial reload',
+                    'Manually triggered',
                 ]);
             }
 
             if (columnBlockShow.lastexecution) {
-                headerRow = headerRow.concat(['Task\nstatus', 'Task started', 'Task ended', 'Task duration', 'Task\nexecutedon node']);
+                headerRow = headerRow.concat(['Task status', 'Task started', 'Task ended', 'Task duration', 'Task executedon node']);
             }
 
             if (columnBlockShow.tag) {
@@ -557,50 +550,50 @@ const getTask = async (options) => {
 
             if (columnBlockShow.schematrigger || columnBlockShow.compositetrigger) {
                 headerRow = headerRow.concat([
-                    'Event\ncounter',
+                    'Event counter',
                     'Event type',
                     'Event name',
-                    'Event\nenabled',
-                    'Event\ncreated date',
-                    'Event\nmodified date',
-                    'Event\nmodified by',
+                    'Event enabled',
+                    'Event created date',
+                    'Event modified date',
+                    'Event modified by',
                 ]);
             }
 
             if (columnBlockShow.schematrigger) {
                 headerRow = headerRow.concat([
-                    'Schema\nincrement option',
-                    'Schema\nincrement description',
+                    'Schema increment option',
+                    'Schema increment description',
                     'Daylight savings time',
                     'Schema start',
                     'Schema expiration',
-                    'Schema\nfilter description',
-                    'Schema\ntime zone',
+                    'Schema filter description',
+                    'Schema time zone',
                 ]);
             }
 
             if (columnBlockShow.comptimeconstraint) {
                 headerRow = headerRow.concat([
-                    'Time contstraint\nseconds',
-                    'Time contstraint\nminutes',
-                    'Time contstraint\nhours',
-                    'Time contstraint\ndays',
+                    'Time contstraint seconds',
+                    'Time contstraint minutes',
+                    'Time contstraint hours',
+                    'Time contstraint days',
                 ]);
             }
 
             if (columnBlockShow.comprule) {
-                headerRow = headerRow.concat(['Rule\ncount', 'Rule\nstate', 'Rule\ntask name', 'Rule\ntask id']);
+                headerRow = headerRow.concat(['Rule count', 'Rule state', 'Rule task name', 'Rule task id']);
             }
 
             consoleTableConfig.header = {
                 alignment: 'left',
-                content: `# top level tasks: ${taskTable.length - 1}`,
-                // content: `\x1b[32;1m# top level tasks: ${taskTable.length}`,
+                content: `# tasks: ${taskTable.filter((task) => task[1] === 'Reload').length}, # rows in table: ${taskTable.length}`,
             };
             taskTable.unshift(headerRow);
 
             if (options.outputDest === 'screen') {
-                logger.info(`# top level tasks: ${taskTable.length - 1}`);
+                logger.info(`# rows in table: ${taskTable.length - 1}`);
+                logger.info(`# tasks in table: ${taskTable.filter((task) => task[1] === 'Reload').length}`);
                 logger.info(`\n${table(taskTable, consoleTableConfig)}`);
             } else if (options.outputDest === 'file') {
                 logger.verbose(`Writing task table to disk file "${options.outputFileName}"`);

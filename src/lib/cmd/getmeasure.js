@@ -175,7 +175,7 @@ const getMasterMeasure = async (options) => {
                     measure.qMeta.publishTime,
                     measure.qMeta.createdDate,
                     measure.qMeta.modifiedDate,
-                    `${measure.qMeta.owner.authUserDirectory}\\${measure.qMeta.owner.authUserId}`,
+                    `${measure.qMeta.owner.userDirectory}\\${measure.qMeta.owner.userId}`,
                     measure.qMeta.tags,
                 ]);
             }

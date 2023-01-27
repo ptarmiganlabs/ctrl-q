@@ -34,12 +34,27 @@ class QlikSenseSchemaEvents {
         this.schemaEventList.push(newSchemaEvent);
     }
 
-    getSchemaEventsFromQseow() {
-        return new Promise((resolve, reject) => {
+    getSchemaEventsFromFile(schemaEvent) {
+        return new Promise(async (resolve, reject) => {
             try {
                 logger.debug('GET SCHEMA EVENT: Starting get schema events from QSEoW');
 
-                const axiosConfig = setupQRSConnection(this.options, {
+                this.addSchemaEvent(schemaEvent);
+
+                resolve();
+            } catch (err) {
+                logger.error(`GET SCHEMA EVENT 2: ${err}`);
+                reject(err);
+            }
+        });
+    }
+
+    getSchemaEventsFromQseow() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                logger.debug('GET SCHEMA EVENT: Starting get schema events from QSEoW');
+
+                const axiosConfig = await setupQRSConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -52,7 +67,7 @@ class QlikSenseSchemaEvents {
                         logger.debug(`GET SCHEMA EVENT: Result=${result.status}`);
                         // const schemaEvents = JSON.parse(result.data);
                         const schemaEvents = result.data;
-                        logger.info(`GET SCHEMA EVENT: # events: ${schemaEvents.length}`);
+                        logger.verbose(`GET SCHEMA EVENT: Total number of schema events: ${schemaEvents.length}`);
 
                         this.clear();
                         // eslint-disable-next-line no-plusplus

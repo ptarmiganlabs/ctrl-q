@@ -2,11 +2,16 @@ const mapDaylightSavingTime = new Map([
     [0, 'ObserveDaylightSavingTime'],
     [1, 'PermanentStandardTime'],
     [2, 'PermanentDaylightSavingTime'],
+    ['ObserveDaylightSavingTime', 0],
+    ['PermanentStandardTime', 1],
+    ['PermanentDaylightSavingTime', 2],
 ]);
 
 const mapEventType = new Map([
     [0, 'Schema'],
     [1, 'Composite'],
+    ['Schema', 0],
+    ['Composite', 1],
 ]);
 
 const mapIncrementOption = new Map([
@@ -16,12 +21,21 @@ const mapIncrementOption = new Map([
     [3, 'weekly'],
     [4, 'monthly'],
     [5, 'custom'],
+    ['once', 0],
+    ['hourly', 1],
+    ['daily', 2],
+    ['weekly', 3],
+    ['monthly', 4],
+    ['custom', 5],
 ]);
 
 const mapRuleState = new Map([
     [0, 'Undefined'],
     [1, 'TaskSuccessful'],
     [2, 'TaskFail'],
+    ['Undefined', 0],
+    ['TaskSuccessful', 1],
+    ['TaskFail', 2],
 ]);
 
 const mapTaskExecutionStatus = new Map([
@@ -38,6 +52,19 @@ const mapTaskExecutionStatus = new Map([
     [10, 'Retry'],
     [11, 'Error'],
     [12, 'Reset'],
+    ['NeverStarted', 0],
+    ['Triggered', 1],
+    ['Started', 2],
+    ['Queued', 3],
+    ['AbortInitiated', 4],
+    ['Aborting', 5],
+    ['Aborted', 6],
+    ['FinishedSuccess', 7],
+    ['FinishedFail', 8],
+    ['Skipped', 9],
+    ['Retry', 10],
+    ['Error', 11],
+    ['Reset', 11],
 ]);
 
 const mapTaskType = new Map([
@@ -45,7 +72,55 @@ const mapTaskType = new Map([
     [1, 'ExternalProgram'],
     [2, 'UserSync'],
     [3, 'Distribute'],
+    ['Reload', 0],
+    ['ExternalProgram', 1],
+    ['UserSync', 2],
+    ['Distribute', 3],
 ]);
+
+const taskFileColumnHeaders = {
+    taskCounter: { name: 'Task counter', pos: -1 },
+    taskType: { name: 'Task type', pos: -1 },
+    taskName: { name: 'Task name', pos: -1 },
+    // taskRefId: { name: 'Reference task id', pos: -1 },
+    taskId: { name: 'Task id', pos: -1 },
+    taskEnabled: { name: 'Task enabled', pos: -1 },
+    taskSessionTimeout: { name: 'Task timeout', pos: -1 },
+    taskMaxRetries: { name: 'Task retries', pos: -1 },
+    appId: { name: 'App id', pos: -1 },
+    appName: { name: 'App name', pos: -1 },
+    isPartialReload: { name: 'Partial reload', pos: -1 },
+    isManuallyTriggered: { name: 'Manually triggered', pos: -1 },
+    taskStatus: { name: 'Task status', pos: -1 },
+    taskStarted: { name: 'Task started', pos: -1 },
+    taskEnded: { name: 'Task ended', pos: -1 },
+    taskDuration: { name: 'Task duration', pos: -1 },
+    taskExecutionNode: { name: 'Task executedon node', pos: -1 },
+    taskTags: { name: 'Tags', pos: -1 },
+    taskCustomProperties: { name: 'Custom properties', pos: -1 },
+    eventCounter: { name: 'Event counter', pos: -1 },
+    eventType: { name: 'Event type', pos: -1 },
+    eventName: { name: 'Event name', pos: -1 },
+    eventEnabled: { name: 'Event enabled', pos: -1 },
+    eventCreatedDate: { name: 'Event created date', pos: -1 },
+    eventModifiedDate: { name: 'Event modified date', pos: -1 },
+    eventModifiedBy: { name: 'Event modified by', pos: -1 },
+    schemaIncrementOption: { name: 'Schema increment option', pos: -1 },
+    schemaIncrementDescription: { name: 'Schema increment description', pos: -1 },
+    daylightSavingsTime: { name: 'Daylight savings time', pos: -1 },
+    schemaStart: { name: 'Schema start', pos: -1 },
+    scheamExpiration: { name: 'Schema expiration', pos: -1 },
+    schemaFilterDescription: { name: 'Schema filter description', pos: -1 },
+    schemaTimeZone: { name: 'Schema time zone', pos: -1 },
+    timeConstraintSeconds: { name: 'Time contstraint seconds', pos: -1 },
+    timeConstraintMinutes: { name: 'Time contstraint minutes', pos: -1 },
+    timeConstraintHours: { name: 'Time contstraint hours', pos: -1 },
+    timeConstraintDays: { name: 'Time contstraint days', pos: -1 },
+    ruleCount: { name: 'Rule count', pos: -1 },
+    ruleState: { name: 'Rule state', pos: -1 },
+    ruleTaskName: { name: 'Rule task name', pos: -1 },
+    ruleTaskId: { name: 'Rule task id', pos: -1 },
+};
 
 module.exports = {
     mapDaylightSavingTime,
@@ -54,4 +129,5 @@ module.exports = {
     mapRuleState,
     mapTaskExecutionStatus,
     mapTaskType,
+    taskFileColumnHeaders,
 };

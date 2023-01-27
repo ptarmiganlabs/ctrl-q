@@ -4,8 +4,6 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
-    // Update task custom properties
     {
       "type": "node",
       "request": "launch",
@@ -14,43 +12,83 @@
       "runtimeVersion": "19",
       "cwd": "${workspaceFolder}",
 
+      // ------------------------------------
       // Set custom property of reload task
-      "args": [
-        "task-custom-property-set",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        "--auth-cert-file",
-        "./cert/client.pem",
-        "--auth-cert-key-file",
-        "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-        "--task-id",
-        "82bc3e66-c899-4e44-b52f-552145da5ee0",
-        "5748afa9-3abe-43ab-bb1f-127c48ced075",
-        "5520e710-91ad-41d2-aeb6-434cafbf366b",
-        // "--task-tag",
-        // "Test data",
-        // "api1",
+      // ------------------------------------
+      // "args": [
+      //   "task-custom-property-set",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+      //   "--task-id",
+      //   "82bc3e66-c899-4e44-b52f-552145da5ee0",
+      //   "5748afa9-3abe-43ab-bb1f-127c48ced075",
+      //   "5520e710-91ad-41d2-aeb6-434cafbf366b",
+      //   // "--task-tag",
+      //   // "Test data",
+      //   // "api1",
         
-        "--custom-property-name",
-        "Department",
-        // "Department2",
-        // "DemoApp",
-        "--custom-property-value",
-        "Finance",
-        "Sales",
-        "--overwrite",
-        "--update-mode",
-        // "append",
-        "replace",
-      ]
+      //   "--custom-property-name",
+      //   "Department",
+      //   // "Department2",
+      //   // "DemoApp",
+      //   "--custom-property-value",
+      //   "Finance",
+      //   "Sales",
+      //   "--overwrite",
+      //   "--update-mode",
+      //   // "append",
+      //   "replace",
+      // ]
 
-      // // Get task tree
+      // ------------------------------------
+      // Import from Excel file
+      // ------------------------------------
+      // "args": [
+      //   "task-import",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+
+      //   "--file-type",
+      //   "excel",
+        
+      //   "--file-name",
+      //   "tasks3.xlsx",
+      //   "--sheet-name",
+      //   "Ctrl-Q task export",
+
+      //   // "--overwrite",
+      //   // "no",
+
+      //   // "--limit-import-count",
+      //   // "2",
+
+      //   "--dry-run"
+      // ]
+
+
+      // ------------------------------------
+      // Get task tree
+      // ------------------------------------
       // "args": [
       //   "task-get",
       //   "--auth-type",
@@ -65,7 +103,7 @@
       //   "LAB",
       //   "--auth-user-id",
       //   "goran",
-      //   // "--task-id",
+      // //  "--task-id",
       //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
       //   "--output-format",
       //   // "table",
@@ -87,7 +125,9 @@
       //   // "no",
       // ]
 
-      // // Get reload tasks as table
+      // ------------------------------------
+      // Get reload tasks as table
+      // ------------------------------------
       // "args": [
       //   "task-get",
       //   "--auth-type",
@@ -133,6 +173,55 @@
       //   // "comprule"
       // ]
 
+      // ------------------------------------
+      // Get reload tasks as CSV/Excel/JSON file
+      // ------------------------------------
+      // "args": [
+      //   "task-get",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+      //   // "--task-id",
+      //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+      //   // "5748afa9-3abe-43ab-bb1f-127c48ced075",
+      //   // "5520e710-91ad-41d2-aeb6-434cafbf366b",
+      //   "--output-format",
+      //   "table",
+        
+      //   "--output-dest",
+      //   "file",
+      //   "--output-file-name",
+      //   "tasks2.csv",
+      //   // "tasks2.json",
+      //   // "tasks2.xlsx",
+      //   "--output-file-format",
+      //   "csv",
+      //   // "json",
+      //   // "excel",
+
+      //   // "--text-color",
+      //   // "no",
+
+      //   // "--table-details",
+      //   // "common",
+      //   // "lastexecution",
+      //   // "tag",
+      //   // "customproperty",
+      //   // "schematrigger",
+      //   // "compositetrigger",
+      //   // "comptimeconstraint", 
+      //   // "comprule"
+      // ]
+
       // Create custom property with user activity buckets
       // "args": [
       //   "user-activity-cp-create",
@@ -160,7 +249,9 @@
       //   "7",
       // ]
 
-      // // Import master items from Excel file, using column names
+      // ------------------------------------
+      // Import master items from Excel file, using column names
+      // ------------------------------------
       // "args": [
       //   "master-item-import",
       //   "--auth-type",
@@ -250,27 +341,27 @@
       //   "Dim3"
       // ]
 
-      //   Get all bookmark by name
-    //   "args": [
-    //     "bookmark-get",
-    //     "--auth-type",
-    //     "cert",
-    //     "--host",
-    //     "192.168.100.109",
-    //     "--app-id",
-    //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
-    //     "--auth-user-dir",
-    //     "LAB",
-    //     "--auth-user-id",
-    //     "goran",
-    //     "--id-type",
-    //     "id",
-    //     // "--bookmark",
-    //     // "Bookmark 1",
-    //     // "Bookmark 3",
-    //     "--output-format",
-    //     "table"
-    // ]
+      //   Get all bookmarks
+      "args": [
+        "bookmark-get",
+        "--auth-type",
+        "cert",
+        "--host",
+        "192.168.100.109",
+        "--app-id",
+        "2933711d-6638-41d4-a2d2-6dd2d965208b",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+        "--id-type",
+        "id",
+        // "--bookmark",
+        // "Bookmark 1",
+        // "Bookmark 3",
+        "--output-format",
+        "table"
+    ]
 
       //   Get measure by id
       // "args": [
