@@ -160,7 +160,7 @@ const getBookmark = async (options) => {
                     bookmark.qMeta.publishTime,
                     bookmark.qMeta.createdDate,
                     bookmark.qMeta.modifiedDate,
-                    `${bookmark.qMeta.owner.authUserDirectory}\\${bookmark.qMeta.owner.authUserId}`,
+                    `${bookmark.qMeta.owner.userDirectory}\\${bookmark.qMeta.owner.userId}`,
                 ]);
             }
 

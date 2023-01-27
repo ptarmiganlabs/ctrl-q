@@ -184,7 +184,6 @@ class QlikSenseTasks {
                     );
 
                     // Create a fake ID for this task. Used to associate task with schema/composite events
-                    // const fakeTaskId = `task-${nanoid.nanoid()}`;
                     const fakeTaskId = `reload-task-${uuidv4()}`;
 
                     let currentTask = null;

@@ -53,37 +53,37 @@
       // ------------------------------------
       // Import from Excel file
       // ------------------------------------
-      "args": [
-        "task-import",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        "--auth-cert-file",
-        "./cert/client.pem",
-        "--auth-cert-key-file",
-        "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
+      // "args": [
+      //   "task-import",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
 
-        "--file-type",
-        "excel",
+      //   "--file-type",
+      //   "excel",
         
-        "--file-name",
-        "tasks3.xlsx",
-        "--sheet-name",
-        "Ctrl-Q task export",
+      //   "--file-name",
+      //   "tasks3.xlsx",
+      //   "--sheet-name",
+      //   "Ctrl-Q task export",
 
-        // "--overwrite",
-        // "no",
+      //   // "--overwrite",
+      //   // "no",
 
-        // "--limit-import-count",
-        // "2",
+      //   // "--limit-import-count",
+      //   // "2",
 
-        "--dry-run"
-      ]
+      //   "--dry-run"
+      // ]
 
 
       // ------------------------------------
@@ -341,27 +341,27 @@
       //   "Dim3"
       // ]
 
-      //   Get all bookmark by name
-    //   "args": [
-    //     "bookmark-get",
-    //     "--auth-type",
-    //     "cert",
-    //     "--host",
-    //     "192.168.100.109",
-    //     "--app-id",
-    //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
-    //     "--auth-user-dir",
-    //     "LAB",
-    //     "--auth-user-id",
-    //     "goran",
-    //     "--id-type",
-    //     "id",
-    //     // "--bookmark",
-    //     // "Bookmark 1",
-    //     // "Bookmark 3",
-    //     "--output-format",
-    //     "table"
-    // ]
+      //   Get all bookmarks
+      "args": [
+        "bookmark-get",
+        "--auth-type",
+        "cert",
+        "--host",
+        "192.168.100.109",
+        "--app-id",
+        "2933711d-6638-41d4-a2d2-6dd2d965208b",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+        "--id-type",
+        "id",
+        // "--bookmark",
+        // "Bookmark 1",
+        // "Bookmark 3",
+        "--output-format",
+        "table"
+    ]
 
       //   Get measure by id
       // "args": [

@@ -187,7 +187,7 @@ const getMasterDimension = async (options) => {
                     dimension.qMeta.publishTime,
                     dimension.qMeta.createdDate,
                     dimension.qMeta.modifiedDate,
-                    `${dimension.qMeta.owner.authUserDirectory}\\${dimension.qMeta.owner.authUserId}`,
+                    `${dimension.qMeta.owner.userDirectory}\\${dimension.qMeta.owner.userId}`,
                     dimension.qMeta.tags !== undefined ? dimension.qMeta.tags : '',
                 ]);
             }
