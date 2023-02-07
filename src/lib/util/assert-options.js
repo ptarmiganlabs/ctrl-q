@@ -127,14 +127,6 @@ const getBookmarkAssertOptions = (options) => {
 // eslint-disable-next-line no-unused-vars
 const getTaskAssertOptions = (options) => {
     // TODO --task-id and --task-tag only for task tables, not trees
-
-    // TODO 
-    //  .\ctrl-q.exe task-get --auth-type cert --host 192.168.100.109 --auth-user-dir LAB --auth-user-id goran --output-format table --output-dest screen --tree-details appname --output-file-name tasktree.txt --output-file-format json
-    // error: GET TASK: Error: Table must have a consistent number of cells.
-    // at validateTableData (C:\snapshot\src\node_modules\table\dist\src\validateTableData.js:21:19)
-    // at table (C:\snapshot\src\node_modules\table\dist\src\table.js:17:47)
-    // at getTask (C:\snapshot\src\lib\cmd\gettask.js:594:34)
-    // at processTicksAndRejections (node:internal/process/task_queues:96:5)
 };
 
 // eslint-disable-next-line no-unused-vars
@@ -144,7 +136,11 @@ const setTaskCustomPropertyAssertOptions = (options) => {
 
 // eslint-disable-next-line no-unused-vars
 const taskImportAssertOptions = (options) => {
-    //
+    // If --file-type is excel: --sheet-name is required
+    if (options.fileType === 'excel' && options.sheetName === undefined) {
+        logger.error('Invalid combination of options.\nWhen importing from Excel file you must also specify the --sheet-name option.');
+        process.exit(1);
+    }
 };
 
 module.exports = {
