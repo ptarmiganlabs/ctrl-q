@@ -90,9 +90,9 @@ jobs:
           mkdir release/macos
           mkdir release/win
           mkdir release/linux
-          pkg src/ctrl-q.js --config package.json --output release/macos/${DIST_FILE_NAME} --targets node16-macos-x64 --compress GZip
-          pkg src/ctrl-q.js --config package.json --output release/win/${DIST_FILE_NAME}.exe --targets node16-win-x64 --compress GZip
-          pkg src/ctrl-q.js --config package.json --output release/linux/${DIST_FILE_NAME} --targets node16-linux-x64 --compress GZip
+          pkg src/ctrl-q.js --config src/package.json --output release/macos/${DIST_FILE_NAME} --targets node16-macos-x64 --compress GZip
+          pkg src/ctrl-q.js --config src/package.json --output release/win/${DIST_FILE_NAME}.exe --targets node16-win-x64 --compress GZip
+          pkg src/ctrl-q.js --config src/package.json --output release/linux/${DIST_FILE_NAME} --targets node16-linux-x64 --compress GZip
 
       - name: Debug
         if: ${{ steps.release.outputs.releases_created }}
