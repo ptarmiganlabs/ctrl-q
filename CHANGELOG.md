@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.3.0...ctrl-q-v3.4.0) (2023-02-07)
+
+
+### Features
+
+* Add task import limit paramater -- limit-import-count ([b878a29](https://github.com/ptarmiganlabs/ctrl-q/commit/b878a29e4f5ddf6f2f13453a98c0fe34ca188ea4))
+
 ## [3.3.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.2.0...ctrl-q-v3.3.0) (2023-01-27)
 
 
