@@ -519,21 +519,13 @@ const program = new Command();
 
         .addOption(new Option('-t, --file-type <type>', 'source file type').choices(['excel', 'csv']).default('excel'))
         .requiredOption('--file-name <filename>', 'file containing task definitions')
-        .requiredOption('--sheet-name <name>', 'name of Excel sheet where task info is found')
-        // .addOption(
-        //     new Option(
-        //         '--col-ref-by <reftype>',
-        //         'how to refer to columns in the source file. Options are by name or by position (zero based)'
-        //     )
-        //         .choices(['name', 'position'])
-        //         .default('name')
-        // )
+        .option('--sheet-name <name>', 'name of Excel sheet where task info is found')
 
         .addOption(new Option('--update-mode <mode>', 'create new or update existing tasks').choices(['create']).default('create'))
 
         .requiredOption(
             '--limit-import-count <number>',
-            'import at most x number of tasks from the Excel file. Defaults to 0 = no limit',
+            'import at most x number of tasks from the source file. Defaults to 0 = no limit',
             0
         )
         .option('--dry-run', 'do a dry run, i.e. do not create any reload tasks - just show what would be done');

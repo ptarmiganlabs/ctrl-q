@@ -2,7 +2,7 @@ const tree = require('text-treeview');
 const { table } = require('table');
 const { promises: Fs } = require('fs');
 const xlsx = require('node-xlsx').default;
-const { stringify } = require('csv-stringify/sync');
+const { stringify } = require('csv-stringify');
 const yesno = require('yesno');
 
 const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../../globals');
