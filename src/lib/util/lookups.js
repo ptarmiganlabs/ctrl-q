@@ -116,11 +116,69 @@ const taskFileColumnHeaders = {
     timeConstraintMinutes: { name: 'Time contstraint minutes', pos: -1 },
     timeConstraintHours: { name: 'Time contstraint hours', pos: -1 },
     timeConstraintDays: { name: 'Time contstraint days', pos: -1 },
-    ruleCount: { name: 'Rule count', pos: -1 },
+    ruleCounter: { name: 'Rule counter', pos: -1 },
     ruleState: { name: 'Rule state', pos: -1 },
     ruleTaskName: { name: 'Rule task name', pos: -1 },
     ruleTaskId: { name: 'Rule task id', pos: -1 },
 };
+
+function getColumnPosFromHeaderRow(headerRow) {
+    taskFileColumnHeaders.taskCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskCounter.name);
+    taskFileColumnHeaders.taskType.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskType.name);
+    taskFileColumnHeaders.taskName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskName.name);
+    taskFileColumnHeaders.taskId.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskId.name);
+    taskFileColumnHeaders.taskEnabled.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskEnabled.name);
+    taskFileColumnHeaders.taskSessionTimeout.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskSessionTimeout.name);
+    taskFileColumnHeaders.taskMaxRetries.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskMaxRetries.name);
+    taskFileColumnHeaders.appId.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.appId.name);
+    taskFileColumnHeaders.appName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.appName.name);
+    taskFileColumnHeaders.isPartialReload.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.isPartialReload.name);
+    taskFileColumnHeaders.isManuallyTriggered.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.isManuallyTriggered.name);
+    taskFileColumnHeaders.taskStatus.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskStatus.name);
+    taskFileColumnHeaders.taskStarted.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskStarted.name);
+    taskFileColumnHeaders.taskEnded.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskEnded.name);
+    taskFileColumnHeaders.taskDuration.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskDuration.name);
+    taskFileColumnHeaders.taskExecutionNode.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskExecutionNode.name);
+    taskFileColumnHeaders.taskTags.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskTags.name);
+    taskFileColumnHeaders.taskCustomProperties.pos = headerRow.findIndex(
+        (item) => item === taskFileColumnHeaders.taskCustomProperties.name
+    );
+    taskFileColumnHeaders.eventCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventCounter.name);
+    taskFileColumnHeaders.eventType.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventType.name);
+    taskFileColumnHeaders.eventName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventName.name);
+    taskFileColumnHeaders.eventEnabled.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventEnabled.name);
+    taskFileColumnHeaders.eventCreatedDate.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventCreatedDate.name);
+    taskFileColumnHeaders.eventModifiedDate.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventModifiedDate.name);
+    taskFileColumnHeaders.eventModifiedBy.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventModifiedBy.name);
+    taskFileColumnHeaders.schemaIncrementOption.pos = headerRow.findIndex(
+        (item) => item === taskFileColumnHeaders.schemaIncrementOption.name
+    );
+    taskFileColumnHeaders.schemaIncrementDescription.pos = headerRow.findIndex(
+        (item) => item === taskFileColumnHeaders.schemaIncrementDescription.name
+    );
+    taskFileColumnHeaders.daylightSavingsTime.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.daylightSavingsTime.name);
+    taskFileColumnHeaders.schemaStart.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.schemaStart.name);
+    taskFileColumnHeaders.scheamExpiration.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.scheamExpiration.name);
+    taskFileColumnHeaders.schemaFilterDescription.pos = headerRow.findIndex(
+        (item) => item === taskFileColumnHeaders.schemaFilterDescription.name
+    );
+    taskFileColumnHeaders.schemaTimeZone.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.schemaTimeZone.name);
+    taskFileColumnHeaders.timeConstraintSeconds.pos = headerRow.findIndex(
+        (item) => item === taskFileColumnHeaders.timeConstraintSeconds.name
+    );
+    taskFileColumnHeaders.timeConstraintMinutes.pos = headerRow.findIndex(
+        (item) => item === taskFileColumnHeaders.timeConstraintMinutes.name
+    );
+    taskFileColumnHeaders.timeConstraintHours.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.timeConstraintHours.name);
+    taskFileColumnHeaders.timeConstraintDays.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.timeConstraintDays.name);
+    taskFileColumnHeaders.ruleCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleCounter.name);
+    taskFileColumnHeaders.ruleState.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleState.name);
+    taskFileColumnHeaders.ruleTaskName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleTaskName.name);
+    taskFileColumnHeaders.ruleTaskId.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleTaskId.name);
+
+    // this.taskFileColumnHeaders = taskFileColumnHeaders;
+    return taskFileColumnHeaders;
+}
 
 module.exports = {
     mapDaylightSavingTime,
@@ -130,4 +188,5 @@ module.exports = {
     mapTaskExecutionStatus,
     mapTaskType,
     taskFileColumnHeaders,
+    getColumnPosFromHeaderRow,
 };

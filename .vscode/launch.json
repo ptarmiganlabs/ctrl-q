@@ -53,6 +53,41 @@
       // ------------------------------------
       // Import from Excel file
       // ------------------------------------
+      "args": [
+        "task-import",
+        "--auth-type",
+        "cert",
+        "--host",
+        "192.168.100.109",
+        "--auth-cert-file",
+        "./cert/client.pem",
+        "--auth-cert-key-file",
+        "./cert/client_key.pem",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+
+        "--file-type",
+        "excel",
+        
+        "--file-name",
+        "tasks.xlsx",
+        "--sheet-name",
+        "Ctrl-Q task export",
+
+        // "--overwrite",
+        // "no",
+
+        "--limit-import-count",
+        "2",
+
+        // "--dry-run"
+      ]
+
+      // ------------------------------------
+      // Import from CSV file
+      // ------------------------------------
       // "args": [
       //   "task-import",
       //   "--auth-type",
@@ -69,20 +104,19 @@
       //   "goran",
 
       //   "--file-type",
-      //   "excel",
+      //   "csv",
         
       //   "--file-name",
-      //   "tasks3.xlsx",
-      //   "--sheet-name",
-      //   "Ctrl-Q task export",
+      //   // "tasks2source.csv",
+      //   "tasks.csv",
 
       //   // "--overwrite",
       //   // "no",
 
-      //   // "--limit-import-count",
-      //   // "2",
+      //   "--limit-import-count",
+      //   "2",
 
-      //   "--dry-run"
+      //   // "--dry-run"
       // ]
 
 
@@ -342,26 +376,26 @@
       // ]
 
       //   Get all bookmarks
-      "args": [
-        "bookmark-get",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        "--app-id",
-        "2933711d-6638-41d4-a2d2-6dd2d965208b",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-        "--id-type",
-        "id",
-        // "--bookmark",
-        // "Bookmark 1",
-        // "Bookmark 3",
-        "--output-format",
-        "table"
-    ]
+    //   "args": [
+    //     "bookmark-get",
+    //     "--auth-type",
+    //     "cert",
+    //     "--host",
+    //     "192.168.100.109",
+    //     "--app-id",
+    //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
+    //     "--auth-user-dir",
+    //     "LAB",
+    //     "--auth-user-id",
+    //     "goran",
+    //     "--id-type",
+    //     "id",
+    //     // "--bookmark",
+    //     // "Bookmark 1",
+    //     // "Bookmark 3",
+    //     "--output-format",
+    //     "table"
+    // ]
 
       //   Get measure by id
       // "args": [

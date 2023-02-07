@@ -5,12 +5,12 @@ const { v4: uuidv4, validate } = require('uuid');
 const { logger, execPath } = require('../../globals');
 const { setupQRSConnection } = require('../util/qrs');
 const {
-    taskFileColumnHeaders,
     mapTaskType,
     mapDaylightSavingTime,
     mapEventType,
     mapIncrementOption,
     mapRuleState,
+    getColumnPosFromHeaderRow,
 } = require('../util/lookups');
 const { QlikSenseTask } = require('./class_task');
 const { QlikSenseSchemaEvents } = require('./class_allschemaevents');
@@ -61,73 +61,6 @@ class QlikSenseTasks {
         this.taskList = [];
     }
 
-    getColumnPosFromHeaderRow(headerRow) {
-        taskFileColumnHeaders.taskCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskCounter.name);
-        taskFileColumnHeaders.taskType.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskType.name);
-        taskFileColumnHeaders.taskName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskName.name);
-        taskFileColumnHeaders.taskId.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskId.name);
-        taskFileColumnHeaders.taskEnabled.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskEnabled.name);
-        taskFileColumnHeaders.taskSessionTimeout.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.taskSessionTimeout.name
-        );
-        taskFileColumnHeaders.taskMaxRetries.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskMaxRetries.name);
-        taskFileColumnHeaders.appId.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.appId.name);
-        taskFileColumnHeaders.appName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.appName.name);
-        taskFileColumnHeaders.isPartialReload.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.isPartialReload.name);
-        taskFileColumnHeaders.isManuallyTriggered.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.isManuallyTriggered.name
-        );
-        taskFileColumnHeaders.taskStatus.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskStatus.name);
-        taskFileColumnHeaders.taskStarted.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskStarted.name);
-        taskFileColumnHeaders.taskEnded.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskEnded.name);
-        taskFileColumnHeaders.taskDuration.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskDuration.name);
-        taskFileColumnHeaders.taskExecutionNode.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskExecutionNode.name);
-        taskFileColumnHeaders.taskTags.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskTags.name);
-        taskFileColumnHeaders.taskCustomProperties.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.taskCustomProperties.name
-        );
-        taskFileColumnHeaders.eventCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventCounter.name);
-        taskFileColumnHeaders.eventType.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventType.name);
-        taskFileColumnHeaders.eventName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventName.name);
-        taskFileColumnHeaders.eventEnabled.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventEnabled.name);
-        taskFileColumnHeaders.eventCreatedDate.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventCreatedDate.name);
-        taskFileColumnHeaders.eventModifiedDate.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventModifiedDate.name);
-        taskFileColumnHeaders.eventModifiedBy.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.eventModifiedBy.name);
-        taskFileColumnHeaders.schemaIncrementOption.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.schemaIncrementOption.name
-        );
-        taskFileColumnHeaders.schemaIncrementDescription.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.schemaIncrementDescription.name
-        );
-        taskFileColumnHeaders.daylightSavingsTime.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.daylightSavingsTime.name
-        );
-        taskFileColumnHeaders.schemaStart.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.schemaStart.name);
-        taskFileColumnHeaders.scheamExpiration.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.scheamExpiration.name);
-        taskFileColumnHeaders.schemaFilterDescription.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.schemaFilterDescription.name
-        );
-        taskFileColumnHeaders.schemaTimeZone.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.schemaTimeZone.name);
-        taskFileColumnHeaders.timeConstraintSeconds.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.timeConstraintSeconds.name
-        );
-        taskFileColumnHeaders.timeConstraintMinutes.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.timeConstraintMinutes.name
-        );
-        taskFileColumnHeaders.timeConstraintHours.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.timeConstraintHours.name
-        );
-        taskFileColumnHeaders.timeConstraintDays.pos = headerRow.findIndex(
-            (item) => item === taskFileColumnHeaders.timeConstraintDays.name
-        );
-        taskFileColumnHeaders.ruleCount.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleCount.name);
-        taskFileColumnHeaders.ruleState.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleState.name);
-        taskFileColumnHeaders.ruleTaskName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleTaskName.name);
-        taskFileColumnHeaders.ruleTaskId.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.ruleTaskId.name);
-
-        this.taskFileColumnHeaders = taskFileColumnHeaders;
-    }
-
     // Add new task
     async addTask(source, task, anonymizeTaskNames) {
         const newTask = new QlikSenseTask();
@@ -139,12 +72,12 @@ class QlikSenseTasks {
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
-                logger.debug('GET TASK: Starting get tasks from data in file');
+                logger.debug('PARSE TASKS FROM FILE: Starting get tasks from data in file');
 
                 this.clear();
 
                 // Figure out which data is in which column
-                this.getColumnPosFromHeaderRow(tasksFromFile.data[0]);
+                const taskFileColumnHeaders = getColumnPosFromHeaderRow(tasksFromFile.data[0]);
 
                 // We now have all info about the task. Store it to the internal task data structure
                 this.taskNetwork = { nodes: [], edges: [], tasks: [] };
@@ -166,7 +99,15 @@ class QlikSenseTasks {
                             return -1;
                         }
 
-                        return item[taskFileColumnHeaders.taskCounter.pos];
+                        // When reading from CSV files all columns will be strings.
+                        let taskNum;
+                        if (this.options.fileType === 'csv') {
+                            taskNum = item[taskFileColumnHeaders.taskCounter.pos];
+                        }
+                        if (this.options.fileType === 'excel') {
+                            taskNum = item[taskFileColumnHeaders.taskCounter.pos];
+                        }
+                        return taskNum;
                     })
                 );
 
@@ -176,7 +117,7 @@ class QlikSenseTasks {
                     // One row will contain task data, other rows will contain event data associated with the task.
                     const taskRows = tasksFromFile.data.filter((item) => item[taskFileColumnHeaders.taskCounter.pos] === i);
                     logger.debug(
-                        `GET QS TASK FROM FILE: Processing task #${i} of ${taskImportCount}. Data being used:\n${JSON.stringify(
+                        `PARSE TASKS FROM FILE: Processing task #${i} of ${taskImportCount}. Data being used:\n${JSON.stringify(
                             taskRows,
                             null,
                             2
@@ -195,12 +136,9 @@ class QlikSenseTasks {
                             item[taskFileColumnHeaders.taskType.pos].trim().toLowerCase() === 'reload'
                     );
                     if (taskData?.length !== 1) {
-                        logger.error(`Incorrect task input data:\n${JSON.stringify(taskRows, null, 2)}`);
+                        logger.error(`PARSE TASKS FROM FILE: Incorrect task input data:\n${JSON.stringify(taskRows, null, 2)}`);
                         process.exit(1);
                     } else {
-                        // eslint-disable-next-line prefer-destructuring
-                        // currentTask = taskData[0];
-
                         // Create task object using same structure as results from QRS API
                         currentTask = {
                             id: taskData[0][taskFileColumnHeaders.taskId.pos],
@@ -282,9 +220,9 @@ class QlikSenseTasks {
                             item[taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'schema'
                     );
                     if (!schemaEventRows || schemaEventRows?.length === 0) {
-                        logger.verbose(`No schema events for task "${currentTask.name}"`);
+                        logger.verbose(`PARSE TASKS FROM FILE: No schema events for task "${currentTask.name}"`);
                     } else {
-                        logger.verbose(`${schemaEventRows.length} schema event(s) for task "${currentTask.name}"`);
+                        logger.verbose(`PARSE TASKS FROM FILE: ${schemaEventRows.length} schema event(s) for task "${currentTask.name}"`);
 
                         // Add schema edges and start/trigger nodes
                         // eslint-disable-next-line no-restricted-syntax
@@ -352,9 +290,11 @@ class QlikSenseTasks {
                             item[taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'composite'
                     );
                     if (!compositeEventRows || compositeEventRows?.length === 0) {
-                        logger.verbose(`No composite events for task "${currentTask.name}"`);
+                        logger.verbose(`PARSE TASKS FROM FILE: No composite events for task "${currentTask.name}"`);
                     } else {
-                        logger.verbose(`${compositeEventRows.length} composite event(s) for task "${currentTask.name}"`);
+                        logger.verbose(
+                            `PARSE TASKS FROM FILE: ${compositeEventRows.length} composite event(s) for task "${currentTask.name}"`
+                        );
 
                         // Loop over all composite events, adding them and their event rules
                         // eslint-disable-next-line no-restricted-syntax
@@ -364,12 +304,11 @@ class QlikSenseTasks {
                             const compositeEventRules = taskRows.filter(
                                 (item) =>
                                     item[taskFileColumnHeaders.eventCounter.pos] === compositeEventCounter &&
-                                    item[taskFileColumnHeaders.ruleCount.pos] > 0
+                                    item[taskFileColumnHeaders.ruleCounter.pos] > 0
                             );
 
                             // Create an object using same format that Sense uses for composite events
                             const compositeEvent = {
-                                // id: 'aa2d95ec-2f21-48c9-a97c-6c5b98253ad1',
                                 timeConstraint: {
                                     days: compositeEventRow[taskFileColumnHeaders.timeConstraintDays.pos],
                                     hours: compositeEventRow[taskFileColumnHeaders.timeConstraintHours.pos],
@@ -552,7 +491,6 @@ class QlikSenseTasks {
                     } else {
                         logger.info(`DRY RUN: Creating reloading task in QSEoW "${currentTask.name}"`);
                     }
-
                 }
 
                 // Get task IDs for upstream tasks that composite events are connected to
@@ -579,6 +517,7 @@ class QlikSenseTasks {
                 // Loop over all composite events in the source file, create missing ones where needed
                 logger.info('-------------------------------------------------------------------');
                 logger.info('Creating composite events for the just created tasks...');
+
                 // eslint-disable-next-line no-restricted-syntax
                 for (const { compositeEvent } of this.qlikSenseCompositeEvents.compositeEventList) {
                     if (this.options.dryRun === false || this.options.dryRun === undefined) {
@@ -592,10 +531,9 @@ class QlikSenseTasks {
                 // Add tasks to network array in plain, non-hierarchical format
                 this.taskNetwork.tasks = this.taskList;
 
-                // return this.taskList;
                 resolve(this.taskList);
             } catch (err) {
-                logger.error(`GET QS TASK FROM FILE 1: ${err}`);
+                logger.error(`PARSE TASKS FROM FILE 1: ${err}`);
                 reject(err);
             }
             // return null;
@@ -624,7 +562,7 @@ class QlikSenseTasks {
                     .request(axiosConfig)
                     .then((result) => {
                         logger.info(
-                            `CREATE COMPOSITE EVENT IN QSEOW: "${newCompositeEvent.name}", upstream task ID=${result.data.reloadTask.id}. Result: ${result.status}/${result.statusText}.`
+                            `CREATE COMPOSITE EVENT IN QSEOW: Event name="${newCompositeEvent.name}" for task ID ${result.data.reloadTask.id}. Result: ${result.status}/${result.statusText}.`
                         );
                         if (result.status === 201) {
                             resolve(result.data.id);
@@ -677,18 +615,24 @@ class QlikSenseTasks {
                     body,
                 });
 
-                axios.request(axiosConfig).then((result) => {
-                    logger.info(
-                        `CREATE RELOAD TASK IN QSEOW: "${newTask.name}", new task id: ${result.data.id}. Result: ${result.status}/${result.statusText}.`
-                    );
-                    if (result.status === 201) {
-                        resolve(result.data.id);
-                    } else {
-                        reject();
-                    }
-                });
+                axios
+                    .request(axiosConfig)
+                    .then((result) => {
+                        logger.info(
+                            `CREATE RELOAD TASK IN QSEOW: "${newTask.name}", new task id: ${result.data.id}. Result: ${result.status}/${result.statusText}.`
+                        );
+                        if (result.status === 201) {
+                            resolve(result.data.id);
+                        } else {
+                            reject();
+                        }
+                    })
+                    .catch((err) => {
+                        logger.error(`CREATE RELOAD TASK IN QSEOW 1: ${err}`);
+                        reject(err);
+                    });
             } catch (err) {
-                logger.error(`CREATE RELOAD TASK IN QSEOW 1: ${err}`);
+                logger.error(`CREATE RELOAD TASK IN QSEOW 2: ${err}`);
                 reject(err);
             }
         });
@@ -702,8 +646,6 @@ class QlikSenseTasks {
 
                 // eslint-disable-next-line no-restricted-syntax
                 for (const task of this.taskList) {
-                    // logger.debug(`Saving task "${}" with ID=${} to QSEoW`);
-
                     // eslint-disable-next-line no-await-in-loop
                     await new Promise((resolve2, reject2) => {
                         // Build a body for the API call
