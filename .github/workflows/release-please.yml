@@ -60,6 +60,8 @@ jobs:
 
       - name: Install dependencies
         run: |
+          pwd
+          cd src
           npm install
 
       - name: Run Snyk to check for vulnerabilities
