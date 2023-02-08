@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.4.0...ctrl-q-v3.4.1) (2023-02-08)
+
+
+### Bug Fixes
+
+* Incorrect version number in binaries ([a363490](https://github.com/ptarmiganlabs/ctrl-q/commit/a363490d3f85fa61db1ccb6ad4525dd887a6ae95))
+
 ## [3.4.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.3.0...ctrl-q-v3.4.0) (2023-02-07)
 
 
