@@ -113,8 +113,9 @@ Note: When using log level silly all websocket communication to/from the Sense s
 
 # Security
 
-Ctrl-Q is open source and you have access to all source code.  
-It is **your own responsibility** to determine if Ctrl-Q is suitable for **your** use case.
+Ctrl-Q is open source and you have access to all source code.
+
+It is ***your responsibility*** to determine if Ctrl-Q is suitable for **your** use case.  
 The creators of Ctrl-Q, including Ptarmigan Labs, Göran Sander or any other contributor, can and must never be held liable to past or future security issues of Ctrl-Q.
 If you have security concerns or ideas around Ctrl-Q, please get involved in the project and contribute to making it better!
 
@@ -127,7 +128,7 @@ If you have security concerns or ideas around Ctrl-Q, please get involved in the
 ## Virus scanning
 
 Every time a Ctrl-Q release is done the created binaries are sent to [VirusTotal](https://www.virustotal.com/) for scanning.  
-VirusTotal acts as an aggregated virus scanner that sends the Ctrl-Q binaries to dozens of anti-virus scanners, including many of the major, established ones.  
+VirusTotal acts as an aggregated virus scanner that sends the Ctrl-Q binaries to dozens of anti-virus scanners, including many of the major/most widely used ones.  
 
 Links to the VirusTotal scan report are included in each release notes, making it easy to check the status of each binary:
 
