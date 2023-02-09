@@ -15,46 +15,8 @@
       // ------------------------------------
       // Set custom property of reload task
       // ------------------------------------
-      // "args": [
-      //   "task-custom-property-set",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--auth-cert-file",
-      //   "./cert/client.pem",
-      //   "--auth-cert-key-file",
-      //   "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
-      //   "--task-id",
-      //   "82bc3e66-c899-4e44-b52f-552145da5ee0",
-      //   "5748afa9-3abe-43ab-bb1f-127c48ced075",
-      //   "5520e710-91ad-41d2-aeb6-434cafbf366b",
-      //   // "--task-tag",
-      //   // "Test data",
-      //   // "api1",
-        
-      //   "--custom-property-name",
-      //   "Department",
-      //   // "Department2",
-      //   // "DemoApp",
-      //   "--custom-property-value",
-      //   "Finance",
-      //   "Sales",
-      //   "--overwrite",
-      //   "--update-mode",
-      //   // "append",
-      //   "replace",
-      // ]
-
-      // ------------------------------------
-      // Import from Excel file
-      // ------------------------------------
       "args": [
-        "task-import",
+        "task-custom-property-set",
         "--auth-type",
         "cert",
         "--host",
@@ -67,23 +29,61 @@
         "LAB",
         "--auth-user-id",
         "goran",
-
-        "--file-type",
-        "excel",
+        "--task-id",
+        "82bc3e66-c899-4e44-b52f-552145da5ee0",
+        "5748afa9-3abe-43ab-bb1f-127c48ced075",
+        "5520e710-91ad-41d2-aeb6-434cafbf366b",
+        // "--task-tag",
+        // "Test data",
+        // "api1",
         
-        "--file-name",
-        "tasks.xlsx",
-        "--sheet-name",
-        "Ctrl-Q task export",
-
-        // "--overwrite",
-        // "no",
-
-        "--limit-import-count",
-        "2",
-
-        // "--dry-run"
+        "--custom-property-name",
+        "Department",
+        // "Department2",
+        // "DemoApp",
+        "--custom-property-value",
+        "Finance",
+        "Sales",
+        "--overwrite",
+        "--update-mode",
+        // "append",
+        "replace",
       ]
+
+      // ------------------------------------
+      // Import from Excel file
+      // ------------------------------------
+      // "args": [
+      //   "task-import",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+
+      //   "--file-type",
+      //   "excel",
+        
+      //   "--file-name",
+      //   "tasks.xlsx",
+      //   "--sheet-name",
+      //   "Ctrl-Q task export",
+
+      //   // "--overwrite",
+      //   // "no",
+
+      //   "--limit-import-count",
+      //   "2",
+
+      //   // "--dry-run"
+      // ]
 
       // ------------------------------------
       // Import from CSV file
@@ -320,7 +320,7 @@
       //   // "5"
       // ]
 
-      // // Delete master measure
+      // Delete master measure
       // "args": [
       //   "master-item-measure-delete",
       //   "--auth-type",
@@ -495,7 +495,7 @@
       //   "New scrambled app"
       // ]
 
-      //   // Get script
+        // Get script
       // "args": [
       //   "getscript",
       //   "--host",

@@ -72,14 +72,15 @@ Enjoy!
       - [Save tree to disk file](#save-tree-to-disk-file)
     - [List tasks as table](#list-tasks-as-table)
       - [Show task table on screen](#show-task-table-on-screen)
-      - [Save task table to disk file](#save-task-table-to-disk-file)
-      - [Task table details](#task-table-details)
+      - [Save task to disk file in tabular format](#save-task-to-disk-file-in-tabular-format)
+      - [Save task to disk file as JSON](#save-task-to-disk-file-as-json)
   - [Custom properties](#custom-properties)
     - [Set custom property of reload task](#set-custom-property-of-reload-task)
   - [Import](#import)
     - [Import master items from Excel file](#import-master-items-from-excel-file)
     - [Import reload tasks from file](#import-reload-tasks-from-file)
       - [Source file columns](#source-file-columns)
+      - [Export tasks to CSV, then import tasks from same CSV](#export-tasks-to-csv-then-import-tasks-from-same-csv)
   - [Scramble](#scramble)
   - [Get script](#get-script)
 
@@ -572,35 +573,214 @@ The table view can be enhanced with colours (see [above](#colors--formatting-win
 There are quite a few customisation options available when creating a task tree.  
 Note that some options are used when creating task tables, these are not applicable for task trees. Ctrl-Q will show an error when invalid combinations of options are used.
 
-
-
 #### Show task table on screen
 
-TODO
-
-#### Save task table to disk file
-
-TODO
-
-#### Task table details
-
-The `--table-details` option makes it possible to switch on/off individual task details. This can be useful to make the task tree easier to read.  
-The allowed values for this option are `taskid`, `laststart`, `laststop`, `nextstart`, `appname`, `appstream`.
-
-Let's say we want a task table with the app name and next start time for the task:
+Show a list of tasks on screen, including main task fields as well as any tags defined for the tasks.  
 
 ```
-.\ctrl-q.exe task-get --auth-type cert --host 192.168.100.109 --auth-user-dir LAB --auth-user-id goran --output-format tree --output-dest screen --tree-icons --text-color yes --tree-details nextstart appname
+.\ctrl-q.exe task-get --auth-type cert --host 192.168.100.109 --auth-user-dir LAB --auth-user-id goran --output-format table --output-dest screen --table-details common tag
 ```
 
-TODO ![Qlik Sense task tree 5](docs/task-tree-color-details-2_65.png "Qlik Sense task tree with task details and colors")
+Note:  
+It's possible to get more information about tasks by adding additional values to the `--table-details` option.  
+Run `.\ctrl-q.exe task-get --help` to show a complete list of all options and their allowed values.
 
+If `--table-details` is not specified all available information will be showed about the tasks.  
+This will result in a *very* wide table!
+
+```
+2023-02-09T13:49:02.127Z info: -----------------------------------------------------------
+2023-02-09T13:49:02.127Z info: | Ctrl-Q
+2023-02-09T13:49:02.127Z info: |
+2023-02-09T13:49:02.127Z info: | Version      : 3.4.1
+2023-02-09T13:49:02.127Z info: | Log level    : info
+2023-02-09T13:49:02.127Z info: |
+2023-02-09T13:49:02.127Z info: | Command      : task-get
+2023-02-09T13:49:02.127Z info: |              : get info about one or more tasks
+2023-02-09T13:49:02.127Z info: |
+2023-02-09T13:49:02.127Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-02-09T13:49:02.127Z info: |
+2023-02-09T13:49:02.127Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-02-09T13:49:02.127Z info: ----------------------------------------------------------
+2023-02-09T13:49:02.127Z info:
+2023-02-09T13:49:03.251Z info: # rows in table: 50
+2023-02-09T13:49:03.251Z info: # tasks in table: 50
+2023-02-09T13:49:03.361Z info:
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ # tasks: 50, # rows in table: 50                                                                                                                                                                                                                                                                                                │
+├──────────────┬───────────┬──────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────┬──────────────┬──────────────┬──────────────┬──────────────────────────────────────┬────────────────┬────────────────────┬──────────────────────────────────────────────────────────┤
+│ Task counter │ Task type │ Task name                                                                │ Task id                              │ Task enabled │ Task timeout │ Task retries │ App id                               │ Partial reload │ Manually triggered │ Tags                                                     │
+├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
+│ 1            │ Reload    │ Manually triggered reload of Always failing reload (no delay)            │ 0d815a99-1ca3-4131-a398-6878bd735fd8 │ true         │ 1440         │ 0            │ deba4bcf-47e4-472e-97b2-4fe8d6498e11 │ false          │ true               │ api2 / 👍😎 updateSheetThumbnail / Tag with spaces in it │
+├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
+│ 2            │ Reload    │ Manually triggered reload of App1 🏆                                     │ b37f8034-faee-4e9b-bbca-5aba0cdf5df2 │ true         │ 1440         │ 0            │ 26634113-9163-44e4-a879-d87817d6e887 │ false          │ true               │ Butler 5.0 demo                                          │
+├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
+│ 3            │ Reload    │ Manually triggered reload of Butler 7 Slack debug                        │ 77f11a41-af3a-4bca-bf67-725be92a88f6 │ true         │ 1440         │ 0            │ 628ecfe8-b42a-484d-b06e-c6aae36c9923 │ false          │ true               │                                                          │
+├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
+│ 4            │ Reload    │ Manually triggered reload of ButlerTest 1                                │ 244ca6a8-8c20-488d-aed2-504048dd4516 │ true         │ 1440         │ 0            │ c81a6d9a-f07a-47c4-8dbf-b68653e05354 │ false          │ true               │                                                          │
+├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
+...
+...
+```
+
+#### Save task to disk file in tabular format
+
+Saving a task table to disk file (Excel and CSV file formats supported) is done via the `task-get` command, adding `--output-format table`, `--output-dest file`, `--output-file-format csv` and `--output-file-name <filename>` options.  
+Here the most common task fileds together with task tags are included in the table written to a CSV file:
+
+```
+.\ctrl-q.exe task-get --auth-type cert --host 192.168.100.109 --auth-user-dir LAB --auth-user-id goran --output-format table --output-dest file --table-details common tag --output-file-format csv --output-file-name tasktable.csv
+```
+
+```
+2023-02-09T13:58:06.481Z info: -----------------------------------------------------------
+2023-02-09T13:58:06.481Z info: | Ctrl-Q
+2023-02-09T13:58:06.481Z info: |
+2023-02-09T13:58:06.481Z info: | Version      : 3.4.1
+2023-02-09T13:58:06.481Z info: | Log level    : info
+2023-02-09T13:58:06.481Z info: |
+2023-02-09T13:58:06.481Z info: | Command      : task-get
+2023-02-09T13:58:06.481Z info: |              : get info about one or more tasks
+2023-02-09T13:58:06.481Z info: |
+2023-02-09T13:58:06.481Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-02-09T13:58:06.481Z info: |
+2023-02-09T13:58:06.481Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-02-09T13:58:06.481Z info: ----------------------------------------------------------
+2023-02-09T13:58:06.481Z info:
+2023-02-09T13:58:07.528Z info: ✅ Writing task table to disk file "tasktable.csv".
+```
+
+#### Save task to disk file as JSON
+
+If task defintions should be read by some other system the task definitions can be saved as JSON.  
+Here only the most basic task info included via the `--table-details` option.
+
+```
+.\ctrl-q.exe task-get --auth-type cert --host 192.168.100.109 --auth-user-dir LAB --auth-user-id goran --output-format table --output-dest file --table-details common --output-file-format json --output-file-name tasks.json
+```
+
+```
+2023-02-09T14:07:09.422Z info: -----------------------------------------------------------
+2023-02-09T14:07:09.422Z info: | Ctrl-Q
+2023-02-09T14:07:09.422Z info: |
+2023-02-09T14:07:09.422Z info: | Version      : 3.4.1
+2023-02-09T14:07:09.422Z info: | Log level    : info
+2023-02-09T14:07:09.422Z info: |
+2023-02-09T14:07:09.422Z info: | Command      : task-get
+2023-02-09T14:07:09.422Z info: |              : get info about one or more tasks
+2023-02-09T14:07:09.422Z info: |
+2023-02-09T14:07:09.422Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-02-09T14:07:09.438Z info: |
+2023-02-09T14:07:09.438Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-02-09T14:07:09.438Z info: ----------------------------------------------------------
+2023-02-09T14:07:09.438Z info:
+2023-02-09T14:07:10.329Z info: ✅ Writing task table to disk file "tasks.json".
+```
+
+The resulting JSON file looks like this:
+
+```json
+[
+    [
+        "Task counter",
+        "Task type",
+        "Task name",
+        "Task id",
+        "Task enabled",
+        "Task timeout",
+        "Task retries",
+        "App id",
+        "Partial reload",
+        "Manually triggered"
+    ],
+    [
+        1,
+        "Reload",
+        "Manually triggered reload of Always failing reload (no delay)",
+        "0d815a99-1ca3-4131-a398-6878bd735fd8",
+        true,
+        1440,
+        0,
+        "deba4bcf-47e4-472e-97b2-4fe8d6498e11",
+        false,
+        true
+    ],
+    [
+        2,
+        "Reload",
+        "Manually triggered reload of App1 🏆",
+        "b37f8034-faee-4e9b-bbca-5aba0cdf5df2",
+        true,
+        1440,
+        0,
+        "26634113-9163-44e4-a879-d87817d6e887",
+        false,
+        true
+    ],
+...
+...
+]
+```
 
 ## Custom properties
 
 ### Set custom property of reload task
 
-TODO
+Setting custom properties of reload tasks can be very time consuming if the number of tasks and/or custom propertis are high.  
+Ctrl-Q makes it possible to update many takes at once with a single command.
+
+Note:
+
+1. ONE custom property can be updated each time Ctrl-Q is executed.  
+   If several custom properties should be updated Ctrl-Q must be started several times.
+2. The custom property to be updated must exist before Ctrl-Q is executed. Create the custom property in the QMC first.
+3. The custom property values to be set must exist before Ctrl-Q is executed. Create the custom property in the QMC first.
+4. Task IDs and task tags can be useed to specifiy which tasks' custom properties should be updated.
+   1. The `--task-id` and `--task-tag` options are additive, i.e. the union of tasks matching the task IDs and tags will be updated.
+5. The `--update-mode` controls how custom properties are updated.
+   1. Setting the option to `append` will add the specified values to any other values already set for the custom property.
+   2. Setting the option to `replace` will delete any already set values for the custom property and then add the specified values.
+
+In the example below 3 tasks will be updated.  
+The values "Finance" and "Sales" will be added to the custom property "Department".  
+Existing custom property values are preserver (i.e. the new values are appended to any already existing values).
+
+```
+.\ctrl-q.exe task-custom-property-set --auth-type cert --host 192.168.100.109 --auth-cert-file ./cert/client.pem --auth-cert-key-file ./cert/client_key.pem --auth-user-dir LAB --auth-user-id goran --task-id 82bc3e66-c899-4e44-b52f-552145da5ee0 5748afa9-3abe-43ab-bb1f-127c48ced075 5520e710-91ad-41d2-aeb6-434cafbf366b --custom-property-name Department --custom-property-value Finance Sales --overwrite --update-mode append
+```
+
+```
+2023-02-09T14:28:02.711Z info: -----------------------------------------------------------
+2023-02-09T14:28:02.711Z info: | Ctrl-Q
+2023-02-09T14:28:02.711Z info: |
+2023-02-09T14:28:02.711Z info: | Version      : 3.4.1
+2023-02-09T14:28:02.711Z info: | Log level    : info
+2023-02-09T14:28:02.711Z info: |
+2023-02-09T14:28:02.727Z info: | Command      : task-custom-property-set
+2023-02-09T14:28:02.727Z info: |              : update a custom property of one or more tasks
+2023-02-09T14:28:02.727Z info: |
+2023-02-09T14:28:02.727Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-02-09T14:28:02.727Z info: |
+2023-02-09T14:28:02.727Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-02-09T14:28:02.727Z info: ----------------------------------------------------------
+2023-02-09T14:28:02.727Z info:
+2023-02-09T14:28:02.852Z info: Number of tasks that will be updated: 3
+2023-02-09T14:28:02.852Z info:
+2023-02-09T14:28:02.852Z info: -----------------------------------------------------------
+2023-02-09T14:28:02.852Z info: Processing task "Reload of Test data - Seattle library checkouts & collection inventory" with ID=5520e710-91ad-41d2-aeb6-434cafbf366b
+2023-02-09T14:28:02.852Z info: Starting updating custom property "Department" of task "Reload of Test data - Seattle library checkouts & collection inventory" with ID=5520e710-91ad-41d2-aeb6-434cafbf366b
+2023-02-09T14:28:03.039Z info:    ...Custom property "Department" on task "Reload of Test data - Seattle library checkouts & collection inventory" successfully updated.
+2023-02-09T14:28:03.039Z info:
+2023-02-09T14:28:03.039Z info: -----------------------------------------------------------
+2023-02-09T14:28:03.039Z info: Processing task "Reload of Test data - Seattle checkouts by title3" with ID=82bc3e66-c899-4e44-b52f-552145da5ee0
+2023-02-09T14:28:03.039Z info: Starting updating custom property "Department" of task "Reload of Test data - Seattle checkouts by title3" with ID=82bc3e66-c899-4e44-b52f-552145da5ee0
+2023-02-09T14:28:03.149Z info:    ...Custom property "Department" on task "Reload of Test data - Seattle checkouts by title3" successfully updated.
+2023-02-09T14:28:03.149Z info:
+2023-02-09T14:28:03.149Z info: -----------------------------------------------------------
+2023-02-09T14:28:03.149Z info: Processing task "Reload task of Lab 1_1" with ID=5748afa9-3abe-43ab-bb1f-127c48ced075
+2023-02-09T14:28:03.149Z info: Starting updating custom property "Department" of task "Reload task of Lab 1_1" with ID=5748afa9-3abe-43ab-bb1f-127c48ced075
+2023-02-09T14:28:03.259Z info:    ...Custom property "Department" on task "Reload task of Lab 1_1" successfully updated.
+```
 
 ## Import
 
@@ -696,7 +876,7 @@ Now let's run the command.
 ### Import reload tasks from file
 
 Task definitions can be read from CSV or Excel files.  
-The options are as follows: 
+The options are as follows:
 
 ```
 .\ctrl-q.exe task-import --help
@@ -731,7 +911,7 @@ Options:
 
 The options are *almost* the same irrespective of source file type:
 
-- The `--sheet-name` is only used/valid/relevant when `--file-type` is set to `excel`. Why? Because there are no sheets/tab in CSV files.
+- The `--sheet-name` is only used/valid/relevant when `--file-type` is set to `excel`. Why? Because there are no sheets/tabs in CSV files.
 
 #### Source file columns
 
@@ -740,9 +920,13 @@ The source file format is pretty relaxed, but a few rules apply:
 - The first column in the source file *must* be the task number. This value uniquely identifies each task that should be imported and should be incremented by one for each task.
 - All other columns, mandatory and optional, beyond the first one may be placed in any order.
   - For mandatory columns the names listed below *must* be used (but they can be placed in any order in the file, except the first column).
-  - All mandatory columns must be present in the source file, even if they are not used/empty. 
+  - All mandatory columns must be present in the source file, even if they are not used/empty.
     For example, a task may not have a scheduled trigger, but the schema trigger columns must still be present in the source file.
-- The file format used when *exporting* task tables to disk is a the same that is used for task *import*. 
+- "Counter" columns are used to keep together lines that are associated.
+  - All lines involved in defining a certain task have the same "Task counter" value.
+  - All lines involved in defining a certain schema or composite event have the same "Event counter" value.
+  - All lines involved in defining a certain composite event rule have the same "Rule counter" value.
+- The file format used when *exporting* task tables to disk is a superset of the format used for task *import*.
   It's thus a good idea to first do a task export, look at the file format and then adopt as needed before importing.
 
 The mandatory columns in the sample task definition file are:
@@ -776,17 +960,100 @@ The mandatory columns in the sample task definition file are:
 | Time contstraint minutes     | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
 | Time contstraint hours       | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
 | Time contstraint days        | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
-| Rule count                   | 4 | Counter identifying rules that define upstream task executions the current task is depending on. | Integer > 0 |
+| Rule counter                 | 4 | Counter identifying rules that define upstream task executions the current task is depending on. | Integer > 0 |
 | Rule state                   | 4 | Is the rule waiting for success or failure of upstream task? | TaskSuccessful / TaskFail |
 | Rule task name               |   | Name of the rule | Any string |
 | Rule task id                 | 4 | Reference to the upstream task. Two options exist: If the "Rule task id" has the same value as the "Task id" of another task in the source file, those two tasks will be linked via this rule. If the "Rule task id" refers to an existing task id in Sense, the new rule will link to that existing task. | Any string (if referring to a task within the same file), **or** a valid id of a task that already exists in Sense. |
 
 Meaning of "Comment" column above:
 
-1: These columns are required for all lines where top-level task information is defined.
-2: These columns are required for all lines where general event info (shared for schema and composite events) is defined. There may be zero or more such lines for a specific task. 
-3: These columns are required for all lines where schema events info are defined.
-4: These columns are required for all lines where composite events ("task chains") are defined.
+1: These columns are required for all lines where top-level task information is defined.  
+2: These columns are required for all lines where general event info (shared for schema and composite events) is defined. There may be zero or more such lines for a specific task.  
+3: These columns are required for all lines where schema events info are defined.  
+4: These columns are required for all lines where composite events ("task chains") are defined.  
+
+#### Export tasks to CSV, then import tasks from same CSV
+
+This example will
+
+1. export ca 50 tasks to a CSV file
+2. Import tasks from the just created CSV file
+
+The CSV file created during the task export will contain some columns that are not needed during task import (last execution timestamp for each task and similar).  
+That's fine though, during the task import Ctrl-Q will only look at the required columns and simply disregard all other columns.
+
+Export tasks to CSV file:
+
+```
+.\ctrl-q.exe task-get --auth-type cert --host 192.168.100.109 --auth-user-dir LAB --auth-user-id goran --output-format table --output-dest file --output-file-name tasks.csv --output-file-format csv
+```
+
+```
+2023-02-09T13:10:14.527Z info: -----------------------------------------------------------
+2023-02-09T13:10:14.527Z info: | Ctrl-Q
+2023-02-09T13:10:14.541Z info: |
+2023-02-09T13:10:14.541Z info: | Version      : 3.4.1
+2023-02-09T13:10:14.541Z info: | Log level    : info
+2023-02-09T13:10:14.541Z info: |
+2023-02-09T13:10:14.541Z info: | Command      : task-get
+2023-02-09T13:10:14.541Z info: |              : get info about one or more tasks
+2023-02-09T13:10:14.541Z info: |
+2023-02-09T13:10:14.541Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-02-09T13:10:14.541Z info: |
+2023-02-09T13:10:14.541Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-02-09T13:10:14.541Z info: ----------------------------------------------------------
+2023-02-09T13:10:14.541Z info:
+2023-02-09T13:10:15.729Z info: ✅ Writing task table to disk file "tasks.csv".
+```
+
+Now let's import tasks from the `tasks.csv` file:
+
+```
+.\ctrl-q.exe task-import --auth-type cert --host 192.168.100.109 --auth-cert-file ./cert/client.pem --auth-cert-key-file ./cert/client_key.pem --auth-user-dir LAB --auth-user-id goran --file-type csv --file-name tasks.csv
+```
+
+It's worth noting that all the new tasks will be linked into all task chains that were defined in the tasks that were exported to the CSV file.  
+This happens because the composite event rules that were exported from CSV (i.e. "start the task when task A and task B have successfully finished reloaded") contain task IDs that point to already existing reload tasks in Sense.  
+When that's the case the newly created tasks (read from the CSV file) will link to those existing tasks.
+
+This way a new task can still be configured to start after some already existing task finish reloading.
+
+```
+2023-02-09T13:15:45.553Z info: -----------------------------------------------------------
+2023-02-09T13:15:45.553Z info: | Ctrl-Q
+2023-02-09T13:15:45.553Z info: |
+2023-02-09T13:15:45.553Z info: | Version      : 3.4.1
+2023-02-09T13:15:45.553Z info: | Log level    : info
+2023-02-09T13:15:45.553Z info: |
+2023-02-09T13:15:45.553Z info: | Command      : task-import
+2023-02-09T13:15:45.553Z info: |              : create tasks based on definitions in a file on disk
+2023-02-09T13:15:45.553Z info: |
+2023-02-09T13:15:45.553Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-02-09T13:15:45.553Z info: |
+2023-02-09T13:15:45.553Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-02-09T13:15:45.553Z info: ----------------------------------------------------------
+2023-02-09T13:15:45.553Z info:
+2023-02-09T13:15:45.568Z info: Import tasks from definitions in file "tasks.csv"
+2023-02-09T13:15:46.335Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of HR metrics 2015-2020", new task id: 264a2a63-cb56-49ce-967b-d7d1923f9e6b. Result: 201/Created.
+2023-02-09T13:15:46.585Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of Meetup.com", new task id: 396636e2-6620-4c7c-9ee8-7276572c22f0. Result: 201/Created.
+2023-02-09T13:15:46.647Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of Minecraft Metrics", new task id: 4a703273-5cab-41b9-90e6-75d13448630e. Result: 201/Created.
+2023-02-09T13:15:46.694Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of Performance review", new task id: 0a481fba-4f5c-4ec2-a0e9-eee8f8fb4ab3. Result: 201/Created.
+2023-02-09T13:15:47.491Z info: CREATE RELOAD TASK IN QSEOW: "Reload License Monitor", new task id: 84a65302-63bd-4325-a4f0-48a0e6a625bf. Result: 201/Created.
+2023-02-09T13:15:47.678Z info: CREATE RELOAD TASK IN QSEOW: "Reload Operations Monitor", new task id: 547e03c0-23af-4e1a-b637-188a44d32ff0. Result: 201/Created.
+2023-02-09T13:15:47.761Z info: CREATE RELOAD TASK IN QSEOW: "Reload of 2018 sales targets 💵", new task id: 3a1a1304-d346-494e-b12b-e6fab491cf13. Result: 201/Created.
+2023-02-09T13:15:47.825Z info: CREATE RELOAD TASK IN QSEOW: "Reload of App 1 (10 sek)", new task id: f35ab5b4-3f4c-4bc7-a239-1a1883d97af3. Result: 201/Created.
+2023-02-09T13:15:48.028Z info: CREATE RELOAD TASK IN QSEOW: "Reload of Test data - Seattle checkouts by title3", new task id: 340ebb88-d544-4d28-b78c-4e25c888b9e7. Result: 201/Created.
+2023-02-09T13:15:48.216Z info: CREATE RELOAD TASK IN QSEOW: "Reload of Test data - Seattle library checkouts & collection inventory", new task id: 9b3fe761-69ed-43ca-938a-7babf923a844. Result: 201/Created.
+...
+...
+2023-02-09T13:15:50.763Z info: -------------------------------------------------------------------
+2023-02-09T13:15:50.763Z info: Creating composite events for the just created tasks...
+2023-02-09T13:15:50.825Z info: CREATE COMPOSITE EVENT IN QSEOW: Event name="When HR metrics done" for task ID 0a481fba-4f5c-4ec2-a0e9-eee8f8fb4ab3. Result: 201/Created.
+2023-02-09T13:15:50.888Z info: CREATE COMPOSITE EVENT IN QSEOW: Event name="When Operations monitor has reloaded" for task ID 84a65302-63bd-4325-a4f0-48a0e6a625bf. Result: 201/Created.
+2023-02-09T13:15:50.950Z info: CREATE COMPOSITE EVENT IN QSEOW: Event name="When NYT comments done" for task ID 340ebb88-d544-4d28-b78c-4e25c888b9e7. Result: 201/Created.
+...
+...
+```
 
 ## Scramble
 
