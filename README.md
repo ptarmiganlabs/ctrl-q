@@ -32,10 +32,21 @@ For example, [Butler SOS](https://github.com/ptarmiganlabs/butler-sos) focus on 
 
 Ctrl-Q instead focus on specific, high-value uses cases that tend to be very time consuming and/or error prone to do manually.  
 
-Automated creation of master items or reload tasks are two examples.  
-Manually creating hundreds of master items or reload tasks can take hours or days.  
-Having the definitions in an Excel or CSV file and then using Ctrl-Q to import them into Sense shortens that time to minutes - at least once that Excel file has been created.  
-A bonus is that the process can be included in CI/CD pipelines, with increased reusability and app quality as a result.
+The current list of features are:
+
+- Import master dimensions and master measures from definitions in Excel file.
+- Show complete definition for all master measures in a Sense app.
+- Delete master measures from a Sense app.
+- Show complete definition for all master dimensions in a Sense app.
+- Delete master dimensions from a Sense app.
+- Show complete definition of all bookmarks in a Sense app.
+- Scramble fields in Sense apps.
+- Get load script from Sense app.
+- Get complete definition of all reload tasks as tree view, tabular view or JSON. Show on screen or save to disk file.
+- Import reload tasks from disk file. Building task chains with new and/or existing tasks supported. All options available in the QMC (and then some!) can be defined.
+- Update custom properties for multiple tasks.
+
+As Ctrl-Q is completely command line driven it is very suitable to be used in CI/CD pipelines, with time savings, increased reusability and higher app quality as a result.
 
 Maybe Qlik's CLI tool will evolve to include more of these use cases and engine-focused features too - great if so.  
 Until then Ctrl-Q can hopefully make life a bit easier for Sense developers and admins out there.
@@ -726,7 +737,7 @@ The resulting JSON file looks like this:
 
 ### Set custom property of reload task
 
-Setting custom properties of reload tasks can be very time consuming if the number of tasks and/or custom propertis are high.  
+Setting custom properties of reload tasks can be very time consuming if there are lots of tasks and/or custom propertis.  
 Ctrl-Q makes it possible to update many takes at once with a single command.
 
 Note:
@@ -737,7 +748,7 @@ Note:
 3. The custom property values to be set must exist before Ctrl-Q is executed. Create the custom property in the QMC first.
 4. Task IDs and task tags can be useed to specifiy which tasks' custom properties should be updated.
    1. The `--task-id` and `--task-tag` options are additive, i.e. the union of tasks matching the task IDs and tags will be updated.
-5. The `--update-mode` controls how custom properties are updated.
+5. The `--update-mode` option controls how custom properties are updated.
    1. Setting the option to `append` will add the specified values to any other values already set for the custom property.
    2. Setting the option to `replace` will delete any already set values for the custom property and then add the specified values.
 
