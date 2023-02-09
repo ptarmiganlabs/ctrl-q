@@ -92,7 +92,7 @@ Enjoy!
     - [Import reload tasks from file](#import-reload-tasks-from-file)
       - [Source file columns](#source-file-columns)
       - [Export tasks to CSV, then import tasks from same CSV](#export-tasks-to-csv-then-import-tasks-from-same-csv)
-  - [Scramble](#scramble)
+  - [Scramble fields in Sense app](#scramble-fields-in-sense-app)
   - [Get script](#get-script)
 
 # Getting started
@@ -1066,7 +1066,7 @@ This way a new task can still be configured to start after some already existing
 ...
 ```
 
-## Scramble
+## Scramble fields in Sense app
 
 Scramble one or more fields in an app using Qlik Sense's internal scrambling feature.  
 
