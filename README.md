@@ -739,63 +739,54 @@ The source file format is pretty relaxed, but a few rules apply:
 
 - The first column in the source file *must* be the task number. This value uniquely identifies each task that should be imported and should be incremented by one for each task.
 - All other columns, mandatory and optional, beyond the first one may be placed in any order.
-- Some columns are mandatory and **must** be present in the source file. 
   - For mandatory columns the names listed below *must* be used (but they can be placed in any order in the file, except the first column).
   - All mandatory columns must be present in the source file, even if they are not used/empty. 
     For example, a task may not have a scheduled trigger, but the schema trigger columns must still be present in the source file.
-- The file format used when exporting task tables to disk is a the same that is used for task import. It's thus a good idea to first do a task export, look at the file format and then adopt as needed before importing.
-- Columns that are optional when importing tasks may still be present in source files that originate from a Ctrl-Q task export command.   
+- The file format used when *exporting* task tables to disk is a the same that is used for task *import*. 
+  It's thus a good idea to first do a task export, look at the file format and then adopt as needed before importing.
 
-The columns in the sample task definition file are:
+The mandatory columns in the sample task definition file are:
 
-| Column name                  | Mandatory | Description | Valid values |
+| Column name                  | Comment | Description | Valid values |
 |------------------------------|-----------|-------------|------|
-| Task counter                 | 1 | Counter starting at 1. Increments one step for each task. All rows associated with a specific task should have the same value in this column. | Integers > 0 |
+| Task counter                 | 1 | Counter starting at 1. Increments one step for each task. All rows associated with a specific task should have the same value in this column. | Integer > 0 |
 | Task type                    | 1 | Type of task. In the future Ctrl-Q may support more task types. | Reload |
 | Task name                    | 1 | Name of the task that will be created. | Any string. Emojis allowed. |
-| Task id                      | 1 |        |      |
-| Task enabled                 | 1 |        |      |
-| Task timeout                 | 1 |        |      |
-| Task retries                 | 1 |        |      |
-| App id                       | 1 |        |      |
-| Partial reload               | 1 |        |      |
-| Manually triggered           | 1 |        |      |
-| Task status                  |   |        |      |
-| Task started                 |   |        |      |
-| Task ended                   |   |        |      |
-| Task duration                |   |        |      |
-| Task executedon node         |   |        |      |
-| Tags                         | 1 |        |      |
-| Custom properties            | 1 |        |      |
-| Event counter                | 2 |        |      |
-| Event type                   | 2 |        |      |
-| Event name                   | 2 |        |      |
-| Event enabled                | 2 |        |      |
-| Event created date           |   |        |      |
-| Event modified date          |   |        |      |
-| Event modified by            |   |        |      |
-| Schema increment option      | 3 |        |      |
-| Schema increment description | 3 |        |      |
-| Daylight savings time        | 3 |        |      |
-| Schema start                 | 3 |        |      |
-| Schema expiration            | 3 |        |      |
-| Schema filter description    | 3 |        |      |
-| Schema time zone             | 3 |        |      |
-| Time contstraint seconds     | 4 |        |      |
-| Time contstraint minutes     | 4 |        |      |
-| Time contstraint hours       | 4 |        |      |
-| Time contstraint days        | 4 |        |      |
-| Rule count                   | 4 |        |      |
-| Rule state                   | 4 |        |      |
-| Rule task name               |   |        |      |
-| Rule task id                 | 4 |        |      |
+| Task id                      | 1 | When creating new tasks a new task ID will always be created. This column is instead used to create task chains: it links a composite trigger in a downstream task with an upstream task via this column's value. | Any string, but to make it easier to verify task chains it's recommended to use integers in this column. |
+| Task enabled                 | 1 | Should the created task be enabled or not. | 1 / 0 / blank. 1=enabled, 0 or blank=disabled |
+| Task timeout                 | 1 | Timeout for the created task, i.e. number of seconds the task is allowed to run before it's aborted. | Seconds |
+| Task retries                 | 1 | Number of retries to make if the task execution fails. | Integer >= 0 |
+| App id                       | 1 | The Sense app the task associated with. | An app id for an existing Sense app. |
+| Partial reload               | 1 | Should the task do a partial or full reload of the app? | 1 / 0 / blank. 1=true, 0 or blank=false |
+| Manually triggered           | 1 | Is the task manually triggered or not? | 1 / 0 / blank. 1=true, 0 or blank=false |
+| Tags                         | 1 | Tags to set on the created task. | Format is "tag1 / tag2 / tag with spaces in it", i.e. separate tag names by "space-forward slash-space". |
+| Custom properties            | 1 | Custom properties to set on the created task. | Format is CustPropName1=Value1 / CustPropName2=Value2 |
+| Event counter                | 2 | Counter identifying events associated with the task defined in the previous line. One task can have zero or more events associated with it. | Integer > 0     |
+| Event type                   | 2 | Which event type does this line specify? Schema events deal with time-based execution of the task. Composite events are used to build task chains. | Schema / Composite |
+| Event name                   | 2 | Name of the event. | Any string |
+| Event enabled                | 2 | Is event enabled. | 1 / 0 / blank. 1=enabled, 0 or blank=disabled |
+| Schema increment option      | 3 | Type of schema event. For reference only, not used when Sense evaluates schema events (or??). | once / hourly / daily / weekly / monthly / custom |
+| Schema increment description | 3 | Structured description of the schema increment option. For reference only, not used when Sense evaluates schema events (or??). | Integers separated by space, e.g. "0 0 1 0" for weekly |
+| Daylight savings time        | 3 | Control how the schema event should deal with dayligt savings time. | ObserveDaylightSavingTime / PermanentStandardTime / PermanentDaylightSavingTime |
+| Schema start                 | 3 | First valid time for the schema event. The event will not fire before this moment. | A valid timestamp string, e.g. 2022-10-19T10:19:30.000 |
+| Schema expiration            | 3 | Last valid time for the schema event. The event will not fire after this moment. | A valid timestamp string or 9999-01-01T00:00:00.000 to signify "never" |
+| Schema filter description    | 3 | Used to control when a schema event is allower to trigger. More info [here](https://community.qlik.com/t5/Integration-Extension-APIs/Interval-and-time-explanation-for-creating-a-new-SchemaEvent/m-p/1784892/highlight/true#M13886). | Default: "* * - * * * *" |
+| Schema time zone             | 3 | Time zone the schema event is evaluated in | E.g. "Europe/Paris" |
+| Time contstraint seconds     | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
+| Time contstraint minutes     | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
+| Time contstraint hours       | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
+| Time contstraint days        | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
+| Rule count                   | 4 | Counter identifying rules that define upstream task executions the current task is depending on. | Integer > 0 |
+| Rule state                   | 4 | Is the rule waiting for success or failure of upstream task? | TaskSuccessful / TaskFail |
+| Rule task name               |   | Name of the rule | Any string |
+| Rule task id                 | 4 | Reference to the upstream task. Two options exist: If the "Rule task id" has the same value as the "Task id" of another task in the source file, those two tasks will be linked via this rule. If the "Rule task id" refers to an existing task id in Sense, the new rule will link to that existing task. | Any string (if referring to a task within the same file), **or** a valid id of a task that already exists in Sense. |
 
-Meaning of "mandatory" column above:
+Meaning of "Comment" column above:
 
-1: Mandatory for all 
-2: 
-3: 
-4: 
+1: These columns are required for all lines where top-level task information is defined.
+2: These columns are required for all lines where general event info (shared for schema and composite events) is defined. There may be zero or more such lines for a specific task. 
+3: These columns are required for all lines where schema events info are defined.
+4: These columns are required for all lines where composite events ("task chains") are defined.
 
 ## Scramble
 
