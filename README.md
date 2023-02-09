@@ -56,6 +56,32 @@ Enjoy!
   - [Windows 10 using Windows Terminal](#windows-10-using-windows-terminal)
   - [macOS and Linux](#macos-and-linux)
 - [Commands](#commands)
+  - [Bookmarks](#bookmarks)
+    - [List bookmarks](#list-bookmarks)
+  - [Measures](#measures)
+    - [List measures](#list-measures)
+    - [Delete measures](#delete-measures)
+  - [Dimensions](#dimensions)
+    - [List dimensions](#list-dimensions)
+    - [Delete dimensions](#delete-dimensions)
+  - [Tasks](#tasks)
+    - [List tasks as tree](#list-tasks-as-tree)
+      - [Tree icons](#tree-icons)
+      - [Text color](#text-color)
+      - [Task tree details](#task-tree-details)
+      - [Save tree to disk file](#save-tree-to-disk-file)
+    - [List tasks as table](#list-tasks-as-table)
+      - [Show task table on screen](#show-task-table-on-screen)
+      - [Save task table to disk file](#save-task-table-to-disk-file)
+      - [Task table details](#task-table-details)
+  - [Custom properties](#custom-properties)
+    - [Set custom property of reload task](#set-custom-property-of-reload-task)
+  - [Import](#import)
+    - [Import master items from Excel file](#import-master-items-from-excel-file)
+    - [Import reload tasks from file](#import-reload-tasks-from-file)
+      - [Source file columns](#source-file-columns)
+  - [Scramble](#scramble)
+  - [Get script](#get-script)
 
 # Getting started
 
@@ -219,8 +245,6 @@ Commands:
   task-import [options]                 create tasks based on definitions in a file on disk
   help [command]                        display help for command
 PS C:\tools\ctrl-q>
-```
-
 ```
 
 ## Bookmarks
