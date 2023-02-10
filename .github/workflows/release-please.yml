@@ -217,8 +217,8 @@ jobs:
 
       - name: Debug
         run: |
-          dir
-          dir ./release-macos
+          ls -la 
+          ls -la ./release-macos
 
       - name: Upload to existing release
         uses: ncipollo/release-action@v1
@@ -277,8 +277,8 @@ jobs:
 
       - name: Debug
         run: |
-          dir
-          dir ./release-linux
+          ls -la
+          ls -la ./release-linux
 
       - name: Upload to existing release
         uses: ncipollo/release-action@v1
