@@ -307,7 +307,7 @@ class QlikSenseTasks {
                                     item[taskFileColumnHeaders.ruleCounter.pos] > 0
                             );
 
-                            // Create an object using same format that Sense uses for composite events
+                            // Create an object using same format that the Sense API uses for composite events
                             const compositeEvent = {
                                 timeConstraint: {
                                     days: compositeEventRow[taskFileColumnHeaders.timeConstraintDays.pos],
@@ -467,10 +467,7 @@ class QlikSenseTasks {
                     // The strategey is to first create all tasks, then add composite events.
                     // Only then can we be sure all composite events refer to existing tasks.
 
-                    // Store this task object to the task list
-                    // Parameters are
-                    // source, task data, anonymize task names
-
+                    // Create reload task in QSEoW
                     if (this.options.dryRun === false || this.options.dryRun === undefined) {
                         // eslint-disable-next-line no-await-in-loop
                         const newTaskId = await this.createReloadTaskInQseow(currentTask);
@@ -493,7 +490,7 @@ class QlikSenseTasks {
                     }
                 }
 
-                // Get task IDs for upstream tasks that composite events are connected to
+                // Get task IDs for upstream tasks that composite task events are connected to
                 this.qlikSenseCompositeEvents.compositeEventList.map((item) => {
                     const a = item;
                     a.compositeEvent.reloadTask.id = this.taskIdMap.get(item.compositeEvent.reloadTask.id);
@@ -557,6 +554,8 @@ class QlikSenseTasks {
                     path: '/qrs/compositeevent',
                     body,
                 });
+
+                logger.debug(`/qrs/compositevent body: ${JSON.stringify(body, null, 2)}`);
 
                 axios
                     .request(axiosConfig)
