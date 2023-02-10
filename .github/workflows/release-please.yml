@@ -79,7 +79,7 @@ jobs:
           sarif_file: ./snyk.sarif
 
       - name: Install tool for creating stand-alone executables
-        if: ${{ steps.release.outputs.src--release_created }}
+        if: ${{ steps.release.outputs.['src--release_created'] }}
         run: npm install -g pkg
 
       - name: Package stand-alone binaries
@@ -217,8 +217,8 @@ jobs:
 
       - name: Debug
         run: |
-          dir
-          dir ./release-macos
+          ls -la 
+          ls -la ./release-macos
 
       - name: Upload to existing release
         uses: ncipollo/release-action@v1
@@ -277,8 +277,8 @@ jobs:
 
       - name: Debug
         run: |
-          dir
-          dir ./release-linux
+          ls -la
+          ls -la ./release-linux
 
       - name: Upload to existing release
         uses: ncipollo/release-action@v1
