@@ -15,40 +15,40 @@
       // ------------------------------------
       // Set custom property of reload task
       // ------------------------------------
-      "args": [
-        "task-custom-property-set",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        "--auth-cert-file",
-        "./cert/client.pem",
-        "--auth-cert-key-file",
-        "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-        "--task-id",
-        "82bc3e66-c899-4e44-b52f-552145da5ee0",
-        "5748afa9-3abe-43ab-bb1f-127c48ced075",
-        "5520e710-91ad-41d2-aeb6-434cafbf366b",
-        // "--task-tag",
-        // "Test data",
-        // "api1",
+      // "args": [
+      //   "task-custom-property-set",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+      //   "--task-id",
+      //   "82bc3e66-c899-4e44-b52f-552145da5ee0",
+      //   "5748afa9-3abe-43ab-bb1f-127c48ced075",
+      //   "5520e710-91ad-41d2-aeb6-434cafbf366b",
+      //   // "--task-tag",
+      //   // "Test data",
+      //   // "api1",
         
-        "--custom-property-name",
-        "Department",
-        // "Department2",
-        // "DemoApp",
-        "--custom-property-value",
-        "Finance",
-        "Sales",
-        "--overwrite",
-        "--update-mode",
-        // "append",
-        "replace",
-      ]
+      //   "--custom-property-name",
+      //   "Department",
+      //   // "Department2",
+      //   // "DemoApp",
+      //   "--custom-property-value",
+      //   "Finance",
+      //   "Sales",
+      //   "--overwrite",
+      //   "--update-mode",
+      //   // "append",
+      //   "replace",
+      // ]
 
       // ------------------------------------
       // Import from Excel file
@@ -88,36 +88,36 @@
       // ------------------------------------
       // Import from CSV file
       // ------------------------------------
-      // "args": [
-      //   "task-import",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--auth-cert-file",
-      //   "./cert/client.pem",
-      //   "--auth-cert-key-file",
-      //   "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
+      "args": [
+        "task-import",
+        "--auth-type",
+        "cert",
+        "--host",
+        "192.168.100.109",
+        "--auth-cert-file",
+        "./cert/client.pem",
+        "--auth-cert-key-file",
+        "./cert/client_key.pem",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
 
-      //   "--file-type",
-      //   "csv",
+        "--file-type",
+        "csv",
         
-      //   "--file-name",
-      //   // "tasks2source.csv",
-      //   "tasks.csv",
+        "--file-name",
+        // "tasks2source.csv",
+        "task-chain.csv",
 
-      //   // "--overwrite",
-      //   // "no",
+        // "--overwrite",
+        // "no",
 
-      //   "--limit-import-count",
-      //   "2",
+        // "--limit-import-count",
+        // "2",
 
-      //   // "--dry-run"
-      // ]
+        // "--dry-run"
+      ]
 
 
       // ------------------------------------

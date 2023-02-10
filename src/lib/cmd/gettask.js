@@ -582,7 +582,7 @@ const getTask = async (options) => {
             }
 
             if (columnBlockShow.comprule) {
-                headerRow = headerRow.concat(['Rule count', 'Rule state', 'Rule task name', 'Rule task id']);
+                headerRow = headerRow.concat(['Rule counter', 'Rule state', 'Rule task name', 'Rule task id']);
             }
 
             consoleTableConfig.header = {
