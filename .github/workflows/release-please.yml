@@ -10,7 +10,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      releases_created: ${{ steps.release.outputs.src--releases_created }}
+      release_created: ${{ steps.release.outputs.src--release_created }}
       release_tag_name: ${{ steps.release.outputs['src--tag_name'] }}
       release_upload_url: ${{ steps.release.outputs['src--upload_url'] }}
     env:
@@ -79,11 +79,11 @@ jobs:
           sarif_file: ./snyk.sarif
 
       - name: Install tool for creating stand-alone executables
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         run: npm install -g pkg
 
       - name: Package stand-alone binaries
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
           # mkdir release/alpine
         run: |
           pwd
@@ -97,7 +97,7 @@ jobs:
           pkg src/ctrl-q.js --config src/package.json --output release/linux/${DIST_FILE_NAME} --targets node16-linux-x64 --compress GZip
 
       - name: Debug
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         run: |
           ls -la
           ls -la release
@@ -107,7 +107,7 @@ jobs:
           mkdir ghaction-virustotal
 
       - name: VirusTotal Scan
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         uses: crazy-max/ghaction-virustotal@v3
         with:
           vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
@@ -118,26 +118,26 @@ jobs:
             ./release/linux/*
 
       - name: Debug
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         run: |
           ls -la ghaction-virustotal
 
       - name: Upload macOS build artifacts
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         uses: actions/upload-artifact@v3
         with:
           name: binaries-macos
           path: release/macos/*
 
       - name: Upload Linux build artifacts
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         uses: actions/upload-artifact@v3
         with:
           name: binaries-linux
           path: release/linux/*
 
       - name: Upload Windows build artifacts
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.release_created }}
         uses: actions/upload-artifact@v3
         with:
           name: binaries-win
@@ -152,7 +152,7 @@ jobs:
       - sp53
     # timeout-minutes: 15
 
-    if: ${{ needs.release-please.outputs.releases_created }} 
+    if: ${{ needs.release-please.outputs.release_created }} 
     env:
       DIST_FILE_NAME: ctrl-q
     steps:
@@ -242,7 +242,7 @@ jobs:
     runs-on: ubuntu-latest
     # timeout-minutes: 15
 
-    if: ${{ needs.release-please.outputs.releases_created }} 
+    if: ${{ needs.release-please.outputs.release_created }} 
     env:
       DIST_FILE_NAME: ctrl-q
     steps:
@@ -305,7 +305,7 @@ jobs:
       - windows
       - sp53
     # timeout-minutes: 15
-    if: ${{ needs.release-please.outputs.releases_created }} 
+    if: ${{ needs.release-please.outputs.release_created }} 
     env:
       DIST_FILE_NAME: ctrl-q
     steps:
