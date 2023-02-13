@@ -1007,10 +1007,10 @@ class QlikSenseTasks {
                         for (const schemaEvent of this.qlikSenseSchemaEvents.schemaEventList) {
                             // Only include task schedules
                             if (schemaEvent.schemaEvent.reloadTask !== null) {
-                                logger.debug(
-                                    `Processing schema event "${schemaEvent.schemaEvent.name} for reload task "${schemaEvent.schemaEvent.reloadTask.name}" (${schemaEvent.schemaEvent.reloadTask.id})`
-                                );
                                 logger.silly(`Schema event contents: ${JSON.stringify(schemaEvent, null, 2)}`);
+                                logger.debug(
+                                    `Processing schema event "${schemaEvent?.schemaEvent?.name}" for reload task "${schemaEvent?.schemaEvent?.reloadTask?.name}" (${schemaEvent?.schemaEvent?.reloadTask?.id})`
+                                );
 
                                 // Add schema trigger nodes. These represent the implicit starting nodes that a schema event really are
                                 const nodeId = `node-${uuidv4()}`;
@@ -1038,10 +1038,10 @@ class QlikSenseTasks {
                         // Add composite events
                         // eslint-disable-next-line no-restricted-syntax
                         for (const compositeEvent of this.qlikSenseCompositeEvents.compositeEventList) {
-                            logger.debug(
-                                `Processing composite event "${compositeEvent.compositeEvent.name} for reload task "${compositeEvent.compositeEvent.reloadTask.name}" (${compositeEvent.compositeEvent.reloadTask.id})`
-                            );
                             logger.silly(`Composite event contents: ${JSON.stringify(compositeEvent, null, 2)}`);
+                            logger.debug(
+                                `Processing composite event "${compositeEvent?.compositeEvent?.name}" for reload task "${compositeEvent?.compositeEvent?.reloadTask?.name}" (${compositeEvent?.compositeEvent?.reloadTask?.id})`
+                            );
 
                             // Only include events relating to reload tasks
                             if (compositeEvent.compositeEvent.reloadTask != null) {
