@@ -1039,9 +1039,19 @@ class QlikSenseTasks {
                         // eslint-disable-next-line no-restricted-syntax
                         for (const compositeEvent of this.qlikSenseCompositeEvents.compositeEventList) {
                             logger.silly(`Composite event contents: ${JSON.stringify(compositeEvent, null, 2)}`);
-                            logger.debug(
-                                `Processing composite event "${compositeEvent?.compositeEvent?.name}" for reload task "${compositeEvent?.compositeEvent?.reloadTask?.name}" (${compositeEvent?.compositeEvent?.reloadTask?.id})`
-                            );
+                            if (compositeEvent?.compositeEvent?.reloadTask) {
+                                logger.debug(
+                                    `Processing composite event "${compositeEvent?.compositeEvent?.name}" for reload task "${compositeEvent?.compositeEvent?.reloadTask?.name}" (${compositeEvent?.compositeEvent?.reloadTask?.id})`
+                                );
+                            } else if (compositeEvent?.compositeEvent?.externalProgramTask) {
+                                logger.debug(
+                                    `Processing composite event "${compositeEvent?.compositeEvent?.name}" for external program task "${compositeEvent?.compositeEvent?.externalProgramTask?.name}" (${compositeEvent?.compositeEvent?.externalProgramTask?.id})`
+                                );
+                            } else if (compositeEvent?.compositeEvent?.userSyncTask) {
+                                logger.debug(
+                                    `Processing composite event "${compositeEvent?.compositeEvent?.name}" for user sync task "${compositeEvent?.compositeEvent?.userSyncTask?.name}" (${compositeEvent?.compositeEvent?.userSyncTask?.id})`
+                                );
+                            }
 
                             // Only include events relating to reload tasks
                             if (compositeEvent.compositeEvent.reloadTask != null) {
