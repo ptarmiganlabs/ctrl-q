@@ -10,6 +10,19 @@
 
 ### Miscellaneous
 
+* **main:** release ctrl-q 3.4.3 ([4588130](https://github.com/ptarmiganlabs/ctrl-q/commit/458813043f92987ee9531e0d0479b52ac0b1c5af))
+* **main:** release ctrl-q 3.4.3 ([5c25145](https://github.com/ptarmiganlabs/ctrl-q/commit/5c251457c088613d7eab5610982c956cc6322abf))
+
+## [3.4.3](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.4.3...ctrl-q-v3.4.3) (2023-02-13)
+
+
+### Bug Fixes
+
+* Improved handling of invalid schema and composite events returned from Sense APIs ([bebedda](https://github.com/ptarmiganlabs/ctrl-q/commit/bebedda46a7b4a85c62d12144591a5732596c91b))
+
+
+### Miscellaneous
+
 * **main:** release ctrl-q 3.4.3 ([5c25145](https://github.com/ptarmiganlabs/ctrl-q/commit/5c251457c088613d7eab5610982c956cc6322abf))
 
 ## [3.4.3](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.4.2...ctrl-q-v3.4.3) (2023-02-13)
