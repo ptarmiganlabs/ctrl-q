@@ -1008,7 +1008,7 @@ class QlikSenseTasks {
                             // Only include task schedules
                             if (schemaEvent.schemaEvent.reloadTask !== null) {
                                 logger.debug(
-                                    `Processing schema event "${schemaEvent.schemaEvent.name} for reload task "${compositeEvent.compositeEvent.reloadTask.name}" (${compositeEvent.compositeEvent.reloadTask.id})`
+                                    `Processing schema event "${schemaEvent.schemaEvent.name} for reload task "${schemaEvent.schemaEvent.reloadTask.name}" (${schemaEvent.schemaEvent.reloadTask.id})`
                                 );
                                 logger.silly(`Schema event contents: ${JSON.stringify(schemaEvent, null, 2)}`);
 
