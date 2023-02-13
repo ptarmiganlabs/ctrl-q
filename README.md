@@ -212,7 +212,7 @@ PS C:\tools\ctrl-q> .\ctrl-q.exe task-get --auth-type cert --host 192.168.100.10
 
 ![Qlik Sense task tree 3](docs/task-tree-color-1.png "Qlik Sense task tree with colors but no task details")
 
-Adding `--task-details` gives us a tree that's a lot easier to read compared to previous, uncolored version.
+Adding `--tree-details` gives us a tree that's a lot easier to read compared to previous, uncolored version.
 
 ```
 PS C:\tools\ctrl-q> .\ctrl-q.exe task-get --auth-type cert --host 192.168.100.109 --auth-user-dir LAB --auth-user-id goran --output-format tree --output-dest screen --tree-icons --text-color yes --tree-details
