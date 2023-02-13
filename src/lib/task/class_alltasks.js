@@ -1007,6 +1007,11 @@ class QlikSenseTasks {
                         for (const schemaEvent of this.qlikSenseSchemaEvents.schemaEventList) {
                             // Only include task schedules
                             if (schemaEvent.schemaEvent.reloadTask !== null) {
+                                logger.debug(
+                                    `Processing schema event "${schemaEvent.schemaEvent.name} for reload task "${compositeEvent.compositeEvent.reloadTask.name}" (${compositeEvent.compositeEvent.reloadTask.id})`
+                                );
+                                logger.silly(`Schema event contents: ${JSON.stringify(schemaEvent, null, 2)}`);
+
                                 // Add schema trigger nodes. These represent the implicit starting nodes that a schema event really are
                                 const nodeId = `node-${uuidv4()}`;
                                 this.taskNetwork.nodes.push({
@@ -1033,61 +1038,97 @@ class QlikSenseTasks {
                         // Add composite events
                         // eslint-disable-next-line no-restricted-syntax
                         for (const compositeEvent of this.qlikSenseCompositeEvents.compositeEventList) {
+                            logger.debug(
+                                `Processing composite event "${compositeEvent.compositeEvent.name} for reload task "${compositeEvent.compositeEvent.reloadTask.name}" (${compositeEvent.compositeEvent.reloadTask.id})`
+                            );
+                            logger.silly(`Composite event contents: ${JSON.stringify(compositeEvent, null, 2)}`);
+
                             // Only include events relating to reload tasks
                             if (compositeEvent.compositeEvent.reloadTask != null) {
                                 if (compositeEvent.compositeEvent.compositeRules.length === 1) {
                                     // This trigger has exactly ONE upstream task
                                     // For triggers with >1 upstream task we want an extra meta node to represent the waiting of all upstream tasks to finish
+                                    if (
+                                        compositeEvent.compositeEvent.reloadTask.id === undefined ||
+                                        compositeEvent.compositeEvent.reloadTask.id === null
+                                    ) {
+                                        logger.warn(
+                                            `Composite event "${compositeEvent.compositeEvent.name}" has no reload task ID associated with it.`
+                                        );
+                                    } else if (
+                                        compositeEvent.compositeEvent.compositeRules[0].reloadTask.id === undefined ||
+                                        compositeEvent.compositeEvent.compositeRules[0].reloadTask.id === null
+                                    ) {
+                                        logger.warn(
+                                            `Composite event "${compositeEvent.compositeEvent.name}" has no reload task ID in its composite trigger rule.`
+                                        );
+                                    } else {
+                                        this.taskNetwork.edges.push({
+                                            from: compositeEvent.compositeEvent.compositeRules[0].reloadTask.id,
+                                            to: compositeEvent.compositeEvent.reloadTask.id,
 
-                                    this.taskNetwork.edges.push({
-                                        from: compositeEvent.compositeEvent.compositeRules[0].reloadTask.id,
-                                        to: compositeEvent.compositeEvent.reloadTask.id,
+                                            completeCompositeEvent: compositeEvent.compositeEvent,
+                                            rule: compositeEvent.compositeEvent.compositeRules,
+                                            // color: compositeEvent.compositeEvent.enabled ? '#9FC2F7' : '#949298',
+                                            // color: edgeColor,
+                                            // dashes: compositeEvent.compositeEvent.enabled ? false : [15, 15],
+                                            // title: compositeEvent.compositeEvent.name + '<br>' + 'asdasd',
+                                            // label: compositeEvent.compositeEvent.name,
+                                        });
 
-                                        completeCompositeEvent: compositeEvent.compositeEvent,
-                                        rule: compositeEvent.compositeEvent.compositeRules,
-                                        // color: compositeEvent.compositeEvent.enabled ? '#9FC2F7' : '#949298',
-                                        // color: edgeColor,
-                                        // dashes: compositeEvent.compositeEvent.enabled ? false : [15, 15],
-                                        // title: compositeEvent.compositeEvent.name + '<br>' + 'asdasd',
-                                        // label: compositeEvent.compositeEvent.name,
-                                    });
-
-                                    // Keep a note that this node has associated events
-                                    nodesWithEvents.add(compositeEvent.compositeEvent.compositeRules[0].reloadTask.id);
-                                    nodesWithEvents.add(compositeEvent.compositeEvent.reloadTask.id);
+                                        // Keep a note that this node has associated events
+                                        nodesWithEvents.add(compositeEvent.compositeEvent.compositeRules[0].reloadTask.id);
+                                        nodesWithEvents.add(compositeEvent.compositeEvent.reloadTask.id);
+                                    }
                                 } else {
                                     // There are more than one task involved in triggering a downstream task.
                                     // Insert a proxy node that represents a Qlik Sense composite event
 
-                                    // TODO
-                                    const nodeId = `node-${uuidv4()}`;
-                                    this.taskNetwork.nodes.push({
-                                        id: nodeId,
-                                        label: '',
-                                        enabled: true,
-                                        metaNodeType: 'composite',
-                                        metaNode: true,
-                                    });
-                                    nodesWithEvents.add(nodeId);
+                                    // eslint-disable-next-line no-lonely-if
+                                    if (
+                                        compositeEvent.compositeEvent.reloadTask.id === undefined ||
+                                        compositeEvent.compositeEvent.reloadTask.id === null
+                                    ) {
+                                        logger.warn(
+                                            `Composite event "${compositeEvent.compositeEvent.name}" has no reload task ID associated with it.`
+                                        );
+                                    } else {
+                                        // TODO
+                                        const nodeId = `node-${uuidv4()}`;
+                                        this.taskNetwork.nodes.push({
+                                            id: nodeId,
+                                            label: '',
+                                            enabled: true,
+                                            metaNodeType: 'composite',
+                                            metaNode: true,
+                                        });
+                                        nodesWithEvents.add(nodeId);
 
-                                    // Add edges from upstream tasks to the new meta node
-                                    // eslint-disable-next-line no-restricted-syntax
-                                    for (const rule of compositeEvent.compositeEvent.compositeRules) {
+                                        // Add edges from upstream tasks to the new meta node
+                                        // eslint-disable-next-line no-restricted-syntax
+                                        for (const rule of compositeEvent.compositeEvent.compositeRules) {
+                                            if (rule.reloadTask.id === undefined || rule.reloadTask.id === null) {
+                                                logger.warn(
+                                                    `Composite event "${compositeEvent.compositeEvent.name}" has no reload task ID in its composite trigger rule.`
+                                                );
+                                            } else {
+                                                this.taskNetwork.edges.push({
+                                                    from: rule.reloadTask.id,
+                                                    to: nodeId,
+
+                                                    // TODO Correct? Or should it be at next edges.push?
+                                                    completeCompositeEvent: compositeEvent.compositeEvent,
+                                                    rule,
+                                                });
+                                            }
+                                        }
+
+                                        // Add edge from new meta node to current node
                                         this.taskNetwork.edges.push({
-                                            from: rule.reloadTask.id,
-                                            to: nodeId,
-
-                                            // TODO Correct? Or should it be at next edges.push?
-                                            completeCompositeEvent: compositeEvent.compositeEvent,
-                                            rule,
+                                            from: nodeId,
+                                            to: compositeEvent.compositeEvent.reloadTask.id,
                                         });
                                     }
-
-                                    // Add edge from new meta node to current node
-                                    this.taskNetwork.edges.push({
-                                        from: nodeId,
-                                        to: compositeEvent.compositeEvent.reloadTask.id,
-                                    });
                                 }
                             }
                         }
