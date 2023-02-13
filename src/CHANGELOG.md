@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.3](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.4.2...ctrl-q-v3.4.3) (2023-02-13)
+
+
+### Bug Fixes
+
+* Improved handling of invalid schema and composite events returned from Sense APIs ([bebedda](https://github.com/ptarmiganlabs/ctrl-q/commit/bebedda46a7b4a85c62d12144591a5732596c91b))
+
 ## [3.4.2](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.4.2...ctrl-q-v3.4.2) (2023-02-10)
 
 
