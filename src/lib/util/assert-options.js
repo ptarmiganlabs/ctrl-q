@@ -136,13 +136,15 @@ const getTaskAssertOptions = (options) => {
         }
 
         // Verify all task IDs are valid uuids
-        // eslint-disable-next-line no-restricted-syntax
-        for (const taskId of options.taskId) {
-            if (!uuidValidate(taskId)) {
-                logger.error(`Invalid format of task ID parameter "${taskId}". Exiting.`);
-                process.exit(1);
-            } else {
-                logger.verbose(`Task id "${taskId}" is a valid uuid version ${uuidVersion(taskId)}`);
+        if (options.taskId) {
+            // eslint-disable-next-line no-restricted-syntax
+            for (const taskId of options.taskId) {
+                if (!uuidValidate(taskId)) {
+                    logger.error(`Invalid format of task ID parameter "${taskId}". Exiting.`);
+                    process.exit(1);
+                } else {
+                    logger.verbose(`Task id "${taskId}" is a valid uuid version ${uuidVersion(taskId)}`);
+                }
             }
         }
     }
