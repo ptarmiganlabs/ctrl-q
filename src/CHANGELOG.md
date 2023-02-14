@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.5.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.4.3...ctrl-q-v3.5.0) (2023-02-14)
+
+
+### Features
+
+* Add support for using tags to select which tasks should be retrieved from Sense ([e1652cc](https://github.com/ptarmiganlabs/ctrl-q/commit/e1652cc366d2fcf81a0b5ec1f939d630bcf0536c)), closes [#168](https://github.com/ptarmiganlabs/ctrl-q/issues/168)
+* Better valid options checking for get-task command ([93a817f](https://github.com/ptarmiganlabs/ctrl-q/commit/93a817fcddbe504f8b71b889577cfcf0520f979c)), closes [#171](https://github.com/ptarmiganlabs/ctrl-q/issues/171)
+
+
+### Bug Fixes
+
+* In get-task command, only allow task ID and tag filtering for table output ([353aabe](https://github.com/ptarmiganlabs/ctrl-q/commit/353aabe3a9be66326b02c40ec7bae386e63535e4)), closes [#170](https://github.com/ptarmiganlabs/ctrl-q/issues/170)
+
 ## [3.4.3](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.4.3...ctrl-q-v3.4.3) (2023-02-13)
 
 
