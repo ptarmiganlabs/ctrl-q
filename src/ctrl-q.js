@@ -416,7 +416,7 @@ const program = new Command();
 
         .addOption(new Option('--task-type <type>', 'type of tasks to list').choices(['reload']).default('reload'))
         .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve')
-        // .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve')
+        .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve')
 
         .addOption(new Option('--output-format <format>', 'output format').choices(['table', 'tree']).default('tree'))
         .addOption(new Option('--output-dest <dest>', 'where to send task info').choices(['screen', 'file']).default('screen'))

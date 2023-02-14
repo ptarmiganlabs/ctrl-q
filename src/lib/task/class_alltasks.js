@@ -714,6 +714,7 @@ class QlikSenseTasks {
                 let filter = '';
                 if (this.options.taskId && this.options?.taskId.length >= 1) {
                     // At least one task ID specified
+                    // Add first task ID
                     filter += encodeURIComponent(`id eq ${this.options.taskId[0]}`);
                 }
                 if (this.options.taskId && this.options?.taskId.length >= 2) {

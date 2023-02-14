@@ -126,7 +126,13 @@ const getBookmarkAssertOptions = (options) => {
 
 // eslint-disable-next-line no-unused-vars
 const getTaskAssertOptions = (options) => {
-    // TODO --task-id and --task-tag only for task tables, not trees
+    // --task-id and --task-tag only allowed for task tables, not trees
+    if (options.taskId || options.taskTag) {
+        if (options.outputFormat === 'tree') {
+            logger.error('Task tree view is not supported when specifying task IDs and/or task tags. Exiting.');
+            process.exit(1);
+        }
+    }
 };
 
 // eslint-disable-next-line no-unused-vars
