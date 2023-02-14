@@ -415,8 +415,8 @@ const program = new Command();
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
         .addOption(new Option('--task-type <type>', 'type of tasks to list').choices(['reload']).default('reload'))
-        .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve')
-        .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve')
+        .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve. Only allowed when --output-format=table')
+        .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve. Only allowed when --output-format=table')
 
         .addOption(new Option('--output-format <format>', 'output format').choices(['table', 'tree']).default('tree'))
         .addOption(new Option('--output-dest <dest>', 'where to send task info').choices(['screen', 'file']).default('screen'))
