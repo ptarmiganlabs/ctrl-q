@@ -1,4 +1,6 @@
 const path = require('path');
+const uuidVersion = require('uuid').version;
+const uuidValidate = require('uuid').validate;
 
 const { logger, execPath, verifyFileExists } = require('../../globals');
 
@@ -126,7 +128,38 @@ const getBookmarkAssertOptions = (options) => {
 
 // eslint-disable-next-line no-unused-vars
 const getTaskAssertOptions = (options) => {
-    // TODO --task-id and --task-tag only for task tables, not trees
+    // --task-id and --task-tag only allowed for task tables, not trees
+    if (options.taskId || options.taskTag) {
+        if (options.outputFormat === 'tree') {
+            logger.error('Task tree view is not supported when specifying task IDs and/or task tags. Exiting.');
+            process.exit(1);
+        }
+
+        // Verify all task IDs are valid uuids
+        if (options.taskId) {
+            // eslint-disable-next-line no-restricted-syntax
+            for (const taskId of options.taskId) {
+                if (!uuidValidate(taskId)) {
+                    logger.error(`Invalid format of task ID parameter "${taskId}". Exiting.`);
+                    process.exit(1);
+                } else {
+                    logger.verbose(`Task id "${taskId}" is a valid uuid version ${uuidVersion(taskId)}`);
+                }
+            }
+        }
+    }
+
+    // --table-details not allowed when --output-format is set to tree.
+    if (options.outputFormat === 'tree' && options.tableDetails) {
+        logger.error(`--table-details not allowed when --output-format is set to tree. Exiting.`);
+        process.exit(1);
+    }
+
+    // --tree-details not allowed when --output-format is set to table.
+    if (options.outputFormat === 'table' && options.treeDetails) {
+        logger.error(`--tree-details not allowed when --output-format is set to table. Exiting.`);
+        process.exit(1);
+    }
 };
 
 // eslint-disable-next-line no-unused-vars
