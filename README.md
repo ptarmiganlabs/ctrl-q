@@ -471,7 +471,8 @@ Options:
   --auth-cert-key-file <file>    Qlik Sense certificate key file (exported from QMC) (default: "./cert/client_key.pem")
   --auth-root-cert-file <file>   Qlik Sense root certificate file (exported from QMC) (default: "./cert/root.pem")
   --task-type <type>             type of tasks to list (choices: "reload", default: "reload")
-  --task-id <ids...>             use task IDs to select which tasks to retrieve
+  --task-id <ids...>             use task IDs to select which tasks to retrieve. Only allowed when --output-format=table
+  --task-tag <tags...>           use tags to select which tasks to retrieve. Only allowed when --output-format=table
   --output-format <format>       output format (choices: "table", "tree", default: "tree")
   --output-dest <dest>           where to send task info (choices: "screen", "file", default: "screen")
   --output-file-name <name>      file name to store task info in (default: "")
@@ -484,6 +485,10 @@ Options:
                                  "comprule", default: "")
   -h, --help                     display help for command
 ```
+
+Note:  
+Task trees are currently an all-or-nothing feature.  
+It is **not** possible to use the `--task-id` or `--task-tag` options when showing task trees.
 
 #### Tree icons
 
