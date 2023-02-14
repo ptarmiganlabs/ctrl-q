@@ -20,7 +20,6 @@ It is open source with a permissive MIT license.<br>
 <br>
 <br>
 
-
 The focus of Ctrl-Q is on slightly more complex use cases that are not handled out of the box by other tools such as [Qlik's official Qlik CLI tool](https://qlik.dev/libraries-and-tools/qlik-cli) or Adam Haydon's [Qlik CLI Windows](https://github.com/ahaydon/Qlik-Cli-Windows) tool.  
 Both are exceptional tools and extremely useful, but especially when it comes to interactions with the Qlik Sense engine they fall a bit short.
 
@@ -472,7 +471,8 @@ Options:
   --auth-cert-key-file <file>    Qlik Sense certificate key file (exported from QMC) (default: "./cert/client_key.pem")
   --auth-root-cert-file <file>   Qlik Sense root certificate file (exported from QMC) (default: "./cert/root.pem")
   --task-type <type>             type of tasks to list (choices: "reload", default: "reload")
-  --task-id <ids...>             use task IDs to select which tasks to retrieve
+  --task-id <ids...>             use task IDs to select which tasks to retrieve. Only allowed when --output-format=table
+  --task-tag <tags...>           use tags to select which tasks to retrieve. Only allowed when --output-format=table
   --output-format <format>       output format (choices: "table", "tree", default: "tree")
   --output-dest <dest>           where to send task info (choices: "screen", "file", default: "screen")
   --output-file-name <name>      file name to store task info in (default: "")
@@ -485,6 +485,10 @@ Options:
                                  "comprule", default: "")
   -h, --help                     display help for command
 ```
+
+Note:  
+Task trees are currently an all-or-nothing feature.  
+It is **not** possible to use the `--task-id` or `--task-tag` options when showing task trees.
 
 #### Tree icons
 
@@ -576,6 +580,7 @@ To forcibly overwrite the destination file the `--output-file-overwrite` option 
 
 This command provides a tabular view of tasks.  
 Tags, custom properties, schedules, triggers and references to other tasks are all included in the table.
+This tabular task view can be shown on screen or saved to disk as Excel or CSV files.
 
 The idea is that all information needed to recreate the tasks should be included in the table.  
 In reality a few more fields are included, for example app name for the app associated with a task.
@@ -633,6 +638,16 @@ This will result in a *very* wide table!
 ├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
 ...
 ...
+```
+
+The `--task-id` and `--task-tag` options take a list of task IDs and tags, respectively.  
+When used only the tasks matching the specified task IDs and tags will be included in the created table.  
+These options can be used both when showing the task table on screen and when storing it on disk.
+
+Example command using these options. Note the quotes around the task tags:
+
+```
+.\ctrl-q.exe task-get --auth-type cert --host 192.168.100.109 --auth-user-dir LAB --auth-user-id goran --output-format table --output-dest screen --table-details common tag --task-id e3b27f50-b1c0-4879-88fc-c7cdd9c1cf3e 09b3c78f-04dd-45e3-a4bf-1b074d6572fa --task-tag "Demo apps" "Finance" "Sales forecast"
 ```
 
 #### Save task to disk file in tabular format
