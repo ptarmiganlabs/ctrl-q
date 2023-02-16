@@ -112,6 +112,11 @@ const updateTask = async (options, customPropertyDef, task) =>
                 resolve();
                 return;
             }
+            if (options.dryRun) {
+                resolve();
+                return;
+            }
+
             logger.error(`   ...Custom property "${options.customPropertyName}" on task "${task.name}" could not be updated.`);
             reject();
         } else {
@@ -171,7 +176,7 @@ const setTaskCustomProperty = async (options) => {
             process.exit(1);
         }
 
-        // Esnure that the new CP values are among the CP's choiceValues
+        // Ensure that the new CP values are among the CP's choiceValues
         // eslint-disable-next-line no-restricted-syntax
         for (const newCPValue of options.customPropertyValue) {
             if (!customPropertyDef[0].choiceValues.find((item) => item === newCPValue)) {
@@ -208,7 +213,7 @@ const setTaskCustomProperty = async (options) => {
             // logger.debug('Update task custom property: All promises resolved');
         }
     } catch (err) {
-        logger.error(`SET RELOAD TASK CP: ${err.stack}`);
+        logger.error(`SET RELOAD TASK CP: ${err}`);
     }
 };
 
