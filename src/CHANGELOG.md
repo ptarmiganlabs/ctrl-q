@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.5.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.5.0...ctrl-q-v3.5.1) (2023-02-16)
+
+
+### Bug Fixes
+
+* --dry-run for setting task custom properties no longer crash Ctrl-Q ([c9ead9d](https://github.com/ptarmiganlabs/ctrl-q/commit/c9ead9da905969b6555138b1a7832dcdeb39dae5)), closes [#176](https://github.com/ptarmiganlabs/ctrl-q/issues/176)
+
 ## [3.5.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.4.3...ctrl-q-v3.5.0) (2023-02-14)
 
 
