@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } = require('../../globals');
 const { QlikSenseTasks } = require('../task/class_alltasks');
+const { QlikSenseApps } = require('../app/class_allapps');
 const { getColumnPosFromHeaderRow } = require('../util/lookups');
 
 const processCsvFile = async (options) => {
@@ -303,6 +304,8 @@ const importTaskFromFile = async (options) => {
         }
 
         let tasksFromFile = null;
+        let appsFromFile = null;
+
         if (options.fileType === 'csv') {
             // Parse CSV file
             const tmpTasksFromFile = await processCsvFile(options);
@@ -326,13 +329,14 @@ const importTaskFromFile = async (options) => {
             // Parse Excel file
             const workSheetsFromFile = xlsx.parse(options.fileName);
 
+            // Verify that task definitions sheet exists
             tasksFromFile = workSheetsFromFile.find((item) => item.name === options.sheetName);
             if (!tasksFromFile) {
-                // logger.error(`EXCEL IMPORT: Can't find sheet ${options.sheetName} in file ${options.fileName}`);
                 throw new Error(`EXCEL IMPORT: Can't find sheet ${options.sheetName} in file ${options.fileName}`);
             }
 
             // Is there an import limit specified?
+            // If so only include the first --limit-import-count tasks
             if (parseInt(options.limitImportCount, 10) > 0) {
                 // Get positions of column headers
                 const colHeaders = getColumnPosFromHeaderRow(tasksFromFile.data[0]);
@@ -351,12 +355,29 @@ const importTaskFromFile = async (options) => {
                     return false;
                 });
 
-                // Copy limited set of tasks to original variable that will be used during task import 
+                // Copy limited set of tasks to original variable that will be used during task import
                 tasksFromFile.data = [];
                 tasksFromFile.data.push(...limitedTasks);
             }
+
+            // If apps should be imported: Verify that app import sheet exists
+            if (options.importApp) {
+                appsFromFile = workSheetsFromFile.find((item) => item.name === options.importAppSheetName);
+                if (!appsFromFile) {
+                    throw new Error(`EXCEL IMPORT: Can't find sheet ${options.importAppSheetName} in file ${options.fileName}`);
+                }
+            }
         }
         // All definitions now loaded from source file
+
+        if (options.importApp) {
+            // If apps should be imported that's the should be done before tasks are imported
+            const qlikSenseApps = new QlikSenseApps();
+            await qlikSenseApps.init(options);
+
+            // Import apps specified in Excel file
+            const appList = await qlikSenseApps.getAppListFromFile(appsFromFile);
+        }
 
         // Set up new reload task object
         const qlikSenseTasks = new QlikSenseTasks();

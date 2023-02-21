@@ -169,6 +169,14 @@ const setTaskCustomPropertyAssertOptions = (options) => {
 
 // eslint-disable-next-line no-unused-vars
 const taskImportAssertOptions = (options) => {
+    // If --import-app is specified, the import file type must be Excel
+    if (options.importApp && options.fileType !== 'excel') {
+        logger.error(
+            `Invalid combination of options.\nFile type must be "excel" when importing apps as part of task import.\nCurrent value for --file-type is "${options.fileType}"`
+        );
+        process.exit(1);
+    }
+
     // If --file-type is excel: --sheet-name is required
     if (options.fileType === 'excel' && options.sheetName === undefined) {
         logger.error('Invalid combination of options.\nWhen importing from Excel file you must also specify the --sheet-name option.');

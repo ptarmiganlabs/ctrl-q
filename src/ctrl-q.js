@@ -491,7 +491,7 @@ const program = new Command();
     // Import tasks from definitions in Excel/CSV file
     program
         .command('task-import')
-        .description('create tasks based on definitions in a file on disk')
+        .description('create tasks based on definitions in a file on disk, optionally also importing apps from QVF files.)
         .action(async (options) => {
             try {
                 await sharedParamAssertOptions(options);
@@ -528,6 +528,10 @@ const program = new Command();
             'import at most x number of tasks from the source file. Defaults to 0 = no limit',
             0
         )
+
+        .option('--import-app', 'import Sense app QVFs from specified directory')
+        .option('--import-app-sheet-name <name>', 'name of Excel sheet where app definitions are found')
+
         .option('--dry-run', 'do a dry run, i.e. do not create any reload tasks - just show what would be done');
 
     // Parse command line params

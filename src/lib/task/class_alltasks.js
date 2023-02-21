@@ -196,11 +196,13 @@ class QlikSenseTasks {
                                 if (tmpCustomProperty?.length === 2) {
                                     // eslint-disable-next-line no-await-in-loop
                                     const customPropertyId = await getCustomPropertyIdByName(
+                                        'ReloadTask',
                                         tmpCustomProperty[0],
                                         this.options,
                                         this.fileCert,
                                         this.fileCertKey
                                     );
+
                                     currentTask.customProperties.push({
                                         definition: {
                                             id: customPropertyId,
@@ -330,7 +332,7 @@ class QlikSenseTasks {
                             for (const rule of compositeEventRules) {
                                 // Does the upstream task pointed to by the composite rule exist?
                                 // If it *does* exist it means it's a real, existing task in QSEoW that should be used.
-                                // If it is not a valid guis or does not exist, it's (best case) a referefence to some other task in the task definitions file.
+                                // If it is not a valid guid or does not exist, it's (best case) a referefence to some other task in the task definitions file.
                                 // If the task pointed to by the rule doesn't exist in Sense and doesn't point to some other task in the file, an error should be shown.
                                 if (validate(rule[taskFileColumnHeaders.ruleTaskId.pos])) {
                                     // eslint-disable-next-line no-await-in-loop

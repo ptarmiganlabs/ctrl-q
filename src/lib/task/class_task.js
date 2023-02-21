@@ -101,8 +101,6 @@ class QlikSenseTask {
             logger.debug(`Initialised task object from file: ${task}`);
         }
     }
-
-    
 }
 
 module.exports = {

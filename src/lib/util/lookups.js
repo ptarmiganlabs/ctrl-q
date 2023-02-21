@@ -122,6 +122,15 @@ const taskFileColumnHeaders = {
     ruleTaskId: { name: 'Rule task id', pos: -1 },
 };
 
+const appFileColumnHeaders = {
+    appCounter: { name: 'App counter', pos: -1 },
+    appName: { name: 'App name', pos: -1 },
+    qvfDirectory: { name: 'QVF directory', pos: -1 },
+    qvfName: { name: 'QVF name', pos: -1 },
+    excludeDataConnections: { name: 'Exclude data connections', pos: -1 },
+    appTags: { name: 'App tags', pos: -1 },
+    appCustomProperties: { name: 'App custom properties', pos: -1 },
+};
 function getColumnPosFromHeaderRow(headerRow) {
     taskFileColumnHeaders.taskCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskCounter.name);
     taskFileColumnHeaders.taskType.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskType.name);
@@ -180,6 +189,20 @@ function getColumnPosFromHeaderRow(headerRow) {
     return taskFileColumnHeaders;
 }
 
+function getAppColumnPosFromHeaderRow(headerRow) {
+    appFileColumnHeaders.appCounter.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appCounter.name);
+    appFileColumnHeaders.appName.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appName.name);
+    appFileColumnHeaders.qvfDirectory.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.qvfDirectory.name);
+    appFileColumnHeaders.qvfName.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.qvfName.name);
+    appFileColumnHeaders.excludeDataConnections.pos = headerRow.findIndex(
+        (item) => item === appFileColumnHeaders.excludeDataConnections.name
+    );
+    appFileColumnHeaders.appTags.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appTags.name);
+    appFileColumnHeaders.appCustomProperties.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appCustomProperties.name);
+
+    return appFileColumnHeaders;
+}
+
 module.exports = {
     mapDaylightSavingTime,
     mapEventType,
@@ -189,4 +212,5 @@ module.exports = {
     mapTaskType,
     taskFileColumnHeaders,
     getColumnPosFromHeaderRow,
+    getAppColumnPosFromHeaderRow,
 };
