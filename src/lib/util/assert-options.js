@@ -192,6 +192,12 @@ const taskImportAssertOptions = (options) => {
     }
 };
 
+// eslint-disable-next-line no-unused-vars
+const appImportAssertOptions = (options) => {
+    //
+};
+
+
 module.exports = {
     sharedParamAssertOptions,
     userActivityCustomPropertyAssertOptions,
@@ -204,4 +210,5 @@ module.exports = {
     getTaskAssertOptions,
     setTaskCustomPropertyAssertOptions,
     taskImportAssertOptions,
+    appImportAssertOptions,
 };

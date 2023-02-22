@@ -21,6 +21,7 @@ const { getScript } = require('./lib/cmd/getscript');
 const { getTask } = require('./lib/cmd/gettask');
 const { setTaskCustomProperty } = require('./lib/cmd/settaskcp');
 const { importTaskFromFile } = require('./lib/cmd/importtask');
+const { importAppFromFile } = require('./lib/cmd/importapp');
 
 const {
     sharedParamAssertOptions,
@@ -34,6 +35,7 @@ const {
     getTaskAssertOptions,
     setTaskCustomPropertyAssertOptions,
     taskImportAssertOptions,
+    appImportAssertOptions,
 } = require('./lib/util/assert-options');
 
 const program = new Command();
@@ -533,6 +535,43 @@ const program = new Command();
         .option('--import-app-sheet-name <name>', 'name of Excel sheet where app definitions are found')
 
         .option('--dry-run', 'do a dry run, i.e. do not create any reload tasks - just show what would be done');
+
+    // Import apps from definitions in Excel file
+    program
+        .command('app-import')
+        .description('import apps/upload QVF files on disk to Sense based on definitions in Excel file.')
+        .action(async (options) => {
+            try {
+                await sharedParamAssertOptions(options);
+                appImportAssertOptions(options);
+                importAppFromFile(options);
+            } catch (err) {
+                logger.error(`IMPORT APP: ${err}`);
+            }
+        })
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+
+        .addOption(new Option('-t, --file-type <type>', 'source file type').choices(['excel']).default('excel'))
+        .requiredOption('--file-name <filename>', 'file containing app definitions')
+        .requiredOption('--sheet-name <name>', 'name of Excel sheet where app info is found')
+
+        .requiredOption('--limit-import-count <number>', 'import at most x number of apps. Defaults to 0 = no limit', 0)
+
+        .option('--dry-run', 'do a dry run, i.e. do not import any apps - just show what would be done');
 
     // Parse command line params
     await program.parseAsync(process.argv);
