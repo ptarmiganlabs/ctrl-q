@@ -15,45 +15,45 @@
       // ------------------------------------
       // Set custom property of reload task
       // ------------------------------------
-      // "args": [
-      //   "task-custom-property-set",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--auth-cert-file",
-      //   "./cert/client.pem",
-      //   "--auth-cert-key-file",
-      //   "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
-      //   "--task-id",
-      //   "e3b27f50-b1c0-4879-88fc-c7cdd9c1cf3e",
-      //   "7552d9fc-d1bb-4975-9a38-18357de531ea",
-      //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
-      //   // "5748afa9-3abe-43ab-bb1f-127c48ced075",
-      //   // "5520e710-91ad-41d2-aeb6-434cafbf366b",
-      //   // "--task-tag",
-      //   // "Test data",
-      //   // "api1",
+      "args": [
+        "task-custom-property-set",
+        "--auth-type",
+        "cert",
+        "--host",
+        "192.168.100.109",
+        "--auth-cert-file",
+        "./cert/client.pem",
+        "--auth-cert-key-file",
+        "./cert/client_key.pem",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+        "--task-id",
+        "e3b27f50-b1c0-4879-88fc-c7cdd9c1cf3e",
+        "7552d9fc-d1bb-4975-9a38-18357de531ea",
+        // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+        // "5748afa9-3abe-43ab-bb1f-127c48ced075",
+        // "5520e710-91ad-41d2-aeb6-434cafbf366b",
+        // "--task-tag",
+        // "Test data",
+        // "api1",
         
-      //   "--custom-property-name",
-      //   // "Department",
-      //   // "Department2",
-      //   // "DemoApp",
-      //   "ReportMonth",
-      //   "--custom-property-value",
-      //   "2023 Jan",
-      //   // "Finance",
-      //   // "Sales",
-      //   "--overwrite",
-      //   "--update-mode",
-      //   // "append",
-      //   "replace",
-      //   "--dry-run"
-      // ]
+        "--custom-property-name",
+        // "Department",
+        // "Department2",
+        // "DemoApp",
+        "ReportMonth",
+        "--custom-property-value",
+        "2023 Jan",
+        // "Finance",
+        // "Sales",
+        // "--overwrite",
+        "--update-mode",
+        // "append",
+        "replace",
+        "--dry-run"
+      ]
 
       // ------------------------------------
       // Import tasks from Excel file
@@ -132,34 +132,34 @@
       // ------------------------------------
       // Import apps from Excel file
       // ------------------------------------
-      "args": [
-        "app-import",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        "--auth-cert-file",
-        "./cert/client.pem",
-        "--auth-cert-key-file",
-        "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
+      // "args": [
+      //   "app-import",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
 
-        "--file-type",
-        "excel",
+      //   "--file-type",
+      //   "excel",
         
-        "--file-name",
-        "tasks.xlsx",
-        "--sheet-name",
-        "App import",
+      //   "--file-name",
+      //   "tasks.xlsx",
+      //   "--sheet-name",
+      //   "App import",
 
-        "--limit-import-count",
-         "2",
+      //   "--limit-import-count",
+      //    "2",
 
-        // "--dry-run"
-      ]
+      //   // "--dry-run"
+      // ]
 
 
       // ------------------------------------

@@ -123,3 +123,6 @@ dist
 
 # TernJS port file
 .tern-port
+tasktree.json
+tasktable.csv
+task-chain.csv

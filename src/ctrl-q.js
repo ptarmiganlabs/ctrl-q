@@ -49,7 +49,7 @@ const program = new Command();
     program
         .version(appVersion)
         .description(
-            'Ctrl-Q is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.\nAmong other things the tool manipulates master items and scrambles in-app data.'
+            'Ctrl-Q is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.\nAmong other things the tool does bulk import of apps and tasks, manipulates master items and scrambles in-app data.'
         )
         .hook('preAction', (thisCommand, actionCommand) => {
             const options = actionCommand.opts();

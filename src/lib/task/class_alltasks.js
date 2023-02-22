@@ -743,7 +743,7 @@ class QlikSenseTasks {
                 }
 
                 // Add task tag(s) to query string
-                if (this.options?.taskTag.length >= 1) {
+                if (this.options.taskTag && this.options?.taskTag.length >= 1) {
                     // At least one task ID specified
                     if (filter.length >= 1) {
                         // We've previously added some task ids
@@ -769,7 +769,7 @@ class QlikSenseTasks {
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
                     path: '/qrs/reloadtask/full',
-                    filter,
+                    queryParameters: [{ name: 'filter', value: filter }],
                 });
 
                 axios
