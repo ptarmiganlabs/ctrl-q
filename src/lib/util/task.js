@@ -13,7 +13,7 @@ function taskExistById(taskId, options, fileCert, fileCertKey) {
             fileCert,
             fileCertKey,
             path: '/qrs/task',
-            filter: encodeURI(`id eq ${taskId}`),
+            queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
         });
 
         axios

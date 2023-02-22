@@ -4,9 +4,11 @@ const { logger, generateXrfKey, readCert } = require('../../globals');
 
 const setupQRSConnection = (options, param) => {
     // eslint-disable-next-line no-unused-vars
-    // new Promise((resolve, _reject) => {
     // Ensure valid http method
-    if (!param.method || (param.method.toLowerCase() !== 'get' && param.method.toLowerCase() !== 'post')) {
+    if (
+        !param.method ||
+        (param.method.toLowerCase() !== 'get' && param.method.toLowerCase() !== 'post' && param.method.toLowerCase() !== 'put')
+    ) {
         logger.error(`Setting up connection to QRS. Invalid http method '${param.method}'. Exiting.`);
         process.exit(1);
     }
@@ -36,17 +38,33 @@ const setupQRSConnection = (options, param) => {
         //   passphrase: "YYY"
     };
 
+    // Add message body (if any)
     if (param.body) {
         axiosConfig.data = param.body;
     }
 
-    if (param.filter?.length > 0) {
-        axiosConfig.url += `&filter=${param.filter}`;
+    // Add extra headers (if any)
+    if (param.headers?.length > 0) {
+        // eslint-disable-next-line no-restricted-syntax
+        for (const item of param.headers) {
+            axiosConfig.headers[item.name] = item.value;
+        }
     }
 
-    // resolve(axiosConfig);
+    // Add parameters (if any)
+    if (param.queryParameters?.length > 0) {
+        // eslint-disable-next-line no-restricted-syntax
+        for (const queryParam of param.queryParameters) {
+            axiosConfig.url += `&${queryParam.name}=${queryParam.value}`;
+        }
+    }
+
+    // if (param.filter?.length > 0) {
+    //     axiosConfig.url += `&filter=${param.filter}`;
+    //     firstParam = false;
+    // }
+
     return axiosConfig;
-    // });
 };
 
 module.exports = {

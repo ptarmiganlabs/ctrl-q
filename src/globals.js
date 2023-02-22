@@ -62,6 +62,17 @@ const verifyFileExists = async (file) =>
         }
     });
 
+const mergeDirFilePath = (pathElements) => {
+    let fullPath = '';
+    if (isPkg) {
+        fullPath = upath.resolve(upath.dirname(process.execPath), ...pathElements);
+    } else {
+        // fullPath = upath.resolve(__dirname, ...pathElements);
+        fullPath = upath.resolve(upath.join(...pathElements));
+    }
+    return fullPath;
+};
+
 const generateXrfKey = () => {
     let xrfString = '';
     // eslint-disable-next-line no-plusplus
@@ -108,4 +119,5 @@ module.exports = {
     generateXrfKey,
     readCert,
     isNumeric,
+    mergeDirFilePath,
 };

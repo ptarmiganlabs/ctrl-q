@@ -13,7 +13,7 @@ function getTagIdByName(tagName, options, fileCert, fileCertKey) {
             fileCert,
             fileCertKey,
             path: '/qrs/tag',
-            filter: encodeURI(`name eq '${tagName}'`),
+            queryParameters: [{ name: 'filter', value: encodeURI(`name eq '${tagName}'`) }],
         });
 
         axios

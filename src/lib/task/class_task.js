@@ -3,8 +3,6 @@ const { randomWords } = require('random-words');
 
 const { logger } = require('../../globals');
 const { mapTaskExecutionStatus } = require('../util/lookups');
-const { getTagIdByName } = require('../util/tag');
-const { getCustomPropertyIdByName } = require('../util/customproperties');
 
 class QlikSenseTask {
     // eslint-disable-next-line no-useless-constructor
@@ -101,8 +99,6 @@ class QlikSenseTask {
             logger.debug(`Initialised task object from file: ${task}`);
         }
     }
-
-    
 }
 
 module.exports = {

@@ -1,7 +1,7 @@
 const axios = require('axios');
 const path = require('path');
 
-const { logger, execPath, verifyFileExists } = require('../../globals');
+const { logger, execPath } = require('../../globals');
 const { setupQRSConnection } = require('../util/qrs');
 const { QlikSenseSchemaEvent } = require('./class_schemaevent');
 
@@ -35,6 +35,7 @@ class QlikSenseSchemaEvents {
     }
 
     getSchemaEventsFromFile(schemaEvent) {
+        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 logger.debug('GET SCHEMA EVENT: Starting get schema events from QSEoW');
@@ -50,6 +51,7 @@ class QlikSenseSchemaEvents {
     }
 
     getSchemaEventsFromQseow() {
+        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 logger.debug('GET SCHEMA EVENT: Starting get schema events from QSEoW');
