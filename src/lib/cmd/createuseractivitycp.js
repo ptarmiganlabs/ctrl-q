@@ -187,6 +187,7 @@ const createUserActivityCustomProperty = async (options) => {
 
                 // Set custom property for user
                 try {
+                    // eslint-disable-next-line no-await-in-loop
                     result = await qrsInteractInstance.Post(
                         'custompropertydefinition',
                         {
@@ -204,7 +205,6 @@ const createUserActivityCustomProperty = async (options) => {
                 }
             }
             logger.verbose(`USER ACTIVITY CP: Assigned activity buckets to users via custom property ${options.customPropertyName}`);
-
         }
     } catch (err) {
         // Return error msg

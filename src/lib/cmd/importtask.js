@@ -368,7 +368,7 @@ const importTaskFromFile = async (options) => {
                 }
             }
         }
-        
+
         // All definitions now loaded from source file
         let importedApps;
 

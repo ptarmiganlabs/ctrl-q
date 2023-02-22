@@ -197,7 +197,6 @@ const appImportAssertOptions = (options) => {
     //
 };
 
-
 module.exports = {
     sharedParamAssertOptions,
     userActivityCustomPropertyAssertOptions,
