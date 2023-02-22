@@ -491,7 +491,7 @@ const program = new Command();
     // Import tasks from definitions in Excel/CSV file
     program
         .command('task-import')
-        .description('create tasks based on definitions in a file on disk, optionally also importing apps from QVF files.)
+        .description('create tasks based on definitions in a file on disk, optionally also importing apps from QVF files.')
         .action(async (options) => {
             try {
                 await sharedParamAssertOptions(options);

@@ -36,13 +36,13 @@ class QlikSenseApps {
         this.appList = [];
     }
 
-    async addApp(app) {
+    async addApp(app, tmpAppId) {
         const newApp = new QlikSenseApp();
-        await newApp.init(app, this.options);
+        await newApp.init(app, tmpAppId, this.options);
         this.appList.push(newApp);
     }
 
-    async getAppListFromFile(appsFromFile) {
+    async importAppsFromFiles(appsFromFile) {
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             logger.debug('PARSE APPS FROM EXCEL FILE: Starting get apps from data in file');
@@ -185,17 +185,9 @@ class QlikSenseApps {
 
                                 if (cpValueExists) {
                                     currentApp.customProperties.push({
-                                        // definition: { ...customProperty },
                                         definition: { id: customProperty.id, name: customProperty.name },
                                         value: tmpCustomProperty[1].trim(),
                                     });
-                                    // currentApp.customProperties.push({
-                                    //     definition: {
-                                    //         id: customProperty.ID,
-                                    //         name: tmpCustomProperty[0].trim(),
-                                    //     },
-                                    //     value: tmpCustomProperty[1].trim(),
-                                    // });
                                 } else {
                                     logger.error(
                                         `IMPORT APP TO QSEOW: Invalid custom property value for app "${
@@ -211,26 +203,25 @@ class QlikSenseApps {
                     // Import app to QSEoW
                     if (this.options.dryRun === false || this.options.dryRun === undefined) {
                         // eslint-disable-next-line no-await-in-loop
-                        const newAppId = await this.importAppToQseow(currentApp);
+                        const newAppId = await this.uploadAppToQseow(currentApp);
 
                         // Add mapping between app counter and the new id of imported app
-                        this.appCounterIdMap.set(`appcounter-${currentApp.appCounter}`, newAppId);
+                        const tmpAppId = `newapp-${currentApp.appCounter}`;
+                        this.appCounterIdMap.set(tmpAppId, newAppId);
 
                         // eslint-disable-next-line no-await-in-loop
-                        await this.addApp(currentApp, this.options);
+                        await this.addApp(currentApp, tmpAppId);
                     } else {
                         logger.info(`DRY RUN: Importing app to QSEoW: "${currentApp.name}" in file "${currentApp.fullQvfPath}"`);
                     }
                 }
             }
 
-            resolve();
+            resolve({ appList: this.appList, appIdMap: this.appCounterIdMap });
         });
     }
 
-    async importAppToQseow(newApp) {
-        // eslint-disable-next-line no-async-promise-executor
-        //
+    async uploadAppToQseow(newApp) {
         try {
             logger.debug('IMPORT APP TO QSEOW: Starting');
 
@@ -284,22 +275,11 @@ class QlikSenseApps {
                 if (result2.status === 200) {
                     logger.debug(`Update of imported app wrt tags and custom properties successful`);
 
-                    return true;
+                    return app.id;
                 }
-
-                // })
-                // .catch((err) => {
-                //     logger.error(`CUSTOM PROPERTY ID BY NAME: ${err}`);
-                //     return false;
-                // });
             }
 
             return false;
-            // }
-            // .catch((err) => {
-            //     logger.error(`CUSTOM PROPERTY ID BY NAME: ${err}`);
-            //     return false;
-            // });
         } catch (err) {
             logger.error(`CREATE RELOAD TASK IN QSEOW 2: ${err}`);
             return false;

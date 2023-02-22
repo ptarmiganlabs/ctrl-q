@@ -25,10 +25,12 @@ class QlikSenseTasks {
         //
     }
 
-    async init(options) {
+    async init(options, importedApps) {
         try {
-            this.taskList = [];
             this.options = options;
+            this.importedApps = importedApps;
+
+            this.taskList = [];
 
             // Map that will map fake task IDs (used in source file) with real task IDs after tasks have been created in Sense
             this.taskIdMap = new Map();
@@ -140,6 +142,16 @@ class QlikSenseTasks {
                         process.exit(1);
                     } else {
                         // Create task object using same structure as results from QRS API
+
+                        // Determine if the task is associated with an app that existed before Ctrl-Q was started, or
+                        // an app that's been imported as part of this Ctrl-Q execution.
+                        let appId;
+                        if (taskData[0][taskFileColumnHeaders.appId.pos].trim().substring(0, 7).toLowerCase() === 'newapp-') {
+                            appId = this.importedApps.appIdMap.get(taskData[0][taskFileColumnHeaders.appId.pos]);
+                        } else {
+                            appId = taskData[0][taskFileColumnHeaders.appId.pos];
+                        }
+
                         currentTask = {
                             id: taskData[0][taskFileColumnHeaders.taskId.pos],
                             name: taskData[0][taskFileColumnHeaders.taskName.pos],
@@ -150,8 +162,8 @@ class QlikSenseTasks {
                             isManuallyTriggered: taskData[0][taskFileColumnHeaders.isManuallyTriggered.pos],
                             isPartialReload: taskData[0][taskFileColumnHeaders.isPartialReload.pos],
                             app: {
-                                id: taskData[0][taskFileColumnHeaders.appId.pos],
-                                name: taskData[0][taskFileColumnHeaders.appName.pos],
+                                id: appId,
+                                // name: taskData[0][taskFileColumnHeaders.appName.pos],
                             },
                             tags: [],
                             customProperties: [],

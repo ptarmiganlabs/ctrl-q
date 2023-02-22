@@ -368,7 +368,9 @@ const importTaskFromFile = async (options) => {
                 }
             }
         }
+        
         // All definitions now loaded from source file
+        let importedApps;
 
         if (options.importApp) {
             // If apps should be imported that's the should be done before tasks are imported
@@ -376,12 +378,12 @@ const importTaskFromFile = async (options) => {
             await qlikSenseApps.init(options);
 
             // Import apps specified in Excel file
-            const appList = await qlikSenseApps.getAppListFromFile(appsFromFile);
+            importedApps = await qlikSenseApps.importAppsFromFiles(appsFromFile);
         }
 
         // Set up new reload task object
         const qlikSenseTasks = new QlikSenseTasks();
-        await qlikSenseTasks.init(options);
+        await qlikSenseTasks.init(options, importedApps);
         const taskList = await qlikSenseTasks.getTaskModelFromFile(tasksFromFile);
     } catch (err) {
         logger.error(`GET TASK: ${err.stack}`);
