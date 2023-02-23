@@ -764,13 +764,23 @@ class QlikSenseTasks {
                     logger.debug(`GET TASK: QRS query filter (incl ids, tags): ${filter}`);
                 }
 
-                const axiosConfig = await setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    path: '/qrs/reloadtask/full',
-                    queryParameters: [{ name: 'filter', value: filter }],
-                });
+                let axiosConfig;
+                if (filter === '') {
+                    axiosConfig = await setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        path: '/qrs/reloadtask/full',
+                    });
+                } else {
+                    axiosConfig = await setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        path: '/qrs/reloadtask/full',
+                        queryParameters: [{ name: 'filter', value: filter }],
+                    });
+                }
 
                 axios
                     .request(axiosConfig)
