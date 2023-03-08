@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.6.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.6.0...ctrl-q-v3.6.0) (2023-03-08)
+
+
+### Features
+
+* Bulk import of QVF files/apps ([0f24541](https://github.com/ptarmiganlabs/ctrl-q/commit/0f245419691ff87014b6c4766ed5983e2b584760)), closes [#179](https://github.com/ptarmiganlabs/ctrl-q/issues/179)
+* Optional import of QVF files/apps as part of importing reload tasks ([d8eb3db](https://github.com/ptarmiganlabs/ctrl-q/commit/d8eb3dbb65898576a27d1ec2eed0fa1201023f28)), closes [#180](https://github.com/ptarmiganlabs/ctrl-q/issues/180)
+
+
+### Miscellaneous
+
+* **main:** release ctrl-q 3.6.0 ([447ccec](https://github.com/ptarmiganlabs/ctrl-q/commit/447ccec21e58211c81d4762d2580165d0853adde))
+* **main:** release ctrl-q 3.6.0 ([7cd27af](https://github.com/ptarmiganlabs/ctrl-q/commit/7cd27afd42772e9348f53e51462741c9278e243f))
+* **main:** release ctrl-q 3.6.0 ([2be2be1](https://github.com/ptarmiganlabs/ctrl-q/commit/2be2be197558496e20e9bcc6c86607e454447268))
+
 ## [3.6.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.6.0...ctrl-q-v3.6.0) (2023-02-23)
 
 
