@@ -1073,6 +1073,8 @@ Now let's run the command.
 2023-02-22T20:16:28.598Z info: Updated existing dimension "Salesperson"
 ```
 
+> NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/docs/ctrl-q-master-items.xlsx).
+
 ### Import apps from QVF files
 
 .QVF files are Sense apps stored on disk.  
@@ -1122,6 +1124,8 @@ The Excel file with definitions on what QVF files should be imported, what the a
 ![QVF app files that should be imported into Qlik Sense](docs/ctrl-q-app-import-1.png "QVF app files that should be imported into Qlik Sense")
 
 An explanation of each column is available [here](#defining-apps-to-be-imported).
+
+> NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/docs/tasks.xlsx).
 
 ### Import reload tasks from file
 
@@ -1380,6 +1384,7 @@ Some comments about the above command:
 - The `--import-app` tells Ctrl-Q to import certain apps before tasks defined in the `Ctrl-Q task import` sheet are created. This parameter is optional. If it is **not** included no apps will be imported.
 - The `--import-app-sheet-name` tells Ctrl-Q that a list of apps to be imported (and import parameters for each app) is found the `App import` sheet of the Excel file.
 
+> NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/docs/tasks.xlsx).
 ##### Defining apps to be imported
 
 The Excel sheet specified by the `--import-app-sheet-name` has the following *mandatory* columns:
