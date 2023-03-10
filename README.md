@@ -1034,7 +1034,7 @@ Now let's run the command.
 --auth-user-id goran `
 --auth-type cert `
 --file-type excel `
---file ./ctrl-q-testdata.xlsx `
+--file ./ctrl-q-master-items.xlsx `
 --sheet Sales `
 --col-ref-by name `
 --col-item-type "Master item type" `
@@ -1060,7 +1060,7 @@ Now let's run the command.
 2023-02-22T20:16:28.161Z info: | https://github.com/ptarmiganlabs/ctrl-q
 2023-02-22T20:16:28.161Z info: ----------------------------------------------------------
 2023-02-22T20:16:28.161Z info:
-2023-02-22T20:16:28.161Z info: Import master items from definitions in Excel file "./ctrl-q-testdata.xlsx"
+2023-02-22T20:16:28.161Z info: Import master items from definitions in Excel file "./ctrl-q-master-items.xlsx"
 2023-02-22T20:16:28.568Z info: Updated existing measure "No. of sold units"
 2023-02-22T20:16:28.583Z info: Updated existing measure "No. of sold units (LY)"
 2023-02-22T20:16:28.583Z info: Updated existing measure "Revenue EUR"
