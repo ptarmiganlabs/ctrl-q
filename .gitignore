@@ -2,9 +2,9 @@
 cert/
 launch.json
 build/
-tasks.csv
-tasks.xlsx
-tasks.json
+tasks_.csv
+tasks_.xlsx
+tasks_.json
 tasks2.csv
 tasks2.xlsx
 tasks2.json
