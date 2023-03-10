@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.6.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.6.0...ctrl-q-v3.6.1) (2023-03-10)
+
+
+### Miscellaneous
+
+* **deps:** Update dependencies to stay safe and secure ([c9b240c](https://github.com/ptarmiganlabs/ctrl-q/commit/c9b240c5f35aa4c9dc4a5fdc8fe190c40359bb5d))
+
 ## [3.6.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.6.0...ctrl-q-v3.6.0) (2023-03-08)
 
 
