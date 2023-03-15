@@ -108,6 +108,11 @@ function isNumeric(str) {
     ); // ...and ensure strings of whitespace fail
 }
 
+function sleep(ms) {
+    // eslint-disable-next-line no-promise-executor-return
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 module.exports = {
     logger,
     appVersion,
@@ -120,4 +125,5 @@ module.exports = {
     readCert,
     isNumeric,
     mergeDirFilePath,
+    sleep,
 };

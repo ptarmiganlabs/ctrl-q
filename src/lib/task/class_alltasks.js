@@ -544,6 +544,15 @@ class QlikSenseTasks {
 
                 resolve(this.taskList);
             } catch (err) {
+                if (err.response.status) {
+                    logger.error(`Received error ${err.response.status}/${err.response.statusText} from QRS API`);
+                }
+                if (err.response.data) {
+                    logger.error(`Error message from QRS API: ${err.response.data}`);
+                }
+                if (err.config.data) {
+                    logger.error(`Data sent to Sense: ${JSON.stringify(JSON.parse(err.config.data), null, 2)}}`);
+                }
                 logger.error(`PARSE TASKS FROM FILE 1: ${err}`);
                 reject(err);
             }

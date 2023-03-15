@@ -34,8 +34,15 @@ const setupQRSConnection = (options, param) => {
         responseType: 'application/json',
         httpsAgent,
         timeout: 60000,
-        // data: param.body,
         //   passphrase: "YYY"
+        validateStatus(status) {
+            // if this function returns true, exception is not thrown, so
+            // in simplest case just return true to handle status checks externally.
+            if (status === 429 || status === 200 || status === 201) {
+                return true;
+            }
+            return false;
+        },
     };
 
     // Add message body (if any)

@@ -3,7 +3,7 @@ const path = require('path');
 const FormData = require('form-data');
 const fs = require('fs/promises');
 
-const { logger, execPath, mergeDirFilePath, verifyFileExists } = require('../../globals');
+const { logger, execPath, mergeDirFilePath, verifyFileExists, sleep } = require('../../globals');
 const { setupQRSConnection } = require('../util/qrs');
 const { getAppColumnPosFromHeaderRow } = require('../util/lookups');
 const { QlikSenseApp } = require('./class_app');
@@ -205,6 +205,12 @@ class QlikSenseApps {
                         // eslint-disable-next-line no-await-in-loop
                         const newAppId = await this.uploadAppToQseow(currentApp);
 
+                        // false returned if the app could not be uploaded to Sense
+                        if (newAppId === false) {
+                            logger.error(`Failed uploading app to Sense: ${JSON.stringify(currentApp, null, 2)}}`);
+                            process.exit(1);
+                        }
+
                         // Add mapping between app counter and the new id of imported app
                         const tmpAppId = `newapp-${currentApp.appCounter}`;
                         this.appCounterIdMap.set(tmpAppId, newAppId);
@@ -250,7 +256,11 @@ class QlikSenseApps {
                 ],
             });
 
+            // Sleep before uploading.
+            // Avoids rate limiting as per https://community.qlik.com/t5/Official-Support-Articles/Qlik-Sense-QRS-API-Error-429-in-September-2020-and-later-when/ta-p/1798659
             const result = await axios.request(axiosConfig);
+            await sleep(5000);
+
             if (result.status === 201) {
                 logger.debug(`Import app from QVF file success, result from API:\n${JSON.stringify(result.data, null, 2)}`);
 
@@ -271,12 +281,22 @@ class QlikSenseApps {
                     body: app,
                 });
 
+                await sleep(1000);
                 const result2 = await axios.request(axiosConfig2);
                 if (result2.status === 200) {
                     logger.debug(`Update of imported app wrt tags and custom properties successful`);
 
                     return app.id;
                 }
+                logger.warn(`Failed setting tags on imported app ${newApp.name}, return code ${result2.status}.`);
+            } else if (result.status === 429) {
+                // Too many requests
+                logger.warn(`Error 429 returned from QRS API. Too many requests, exiting.`);
+                // TODO Should not exit here, rather wait a while and retry. Unclear though what the rate limit for uploads is, 
+                // TODO thus difficult to implement a backoff policy. Further research needed.
+            } else {
+                logger.error(`Error ${result.status} returned from QRS API. Aborting.`);
+                process.exit(1);
             }
 
             return false;
