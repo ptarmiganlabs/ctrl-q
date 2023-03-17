@@ -1,9 +1,61 @@
 const axios = require('axios');
+const path = require('path');
 
-const { logger } = require('../../globals');
+const { logger, execPath } = require('../../globals');
 const { setupQRSConnection } = require('./qrs');
 
-function getTagIdByName(tagName, options, fileCert, fileCertKey) {
+function getTagsFromQseow(options) {
+    return new Promise((resolve, reject) => {
+        logger.verbose(`Getting tags from QSEoW...`);
+
+        // Make sure certificates exist
+        const fileCert = path.resolve(execPath, options.authCertFile);
+        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+
+        const axiosConfig = setupQRSConnection(options, {
+            method: 'get',
+            fileCert,
+            fileCertKey,
+            path: '/qrs/tag/full',
+        });
+
+        axios
+            .request(axiosConfig)
+            .then((result) => {
+                if (result.status === 200) {
+                    logger.info(`Successfully retrieved ${result.data.length} tags from QSEoW`);
+                    // Yes, the tag exists
+                    resolve(result.data);
+                }
+                resolve(false);
+            })
+            .catch((err) => {
+                logger.error(`GET TAGS FROM QSEoW: ${err}`);
+            });
+    });
+}
+
+function getTagIdByName(tagName, tagsExisting) {
+    return new Promise((resolve, reject) => {
+        logger.debug(`Looking up ID for tag named "${tagName}"`);
+
+        let tag;
+        if (typeof tagsExisting === 'string') {
+            tag = JSON.parse(tagsExisting).filter((item) => item.name === tagName);
+        } else {
+            tag = tagsExisting.filter((item) => item.name === tagName);
+        }
+
+        if (tag.length === 1) {
+            // The tag exists
+            resolve(tag[0].id);
+        } else {
+            resolve(false);
+        }
+    });
+}
+
+function getTagIdByName2(tagName, options, fileCert, fileCertKey) {
     return new Promise((resolve, reject) => {
         logger.debug(`Looking up ID for tag named "${tagName}"`);
 
@@ -34,4 +86,5 @@ function getTagIdByName(tagName, options, fileCert, fileCertKey) {
 
 module.exports = {
     getTagIdByName,
+    getTagsFromQseow,
 };

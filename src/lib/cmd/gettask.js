@@ -8,6 +8,7 @@ const yesno = require('yesno');
 const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../../globals');
 const { QlikSenseTasks } = require('../task/class_alltasks');
 const { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } = require('../util/lookups');
+const { getTagsFromQseow } = require('../util/tag');
 
 const consoleTableConfig = {
     border: {
@@ -86,6 +87,9 @@ const getTask = async (options) => {
 
         logger.verbose('Get tasks');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+
+        // Get all tags
+        const tags = await getTagsFromQseow(options);
 
         // Get reload tasks
         const qlikSenseTasks = new QlikSenseTasks();

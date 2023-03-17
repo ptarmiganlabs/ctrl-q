@@ -8,6 +8,8 @@ const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } 
 const { QlikSenseTasks } = require('../task/class_alltasks');
 const { QlikSenseApps } = require('../app/class_allapps');
 const { getColumnPosFromHeaderRow } = require('../util/lookups');
+const { getTagsFromQseow } = require('../util/tag');
+const { getCustomPropertiesFromQseow } = require('../util/customproperties');
 
 const processCsvFile = async (options) => {
     // First get header row
@@ -294,6 +296,12 @@ const importTaskFromFile = async (options) => {
         logger.info(`Import tasks from definitions in file "${options.fileName}"`);
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
+        // Get all tags
+        const tagsExisting = await getTagsFromQseow(options);
+
+        // Get all custom properties
+        const cpExisting = await getCustomPropertiesFromQseow(options);
+
         // Verify file exists
         const taskFileExists = await verifyFileExists(options.fileName);
         if (taskFileExists === false) {
@@ -378,13 +386,13 @@ const importTaskFromFile = async (options) => {
             await qlikSenseApps.init(options);
 
             // Import apps specified in Excel file
-            importedApps = await qlikSenseApps.importAppsFromFiles(appsFromFile);
+            importedApps = await qlikSenseApps.importAppsFromFiles(appsFromFile, tagsExisting, cpExisting);
         }
 
         // Set up new reload task object
         const qlikSenseTasks = new QlikSenseTasks();
         await qlikSenseTasks.init(options, importedApps);
-        const taskList = await qlikSenseTasks.getTaskModelFromFile(tasksFromFile);
+        const taskList = await qlikSenseTasks.getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting);
     } catch (err) {
         logger.error(`GET TASK: ${err.stack}`);
     }

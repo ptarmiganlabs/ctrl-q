@@ -5,6 +5,8 @@ const xlsx = require('node-xlsx').default;
 const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } = require('../../globals');
 const { QlikSenseApps } = require('../app/class_allapps');
 const { getAppColumnPosFromHeaderRow } = require('../util/lookups');
+const { getTagsFromQseow } = require('../util/tag');
+const { getCustomPropertiesFromQseow } = require('../util/customproperties');
 
 const importAppFromFile = async (options) => {
     try {
@@ -17,6 +19,12 @@ const importAppFromFile = async (options) => {
         logger.info(`Import apps from definitions in file "${options.fileName}"`);
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
+        // Get all tags
+        const tagsExisting = await getTagsFromQseow(options);
+
+        // Get all custom properties
+        const cpExisting = await getCustomPropertiesFromQseow(options);
+        
         // Verify file exists
         const appFileExists = await verifyFileExists(options.fileName);
         if (appFileExists === false) {
@@ -68,7 +76,7 @@ const importAppFromFile = async (options) => {
             await qlikSenseApps.init(options);
 
             // Import apps specified in Excel file
-            const importedApps = await qlikSenseApps.importAppsFromFiles(appsFromFile);
+            const importedApps = await qlikSenseApps.importAppsFromFiles(appsFromFile, tagsExisting, cpExisting);
             logger.debug(`Imported apps:\n${JSON.stringify(importedApps, null, 2)}`);
         }
     } catch (err) {
