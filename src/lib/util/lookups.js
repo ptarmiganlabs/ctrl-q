@@ -130,6 +130,8 @@ const appFileColumnHeaders = {
     excludeDataConnections: { name: 'Exclude data connections', pos: -1 },
     appTags: { name: 'App tags', pos: -1 },
     appCustomProperties: { name: 'App custom properties', pos: -1 },
+    appOwnerUserDirectory: { name: 'Owner user directory', pos: -1 },
+    appOwnerUserId: { name: 'Owner user id', pos: -1 },
 };
 function getColumnPosFromHeaderRow(headerRow) {
     taskFileColumnHeaders.taskCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskCounter.name);
@@ -199,6 +201,10 @@ function getAppColumnPosFromHeaderRow(headerRow) {
     );
     appFileColumnHeaders.appTags.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appTags.name);
     appFileColumnHeaders.appCustomProperties.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appCustomProperties.name);
+    appFileColumnHeaders.appOwnerUserDirectory.pos = headerRow.findIndex(
+        (item) => item === appFileColumnHeaders.appOwnerUserDirectory.name
+    );
+    appFileColumnHeaders.appOwnerUserId.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appOwnerUserId.name);
 
     return appFileColumnHeaders;
 }

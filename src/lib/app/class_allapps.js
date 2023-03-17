@@ -95,6 +95,8 @@ class QlikSenseApps {
                         excludeDataConnections: appRow[0][appFileColumnHeaders.excludeDataConnections.pos],
                         tags: [],
                         customProperties: [],
+                        appOwnerUserDirectory: appRow[0][appFileColumnHeaders.appOwnerUserDirectory.pos],
+                        appOwnerUserId: appRow[0][appFileColumnHeaders.appOwnerUserId.pos],
                     };
 
                     // Verify that QVF file exists and build a full path to it
@@ -310,6 +312,37 @@ class QlikSenseApps {
 
                 // Add custom properties to imported app
                 app.customProperties = [...newApp.customProperties];
+
+                // Is there a new app owner specific in Excel file?
+                // Both user directory and userid must be specified for the app owner to be updated.
+                if (newApp?.appOwnerUserDirectory?.length > 0 && newApp?.appOwnerUserId?.length > 0) {
+                    // Set app owner
+
+                    // Get full user object from QRS
+                    const filter = encodeURIComponent(
+                        `userDirectory eq '${newApp.appOwnerUserDirectory}' and userId eq '${newApp.appOwnerUserId}'`
+                    );
+
+                    const axiosConfigUser = setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        path: '/qrs/user',
+                        queryParameters: [{ name: 'filter', value: filter }],
+                    });
+
+                    const userResult = await axios.request(axiosConfigUser);
+                    if (userResult.status === 200 && userResult.data.length === 1) {
+                        logger.verbose(
+                            `Successfully retrieved app owner user ${userResult.data[0].userDirectory}\\${userResult.data[0].userId} from QSEoW`
+                        );
+                        logger.debug(`New app owner data from QRS:${JSON.stringify(userResult.data[0], null, 2)} `);
+                        // Yes, the user exists
+
+                        const newUser = userResult.data[0];
+                        app.owner = newUser;
+                    }
+                }
 
                 // Uppdate app with tags and custom properties
                 const axiosConfig2 = setupQRSConnection(this.options, {
