@@ -1,3 +1,4 @@
+const rax = require('retry-axios');
 const axios = require('axios');
 const path = require('path');
 const FormData = require('form-data');
@@ -42,7 +43,7 @@ class QlikSenseApps {
         this.appList.push(newApp);
     }
 
-    async importAppsFromFiles(appsFromFile) {
+    async importAppsFromFiles(appsFromFile, tagsExisting, cpExisting) {
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             logger.debug('PARSE APPS FROM EXCEL FILE: Starting get apps from data in file');
@@ -99,7 +100,11 @@ class QlikSenseApps {
                     // Verify that QVF file exists and build a full path to it
                     currentApp.fullQvfPath = mergeDirFilePath([currentApp.qvfDirectory, currentApp.qvfName]);
 
-                    logger.info(`Importing app "${currentApp.name}" from file "${currentApp.fullQvfPath}"`);
+                    logger.info(
+                        `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Importing app "${currentApp.name}" from file "${
+                            currentApp.fullQvfPath
+                        }"`
+                    );
 
                     // eslint-disable-next-line no-await-in-loop
                     const qvfFileExists = await verifyFileExists(currentApp.fullQvfPath);
@@ -122,7 +127,7 @@ class QlikSenseApps {
                         // eslint-disable-next-line no-restricted-syntax
                         for (const item of tmpTags) {
                             // eslint-disable-next-line no-await-in-loop
-                            const tagId = await getTagIdByName(item, this.options, this.fileCert, this.fileCertKey);
+                            const tagId = await getTagIdByName(item, tagsExisting);
                             if (tagId === false) {
                                 // Failed getting tag id, given name. Most likely becuase the tag doesn't exist
                                 logger.error(
@@ -155,13 +160,7 @@ class QlikSenseApps {
 
                             if (tmpCustomProperty?.length === 2) {
                                 // eslint-disable-next-line no-await-in-loop
-                                const customProperty = await getCustomPropertyDefinitionByName(
-                                    'App',
-                                    tmpCustomProperty[0],
-                                    this.options,
-                                    this.fileCert,
-                                    this.fileCertKey
-                                );
+                                const customProperty = await getCustomPropertyDefinitionByName('App', tmpCustomProperty[0], cpExisting);
                                 if (customProperty === false) {
                                     // Failed getting custom property id, most likely because the custom property does not exist.
                                     logger.error(
@@ -178,9 +177,7 @@ class QlikSenseApps {
                                     'App',
                                     tmpCustomProperty[0],
                                     tmpCustomProperty[1],
-                                    this.options,
-                                    this.fileCert,
-                                    this.fileCertKey
+                                    cpExisting
                                 );
 
                                 if (cpValueExists) {
@@ -247,7 +244,8 @@ class QlikSenseApps {
                 path: '/qrs/app/upload',
                 body: form,
                 headers: {
-                    ...form.getHeaders(),
+                    // ...form.getHeaders(),
+                    'Content-Type': 'application/vnd.qlik.sense.app',
                 },
                 queryParameters: [
                     { name: 'name', value: newApp.name },
@@ -256,10 +254,50 @@ class QlikSenseApps {
                 ],
             });
 
-            // Sleep before uploading.
-            // Avoids rate limiting as per https://community.qlik.com/t5/Official-Support-Articles/Qlik-Sense-QRS-API-Error-429-in-September-2020-and-later-when/ta-p/1798659
-            const result = await axios.request(axiosConfig);
-            await sleep(5000);
+            axiosConfig.raxConfig = {
+                retry: 8,
+                noResponseRetries: 2,
+                httpMethodsToRetry: ['GET', 'HEAD', 'OPTIONS', 'DELETE', 'PUT', 'POST'],
+                statusCodesToRetry: [
+                    [100, 199],
+                    [429, 429],
+                    [500, 599],
+                ],
+                backoffType: 'exponential',
+                // shouldRetry: (err) => {
+                //     console.log('shouldRetry');
+                //     const cfg = rax.getConfig(err);
+                //     return true;
+                // },
+                onRetryAttempt: (err) => {
+                    const form2 = new FormData();
+                    form2.append('qvfFile', sourceFileBuffer, newApp.qvfName);
+                    err.config.data = form2;
+
+                    const cfg = rax.getConfig(err);
+                    const { status } = err.response;
+                    if (status === 429) {
+                        logger.warn(`🔄 [${status}] QRS API rate limit reached. Pausing, then retry attempt #${cfg.currentRetryAttempt}`);
+                    } else {
+                        logger.warn(`🔄 [${status}] Error from QRS API. Pausing, then retry attempt #${cfg.currentRetryAttempt}`);
+                    }
+                },
+            };
+
+            // axiosConfig.baseURL = 'https://httpstat.us';
+            // axiosConfig.url = '/429';
+            // axiosConfig.method = 'get';
+
+            const myAxiosInstance = axios.create(axiosConfig);
+
+            myAxiosInstance.defaults.raxConfig = {
+                instance: myAxiosInstance,
+            };
+            const interceptorId = rax.attach(myAxiosInstance);
+
+            // Upload QVF
+            const result = await myAxiosInstance.request(axiosConfig);
+            // await sleep(1000);
 
             if (result.status === 201) {
                 logger.debug(`Import app from QVF file success, result from API:\n${JSON.stringify(result.data, null, 2)}`);
@@ -281,7 +319,6 @@ class QlikSenseApps {
                     body: app,
                 });
 
-                await sleep(1000);
                 const result2 = await axios.request(axiosConfig2);
                 if (result2.status === 200) {
                     logger.debug(`Update of imported app wrt tags and custom properties successful`);
@@ -290,10 +327,9 @@ class QlikSenseApps {
                 }
                 logger.warn(`Failed setting tags on imported app ${newApp.name}, return code ${result2.status}.`);
             } else if (result.status === 429) {
-                // Too many requests
-                logger.warn(`Error 429 returned from QRS API. Too many requests, exiting.`);
-                // TODO Should not exit here, rather wait a while and retry. Unclear though what the rate limit for uploads is, 
-                // TODO thus difficult to implement a backoff policy. Further research needed.
+                // Too many requests, even after retries with exponential backoff
+                logger.error(`Too many requests (429 errors), even after retries with exponential backoff. Exiting.`);
+                process.exit(1);
             } else {
                 logger.error(`Error ${result.status} returned from QRS API. Aborting.`);
                 process.exit(1);

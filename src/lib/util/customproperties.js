@@ -1,9 +1,64 @@
 const axios = require('axios');
+const path = require('path');
 
-const { logger } = require('../../globals');
+const { logger, execPath } = require('../../globals');
 const { setupQRSConnection } = require('./qrs');
 
-function getCustomPropertyIdByName(objectType, customPropertyName, options, fileCert, fileCertKey) {
+function getCustomPropertiesFromQseow(options) {
+    return new Promise((resolve, reject) => {
+        logger.verbose(`Getting custom properties from QSEoW...`);
+
+        // Make sure certificates exist
+        const fileCert = path.resolve(execPath, options.authCertFile);
+        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+
+        const axiosConfig = setupQRSConnection(options, {
+            method: 'get',
+            fileCert,
+            fileCertKey,
+            path: '/qrs/custompropertydefinition/full',
+        });
+
+        axios
+            .request(axiosConfig)
+            .then((result) => {
+                if (result.status === 200) {
+                    logger.info(`Successfully retrieved ${result.data.length} custom properties from QSEoW`);
+                    // Yes, the tag exists
+                    resolve(result.data);
+                }
+                resolve(false);
+            })
+            .catch((err) => {
+                logger.error(`GET CUSTOM PROPERTIES FROM QSEoW: ${err}`);
+            });
+    });
+}
+
+function getCustomPropertyIdByName(objectType, customPropertyName, cpExisting) {
+    return new Promise((resolve, reject) => {
+        logger.debug(`Looking up ID for custom property named "${customPropertyName}" on object type "${objectType}"`);
+
+        const cp = cpExisting.filter((item) => item.name === customPropertyName);
+
+        if (cp.length === 1) {
+            // The custom property exists, but is it enabled for this object type (task, app etc)?
+            const correctObjectType = cp[0].objectTypes.find((item) => objectType.toLowerCase() === item.toLowerCase());
+            if (!correctObjectType) {
+                logger.warn(`Custom property "${customPropertyName}" is not valid for object type "${objectType}".`);
+                resolve(false);
+            }
+
+            // Yes, the the custom property exists
+            logger.verbose(`Successfully found ID ${cp[0].id} for custom property named "${customPropertyName}"`);
+            resolve(cp[0].id);
+        } else if (cp.length === 0) {
+            logger.warn(`Custom property "${customPropertyName}" does not exist.`);
+            resolve(false);
+        }
+    });
+}
+function getCustomPropertyIdByName2(objectType, customPropertyName, options, fileCert, fileCertKey) {
     return new Promise((resolve, reject) => {
         logger.debug(`Looking up ID for custom property named "${customPropertyName}" on object type "${objectType}"`);
 
@@ -41,9 +96,32 @@ function getCustomPropertyIdByName(objectType, customPropertyName, options, file
     });
 }
 
-function getCustomPropertyDefinitionByName(objectType, customPropertyName, options, fileCert, fileCertKey) {
+function getCustomPropertyDefinitionByName(objectType, customPropertyName, cpExisting) {
     return new Promise((resolve, reject) => {
-        logger.debug(`Looking up ID for custom property named "${customPropertyName}" on object type "${objectType}"`);
+        logger.debug(`Looking up definition for custom property named "${customPropertyName}" on object type "${objectType}"`);
+
+        const cp = cpExisting.filter((item) => item.name === customPropertyName);
+
+        if (cp.length === 1) {
+            // The custom property exists, but is it enabled for this object type (task, app etc)?
+            const correctObjectType = cp[0].objectTypes.find((item) => objectType.toLowerCase() === item.toLowerCase());
+            if (!correctObjectType) {
+                logger.warn(`Custom property "${customPropertyName}" is not valid for object type "${objectType}".`);
+                resolve(false);
+            }
+
+            // Yes, the the custom property exists
+            logger.verbose(`Successfully found definition ${cp[0]} for custom property named "${customPropertyName}"`);
+            resolve(cp[0]);
+        } else if (cp.length === 0) {
+            logger.warn(`Custom property "${customPropertyName}" does not exist.`);
+            resolve(false);
+        }
+    });
+}
+function getCustomPropertyDefinitionByName2(objectType, customPropertyName, options, fileCert, fileCertKey) {
+    return new Promise((resolve, reject) => {
+        logger.debug(`Looking up definition for custom property named "${customPropertyName}" on object type "${objectType}"`);
 
         const axiosConfig = setupQRSConnection(options, {
             method: 'get',
@@ -68,7 +146,7 @@ function getCustomPropertyDefinitionByName(objectType, customPropertyName, optio
                     }
 
                     // Yes, the the custom property exists
-                    logger.verbose(`Successfully found ID ${result.data[0].id} for custom property named "${customPropertyName}"`);
+                    logger.verbose(`Successfully found definition ${result.data[0]} for custom property named "${customPropertyName}"`);
                     resolve(result.data[0]);
                 }
                 resolve(false);
@@ -79,7 +157,41 @@ function getCustomPropertyDefinitionByName(objectType, customPropertyName, optio
     });
 }
 
-function doesCustomPropertyValueExist(objectType, customPropertyName, customPropertyValue, options, fileCert, fileCertKey) {
+function doesCustomPropertyValueExist(objectType, customPropertyName, customPropertyValue, cpExisting) {
+    return new Promise((resolve, reject) => {
+        logger.debug(
+            `Checking if value "${customPropertyValue}" is valid for custom property "${customPropertyName}" on object type "${objectType}"`
+        );
+
+        const cp = cpExisting.filter((item) => item.name === customPropertyName);
+
+        if (cp.length === 1) {
+            // The custom property exists, but is it enabled for this object type (task, app etc)?
+            const correctObjectType = cp[0].objectTypes.find((item) => objectType.toLowerCase() === item.toLowerCase());
+            if (!correctObjectType) {
+                logger.warn(`Custom property "${customPropertyName}" is not valid for object type "${objectType}".`);
+                resolve(false);
+            }
+
+            // Check if value is valid for this custom property
+            const valueExists = cp[0].choiceValues.find((item) => item === customPropertyValue);
+            if (!valueExists) {
+                logger.warn(
+                    `"${customPropertyValue}" is not a valid value for custom property "${customPropertyName}", for object type "${objectType}".`
+                );
+                resolve(false);
+            }
+
+            // Yes, the the custom property exists
+            logger.verbose(`Successfully found ID ${cp[0].id} for custom property named "${customPropertyName}"`);
+            resolve(cp[0].id);
+        } else if (cp.length === 0) {
+            logger.warn(`Custom property "${customPropertyName}" does not exist.`);
+            resolve(false);
+        }
+    });
+}
+function doesCustomPropertyValueExist2(objectType, customPropertyName, customPropertyValue, options, fileCert, fileCertKey) {
     return new Promise((resolve, reject) => {
         logger.debug(
             `Checking if value "${customPropertyValue}" is valid for custom property "${customPropertyName}" on object type "${objectType}"`
@@ -129,6 +241,7 @@ function doesCustomPropertyValueExist(objectType, customPropertyName, customProp
 }
 
 module.exports = {
+    getCustomPropertiesFromQseow,
     getCustomPropertyIdByName,
     getCustomPropertyDefinitionByName,
     doesCustomPropertyValueExist,

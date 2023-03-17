@@ -35,14 +35,21 @@ const setupQRSConnection = (options, param) => {
         httpsAgent,
         timeout: 60000,
         //   passphrase: "YYY"
-        validateStatus(status) {
-            // if this function returns true, exception is not thrown, so
-            // in simplest case just return true to handle status checks externally.
-            if (status === 429 || status === 200 || status === 201) {
-                return true;
-            }
-            return false;
-        },
+        // validateStatus(status) {
+        //     // if this function returns true, exception is not thrown, so
+        //     // in simplest case just return true to handle status checks externally.
+        //     if (status === 429 || status === 200 || status === 201) {
+        //         return true;
+        //     }
+        //     return false;
+        // },
+
+        // backoffType: 'exponential',
+        // onRetryAttempt: (err) => {
+        //     const cfg = rax.getConfig(err);
+        //     const status = err.response.status;
+        //     console.log(`🔄 [${status}] Retry attempt #${cfg.currentRetryAttempt}`);
+        // },
     };
 
     // Add message body (if any)

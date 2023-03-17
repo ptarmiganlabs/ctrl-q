@@ -70,7 +70,7 @@ class QlikSenseTasks {
         this.taskList.push(newTask);
     }
 
-    async getTaskModelFromFile(tasksFromFile) {
+    async getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting) {
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
@@ -183,7 +183,7 @@ class QlikSenseTasks {
                             // eslint-disable-next-line no-restricted-syntax
                             for (const item of tmpTags) {
                                 // eslint-disable-next-line no-await-in-loop
-                                const tagId = await getTagIdByName(item, this.options, this.fileCert, this.fileCertKey);
+                                const tagId = await getTagIdByName(item, tagsExisting);
                                 currentTask.tags.push({
                                     id: tagId,
                                     name: item,
@@ -210,9 +210,7 @@ class QlikSenseTasks {
                                     const customPropertyId = await getCustomPropertyIdByName(
                                         'ReloadTask',
                                         tmpCustomProperty[0],
-                                        this.options,
-                                        this.fileCert,
-                                        this.fileCertKey
+                                        cpExisting
                                     );
 
                                     currentTask.customProperties.push({
@@ -544,8 +542,8 @@ class QlikSenseTasks {
 
                 resolve(this.taskList);
             } catch (err) {
-                if (err.response.status) {
-                    logger.error(`Received error ${err.response.status}/${err.response.statusText} from QRS API`);
+                if (err.response?.status) {
+                    logger.error(`Received error ${err.response?.status}/${err.response?.statusText} from QRS API`);
                 }
                 if (err.response.data) {
                     logger.error(`Error message from QRS API: ${err.response.data}`);
