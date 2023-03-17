@@ -297,7 +297,8 @@ class QlikSenseApps {
 
             // Upload QVF
             const result = await myAxiosInstance.request(axiosConfig);
-            // await sleep(1000);
+            logger.verbose(`App upload done, sleeping for ${this.options.sleepAppUpload} milliseconds`);
+            await sleep(this.options.sleepAppUpload);
 
             if (result.status === 201) {
                 logger.debug(`Import app from QVF file success, result from API:\n${JSON.stringify(result.data, null, 2)}`);

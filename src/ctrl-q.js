@@ -530,6 +530,11 @@ const program = new Command();
             'import at most x number of tasks from the source file. Defaults to 0 = no limit',
             0
         )
+        .requiredOption(
+            '--sleep-app-upload <milliseconds>',
+            'Wait this long before continuing after each app has been uploaded to Sense. Defaults to 1000 = 1 second',
+            1000
+        )
 
         .option('--import-app', 'import Sense app QVFs from specified directory')
         .option('--import-app-sheet-name <name>', 'name of Excel sheet where app definitions are found')
@@ -570,6 +575,11 @@ const program = new Command();
         .requiredOption('--sheet-name <name>', 'name of Excel sheet where app info is found')
 
         .requiredOption('--limit-import-count <number>', 'import at most x number of apps. Defaults to 0 = no limit', 0)
+        .requiredOption(
+            '--sleep-app-upload <milliseconds>',
+            'Wait this long before continuing after each app has been uploaded to Sense. Defaults to 1000 = 1 second',
+            1000
+        )
 
         .option('--dry-run', 'do a dry run, i.e. do not import any apps - just show what would be done');
 
