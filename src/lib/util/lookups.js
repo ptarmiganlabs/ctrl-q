@@ -132,7 +132,9 @@ const appFileColumnHeaders = {
     appCustomProperties: { name: 'App custom properties', pos: -1 },
     appOwnerUserDirectory: { name: 'Owner user directory', pos: -1 },
     appOwnerUserId: { name: 'Owner user id', pos: -1 },
+    appPublishToStream: { name: 'Publish to stream', pos: -1 },
 };
+
 function getColumnPosFromHeaderRow(headerRow) {
     taskFileColumnHeaders.taskCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskCounter.name);
     taskFileColumnHeaders.taskType.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskType.name);
@@ -205,6 +207,7 @@ function getAppColumnPosFromHeaderRow(headerRow) {
         (item) => item === appFileColumnHeaders.appOwnerUserDirectory.name
     );
     appFileColumnHeaders.appOwnerUserId.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appOwnerUserId.name);
+    appFileColumnHeaders.appPublishToStream.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appPublishToStream.name);
 
     return appFileColumnHeaders;
 }

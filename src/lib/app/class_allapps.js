@@ -3,6 +3,7 @@ const axios = require('axios');
 const path = require('path');
 const FormData = require('form-data');
 const fs = require('fs/promises');
+const { validate } = require('uuid');
 
 const { logger, execPath, mergeDirFilePath, verifyFileExists, sleep } = require('../../globals');
 const { setupQRSConnection } = require('../util/qrs');
@@ -97,6 +98,7 @@ class QlikSenseApps {
                         customProperties: [],
                         appOwnerUserDirectory: appRow[0][appFileColumnHeaders.appOwnerUserDirectory.pos],
                         appOwnerUserId: appRow[0][appFileColumnHeaders.appOwnerUserId.pos],
+                        appPublishToStream: appRow[0][appFileColumnHeaders.appPublishToStream.pos],
                     };
 
                     // Verify that QVF file exists and build a full path to it
@@ -332,6 +334,7 @@ class QlikSenseApps {
                     });
 
                     const userResult = await axios.request(axiosConfigUser);
+                    logger.debug(`Retrieving app owner data, result from QRS: [${userResult.status}] ${userResult.statusText}`);
                     if (userResult.status === 200 && userResult.data.length === 1) {
                         logger.verbose(
                             `Successfully retrieved app owner user ${userResult.data[0].userDirectory}\\${userResult.data[0].userId} from QSEoW`
@@ -341,6 +344,16 @@ class QlikSenseApps {
 
                         const newUser = userResult.data[0];
                         app.owner = newUser;
+                    } else if (userResult.status === 200 && userResult.data.length === 0) {
+                        // Ok query but no matching names in Sense
+                        logger.error(
+                            `User ${userResult.data[0].userDirectory}\\${userResult.data[0].userId} not found in Sense. Owner of app ${newApp.name} will not be updated.`
+                        );
+                    } else if (userResult.status !== 200) {
+                        // Something went wrong
+                        logger.error(
+                            `Unexpected result when retrieving app owner data for app ${newApp.name}, result from QRS: [${userResult.status}] ${userResult.statusText}`
+                        );
                     }
                 }
 
@@ -356,11 +369,98 @@ class QlikSenseApps {
                 const result2 = await axios.request(axiosConfig2);
                 if (result2.status === 200) {
                     logger.debug(`Update of imported app wrt tags and custom properties successful`);
-
-                    return app.id;
+                } else if (result2.status !== 200) {
+                    logger.warn(
+                        `Failed updating tags, custom properties, app owner on imported app ${newApp.name}, return code ${result2.status}.`
+                    );
+                    return false;
                 }
-                logger.warn(`Failed setting tags on imported app ${newApp.name}, return code ${result2.status}.`);
-            } else if (result.status === 429) {
+
+                // Publish app to stream if a stream name is specified
+                if (newApp?.appPublishToStream?.length > 0) {
+                    let axiosConfigPublish;
+                    let streamGuid;
+                    let resultPublish;
+
+                    // Is the provided stream name a valid GUID?
+                    // If so check if the GUID represents a stream
+                    if (validate(newApp.appPublishToStream)) {
+                        // It's a valid GUID
+                        axiosConfigPublish = setupQRSConnection(this.options, {
+                            method: 'get',
+                            fileCert: this.fileCert,
+                            fileCertKey: this.fileCertKey,
+                            path: `/qrs/stream/${newApp.appPublishToStream}`,
+                        });
+
+                        resultPublish = await axios.request(axiosConfigPublish);
+                        if (resultPublish.status === 200) {
+                            // Yes, the GUID represents a stream
+                            // eslint-disable-next-line prefer-destructuring
+                            streamGuid = resultPublish.data.id;
+                        }
+                    } else {
+                        // Provided stream name is not a GUID, make sure only one stream exists with this name, then get its GUID
+                        const filter = encodeURIComponent(`name eq '${newApp.appPublishToStream}'`);
+
+                        axiosConfigPublish = setupQRSConnection(this.options, {
+                            method: 'get',
+                            fileCert: this.fileCert,
+                            fileCertKey: this.fileCertKey,
+                            path: '/qrs/stream',
+                            queryParameters: [{ name: 'filter', value: filter }],
+                        });
+
+                        resultPublish = await axios.request(axiosConfigPublish);
+                        if (resultPublish.status === 200) {
+                            if (resultPublish?.data?.length === 1) {
+                                // Exactly one stream has this name
+                                logger.verbose(`Publish stream "${newApp.appPublishToStream}" found, id=${resultPublish.data[0].id} `);
+
+                                streamGuid = resultPublish.data[0].id;
+                            } else if (resultPublish?.data?.length > 1) {
+                                logger.warn(
+                                    `More than one stream with the same name "${newApp.appPublishToStream}" found, does not know which one to publish app "${newApp.name}" to.`
+                                );
+                            } else {
+                                // Stream not found
+                                logger.warn(
+                                    `Cannot publish app "${newApp.name}" to stream "${newApp.appPublishToStream}" as that stream does not exist.`
+                                );
+                            }
+                        } else {
+                            // Something went wrong when looking up stream name
+                            logger.warn(
+                                `Error while looking publish stream name "${newApp.appPublishToStream}" for app "${newApp.name}": [${resultPublish.status}] ${resultPublish.statusText}`
+                            );
+                        }
+                    }
+
+                    // Do we know which stream to publish to? Publish if so!
+                    if (streamGuid) {
+                        axiosConfigPublish = setupQRSConnection(this.options, {
+                            method: 'put',
+                            fileCert: this.fileCert,
+                            fileCertKey: this.fileCertKey,
+                            path: `/qrs/app/${app.id}/publish`,
+                            queryParameters: [{ name: 'stream', value: streamGuid }],
+                        });
+
+                        resultPublish = await axios.request(axiosConfigPublish);
+                        if (resultPublish.status === 200) {
+                            // Publish successful
+                            logger.info(`App "${newApp.name}" published to stream "${newApp.appPublishToStream}".`);
+                        } else {
+                            // Something went wrong when looking publishing to stream
+                            logger.warn(
+                                `Error while publishing app  "${newApp.name}" to stream "${newApp.appPublishToStream}": [${resultPublish.status}] ${resultPublish.statusText}`
+                            );
+                        }
+                    }
+                }
+                return app.id;
+            }
+            if (result.status === 429) {
                 // Too many requests, even after retries with exponential backoff
                 logger.error(`Too many requests (429 errors), even after retries with exponential backoff. Exiting.`);
                 process.exit(1);
