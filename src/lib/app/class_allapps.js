@@ -306,8 +306,8 @@ class QlikSenseApps {
 
             if (result.status === 201) {
                 logger.debug(`Import app from QVF file success, result from API:\n${JSON.stringify(result.data, null, 2)}`);
-
-                const app = result.data;
+console.log('1');
+                const app = JSON.parse(result.data);
 
                 // Add tags to imported app
                 app.tags = [...newApp.tags];
@@ -334,20 +334,21 @@ class QlikSenseApps {
                     });
 
                     const userResult = await axios.request(axiosConfigUser);
+                    const userResponse = JSON.parse(userResult.data);
                     logger.debug(`Retrieving app owner data, result from QRS: [${userResult.status}] ${userResult.statusText}`);
-                    if (userResult.status === 200 && userResult.data.length === 1) {
+                    if (userResult.status === 200 && userResponse.length === 1) {
                         logger.verbose(
-                            `Successfully retrieved app owner user ${userResult.data[0].userDirectory}\\${userResult.data[0].userId} from QSEoW`
+                            `Successfully retrieved app owner user ${userResponse[0].userDirectory}\\${userResponse[0].userId} from QSEoW`
                         );
-                        logger.debug(`New app owner data from QRS:${JSON.stringify(userResult.data[0], null, 2)} `);
-                        // Yes, the user exists
+                        logger.debug(`New app owner data from QRS:${JSON.stringify(userResponse[0], null, 2)} `);
 
-                        const newUser = userResult.data[0];
+                        // Yes, the user exists
+                        const newUser = userResponse[0];
                         app.owner = newUser;
-                    } else if (userResult.status === 200 && userResult.data.length === 0) {
+                    } else if (userResult.status === 200 && userResponse.length === 0) {
                         // Ok query but no matching names in Sense
                         logger.error(
-                            `User ${userResult.data[0].userDirectory}\\${userResult.data[0].userId} not found in Sense. Owner of app ${newApp.name} will not be updated.`
+                            `User ${userResponse[0].userDirectory}\\${userResponse[0].userId} not found in Sense. Owner of app ${newApp.name} will not be updated.`
                         );
                     } else if (userResult.status !== 200) {
                         // Something went wrong
@@ -381,6 +382,7 @@ class QlikSenseApps {
                     let axiosConfigPublish;
                     let streamGuid;
                     let resultPublish;
+                    let responsePublish;
 
                     // Is the provided stream name a valid GUID?
                     // If so check if the GUID represents a stream
@@ -396,8 +398,10 @@ class QlikSenseApps {
                         resultPublish = await axios.request(axiosConfigPublish);
                         if (resultPublish.status === 200) {
                             // Yes, the GUID represents a stream
+                            responsePublish = JSON.parse(resultPublish.data);
+
                             // eslint-disable-next-line prefer-destructuring
-                            streamGuid = resultPublish.data.id;
+                            streamGuid = responsePublish.id;
                         }
                     } else {
                         // Provided stream name is not a GUID, make sure only one stream exists with this name, then get its GUID
@@ -413,12 +417,13 @@ class QlikSenseApps {
 
                         resultPublish = await axios.request(axiosConfigPublish);
                         if (resultPublish.status === 200) {
-                            if (resultPublish?.data?.length === 1) {
+                            responsePublish = JSON.parse(resultPublish?.data);
+                            if (responsePublish?.length === 1) {
                                 // Exactly one stream has this name
-                                logger.verbose(`Publish stream "${newApp.appPublishToStream}" found, id=${resultPublish.data[0].id} `);
+                                logger.verbose(`Publish stream "${newApp.appPublishToStream}" found, id=${responsePublish[0].id} `);
 
-                                streamGuid = resultPublish.data[0].id;
-                            } else if (resultPublish?.data?.length > 1) {
+                                streamGuid = responsePublish[0].id;
+                            } else if (responsePublish?.length > 1) {
                                 logger.warn(
                                     `More than one stream with the same name "${newApp.appPublishToStream}" found, does not know which one to publish app "${newApp.name}" to.`
                                 );

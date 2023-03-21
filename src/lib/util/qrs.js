@@ -29,9 +29,12 @@ const setupQRSConnection = (options, param) => {
         headers: {
             'x-qlik-xrfkey': xrfKey,
             'X-Qlik-User': 'UserDirectory=Internal; UserId=sa_api',
+            // 'Accept': 'application/json',
             // 'Content-Type': 'application/json; charset=utf-8',
         },
+        // responseType: 'application/json',
         responseType: 'application/json',
+        responseEncoding: 'utf8',
         httpsAgent,
         timeout: 60000,
         //   passphrase: "YYY"

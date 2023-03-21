@@ -27,7 +27,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "axios": "0.27.2",
+    "axios": "^1.3.4",
     "commander": "^10.0.0",
     "csv-parse": "^5.3.6",
     "csv-stringify": "^6.3.0",

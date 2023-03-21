@@ -41,16 +41,16 @@ const getCustomProperty = async (options) => {
         // Query QRS for tasks based on task IDs
         const result = await axios.request(axiosConfig);
         logger.debug(`GET CUSTOM PROPERTY: Result=${result.status}`);
-        // if (JSON.parse(result.data).length > 0) {
-        if (result.data.length > 1) {
+        const response = JSON.parse(result.data);
+
+        if (response.length > 1) {
             // This should not happen... Only one custom property should match the given filter
             logger.error(`Too many custom properties matched filter "${options.customPropertyName}". Exiting.`);
             process.exit(1);
         }
-        if (result.data.length > 0) {
+        if (response.length > 0) {
             // Custom property found
-            // cp = JSON.parse(result.data);
-            cp = result.data;
+            cp = response;
         } else {
             cp = false;
         }
@@ -120,7 +120,7 @@ const getTasksFromQseow = async (options) => {
         // Query QRS for tasks based on task IDs
         const result = await axios.request(axiosConfig);
         logger.debug(`GET TASK: Result=result.status`);
-        const tmpTaskList = result.data;
+        const tmpTaskList = JSON.parse(result.data);
 
         // Remove duplicates from task list
         taskList = uniqueByTaskKeys(tmpTaskList, ['id']);

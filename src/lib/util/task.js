@@ -19,8 +19,9 @@ function taskExistById(taskId, options, fileCert, fileCertKey) {
         axios
             .request(axiosConfig)
             .then((result) => {
-                if (result.data.length === 1) {
-                    logger.verbose(`Task exists: ID=${result.data[0].id}. Task name="${result.data[0].name}"`);
+                const response = JSON.parse(result.data);
+                if (response.length === 1) {
+                    logger.verbose(`Task exists: ID=${response[0].id}. Task name="${response[0].name}"`);
                     // Yes, the task exists
                     resolve(true);
                 }

@@ -50,8 +50,7 @@ class QlikSenseCompositeEvents {
                     .request(axiosConfig)
                     .then((result) => {
                         logger.debug(`GET COMPOSITE EVENT: Result=${result.status}`);
-                        // const compositeEvents = JSON.parse(result.data);
-                        const compositeEvents = result.data;
+                        const compositeEvents = JSON.parse(result.data);
                         logger.verbose(`GET COMPOSITE EVENT: Total number of composite events: ${compositeEvents.length}`);
 
                         this.clear();
