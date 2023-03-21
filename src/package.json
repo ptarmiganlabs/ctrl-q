@@ -4,7 +4,7 @@
   "description": "Command line tool for interacting with Qlik Sense Enterprise servers",
   "main": "./ctrl-q.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "homepage": "https://github.com/ptarmiganlabs/ctrl-q",
   "author": "Göran Sander",
@@ -54,6 +54,7 @@
     "yesno": "^0.4.0"
   },
   "devDependencies": {
+    "jest": "^29.5.0",
     "prettier": "^2.8.4",
     "snyk": "^1.1116.0"
   },
