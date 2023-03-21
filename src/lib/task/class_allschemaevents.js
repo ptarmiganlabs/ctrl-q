@@ -68,7 +68,7 @@ class QlikSenseSchemaEvents {
                     .then((result) => {
                         logger.debug(`GET SCHEMA EVENT: Result=${result.status}`);
                         // const schemaEvents = JSON.parse(result.data);
-                        const schemaEvents = result.data;
+                        const schemaEvents = JSON.parse(result.data);
                         logger.verbose(`GET SCHEMA EVENT: Total number of schema events: ${schemaEvents.length}`);
 
                         this.clear();

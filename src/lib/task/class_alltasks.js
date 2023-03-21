@@ -581,11 +581,12 @@ class QlikSenseTasks {
                 axios
                     .request(axiosConfig)
                     .then((result) => {
-                        logger.info(
-                            `CREATE COMPOSITE EVENT IN QSEOW: Event name="${newCompositeEvent.name}" for task ID ${result.data.reloadTask.id}. Result: ${result.status}/${result.statusText}.`
-                        );
                         if (result.status === 201) {
-                            resolve(result.data.id);
+                            const response = JSON.parse(result.data);
+                            logger.info(
+                                `CREATE COMPOSITE EVENT IN QSEOW: Event name="${newCompositeEvent.name}" for task ID ${response.reloadTask.id}. Result: ${result.status}/${result.statusText}.`
+                            );
+                            resolve(response.id);
                         } else {
                             reject();
                         }
@@ -638,11 +639,12 @@ class QlikSenseTasks {
                 axios
                     .request(axiosConfig)
                     .then((result) => {
+                        const response = JSON.parse(result.data);
                         logger.info(
-                            `CREATE RELOAD TASK IN QSEOW: "${newTask.name}", new task id: ${result.data.id}. Result: ${result.status}/${result.statusText}.`
+                            `CREATE RELOAD TASK IN QSEOW: "${newTask.name}", new task id: ${response.id}. Result: ${result.status}/${result.statusText}.`
                         );
                         if (result.status === 201) {
-                            resolve(result.data.id);
+                            resolve(response.id);
                         } else {
                             reject();
                         }
@@ -794,7 +796,7 @@ class QlikSenseTasks {
                     .then((result) => {
                         logger.debug(`GET TASK: Result=result.status`);
                         // const tasks = JSON.parse(result.data);
-                        const tasks = result.data;
+                        const tasks = JSON.parse(result.data);
                         logger.verbose(`GET TASK: # tasks: ${tasks.length}`);
 
                         // TODO

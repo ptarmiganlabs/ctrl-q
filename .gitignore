@@ -1,7 +1,6 @@
 # Project specific ignores
 cert/
 launch.json
-build/
 tasks_.csv
 tasks_.xlsx
 tasks_.json
@@ -16,6 +15,7 @@ doc/*
 npm-debug.log
 .DS_Store
 
+build/
 release/*
 src/release/*
 
