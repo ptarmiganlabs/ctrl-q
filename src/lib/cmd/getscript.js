@@ -54,6 +54,13 @@ const getScript = async (options) => {
         } else {
             logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
         }
+
+        return {
+            appId: options.appId,
+            appCreatedDate: appScript.qMeta.createdDate,
+            appModifiedDate: appScript.qMeta.modifiedDate,
+            appScript: appScript.qScript,
+        };
     } catch (err) {
         logger.error(`GET SCRIPT: ${err}`);
     }

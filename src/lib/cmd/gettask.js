@@ -88,6 +88,8 @@ const getTask = async (options) => {
         logger.verbose('Get tasks');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
+        let returnValue = false;
+
         // Get all tags
         const tags = await getTagsFromQseow(options);
 
@@ -148,6 +150,7 @@ const getTask = async (options) => {
             if (options.outputDest === 'screen') {
                 logger.info(`# rows in tree: ${taskTree.length}`);
                 logger.info(`\n${tree(taskTree)}`);
+                returnValue = true;
             } else if (options.outputDest === 'file') {
                 logger.verbose(`Writing task tree to disk file "${options.outputFileName}"`);
                 let buffer;
@@ -182,7 +185,9 @@ const getTask = async (options) => {
                 }
                 logger.info(`✅ Writing task tree to disk file "${options.outputFileName}".`);
                 await Fs.writeFile(options.outputFileName, buffer);
+                returnValue = true;
             }
+
         } else if (options.outputFormat === 'table') {
             const { tasks } = qlikSenseTasks.taskNetwork;
             const { schemaEventList } = qlikSenseTasks.qlikSenseSchemaEvents;
@@ -599,6 +604,7 @@ const getTask = async (options) => {
                 logger.info(`# rows in table: ${taskTable.length - 1}`);
                 logger.info(`# tasks in table: ${taskTable.filter((task) => task[1] === 'Reload').length}`);
                 logger.info(`\n${table(taskTable, consoleTableConfig)}`);
+                returnValue = true;
             } else if (options.outputDest === 'file') {
                 logger.verbose(`Writing task table to disk file "${options.outputFileName}"`);
                 let buffer;
@@ -639,10 +645,13 @@ const getTask = async (options) => {
                 }
                 logger.info(`✅ Writing task table to disk file "${options.outputFileName}".`);
                 await Fs.writeFile(options.outputFileName, buffer);
+                returnValue = true;
             }
         }
+        return returnValue;
     } catch (err) {
         logger.error(`GET TASK: ${err.stack}`);
+        return false;
     }
 };
 

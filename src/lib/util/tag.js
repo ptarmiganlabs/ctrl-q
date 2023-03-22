@@ -23,6 +23,8 @@ function getTagsFromQseow(options) {
             // },
         });
 
+        logger.debug(`About to retrieve tags from QRS API: ${JSON.stringify(axiosConfig)}`);
+
         axios
             .request(axiosConfig)
             .then((result) => {
