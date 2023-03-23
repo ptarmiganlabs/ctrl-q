@@ -89,7 +89,6 @@ jobs:
           ls -la
           mkdir build
           ncc build -o build/lib -e enigma.js ./src/ctrl-q.js
-          mkdir build
           mkdir build/macos
           mkdir build/win
           mkdir build/linux
