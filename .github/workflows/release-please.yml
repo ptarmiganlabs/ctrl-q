@@ -101,10 +101,10 @@ jobs:
         if: ${{ steps.release.outputs.src--release_created }}
         run: |
           ls -la
-          ls -la build
-          ls -la build/macos
-          ls -la build/win
-          ls -la build/linux
+          ls -la src/build
+          ls -la src/build/macos
+          ls -la src/build/win
+          ls -la src/build/linux
           mkdir ghaction-virustotal
 
       - name: VirusTotal Scan
@@ -114,9 +114,9 @@ jobs:
           vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
           request_rate: 4
           files: |
-            ./build/macos/*
-            ./build/win/*
-            ./build/linux/*
+            ./src/build/macos/*
+            ./src/build/win/*
+            ./src/build/linux/*
 
       - name: Debug
         if: ${{ steps.release.outputs.src--release_created }}
@@ -128,21 +128,21 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: binaries-macos
-          path: build/macos/*
+          path: src/build/macos/*
 
       - name: Upload Linux build artifacts
         if: ${{ steps.release.outputs.src--release_created }}
         uses: actions/upload-artifact@v3
         with:
           name: binaries-linux
-          path: build/linux/*
+          path: src/build/linux/*
 
       - name: Upload Windows build artifacts
         if: ${{ steps.release.outputs.src--release_created }}
         uses: actions/upload-artifact@v3
         with:
           name: binaries-win
-          path: build/win/*
+          path: src/build/win/*
 
   release-macos:
     needs: release-please
