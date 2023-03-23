@@ -87,11 +87,12 @@ jobs:
         run: |
           pwd
           ls -la
+          cd src
           mkdir build
-          ncc build -o build/lib -e enigma.js ./src/ctrl-q.js
           mkdir build/macos
           mkdir build/win
           mkdir build/linux
+          ncc build -o build/lib -e enigma.js ./ctrl-q.js
           pkg --output build/macos/${DIST_FILE_NAME} --target node16-macos-x64 --compress GZip ./build/lib/index.js
           pkg --output build/win/${DIST_FILE_NAME}.exe --target node16-win-x64 --compress GZip ./build/lib/index.js
           pkg --output build/linux/${DIST_FILE_NAME} --target node16-linux-x64 --compress GZip ./build/lib/index.js
