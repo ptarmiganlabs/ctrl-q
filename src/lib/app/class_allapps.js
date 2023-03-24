@@ -63,7 +63,7 @@ class QlikSenseApps {
                     }
 
                     if (item[appFileColumnHeaders.appCounter.pos] === appFileColumnHeaders.appCounter.name) {
-                        // This is the header rowe
+                        // This is the header row
                         return -1;
                     }
 
@@ -74,6 +74,10 @@ class QlikSenseApps {
                     }
 
                     const appNum = item[appFileColumnHeaders.appCounter.pos];
+                    if (!appNum) {
+                        // Invalid app counter, for example empty row
+                        return -1;
+                    }
                     return appNum;
                 })
             );
@@ -248,8 +252,7 @@ class QlikSenseApps {
                 path: '/qrs/app/upload',
                 body: form,
                 headers: {
-                    // ...form.getHeaders(),
-                    'Content-Type': 'application/vnd.qlik.sense.app',
+                    ...form.getHeaders(),
                 },
                 queryParameters: [
                     { name: 'name', value: newApp.name },
@@ -306,7 +309,7 @@ class QlikSenseApps {
 
             if (result.status === 201) {
                 logger.debug(`Import app from QVF file success, result from API:\n${JSON.stringify(result.data, null, 2)}`);
-console.log('1');
+                console.log('1');
                 const app = JSON.parse(result.data);
 
                 // Add tags to imported app
