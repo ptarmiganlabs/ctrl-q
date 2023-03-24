@@ -309,7 +309,6 @@ class QlikSenseApps {
 
             if (result.status === 201) {
                 logger.debug(`Import app from QVF file success, result from API:\n${JSON.stringify(result.data, null, 2)}`);
-                console.log('1');
                 const app = JSON.parse(result.data);
 
                 // Add tags to imported app

@@ -48,11 +48,11 @@
       //   "2023 Jan",
       //   // "Finance",
       //   // "Sales",
-      //   // "--overwrite",
+      //   "--overwrite",
       //   "--update-mode",
       //   // "append",
       //   "replace",
-      //   "--dry-run"
+      //   // "--dry-run"
       // ]
 
       // ------------------------------------
@@ -77,19 +77,22 @@
       //   "excel",
         
       //   "--file-name",
-      //   "tasks.xlsx",
+      //   // "tasks.xlsx",
       //   "--sheet-name",
-      //   "Ctrl-Q task export",
+      //   // "Ctrl-Q task export",
 
       //   "--import-app",
       //   "--import-app-sheet-name",
-      //   "App import",
+      //   // "App import",
 
       //   // "--overwrite",
       //   // "no",
 
       //   // "--limit-import-count",
       //   // "2",
+
+      // "--sleep-app-upload",
+      // "500",
 
       //   // "--dry-run"
       // ]
@@ -132,41 +135,8 @@
       // ------------------------------------
       // Import apps from Excel file
       // ------------------------------------
-      // "args": [
-      //   "app-import",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--auth-cert-file",
-      //   "./cert/client.pem",
-      //   "--auth-cert-key-file",
-      //   "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
-
-      //   "--file-type",
-      //   "excel",
-        
-      //   "--file-name",
-      //   "tasks.xlsx",
-      //   "--sheet-name",
-      //   "App import",
-
-      //   "--limit-import-count",
-      //    "2",
-
-      //   // "--dry-run"
-      // ]
-
-
-      // ------------------------------------
-      // Get task tree
-      // ------------------------------------
       "args": [
-        "task-get",
+        "app-import",
         "--auth-type",
         "cert",
         "--host",
@@ -179,27 +149,63 @@
         "LAB",
         "--auth-user-id",
         "goran",
-      //  "--task-id",
-        // "82bc3e66-c899-4e44-b52f-552145da5ee0",
-        "--output-format",
-        // "table",
-        "tree",
-        // "--tree-icons",
-        "--tree-details",
-        // "taskid",
-        // "appname",
-        
-        "--output-dest",
-        "screen",
-        // "file",
-        // "--output-file-name",
-        // "tasks.json",
-        // "--output-file-format",
-        // "json",
 
-        // "--text-color",
-        // "no",
+        // "--file-type",
+        // "excel",
+        
+        "--file-name",
+        "testdata/tasks.xlsx",
+        "--sheet-name",
+        "App import",
+
+        // "--limit-import-count",
+        //  "2",
+
+        // "--sleep-app-upload",
+        //  "500",
+
+        // "--dry-run"
       ]
+
+
+      // ------------------------------------
+      // Get task tree
+      // ------------------------------------
+      // "args": [
+      //   "task-get",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+      // //  "--task-id",
+      //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+      //   "--output-format",
+      //   // "table",
+      //   "tree",
+      //   // "--tree-icons",
+      //   "--tree-details",
+      //   // "taskid",
+      //   // "appname",
+        
+      //   "--output-dest",
+      //   "screen",
+      //   // "file",
+      //   // "--output-file-name",
+      //   // "tasks.json",
+      //   // "--output-file-format",
+      //   // "json",
+
+      //   // "--text-color",
+      //   // "no",
+      // ]
 
       // ------------------------------------
       // Get reload tasks as table
@@ -293,6 +299,8 @@
       //   // "--text-color",
       //   // "no",
 
+      //   "--output-file-overwrite",
+
       //   "--table-details",
       //   "common",
       //   // "lastexecution",
@@ -306,7 +314,9 @@
       //   // "debug"
       // ]
 
+      // ------------------------------------
       // Create custom property with user activity buckets
+      // ------------------------------------
       // "args": [
       //   "user-activity-cp-create",
       //   "--auth-type",
@@ -349,7 +359,7 @@
       //   "--auth-user-id",
       //   "goran",
       //   "--file",
-      //   "'./testdata/ctrl-q-testdata.xlsx'",
+      //   "'./testdata/ctrl-q-master-items.xlsx'",
       //   "--sheet",
       //   "Sales",
       //   "--col-ref-by",
@@ -370,7 +380,9 @@
       //   // "5"
       // ]
 
+      // ------------------------------------
       // Delete master measure
+      // ------------------------------------
       // "args": [
       //   "master-item-measure-delete",
       //   "--auth-type",
@@ -385,12 +397,15 @@
       //   "goran",
       //   "--id-type",
       //   "name",
-      //   // "--master-item",
+      //   "--master-item",
+      //   "No. of sold units (LY)",
       //   // "# No. of Contacts (LY)",
-      //   "--delete-all"
+      //   // "--delete-all"
       // ]
 
+      // ------------------------------------
       //   Get dimension
+      // ------------------------------------
       // "args": [
       //   "getdim",
       //   "--host",
@@ -405,7 +420,9 @@
       //   "goran"
       // ]
       
+      // ------------------------------------
       //   Delete dimension
+      // ------------------------------------
       // "args": [
       //   "master-item-dim-delete",
       //   "--auth-type",
@@ -425,7 +442,9 @@
       //   "Dim3"
       // ]
 
+      // ------------------------------------
       //   Get all bookmarks
+      // ------------------------------------
     //   "args": [
     //     "bookmark-get",
     //     "--auth-type",
@@ -447,7 +466,9 @@
     //     "table"
     // ]
 
+      // ------------------------------------
       //   Get measure by id
+      // ------------------------------------
       // "args": [
       //   "master-item-measure-get",
       //   "--auth-type",
@@ -469,7 +490,9 @@
       //   "table"
       // ]      
 
+      // ------------------------------------
       //   Get measure by name
+      // ------------------------------------
       // "args": [
       //   "master-item-measure-get",
       //   "--auth-type",
@@ -485,13 +508,15 @@
       //   "--id-type",
       //   "name",
       //   "--master-item",
-      //   "# No. of Contacts (LY)",
-      //    "# No. of Contacts Index2",
+      //   "'# No. of Contacts (LY)'",
+      //   "'No. of Contacts Index2'",
       //   "--output-format",
       //   "table"
       // ]   
 
+      // ------------------------------------
       //   Delete measure by id
+      // ------------------------------------
       // "args": [
       //   "master-item-measure-delete",
       //   "--host",
@@ -509,7 +534,9 @@
       //   "7dde35ea-4cd7-43f5-a83e-40bb0d45339b"
       // ]
 
+      // ------------------------------------
       //   Delete measure by name
+      // ------------------------------------
       // "args": [
       //   "master-item-measure-delete",
       //   "--host",
@@ -527,7 +554,9 @@
       //   // "# No. of Contacts (LY)"
       // ]
 
-        // Scramble field
+      // ------------------------------------
+      // Scramble field
+      // ------------------------------------
       // "args": [
       //   "field-scramble",
       //   "--host",
@@ -542,10 +571,12 @@
       //   "Dim4",
       //   "Dim2",
       //   "--new-app-name",
-      //   "New scrambled app"
+      //   "'New scrambled app'"
       // ]
 
-        // Get script
+      // ------------------------------------
+      // Get script
+      // ------------------------------------
       // "args": [
       //   "getscript",
       //   "--host",
