@@ -24,7 +24,7 @@ const importAppFromFile = async (options) => {
 
         // Get all custom properties
         const cpExisting = await getCustomPropertiesFromQseow(options);
-        
+
         // Verify file exists
         const appFileExists = await verifyFileExists(options.fileName);
         if (appFileExists === false) {

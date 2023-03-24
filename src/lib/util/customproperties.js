@@ -113,7 +113,7 @@ function getCustomPropertyDefinitionByName(objectType, customPropertyName, cpExi
             }
 
             // Yes, the the custom property exists
-            logger.verbose(`Successfully found definition ${cp[0]} for custom property named "${customPropertyName}"`);
+            logger.verbose(`Successfully found definition ${JSON.stringify(cp[0])} for custom property named "${customPropertyName}"`);
             resolve(cp[0]);
         } else if (cp.length === 0) {
             logger.warn(`Custom property "${customPropertyName}" does not exist.`);

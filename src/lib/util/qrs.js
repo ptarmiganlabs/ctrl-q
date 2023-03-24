@@ -61,11 +61,8 @@ const setupQRSConnection = (options, param) => {
     }
 
     // Add extra headers (if any)
-    if (param.headers?.length > 0) {
-        // eslint-disable-next-line no-restricted-syntax
-        for (const item of param.headers) {
-            axiosConfig.headers[item.name] = item.value;
-        }
+    if (param.headers) {
+        axiosConfig.headers = { ...axiosConfig.headers, ...param.headers };
     }
 
     // Add parameters (if any)
@@ -75,11 +72,6 @@ const setupQRSConnection = (options, param) => {
             axiosConfig.url += `&${queryParam.name}=${queryParam.value}`;
         }
     }
-
-    // if (param.filter?.length > 0) {
-    //     axiosConfig.url += `&filter=${param.filter}`;
-    //     firstParam = false;
-    // }
 
     return axiosConfig;
 };
