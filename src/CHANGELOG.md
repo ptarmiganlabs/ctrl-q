@@ -1,5 +1,30 @@
 # Changelog
 
+## [3.7.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.7.0...ctrl-q-v3.7.0) (2023-03-24)
+
+
+### Features
+
+* Add optional delay after each QVF file upload to Sense ([6395408](https://github.com/ptarmiganlabs/ctrl-q/commit/6395408e25e1684f15675c0a254abae350bb8f60)), closes [#198](https://github.com/ptarmiganlabs/ctrl-q/issues/198)
+* Add unit tests for script-get and task-get commands ([cca29b8](https://github.com/ptarmiganlabs/ctrl-q/commit/cca29b825f784af118359eb6dc6d3f2474797712)), closes [#207](https://github.com/ptarmiganlabs/ctrl-q/issues/207)
+* Load Sense tags and custom properties on startup rather than at each QRS call ([bfda57b](https://github.com/ptarmiganlabs/ctrl-q/commit/bfda57bf94c5053f65997d7603aaab733ed6b40f))
+* Publish apps as part of import-from-qvf workflow ([7745258](https://github.com/ptarmiganlabs/ctrl-q/commit/7745258ce8359b7033bc8e7cab7da03e5b59239f)), closes [#189](https://github.com/ptarmiganlabs/ctrl-q/issues/189)
+* Retry app upload when QRS rate limit kicks in ([bfda57b](https://github.com/ptarmiganlabs/ctrl-q/commit/bfda57bf94c5053f65997d7603aaab733ed6b40f)), closes [#197](https://github.com/ptarmiganlabs/ctrl-q/issues/197) [#199](https://github.com/ptarmiganlabs/ctrl-q/issues/199)
+* Set owner of apps imported from QVFs ([c306243](https://github.com/ptarmiganlabs/ctrl-q/commit/c3062437ec5eabc6f393918e1bdece3775c9f2a5)), closes [#190](https://github.com/ptarmiganlabs/ctrl-q/issues/190)
+
+
+### Refactoring
+
+* Change build process to be compatible with latest network libraries ([b40b71a](https://github.com/ptarmiganlabs/ctrl-q/commit/b40b71a1d9ebb46ae2e688bc5db133fda7be8638)), closes [#205](https://github.com/ptarmiganlabs/ctrl-q/issues/205)
+
+
+### Miscellaneous
+
+* **main:** release ctrl-q 3.7.0 ([effd0c6](https://github.com/ptarmiganlabs/ctrl-q/commit/effd0c6f43c657e6fee9187eaab2ab5c00f2bc2e))
+* **main:** release ctrl-q 3.7.0 ([ebae75d](https://github.com/ptarmiganlabs/ctrl-q/commit/ebae75d0f31b6ea454e10fed503e85d561aec267))
+* **main:** release ctrl-q 3.7.0 ([f285caf](https://github.com/ptarmiganlabs/ctrl-q/commit/f285cafa158fac87ceb51b7451db8ab38ff495a3))
+* **main:** release ctrl-q 3.7.0 ([2c4bc21](https://github.com/ptarmiganlabs/ctrl-q/commit/2c4bc218a25cfa800dadac161c4b36e491b96473))
+
 ## [3.7.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.7.0...ctrl-q-v3.7.0) (2023-03-23)
 
 
