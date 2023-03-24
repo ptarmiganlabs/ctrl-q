@@ -38,7 +38,7 @@ The current list of features are:
 - Bulk import of reload tasks from disk files. Optionally also import QVF files.<br>
   Building task chains with new and/or existing tasks supported. <br>
   All options available in the QMC (and then some!) can be defined.
-- Bulk import of QVF files into Sense apps. 
+- Bulk import of QVF files into Sense apps.
 - Update custom properties for multiple tasks.
 - Import master dimensions and master measures from definitions in Excel file.
 - Show complete definition for all master measures in a Sense app.
@@ -98,9 +98,7 @@ Enjoy!
       - [Source file columns for task defintions](#source-file-columns-for-task-defintions)
       - [Source file columns for app import definitions](#source-file-columns-for-app-import-definitions)
       - [Example: Export tasks to CSV, then import tasks from same CSV](#example-export-tasks-to-csv-then-import-tasks-from-same-csv)
-      - [Example: Import tasks from Excel file with chaining of new tasks](#example-import-tasks-from-excel-file-with-chaining-of-new-tasks)
       - [Example: Import apps from QVF files and create associated reload tasks](#example-import-apps-from-qvf-files-and-create-associated-reload-tasks)
-        - [Defining apps to be imported](#defining-apps-to-be-imported)
         - [Defining tasks to be created](#defining-tasks-to-be-created)
         - [Associating new tasks with imported and existing apps](#associating-new-tasks-with-imported-and-existing-apps)
   - [Scramble fields in Sense app](#scramble-fields-in-sense-app)
@@ -539,7 +537,7 @@ Let's first take a look at the options for the`task-get` command:
 ```
 
 ```
-Usage: ctrl-q task-get [options]
+Usage: index task-get [options]
 
 get info about one or more tasks
 
@@ -638,44 +636,46 @@ It's possible to save this JSON to disk:
 ```
 
 ```
-2023-02-08T17:31:53.682Z info: -----------------------------------------------------------
-2023-02-08T17:31:53.682Z info: | Ctrl-Q
-2023-02-08T17:31:53.682Z info: |
-2023-02-08T17:31:53.682Z info: | Version      : 3.4.1
-2023-02-08T17:31:53.682Z info: | Log level    : info
-2023-02-08T17:31:53.682Z info: |
-2023-02-08T17:31:53.682Z info: | Command      : task-get
-2023-02-08T17:31:53.682Z info: |              : get info about one or more tasks
-2023-02-08T17:31:53.682Z info: |
-2023-02-08T17:31:53.682Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-08T17:31:53.682Z info: |
-2023-02-08T17:31:53.682Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-08T17:31:53.682Z info: ----------------------------------------------------------
-2023-02-08T17:31:53.682Z info:
-2023-02-08T17:31:54.635Z info: ✅ Writing task tree to disk file "tasktree.json".
+2023-03-24T07:05:59.211Z info: -----------------------------------------------------------
+2023-03-24T07:05:59.211Z info: | Ctrl-Q
+2023-03-24T07:05:59.211Z info: |
+2023-03-24T07:05:59.211Z info: | Version      : 3.7.0
+2023-03-24T07:05:59.211Z info: | Log level    : info
+2023-03-24T07:05:59.211Z info: |
+2023-03-24T07:05:59.211Z info: | Command      : task-get
+2023-03-24T07:05:59.211Z info: |              : get info about one or more tasks
+2023-03-24T07:05:59.211Z info: |
+2023-03-24T07:05:59.211Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T07:05:59.211Z info: |
+2023-03-24T07:05:59.211Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T07:05:59.211Z info: ----------------------------------------------------------
+2023-03-24T07:05:59.211Z info:
+2023-03-24T07:05:59.288Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-24T07:06:00.397Z info: ✅ Writing task tree to disk file "tasktree.json".
 ```
 
 Running the same command again, when the destination file already exists, results in a question to overwrite the file:
 
 ```
-2023-02-08T17:32:18.108Z info: -----------------------------------------------------------
-2023-02-08T17:32:18.124Z info: | Ctrl-Q
-2023-02-08T17:32:18.124Z info: |
-2023-02-08T17:32:18.124Z info: | Version      : 3.4.1
-2023-02-08T17:32:18.124Z info: | Log level    : info
-2023-02-08T17:32:18.124Z info: |
-2023-02-08T17:32:18.124Z info: | Command      : task-get
-2023-02-08T17:32:18.124Z info: |              : get info about one or more tasks
-2023-02-08T17:32:18.124Z info: |
-2023-02-08T17:32:18.124Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-08T17:32:18.124Z info: |
-2023-02-08T17:32:18.124Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-08T17:32:18.124Z info: ----------------------------------------------------------
-2023-02-08T17:32:18.124Z info:
-2023-02-08T17:32:19.108Z info:
+2023-03-24T07:06:34.460Z info: -----------------------------------------------------------
+2023-03-24T07:06:34.460Z info: | Ctrl-Q
+2023-03-24T07:06:34.460Z info: |
+2023-03-24T07:06:34.460Z info: | Version      : 3.7.0
+2023-03-24T07:06:34.460Z info: | Log level    : info
+2023-03-24T07:06:34.460Z info: |
+2023-03-24T07:06:34.460Z info: | Command      : task-get
+2023-03-24T07:06:34.460Z info: |              : get info about one or more tasks
+2023-03-24T07:06:34.460Z info: |
+2023-03-24T07:06:34.475Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T07:06:34.475Z info: |
+2023-03-24T07:06:34.475Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T07:06:34.475Z info: ----------------------------------------------------------
+2023-03-24T07:06:34.475Z info:
+2023-03-24T07:06:34.538Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-24T07:06:35.803Z info:
                                   Destination file "tasktree.json" exists. Do you want to overwrite it? (y/n) y
-2023-02-08T17:32:19.936Z info:
-2023-02-08T17:32:19.936Z info: ✅ Writing task tree to disk file "tasktree.json".
+2023-03-24T07:06:37.788Z info:
+2023-03-24T07:06:37.788Z info: ✅ Writing task tree to disk file "tasktree.json".
 ```
 
 To forcibly overwrite the destination file the `--output-file-overwrite` option can be specified.
@@ -717,36 +717,53 @@ If `--table-details` is not specified all available information will be showed a
 This will result in a *very* wide table!
 
 ```
-2023-02-09T13:49:02.127Z info: -----------------------------------------------------------
-2023-02-09T13:49:02.127Z info: | Ctrl-Q
-2023-02-09T13:49:02.127Z info: |
-2023-02-09T13:49:02.127Z info: | Version      : 3.4.1
-2023-02-09T13:49:02.127Z info: | Log level    : info
-2023-02-09T13:49:02.127Z info: |
-2023-02-09T13:49:02.127Z info: | Command      : task-get
-2023-02-09T13:49:02.127Z info: |              : get info about one or more tasks
-2023-02-09T13:49:02.127Z info: |
-2023-02-09T13:49:02.127Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-09T13:49:02.127Z info: |
-2023-02-09T13:49:02.127Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-09T13:49:02.127Z info: ----------------------------------------------------------
-2023-02-09T13:49:02.127Z info:
-2023-02-09T13:49:03.251Z info: # rows in table: 50
-2023-02-09T13:49:03.251Z info: # tasks in table: 50
-2023-02-09T13:49:03.361Z info:
+2023-03-24T07:07:09.523Z info: -----------------------------------------------------------
+2023-03-24T07:07:09.523Z info: | Ctrl-Q
+2023-03-24T07:07:09.523Z info: |
+2023-03-24T07:07:09.523Z info: | Version      : 3.7.0
+2023-03-24T07:07:09.523Z info: | Log level    : info
+2023-03-24T07:07:09.523Z info: |
+2023-03-24T07:07:09.523Z info: | Command      : task-get
+2023-03-24T07:07:09.523Z info: |              : get info about one or more tasks
+2023-03-24T07:07:09.523Z info: |
+2023-03-24T07:07:09.523Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T07:07:09.523Z info: |
+2023-03-24T07:07:09.523Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T07:07:09.523Z info: ----------------------------------------------------------
+2023-03-24T07:07:09.523Z info:
+2023-03-24T07:07:09.585Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-24T07:07:10.647Z info: # rows in table: 50
+2023-03-24T07:07:10.647Z info: # tasks in table: 50
+2023-03-24T07:07:10.709Z info:
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ # tasks: 50, # rows in table: 50                                                                                                                                                                                                                                                                                                │
+│ # tasks: 50, # rows in table: 50
+                                                                                                                                          │
 ├──────────────┬───────────┬──────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────┬──────────────┬──────────────┬──────────────┬──────────────────────────────────────┬────────────────┬────────────────────┬──────────────────────────────────────────────────────────┤
 │ Task counter │ Task type │ Task name                                                                │ Task id                              │ Task enabled │ Task timeout │ Task retries │ App id                               │ Partial reload │ Manually triggered │ Tags                                                     │
 ├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
-│ 1            │ Reload    │ Manually triggered reload of Always failing reload (no delay)            │ 0d815a99-1ca3-4131-a398-6878bd735fd8 │ true         │ 1440         │ 0            │ deba4bcf-47e4-472e-97b2-4fe8d6498e11 │ false          │ true               │ api2 / 👍😎 updateSheetThumbnail / Tag with spaces in it │
+│ 1            │ Reload    │ Manually triggered reload of Always failing reload (no delay)            │ 0d815a99-1ca3-4131-a398-6878bd735fd8 │ true         │ 1440         │ 0
+  │ deba4bcf-47e4-472e-97b2-4fe8d6498e11 │ false          │ true               │ api2 / 👍😎 updateSheetThumbnail / Tag with spaces in it │
 ├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
-│ 2            │ Reload    │ Manually triggered reload of App1 🏆                                     │ b37f8034-faee-4e9b-bbca-5aba0cdf5df2 │ true         │ 1440         │ 0            │ 26634113-9163-44e4-a879-d87817d6e887 │ false          │ true               │ Butler 5.0 demo                                          │
+│ 2            │ Reload    │ Manually triggered reload of App1 🏆                                     │ b37f8034-faee-4e9b-bbca-5aba0cdf5df2 │ true         │ 1440         │ 0
+  │ 26634113-9163-44e4-a879-d87817d6e887 │ false          │ true               │ Butler 5.0 demo                                          │
 ├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
-│ 3            │ Reload    │ Manually triggered reload of Butler 7 Slack debug                        │ 77f11a41-af3a-4bca-bf67-725be92a88f6 │ true         │ 1440         │ 0            │ 628ecfe8-b42a-484d-b06e-c6aae36c9923 │ false          │ true               │                                                          │
+│ 3            │ Reload    │ Manually triggered reload of Butler 7 Slack debug                        │ 77f11a41-af3a-4bca-bf67-725be92a88f6 │ true         │ 1440         │ 0
+  │ 628ecfe8-b42a-484d-b06e-c6aae36c9923 │ false          │ true               │                                                          │
 ├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
-│ 4            │ Reload    │ Manually triggered reload of ButlerTest 1                                │ 244ca6a8-8c20-488d-aed2-504048dd4516 │ true         │ 1440         │ 0            │ c81a6d9a-f07a-47c4-8dbf-b68653e05354 │ false          │ true               │                                                          │
+│ 4            │ Reload    │ Manually triggered reload of ButlerTest 1                                │ 244ca6a8-8c20-488d-aed2-504048dd4516 │ true         │ 1440         │ 0
+  │ c81a6d9a-f07a-47c4-8dbf-b68653e05354 │ false          │ true               │                                                          │
 ├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
+│ 5            │ Reload    │ Manually triggered reload of Employee salaries                           │ 20d91fd8-5e1f-42af-8825-3c0e34929660 │ true         │ 1440         │ 0
+  │ ded8d27d-53b1-4d46-8d4e-44f552aeb8bc │ false          │ true               │                                                          │
+├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
+│ 6            │ Reload    │ Manually triggered reload of HR metrics 2015-2020                        │ 6a42a7d0-bee9-4609-b340-8c8c50b3c4d9 │ true         │ 1440         │ 0
+  │ 7e5866aa-dd2b-42aa-81fc-3765e0d7cf4b │ false          │ true               │                                                          │
+├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
+│ 7            │ Reload    │ Manually triggered reload of Meetup.com                                  │ c257a74e-0c6b-48c0-9e5c-1a41399e48c7 │ true         │ 1440         │ 0
+  │ c840670c-7178-4a5e-8409-ba2da69127e2 │ false          │ true               │                                                          │
+├──────────────┼───────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼──────────────────────────────────────────────────────────┤
+│ 8            │ Reload    │ Manually triggered reload of Minecraft Metrics                           │ 9bfd7c52-2bb0-45bc-b8b8-4053c4254bfc │ true         │ 1440         │ 0
+  │ f16fa63d-54c7-4c8d-81f1-2d084d46bcfe │ false          │ true               │                                                          │
 ...
 ...
 ```
@@ -789,21 +806,23 @@ Here the most common task fileds together with task tags are included in the tab
 ```
 
 ```
-2023-02-09T13:58:06.481Z info: -----------------------------------------------------------
-2023-02-09T13:58:06.481Z info: | Ctrl-Q
-2023-02-09T13:58:06.481Z info: |
-2023-02-09T13:58:06.481Z info: | Version      : 3.4.1
-2023-02-09T13:58:06.481Z info: | Log level    : info
-2023-02-09T13:58:06.481Z info: |
-2023-02-09T13:58:06.481Z info: | Command      : task-get
-2023-02-09T13:58:06.481Z info: |              : get info about one or more tasks
-2023-02-09T13:58:06.481Z info: |
-2023-02-09T13:58:06.481Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-09T13:58:06.481Z info: |
-2023-02-09T13:58:06.481Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-09T13:58:06.481Z info: ----------------------------------------------------------
-2023-02-09T13:58:06.481Z info:
-2023-02-09T13:58:07.528Z info: ✅ Writing task table to disk file "tasktable.csv".
+2023-03-24T07:09:56.451Z info: -----------------------------------------------------------
+2023-03-24T07:09:56.451Z info: | Ctrl-Q
+2023-03-24T07:09:56.451Z info: |
+2023-03-24T07:09:56.451Z info: | Version      : 3.7.0
+2023-03-24T07:09:56.451Z info: | Log level    : info
+2023-03-24T07:09:56.451Z info: |
+2023-03-24T07:09:56.451Z info: | Command      : task-get
+2023-03-24T07:09:56.451Z info: |              : get info about one or more tasks
+2023-03-24T07:09:56.451Z info: |
+2023-03-24T07:09:56.451Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T07:09:56.451Z info: |
+2023-03-24T07:09:56.451Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T07:09:56.451Z info: ----------------------------------------------------------
+2023-03-24T07:09:56.451Z info:
+2023-03-24T07:09:56.513Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-24T07:10:05.559Z info:
+2023-03-24T07:10:05.559Z info: ✅ Writing task table to disk file "tasktable.csv".
 ```
 
 #### Save task to disk file as JSON
@@ -825,21 +844,22 @@ Here only the most basic task info included via the `--table-details` option.
 ```
 
 ```
-2023-02-09T14:07:09.422Z info: -----------------------------------------------------------
-2023-02-09T14:07:09.422Z info: | Ctrl-Q
-2023-02-09T14:07:09.422Z info: |
-2023-02-09T14:07:09.422Z info: | Version      : 3.4.1
-2023-02-09T14:07:09.422Z info: | Log level    : info
-2023-02-09T14:07:09.422Z info: |
-2023-02-09T14:07:09.422Z info: | Command      : task-get
-2023-02-09T14:07:09.422Z info: |              : get info about one or more tasks
-2023-02-09T14:07:09.422Z info: |
-2023-02-09T14:07:09.422Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-09T14:07:09.438Z info: |
-2023-02-09T14:07:09.438Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-09T14:07:09.438Z info: ----------------------------------------------------------
-2023-02-09T14:07:09.438Z info:
-2023-02-09T14:07:10.329Z info: ✅ Writing task table to disk file "tasks.json".
+2023-03-24T07:10:41.762Z info: -----------------------------------------------------------
+2023-03-24T07:10:41.762Z info: | Ctrl-Q
+2023-03-24T07:10:41.762Z info: |
+2023-03-24T07:10:41.762Z info: | Version      : 3.7.0
+2023-03-24T07:10:41.762Z info: | Log level    : info
+2023-03-24T07:10:41.762Z info: |
+2023-03-24T07:10:41.762Z info: | Command      : task-get
+2023-03-24T07:10:41.762Z info: |              : get info about one or more tasks
+2023-03-24T07:10:41.762Z info: |
+2023-03-24T07:10:41.762Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T07:10:41.762Z info: |
+2023-03-24T07:10:41.762Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T07:10:41.762Z info: ----------------------------------------------------------
+2023-03-24T07:10:41.762Z info:
+2023-03-24T07:10:41.824Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-24T07:10:42.826Z info: ✅ Writing task table to disk file "tasks.json".
 ```
 
 The resulting JSON file looks like this:
@@ -906,9 +926,10 @@ Note:
    1. Setting the option to `append` will add the specified values to any other values already set for the custom property.
    2. Setting the option to `replace` will delete any already set values for the custom property and then add the specified values.
 
-In the example below 5 tasks  will be updated: 3 based on task IDs and 2 based on the task tag "apiCreated".  
+In the example below 5 tasks will be updated: 3 based on task IDs and 2 based on the task tag "apiCreated".  
 The values "Finance" and "Sales" will be added to the custom property "Department".  
-Existing custom property values are preserver (i.e. the new values are appended to any already existing values).
+Existing custom property values are preserved (i.e. the new values are appended to any already existing values) by appending new values rather than replacing (`--update-mode append` option).  
+If a task already has values for this custom property new values will be added without asking first (`--overwrite` option)
 
 ```
 .\ctrl-q.exe task-custom-property-set `
@@ -919,6 +940,7 @@ Existing custom property values are preserver (i.e. the new values are appended 
 --auth-user-dir LAB `
 --auth-user-id goran `
 --task-id 82bc3e66-c899-4e44-b52f-552145da5ee0 5748afa9-3abe-43ab-bb1f-127c48ced075 5520e710-91ad-41d2-aeb6-434cafbf366b `
+--task-tag 'apiCreated' `
 --custom-property-name Department `
 --custom-property-value Finance Sales `
 --overwrite `
@@ -926,46 +948,46 @@ Existing custom property values are preserver (i.e. the new values are appended 
 ```
 
 ```
-2023-02-22T20:12:07.499Z info: -----------------------------------------------------------
-2023-02-22T20:12:07.499Z info: | Ctrl-Q
-2023-02-22T20:12:07.499Z info: |
-2023-02-22T20:12:07.499Z info: | Version      : 3.6.0
-2023-02-22T20:12:07.499Z info: | Log level    : info
-2023-02-22T20:12:07.499Z info: |
-2023-02-22T20:12:07.499Z info: | Command      : task-custom-property-set
-2023-02-22T20:12:07.499Z info: |              : update a custom property of one or more tasks
-2023-02-22T20:12:07.499Z info: |
-2023-02-22T20:12:07.499Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-22T20:12:07.499Z info: |
-2023-02-22T20:12:07.499Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-22T20:12:07.515Z info: ----------------------------------------------------------
-2023-02-22T20:12:07.515Z info:
-2023-02-22T20:12:07.640Z info: Number of tasks that will be updated: 5
-2023-02-22T20:12:07.640Z info:
-2023-02-22T20:12:07.640Z info: -----------------------------------------------------------
-2023-02-22T20:12:07.640Z info: Processing task "Reload of Test data - Seattle checkouts by title3" with ID=82bc3e66-c899-4e44-b52f-552145da5ee0
-2023-02-22T20:12:07.640Z info: Starting updating custom property "Department" of task "Reload of Test data - Seattle checkouts by title3" with ID=82bc3e66-c899-4e44-b52f-552145da5ee0
-2023-02-22T20:12:07.733Z info:    ...Custom property "Department" on task "Reload of Test data - Seattle checkouts by title3" successfully updated.
-2023-02-22T20:12:07.733Z info:
-2023-02-22T20:12:07.733Z info: -----------------------------------------------------------
-2023-02-22T20:12:07.733Z info: Processing task "Reload task of App ageing" with ID=5217e6b2-65ce-4535-ad2a-37b62e66d12c
-2023-02-22T20:12:07.733Z info: Starting updating custom property "Department" of task "Reload task of App ageing" with ID=5217e6b2-65ce-4535-ad2a-37b62e66d12c
-2023-02-22T20:12:07.906Z info:    ...Custom property "Department" on task "Reload task of App ageing" successfully updated.
-2023-02-22T20:12:07.906Z info:
-2023-02-22T20:12:07.906Z info: -----------------------------------------------------------
-2023-02-22T20:12:07.906Z info: Processing task "Reload of Test data - Seattle library checkouts & collection inventory" with ID=5520e710-91ad-41d2-aeb6-434cafbf366b
-2023-02-22T20:12:07.906Z info: Starting updating custom property "Department" of task "Reload of Test data - Seattle library checkouts & collection inventory" with ID=5520e710-91ad-41d2-aeb6-434cafbf366b
-2023-02-22T20:12:07.999Z info:    ...Custom property "Department" on task "Reload of Test data - Seattle library checkouts & collection inventory" successfully updated.
-2023-02-22T20:12:07.999Z info:
-2023-02-22T20:12:07.999Z info: -----------------------------------------------------------
-2023-02-22T20:12:07.999Z info: Processing task "Reload task of Lab 1_1" with ID=5748afa9-3abe-43ab-bb1f-127c48ced075
-2023-02-22T20:12:07.999Z info: Starting updating custom property "Department" of task "Reload task of Lab 1_1" with ID=5748afa9-3abe-43ab-bb1f-127c48ced075
-2023-02-22T20:12:08.093Z info:    ...Custom property "Department" on task "Reload task of Lab 1_1" successfully updated.
-2023-02-22T20:12:08.093Z info:
-2023-02-22T20:12:08.093Z info: -----------------------------------------------------------
-2023-02-22T20:12:08.093Z info: Processing task "Reload Operations Monitor" with ID=fbf645f0-0c92-40a4-af9a-6e3eb1d3c35c
-2023-02-22T20:12:08.093Z info: Starting updating custom property "Department" of task "Reload Operations Monitor" with ID=fbf645f0-0c92-40a4-af9a-6e3eb1d3c35c
-2023-02-22T20:12:08.187Z info:    ...Custom property "Department" on task "Reload Operations Monitor" successfully updated.
+2023-03-24T07:15:28.058Z info: -----------------------------------------------------------
+2023-03-24T07:15:28.058Z info: | Ctrl-Q
+2023-03-24T07:15:28.058Z info: |
+2023-03-24T07:15:28.058Z info: | Version      : 3.7.0
+2023-03-24T07:15:28.058Z info: | Log level    : info
+2023-03-24T07:15:28.058Z info: |
+2023-03-24T07:15:28.058Z info: | Command      : task-custom-property-set
+2023-03-24T07:15:28.058Z info: |              : update a custom property of one or more tasks
+2023-03-24T07:15:28.058Z info: |
+2023-03-24T07:15:28.058Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T07:15:28.058Z info: |
+2023-03-24T07:15:28.058Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T07:15:28.058Z info: ----------------------------------------------------------
+2023-03-24T07:15:28.058Z info:
+2023-03-24T07:15:28.214Z info: Number of tasks that will be updated: 5
+2023-03-24T07:15:28.214Z info:
+2023-03-24T07:15:28.214Z info: -----------------------------------------------------------
+2023-03-24T07:15:28.214Z info: Processing task "Reload of Test data - Seattle checkouts by title3" with ID=82bc3e66-c899-4e44-b52f-552145da5ee0
+2023-03-24T07:15:28.214Z info: Starting updating custom property "Department" of task "Reload of Test data - Seattle checkouts by title3" with ID=82bc3e66-c899-4e44-b52f-552145da5ee0
+2023-03-24T07:15:28.309Z info:    ...Custom property "Department" on task "Reload of Test data - Seattle checkouts by title3" successfully updated.
+2023-03-24T07:15:28.309Z info:
+2023-03-24T07:15:28.309Z info: -----------------------------------------------------------
+2023-03-24T07:15:28.309Z info: Processing task "Reload Operations Monitor" with ID=fbf645f0-0c92-40a4-af9a-6e3eb1d3c35c
+2023-03-24T07:15:28.309Z info: Starting updating custom property "Department" of task "Reload Operations Monitor" with ID=fbf645f0-0c92-40a4-af9a-6e3eb1d3c35c
+2023-03-24T07:15:28.419Z info:    ...Custom property "Department" on task "Reload Operations Monitor" successfully updated.
+2023-03-24T07:15:28.419Z info:
+2023-03-24T07:15:28.419Z info: -----------------------------------------------------------
+2023-03-24T07:15:28.419Z info: Processing task "Reload task of App ageing" with ID=5217e6b2-65ce-4535-ad2a-37b62e66d12c
+2023-03-24T07:15:28.419Z info: Starting updating custom property "Department" of task "Reload task of App ageing" with ID=5217e6b2-65ce-4535-ad2a-37b62e66d12c
+2023-03-24T07:15:28.636Z info:    ...Custom property "Department" on task "Reload task of App ageing" successfully updated.
+2023-03-24T07:15:28.636Z info:
+2023-03-24T07:15:28.636Z info: -----------------------------------------------------------
+2023-03-24T07:15:28.636Z info: Processing task "Reload of Test data - Seattle library checkouts & collection inventory" with ID=5520e710-91ad-41d2-aeb6-434cafbf366b
+2023-03-24T07:15:28.636Z info: Starting updating custom property "Department" of task "Reload of Test data - Seattle library checkouts & collection inventory" with ID=5520e710-91ad-41d2-aeb6-434cafbf366b
+2023-03-24T07:15:28.715Z info:    ...Custom property "Department" on task "Reload of Test data - Seattle library checkouts & collection inventory" successfully updated.
+2023-03-24T07:15:28.715Z info:
+2023-03-24T07:15:28.715Z info: -----------------------------------------------------------
+2023-03-24T07:15:28.715Z info: Processing task "Reload task of Lab 1_1" with ID=5748afa9-3abe-43ab-bb1f-127c48ced075
+2023-03-24T07:15:28.715Z info: Starting updating custom property "Department" of task "Reload task of Lab 1_1" with ID=5748afa9-3abe-43ab-bb1f-127c48ced075
+2023-03-24T07:15:28.808Z info:    ...Custom property "Department" on task "Reload task of Lab 1_1" successfully updated.
 ```
 
 ## Import
@@ -981,7 +1003,7 @@ First let's take a look at the command options:
 ```
 
 ```
-Usage: ctrl-q master-item-import [options]
+Usage: index master-item-import [options]
 
 create master items based on definitions in a file on disk
 
@@ -1002,7 +1024,8 @@ Options:
   -t, --file-type <type>                             source file type (choices: "excel", default: "excel")
   --file <filename>                                  file containing master item definitions
   --sheet <name>                                     name of Excel sheet where dim/measure flag column is found
-  --col-ref-by <reftype>                             how to refer to columns in the source file. Options are by name or by position (zero based) (choices: "name", "position", default: "name")
+  --col-ref-by <reftype>                             how to refer to columns in the source file. Options are by name or by position (zero based) (choices: "name", "position", default:
+                                                     "name")
   --col-item-type <column position or name>          column where dim/measure flag is found. Use "dim" in that column to create master dimension, "measure" for master measure
   --col-master-item-name <column position or name>   column number (zero based) to use as master item name
   --col-master-item-descr <column position or name>  column number (zero based) to use as master item description
@@ -1047,34 +1070,34 @@ Now let's run the command.
 ```
 
 ```
-2023-02-22T20:16:28.161Z info: -----------------------------------------------------------
-2023-02-22T20:16:28.161Z info: | Ctrl-Q
-2023-02-22T20:16:28.161Z info: |
-2023-02-22T20:16:28.161Z info: | Version      : 3.6.0
-2023-02-22T20:16:28.161Z info: | Log level    : info
-2023-02-22T20:16:28.161Z info: |
-2023-02-22T20:16:28.161Z info: | Command      : master-item-import
-2023-02-22T20:16:28.161Z info: |              : create master items based on definitions in a file on disk
-2023-02-22T20:16:28.161Z info: |
-2023-02-22T20:16:28.161Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-22T20:16:28.161Z info: |
-2023-02-22T20:16:28.161Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-22T20:16:28.161Z info: ----------------------------------------------------------
-2023-02-22T20:16:28.161Z info:
-2023-02-22T20:16:28.161Z info: Import master items from definitions in Excel file "./ctrl-q-master-items.xlsx"
-2023-02-22T20:16:28.568Z info: Updated existing measure "No. of sold units"
-2023-02-22T20:16:28.583Z info: Updated existing measure "No. of sold units (LY)"
-2023-02-22T20:16:28.583Z info: Updated existing measure "Revenue EUR"
-2023-02-22T20:16:28.583Z info: Updated existing measure "Revenue EUR (LY)"
-2023-02-22T20:16:28.583Z info: Updated existing measure "Profit EUR"
-2023-02-22T20:16:28.583Z warn: Found an unknown master item type: "measur". Ignoring this line in the imported file.
-2023-02-22T20:16:28.598Z info: Updated existing measure "Profit EUR (LY)"
-2023-02-22T20:16:28.598Z info: Updated existing dimension "Country"
-2023-02-22T20:16:28.598Z info: Updated existing dimension "Sales month"
-2023-02-22T20:16:28.598Z info: Updated existing dimension "Salesperson"
+2023-03-24T07:19:31.577Z info: -----------------------------------------------------------
+2023-03-24T07:19:31.577Z info: | Ctrl-Q
+2023-03-24T07:19:31.577Z info: |
+2023-03-24T07:19:31.577Z info: | Version      : 3.7.0
+2023-03-24T07:19:31.577Z info: | Log level    : info
+2023-03-24T07:19:31.577Z info: |
+2023-03-24T07:19:31.577Z info: | Command      : master-item-import
+2023-03-24T07:19:31.577Z info: |              : create master items based on definitions in a file on disk
+2023-03-24T07:19:31.577Z info: |
+2023-03-24T07:19:31.577Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T07:19:31.577Z info: |
+2023-03-24T07:19:31.577Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T07:19:31.577Z info: ----------------------------------------------------------
+2023-03-24T07:19:31.577Z info:
+2023-03-24T07:19:31.593Z info: Import master items from definitions in Excel file "./ctrl-q-master-items.xlsx"
+2023-03-24T07:19:32.405Z info: Updated existing measure "No. of sold units"
+2023-03-24T07:19:32.405Z info: Updated existing measure "No. of sold units (LY)"
+2023-03-24T07:19:32.421Z info: Updated existing measure "Revenue EUR"
+2023-03-24T07:19:32.421Z info: Updated existing measure "Revenue EUR (LY)"
+2023-03-24T07:19:32.421Z info: Updated existing measure "Profit EUR"
+2023-03-24T07:19:32.421Z warn: Found an unknown master item type: "measur". Ignoring this line in the imported file.
+2023-03-24T07:19:32.421Z info: Updated existing measure "Profit EUR (LY)"
+2023-03-24T07:19:32.436Z info: Updated existing dimension "Country"
+2023-03-24T07:19:32.436Z info: Updated existing dimension "Sales month"
+2023-03-24T07:19:32.436Z info: Updated existing dimension "Salesperson"
 ```
 
-> NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/docs/ctrl-q-master-items.xlsx).
+> NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/testdata/ctrl-q-master-items.xlsx?raw=true).
 
 ### Import apps from QVF files
 
@@ -1096,25 +1119,34 @@ Importing apps defined on the `App import` sheet of the `tasks.xlsx` Excel file 
 ```
 
 ```
-2023-03-10T08:41:43.520Z info: -----------------------------------------------------------
-2023-03-10T08:41:43.520Z info: | Ctrl-Q
-2023-03-10T08:41:43.520Z info: |
-2023-03-10T08:41:43.520Z info: | Version      : 3.6.0
-2023-03-10T08:41:43.520Z info: | Log level    : info
-2023-03-10T08:41:43.520Z info: |
-2023-03-10T08:41:43.520Z info: | Command      : app-import
-2023-03-10T08:41:43.520Z info: |              : import apps/upload QVF files on disk to Sense based on definitions in Excel file.
-2023-03-10T08:41:43.520Z info: |
-2023-03-10T08:41:43.520Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-03-10T08:41:43.520Z info: |
-2023-03-10T08:41:43.520Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-03-10T08:41:43.520Z info: ----------------------------------------------------------
-2023-03-10T08:41:43.520Z info:
-2023-03-10T08:41:43.536Z info: Import apps from definitions in file "tasks.xlsx"
-2023-03-10T08:41:43.614Z info: Importing app "App 1" from file "C:/tools/ctrl-q/testdata/App import 1.qvf"
-2023-03-10T08:41:44.926Z info: Importing app "App 2" from file "C:/tools/ctrl-q/testdata/App import 2.qvf"
-2023-03-10T08:41:46.177Z info: Importing app "App 3" from file "C:/tools/ctrl-q/testdata/App import 3.qvf"
+2023-03-24T09:59:18.819Z info: -----------------------------------------------------------
+2023-03-24T09:59:18.819Z info: | Ctrl-Q
+2023-03-24T09:59:18.819Z info: |
+2023-03-24T09:59:18.819Z info: | Version      : 3.7.0
+2023-03-24T09:59:18.819Z info: | Log level    : info
+2023-03-24T09:59:18.819Z info: |
+2023-03-24T09:59:18.819Z info: | Command      : app-import
+2023-03-24T09:59:18.819Z info: |              : import apps/upload QVF files on disk to Sense based on definitions in Excel file.
+2023-03-24T09:59:18.819Z info: |
+2023-03-24T09:59:18.819Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T09:59:18.819Z info: |
+2023-03-24T09:59:18.819Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T09:59:18.819Z info: ----------------------------------------------------------
+2023-03-24T09:59:18.819Z info:
+2023-03-24T09:59:18.819Z info: Import apps from definitions in file ".\tasks.xlsx"
+2023-03-24T09:59:18.928Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-24T09:59:18.959Z info: Successfully retrieved 29 custom properties from QSEoW
+2023-03-24T09:59:18.990Z info: (1) Importing app "App 1" from file "C:/tools/ctrl-q/testdata/App import 1.qvf"
+2023-03-24T09:59:21.412Z info: App "App 1" published to stream "Ctrl-Q demo apps".
+2023-03-24T09:59:21.412Z info: (2) Importing app "App 2" from file "C:/tools/ctrl-q/testdata/App import 2.qvf"
+2023-03-24T09:59:23.506Z warn: Cannot publish app "App 2" to stream "Stream does not exist" as that stream does not exist.
+2023-03-24T09:59:23.506Z info: (3) Importing app "App 3" from file "C:/tools/ctrl-q/testdata/App import 3.qvf"
+2023-03-24T09:59:25.788Z info: App "App 3" published to stream "9143a1bf-abc3-46f4-8dcb-a1a0ea35860a".
 ```
+
+> NOTE 1: Qlik Sense implements rate limiting for QVF uploads. This means that if you plan to upload more than 60 QVF files you may be affected by this rate limiting.  
+> Ctrl-Q detects that it's being rate limited and implements a backoff strategy for retries, waiting longer and longer until it tries again.  
+> Such retries are clearly shown in the Ctrl-Q logs.
 
 The QMC now shows three new apps:
 
@@ -1126,7 +1158,10 @@ The Excel file with definitions on what QVF files should be imported, what the a
 
 An explanation of each column is available [here](#defining-apps-to-be-imported).
 
-> NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/docs/tasks.xlsx).
+> NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/testdata/tasks.xlsx?raw=true).
+
+If a valid app owner is specified in the Excel file it will be applied to the new app.  
+Similarly, if an already existing stream name (or ID of an existing stream) is specified in the Excel file, the new app will be published to that stream.
 
 ### Import reload tasks from file
 
@@ -1138,30 +1173,33 @@ The options are as follows:
 ```
 
 ```
-Usage: ctrl-q task-import [options]
+Usage: index task-import [options]
 
-create tasks based on definitions in a file on disk
+create tasks based on definitions in a file on disk, optionally also importing apps from QVF files.
 
 Options:
-  --log-level <level>            log level (choices: "error", "warn", "info", "verbose", "debug", "silly", default: "info")
-  --host <host>                  Qlik Sense server IP/FQDN
-  --port <port>                  Qlik Sense server engine port (default: "4242")
-  --schema-version <string>      Qlik Sense engine schema version (default: "12.612.0")
-  --virtual-proxy <prefix>       Qlik Sense virtual proxy prefix (default: "")
-  --secure <true|false>          connection to Qlik Sense engine is via https (default: true)
-  --auth-user-dir <directory>    user directory for user to connect with
-  --auth-user-id <userid>        user ID for user to connect with
-  -a, --auth-type <type>         authentication type (choices: "cert", default: "cert")
-  --auth-cert-file <file>        Qlik Sense certificate file (exported from QMC) (default: "./cert/client.pem")
-  --auth-cert-key-file <file>    Qlik Sense certificate key file (exported from QMC) (default: "./cert/client_key.pem")
-  --auth-root-cert-file <file>   Qlik Sense root certificate file (exported from QMC) (default: "./cert/root.pem")
-  -t, --file-type <type>         source file type (choices: "excel", "csv", default: "excel")
-  --file-name <filename>         file containing task definitions
-  --sheet-name <name>            name of Excel sheet where task info is found
-  --update-mode <mode>           create new or update existing tasks (choices: "create", default: "create")
-  --limit-import-count <number>  import at most x number of tasks from the source file. Defaults to 0 = no limit (default: 0)
-  --dry-run                      do a dry run, i.e. do not create any reload tasks - just show what would be done
-  -h, --help                     display help for command
+  --log-level <level>                log level (choices: "error", "warn", "info", "verbose", "debug", "silly", default: "info")
+  --host <host>                      Qlik Sense server IP/FQDN
+  --port <port>                      Qlik Sense server engine port (default: "4242")
+  --schema-version <string>          Qlik Sense engine schema version (default: "12.612.0")
+  --virtual-proxy <prefix>           Qlik Sense virtual proxy prefix (default: "")
+  --secure <true|false>              connection to Qlik Sense engine is via https (default: true)
+  --auth-user-dir <directory>        user directory for user to connect with
+  --auth-user-id <userid>            user ID for user to connect with
+  -a, --auth-type <type>             authentication type (choices: "cert", default: "cert")
+  --auth-cert-file <file>            Qlik Sense certificate file (exported from QMC) (default: "./cert/client.pem")
+  --auth-cert-key-file <file>        Qlik Sense certificate key file (exported from QMC) (default: "./cert/client_key.pem")
+  --auth-root-cert-file <file>       Qlik Sense root certificate file (exported from QMC) (default: "./cert/root.pem")
+  -t, --file-type <type>             source file type (choices: "excel", "csv", default: "excel")
+  --file-name <filename>             file containing task definitions
+  --sheet-name <name>                name of Excel sheet where task info is found
+  --update-mode <mode>               create new or update existing tasks (choices: "create", default: "create")
+  --limit-import-count <number>      import at most x number of tasks from the source file. Defaults to 0 = no limit (default: 0)
+  --sleep-app-upload <milliseconds>  Wait this long before continuing after each app has been uploaded to Sense. Defaults to 1000 = 1 second (default: 1000)
+  --import-app                       import Sense app QVFs from specified directory
+  --import-app-sheet-name <name>     name of Excel sheet where app definitions are found
+  --dry-run                          do a dry run, i.e. do not create any reload tasks - just show what would be done
+  -h, --help                         display help for command
 ```
 
 The options are *almost* the same irrespective of source file type:
@@ -1219,7 +1257,7 @@ The *mandatory* columns in the task definition file are:
 | Rule counter                 | 4 | Counter identifying rules that define upstream task executions the current task is depending on. | Integer > 0 |
 | Rule state                   | 4 | Is the rule waiting for success or failure of upstream task? | TaskSuccessful / TaskFail |
 | Rule task name               |   | Name of the rule | Any string |
-| Rule task id                 | 4 | Reference to the upstream task. Two options exist: If the "Rule task id" has the same value as the "Task id" of another task in the source file, those two tasks will be linked via this rule. If the "Rule task id" refers to an existing task id in Sense, the new rule will link to that existing task. | Any string (if referring to a task within the same file), **or** a valid id of a task that already exists in Sense. |
+| Rule task id                 | 4 | Reference to the upstream task. | Any string (if referring to a task within the same file), **or** a valid id of a task that already exists in Sense.<br>Two options exist: If the "Rule task id" has the same value as the "Task id" of another task in the source file, those two tasks will be linked via this rule. If the "Rule task id" refers to an existing task id in Sense, the new rule will link to that existing task. |
 
 Meaning of "Comment" column above:
 
@@ -1244,6 +1282,9 @@ The mandatory columns (case sensitive!) in the app import definition file are:
 | Exclude data connections     |   | Should data connections stored in the QVF file be excluded during app import or not. | true / false |
 | App tags                     |   | Tags to set on the imported app. | Format is "tag1 / tag2 / tag with spaces in it", i.e. separate tag names by "space-forward slash-space". |
 | App custom properties        |   | Custom properties to set on the imported app. | Format is CustPropName1=Value1 / CustPropName2=Value2 |
+| Owner user directory         |   | If app owner should be set for this app, specify the user directory name here. Both user directory and user id must be correctly defined for the app owner to be updated.  | Any user directory currently defined in the QMV, or `Internal` for Sense internal accounts. |
+| Owner user id                |   | If app owner should be set for this app, specify the user id here. Both user directory and user id must be correctly defined for the app owner to be updated. | Any user ID defined in the user directory defined in `Owner user directory` column (above). |
+| Publish to stream            |   | If this app should be published, specify stream id or name here. If the id is not associated with a stream or the specified stream name does not exist the app will not be published | Any existing stream name or id associated with an existing stream. |
 
 #### Example: Export tasks to CSV, then import tasks from same CSV
 
@@ -1270,21 +1311,23 @@ Export tasks to CSV file:
 ```
 
 ```
-2023-02-22T22:36:37.148Z info: -----------------------------------------------------------
-2023-02-22T22:36:37.151Z info: | Ctrl-Q
-2023-02-22T22:36:37.151Z info: | 
-2023-02-22T22:36:37.151Z info: | Version      : 3.6.0
-2023-02-22T22:36:37.151Z info: | Log level    : info
-2023-02-22T22:36:37.151Z info: | 
-2023-02-22T22:36:37.152Z info: | Command      : task-get
-2023-02-22T22:36:37.152Z info: |              : get info about one or more tasks
-2023-02-22T22:36:37.152Z info: | 
-2023-02-22T22:36:37.153Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-22T22:36:37.153Z info: | 
-2023-02-22T22:36:37.153Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-22T22:36:37.154Z info: ----------------------------------------------------------
-2023-02-22T22:36:37.154Z info: 
-2023-02-22T22:36:40.149Z info: ✅ Writing task table to disk file "tasks.csv".
+2023-03-24T11:48:06.526Z info: -----------------------------------------------------------
+2023-03-24T11:48:06.526Z info: | Ctrl-Q
+2023-03-24T11:48:06.526Z info: |
+2023-03-24T11:48:06.526Z info: | Version      : 3.7.0
+2023-03-24T11:48:06.526Z info: | Log level    : info
+2023-03-24T11:48:06.526Z info: |
+2023-03-24T11:48:06.526Z info: | Command      : task-get
+2023-03-24T11:48:06.526Z info: |              : get info about one or more tasks
+2023-03-24T11:48:06.526Z info: |
+2023-03-24T11:48:06.526Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T11:48:06.526Z info: |
+2023-03-24T11:48:06.526Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T11:48:06.526Z info: ----------------------------------------------------------
+2023-03-24T11:48:06.541Z info:
+2023-03-24T11:48:06.634Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-24T11:48:09.478Z info:
+2023-03-24T11:48:09.478Z info: ✅ Writing task table to disk file "tasks.csv".
 ```
 
 Now let's import tasks from the `tasks.csv` file:
@@ -1307,47 +1350,44 @@ When that's the case the newly created tasks (based on the info in the CSV file)
 
 This way a newly created task (based on info in the CSV file) can still be configured to start after some already existing task finish reloading.
 
+Note how Ctrl-Q first creates the reload tasks and any associated schedule triggers in a first step, then add any composite triggers in the second step.  
+This is needed as a composite trigger may refer to an already existing and/or a newly created task (or multiple tasks of course), i.e. all tasks must first be created. Only then is it safe to create composite triggers.
+
 ```
-2023-02-22T22:38:42.265Z info: -----------------------------------------------------------
-2023-02-22T22:38:42.268Z info: | Ctrl-Q
-2023-02-22T22:38:42.268Z info: | 
-2023-02-22T22:38:42.268Z info: | Version      : 3.6.0
-2023-02-22T22:38:42.268Z info: | Log level    : info
-2023-02-22T22:38:42.269Z info: | 
-2023-02-22T22:38:42.269Z info: | Command      : task-import
-2023-02-22T22:38:42.269Z info: |              : create tasks based on definitions in a file on disk, optionally also importing apps from QVF files.
-2023-02-22T22:38:42.269Z info: | 
-2023-02-22T22:38:42.270Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-22T22:38:42.270Z info: | 
-2023-02-22T22:38:42.270Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-22T22:38:42.271Z info: ----------------------------------------------------------
-2023-02-22T22:38:42.271Z info: 
-2023-02-22T22:38:42.275Z info: Import tasks from definitions in file "tasks.csv"
-2023-02-22T22:38:42.668Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of Always failing reload (no delay)", new task id: 9f04388c-4cbf-4c67-aef7-39ac7bde57ac. Result: 201/Created.
-2023-02-22T22:38:42.836Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of App1 🏆", new task id: 551abbd3-dee9-430b-97b4-b357e553829e. Result: 201/Created.
-2023-02-22T22:38:42.931Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of Butler 7 Slack debug", new task id: 2f5619dc-988f-4660-8e59-34f54edc2a7a. Result: 201/Created.
-2023-02-22T22:38:43.039Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of ButlerTest 1", new task id: baea8b70-9e20-48d9-b08f-ff99b7d4e243. Result: 201/Created.
+2023-03-24T11:49:02.415Z info: -----------------------------------------------------------
+2023-03-24T11:49:02.415Z info: | Ctrl-Q
+2023-03-24T11:49:02.415Z info: |
+2023-03-24T11:49:02.415Z info: | Version      : 3.7.0
+2023-03-24T11:49:02.415Z info: | Log level    : info
+2023-03-24T11:49:02.415Z info: |
+2023-03-24T11:49:02.415Z info: | Command      : task-import
+2023-03-24T11:49:02.415Z info: |              : create tasks based on definitions in a file on disk, optionally also importing apps from QVF files.
+2023-03-24T11:49:02.415Z info: |
+2023-03-24T11:49:02.415Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T11:49:02.415Z info: |
+2023-03-24T11:49:02.415Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T11:49:02.431Z info: ----------------------------------------------------------
+2023-03-24T11:49:02.431Z info:
+2023-03-24T11:49:02.431Z info: Import tasks from definitions in file "tasks.csv"
+2023-03-24T11:49:02.477Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-24T11:49:02.509Z info: Successfully retrieved 29 custom properties from QSEoW
+2023-03-24T11:49:02.665Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of Always failing reload (no delay)", new task id: 6a0fcf28-2990-43d5-944f-0f6a3e344adb. Result: 201/Created.
+2023-03-24T11:49:02.727Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of App1 🏆", new task id: 5a95ca02-bb40-4f19-afe4-dbe283e49d46. Result: 201/Created.
+2023-03-24T11:49:02.774Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of Butler 7 Slack debug", new task id: cbf87f0b-cb39-4956-b7a8-6c08ed6d3a61. Result: 201/Created.
+2023-03-24T11:49:02.899Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of ButlerTest 1", new task id: 7468ce9b-1ab6-4a5d-9a05-7aae16cfc645. Result: 201/Created.
+2023-03-24T11:49:02.962Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of Employee salaries", new task id: d8bd35e5-9eb9-4fc8-9db5-a298f3260ade. Result: 201/Created.
+2023-03-24T11:49:03.024Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of HR metrics 2015-2020", new task id: 49f80c95-ea94-4651-bfe6-1ab87dd1a1ee. Result: 201/Created.
+2023-03-24T11:49:03.166Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of Meetup.com", new task id: 10338309-ad85-4d76-aa0d-995a833555b3. Result: 201/Created.
+2023-03-24T11:49:03.212Z info: CREATE RELOAD TASK IN QSEOW: "Manually triggered reload of Minecraft Metrics", new task id: 9efb47b7-cf10-45af-894a-9addf2f31c57. Result: 201/Created.
 ...
 ...
-2023-02-22T22:38:49.288Z info: -------------------------------------------------------------------
-2023-02-22T22:38:49.289Z info: Creating composite events for the just created tasks...
-2023-02-22T22:38:49.345Z info: CREATE COMPOSITE EVENT IN QSEOW: Event name="App2_composite_1" for task ID baea8b70-9e20-48d9-b08f-ff99b7d4e243. Result: 201/Created.
-2023-02-22T22:38:49.400Z info: CREATE COMPOSITE EVENT IN QSEOW: Event name="When HR metrics done" for task ID ac986964-a938-47c4-935e-4f0866e435ca. Result: 201/Created.
-2023-02-22T22:38:49.464Z info: CREATE COMPOSITE EVENT IN QSEOW: Event name="When Operations monitor has reloaded" for task ID 15f2a083-314f-4b09-b6a2-54775a03720d. Result: 201/Created.
+2023-03-24T11:49:06.931Z info: -------------------------------------------------------------------
+2023-03-24T11:49:06.931Z info: Creating composite events for the just created tasks...
+2023-03-24T11:49:07.008Z info: CREATE COMPOSITE EVENT IN QSEOW: Event name="App2_composite_1" for task ID 7468ce9b-1ab6-4a5d-9a05-7aae16cfc645. Result: 201/Created.
+2023-03-24T11:49:07.072Z info: CREATE COMPOSITE EVENT IN QSEOW: Event name="When HR metrics done" for task ID 6474ddbf-805f-4600-85f6-48315a46edeb. Result: 201/Created.
+2023-03-24T11:49:07.134Z info: CREATE COMPOSITE EVENT IN QSEOW: Event name="When Operations monitor has reloaded" for task ID e57e60fc-ca96-40cb-aa9f-5e3f3cda749b. Result: 201/Created.
 ...
 ...
-```
-
-#### Example: Import tasks from Excel file with chaining of new tasks
-
-This example will
-
-1. Import tasks from an Excel file, associating the tasks with existing Sense apps.
-2. Create a task chain consisting of the newly imported tasks.
-3. Some imported tasks will be triggered by already existing Sense tasks.
-
-```powershell
-
 ```
 
 #### Example: Import apps from QVF files and create associated reload tasks
@@ -1355,10 +1395,14 @@ This example will
 This example will
 
 1. Import 3 apps from QVF files. Definitions of which files to import are stored in an Excel file.
-2. Set tags and custom properties for the imported apps.
-3. Create reload tasks based on definitions in same Excel file (but on a different sheet).
-4. The reload tasks will be associated with the previously imported apps.
-5. The reload tasks will be linked in a task chain.
+   1. Tags and custom properties will be set for the apps.
+   2. New app owners will be set.
+   3. The apps will be published to streams.
+2. Create reload tasks based on definitions in same Excel file (but on a different sheet).
+3. The reload tasks will be associated with the previously imported apps.
+4. The reload tasks will be linked in a task chain.
+5. Some imported tasks will be triggered by already existing Sense tasks while others will be triggered by newly created tasks.
+6. There will be a 2 second delay after each QVF file has finished uploading, to reduce load on the Sense server.
 
 The task import command looks like this in PowerShell:
 
@@ -1372,33 +1416,24 @@ The task import command looks like this in PowerShell:
 --auth-user-id goran `
 --file-type excel `
 --file-name tasks.xlsx `
---sheet-name "Ctrl-Q task import 2" `
+--sheet-name "Ctrl-Q task import 1" `
 --import-app `
---import-app-sheet-name "App import"
+--import-app-sheet-name "App import" `
+--sleep-app-upload 2000
 ```
 
 Some comments about the above command:
 
-- The certificates used to authenticate with Sense are stored in the `cert` subdirectory, right under where Ctrl-Q is started from. That's actually the default locataion, meaning that the options `--auth-cert-file` and `--auth-cert-key-file` are not needed in this case.
+- The certificates used to authenticate with Sense are stored in the `cert` subdirectory, right under where Ctrl-Q is started from.  
+  That's the default locataion, meaning that the options `--auth-cert-file` and `--auth-cert-key-file` are really not needed in this example.
 - The app and task definitions are found in a Excel file (`--file-type` option) named `tasks.xlsx`.
-- Task definitions are found in the Excel file's sheet named `Ctrl-Q task import`. 
-- The `--import-app` tells Ctrl-Q to import certain apps before tasks defined in the `Ctrl-Q task import` sheet are created. This parameter is optional. If it is **not** included no apps will be imported.
+- Task definitions are found in the Excel file's sheet named `Ctrl-Q task import`.
+- The `--import-app` tells Ctrl-Q to import certain apps before tasks defined in the `Ctrl-Q task import 1` sheet are created. This parameter is optional. If it is **not** included no apps will be imported.
 - The `--import-app-sheet-name` tells Ctrl-Q that a list of apps to be imported (and import parameters for each app) is found the `App import` sheet of the Excel file.
 
-> NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/docs/tasks.xlsx).
-##### Defining apps to be imported
+> NOTE 1: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/testdata/tasks.xlsx?raw=true).
 
-The Excel sheet specified by the `--import-app-sheet-name` has the following *mandatory* columns:
-
-| Column name              | Comment | Description | Valid values |
-|--------------------------|-----------|-------------|------|
-| App counter              |  | Counter starting at 1. Increments one step for each app. All rows associated with a specific app should have the same value in this column. | Integer > 0 |
-| App name                 |  | Name that the imported app should be given. | Any string. Emojis allowed. |
-| QVF directory            |  | Directory where the app QVF file is stored. | A valid relative or absolut path. |
-| QVF name                 |  | Name of app QVF file | File name, including extension. |
-| Exclude data connections |  | Should data connections stored in the QVF file be imported? | true/false. `true`= don't import data connections. |
-| App tags                 |  | Tags to set on the imported app. | Format is "tag1 / tag2 / tag with spaces in it", i.e. separate tag names by "space-forward slash-space". |
-| App custom properties    |  | Custom properties to set on the created task. | Format is CustPropName1=Value1 / CustPropName2=Value2 |
+> NOTE 2: The structure of the Excel sheet specified by the `--import-app-sheet-name` is described [above](#source-file-columns-for-app-import-definitions).
 
 ##### Defining tasks to be created
 
@@ -1410,7 +1445,7 @@ More info [here](#source-file-columns-for-task-defintions).
 A few special cases apply when tasks are created **and** apps also imported.
 
 In this situation it's important that tasks can be associated with either the newly imported apps *or* already existing apps.  
-Similarly, for composite task triggers (used to create task chains) it's important that either newly created tasks *or* already existing tasks can be referenced.  
+Similarly, for composite task triggers (used to create task chains) it's important that either newly created tasks *or* already existing tasks can be referenced.
 
 Let's say the following three QVF files should be imported into Sense.  
 Note the `App counter` column, with values 1, 2 and 3.
@@ -1459,25 +1494,25 @@ Note:
 ```
 
 ```
-2023-02-22T15:44:52.667Z info: -----------------------------------------------------------
-2023-02-22T15:44:52.667Z info: | Ctrl-Q
-2023-02-22T15:44:52.667Z info: |
-2023-02-22T15:44:52.667Z info: | Version      : 3.6.0
-2023-02-22T15:44:52.667Z info: | Log level    : info
-2023-02-22T15:44:52.667Z info: |
-2023-02-22T15:44:52.667Z info: | Command      : field-scramble
-2023-02-22T15:44:52.667Z info: |              : scramble one or more fields in an app. A new app with the scrambled data is created.
-2023-02-22T15:44:52.667Z info: |
-2023-02-22T15:44:52.667Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-22T15:44:52.667Z info: |
-2023-02-22T15:44:52.667Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-22T15:44:52.667Z info: ----------------------------------------------------------
-2023-02-22T15:44:52.667Z info:
-2023-02-22T15:44:52.667Z info: Scramble field
-2023-02-22T15:44:53.043Z info: Scrambled field "Expression1"
-2023-02-22T15:44:53.058Z info: Scrambled field "Dim1"
-2023-02-22T15:44:53.058Z info: Scrambled field "AsciiAlpha"
-2023-02-22T15:44:53.574Z info: Scrambled data written to new app "__ScrambledTest1" with app ID: cec487a0-9b96-4c84-bea7-dd286ed52f87
+2023-03-24T12:17:41.793Z info: -----------------------------------------------------------
+2023-03-24T12:17:41.793Z info: | Ctrl-Q
+2023-03-24T12:17:41.793Z info: |
+2023-03-24T12:17:41.793Z info: | Version      : 3.7.0
+2023-03-24T12:17:41.809Z info: | Log level    : info
+2023-03-24T12:17:41.809Z info: |
+2023-03-24T12:17:41.809Z info: | Command      : field-scramble
+2023-03-24T12:17:41.809Z info: |              : scramble one or more fields in an app. A new app with the scrambled data is created.
+2023-03-24T12:17:41.809Z info: |
+2023-03-24T12:17:41.809Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T12:17:41.809Z info: |
+2023-03-24T12:17:41.809Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T12:17:41.809Z info: ----------------------------------------------------------
+2023-03-24T12:17:41.809Z info:
+2023-03-24T12:17:41.809Z info: Scramble field
+2023-03-24T12:17:42.215Z info: Scrambled field "Expression1"
+2023-03-24T12:17:42.215Z info: Scrambled field "Dim1"
+2023-03-24T12:17:42.215Z info: Scrambled field "AsciiAlpha"
+2023-03-24T12:17:42.653Z info: Scrambled data written to new app "__ScrambledTest1" with app ID: a54b1378-6f3f-4305-b3e4-1b0fa2cd2d3a
 ```
 
 ## Get script
@@ -1493,26 +1528,26 @@ Get script and associated metadata for a Sense app.
 ```
 
 ```
-2023-02-22T15:44:17.122Z info: -----------------------------------------------------------
-2023-02-22T15:44:17.137Z info: | Ctrl-Q
-2023-02-22T15:44:17.137Z info: |
-2023-02-22T15:44:17.137Z info: | Version      : 3.6.0
-2023-02-22T15:44:17.137Z info: | Log level    : info
-2023-02-22T15:44:17.137Z info: |
-2023-02-22T15:44:17.137Z info: | Command      : script-get
-2023-02-22T15:44:17.137Z info: |              : get script from Qlik Sense app
-2023-02-22T15:44:17.137Z info: |
-2023-02-22T15:44:17.137Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-22T15:44:17.137Z info: |
-2023-02-22T15:44:17.137Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-22T15:44:17.137Z info: ----------------------------------------------------------
-2023-02-22T15:44:17.137Z info:
-2023-02-22T15:44:17.543Z info: ----- Script metadata -----
-2023-02-22T15:44:17.543Z info: App id: a3e0f5d2-000a-464f-998d-33d333b175d7
-2023-02-22T15:44:17.543Z info: Created date: 2021-06-03T22:04:52.283Z
-2023-02-22T15:44:17.543Z info: Modified date: 2021-06-04T15:42:23.759Z
-2023-02-22T15:44:17.543Z info: ----- End script metadata -----
-2023-02-22T15:44:17.543Z info:
+2023-03-24T12:18:17.152Z info: -----------------------------------------------------------
+2023-03-24T12:18:17.152Z info: | Ctrl-Q
+2023-03-24T12:18:17.152Z info: |
+2023-03-24T12:18:17.152Z info: | Version      : 3.7.0
+2023-03-24T12:18:17.152Z info: | Log level    : info
+2023-03-24T12:18:17.152Z info: |
+2023-03-24T12:18:17.152Z info: | Command      : script-get
+2023-03-24T12:18:17.152Z info: |              : get script from Qlik Sense app
+2023-03-24T12:18:17.152Z info: |
+2023-03-24T12:18:17.152Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-24T12:18:17.152Z info: |
+2023-03-24T12:18:17.152Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-24T12:18:17.152Z info: ----------------------------------------------------------
+2023-03-24T12:18:17.152Z info:
+2023-03-24T12:18:17.496Z info: ----- Script metadata -----
+2023-03-24T12:18:17.496Z info: App id: a3e0f5d2-000a-464f-998d-33d333b175d7
+2023-03-24T12:18:17.496Z info: Created date: 2021-06-03T22:04:52.283Z
+2023-03-24T12:18:17.496Z info: Modified date: 2021-06-04T15:42:23.759Z
+2023-03-24T12:18:17.496Z info: ----- End script metadata -----
+2023-03-24T12:18:17.496Z info:
 ///$tab Main
 SET ThousandSep=',';
 SET DecimalSep='.';
