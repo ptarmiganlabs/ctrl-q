@@ -1282,7 +1282,7 @@ The mandatory columns (case sensitive!) in the app import definition file are:
 | Exclude data connections     |   | Should data connections stored in the QVF file be excluded during app import or not. | true / false |
 | App tags                     |   | Tags to set on the imported app. | Format is "tag1 / tag2 / tag with spaces in it", i.e. separate tag names by "space-forward slash-space". |
 | App custom properties        |   | Custom properties to set on the imported app. | Format is CustPropName1=Value1 / CustPropName2=Value2 |
-| Owner user directory         |   | If app owner should be set for this app, specify the user directory name here. Both user directory and user id must be correctly defined for the app owner to be updated.  | Any user directory currently defined in the QMV, or `Internal` for Sense internal accounts. |
+| Owner user directory         |   | If app owner should be set for this app, specify the user directory name here. Both user directory and user id must be correctly defined for the app owner to be updated.  | Any user directory currently defined in the QMC, or `Internal` for Sense internal accounts. |
 | Owner user id                |   | If app owner should be set for this app, specify the user id here. Both user directory and user id must be correctly defined for the app owner to be updated. | Any user ID defined in the user directory defined in `Owner user directory` column (above). |
 | Publish to stream            |   | If this app should be published, specify stream id or name here. If the id is not associated with a stream or the specified stream name does not exist the app will not be published | Any existing stream name or id associated with an existing stream. |
 
