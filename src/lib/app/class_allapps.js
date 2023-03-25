@@ -44,6 +44,88 @@ class QlikSenseApps {
         this.appList.push(newApp);
     }
 
+    // Get array of apps matching app id, tags etc filters
+    async getAppsFromQseow() {
+        try {
+            logger.debug('GET APPS: Starting get apps from QSEoW');
+
+            // Are there any app filters specified?
+            // If so, build a query string
+            let filter = '';
+
+            // Add app id(s) to query string
+            if (this.options.appId && this.options?.appId.length >= 1) {
+                // At least one app ID specified
+                // Add first app ID
+                filter += encodeURIComponent(`(id eq ${this.options.appId[0]}`);
+            }
+            if (this.options.appId && this.options?.appId.length >= 2) {
+                // Add remaining app IDs, if any
+                for (let i = 1; i < this.options.appId.length; i += 1) {
+                    filter += encodeURIComponent(` or id eq ${this.options.appId[i]}`);
+                }
+                filter += encodeURIComponent(')');
+                logger.debug(`GET APP: QRS query filter (incl ids): ${filter}`);
+            }
+
+            // Add app tag(s) to query string
+            if (this.options.appTag && this.options?.appTag.length >= 1) {
+                // At least one app ID specified
+                if (filter.length >= 1) {
+                    // We've previously added some app ids
+                    // Add first app tag
+                    filter += encodeURIComponent(` or (tags.name eq '${this.options.appTag[0]}'`);
+                } else {
+                    // No app ids added yet
+                    // Add first app tag
+                    filter += encodeURIComponent(`(tags.name eq '${this.options.appTag[0]}'`);
+                }
+            }
+            if (this.options.appTag && this.options?.appTag.length >= 2) {
+                // Add remaining app tags, if any
+                for (let i = 1; i < this.options.appTag.length; i += 1) {
+                    filter += encodeURIComponent(` or tags.name eq '${this.options.appTag[i]}'`);
+                }
+                filter += encodeURIComponent(')');
+                logger.debug(`GET APP: QRS query filter (incl ids, tags): ${filter}`);
+            }
+
+            let axiosConfig;
+            if (filter === '') {
+                axiosConfig = await setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/app',
+                });
+            } else {
+                axiosConfig = await setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/app',
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
+            }
+
+            const result = await axios.request(axiosConfig);
+            logger.debug(`GET APP: Result=result.status`);
+
+            const apps = JSON.parse(result.data);
+            logger.verbose(`GET APP: # apps: ${apps.length}`);
+
+            this.clear();
+            for (let i = 0; i < apps.length; i += 1) {
+                this.addApp(apps[i], apps[i].id);
+            }
+
+            return apps;
+        } catch (err) {
+            logger.error(`GET QS APP 2: ${err}`);
+            return false;
+        }
+    }
+
     async importAppsFromFiles(appsFromFile, tagsExisting, cpExisting) {
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {

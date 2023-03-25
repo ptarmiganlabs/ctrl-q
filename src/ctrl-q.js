@@ -22,6 +22,7 @@ const { getTask } = require('./lib/cmd/gettask');
 const { setTaskCustomProperty } = require('./lib/cmd/settaskcp');
 const { importTaskFromFile } = require('./lib/cmd/importtask');
 const { importAppFromFile } = require('./lib/cmd/importapp');
+const { exportAppToFile } = require('./lib/cmd/exportapp');
 
 const {
     sharedParamAssertOptions,
@@ -36,6 +37,7 @@ const {
     setTaskCustomPropertyAssertOptions,
     taskImportAssertOptions,
     appImportAssertOptions,
+    appExportAssertOptions,
 } = require('./lib/util/assert-options');
 
 const program = new Command();
@@ -582,6 +584,52 @@ const program = new Command();
         )
 
         .option('--dry-run', 'do a dry run, i.e. do not import any apps - just show what would be done');
+
+    // Export apps to QVF files
+    program
+        .command('app-export')
+        .description('export Qlik Sense apps to QVF files on disk.')
+        .action(async (options) => {
+            try {
+                await sharedParamAssertOptions(options);
+                await appExportAssertOptions(options);
+                exportAppToFile(options);
+            } catch (err) {
+                logger.error(`EXPORT APP: ${err}`);
+            }
+        })
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+
+        .option('--app-id <ids...>', 'use app IDs to select which apps to export')
+        .option('--app-tag <tags...>', 'use app tags to select which apps to export')
+
+        .requiredOption('--output-dir <directory>', 'relative or absolut path in which QVF files should be stored.', 'qvf-export')
+        .requiredOption('--qvf-prefix <prefix>', 'text string that will be prefixed to file name of all QVF files', '')
+        .requiredOption('--qvf-psuffix <suffix>', 'text string that will be suffixed to (added to end of) file name of all QVF files', '')
+
+        .requiredOption('--exclude-app-data <true|false>', 'exclude or include app data in QVF file', true)
+        .requiredOption('--limit-export-count <number>', 'export at most x number of apps. Defaults to 0 = no limit', 0)
+        .requiredOption(
+            '--sleep-app-export <milliseconds>',
+            'Wait this long before continuing after each app has been exported. Defaults to 1000 = 1 second',
+            1000
+        )
+
+        .option('--dry-run', 'do a dry run, i.e. do not export any apps - just show what would be done');
 
     // Parse command line params
     await program.parseAsync(process.argv);
