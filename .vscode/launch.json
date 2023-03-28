@@ -48,7 +48,7 @@
       //   "2023 Jan",
       //   // "Finance",
       //   // "Sales",
-      //   "--overwrite",
+      //   "--qvf-overwrite",
       //   "--update-mode",
       //   // "append",
       //   "replace",
@@ -85,7 +85,7 @@
       //   "--import-app-sheet-name",
       //   // "App import",
 
-      //   // "--overwrite",
+      //   // "--qvf-overwrite",
       //   // "no",
 
       //   // "--limit-import-count",
@@ -122,7 +122,7 @@
       //   // "tasks2source.csv",
       //   "task-chain.csv",
 
-      //   // "--overwrite",
+      //   // "--qvf-overwrite",
       //   // "no",
 
       //   // "--limit-import-count",
@@ -131,12 +131,11 @@
       //   // "--dry-run"
       // ]
 
-
       // ------------------------------------
-      // Import apps from Excel file
+      // Export apps to QVF files
       // ------------------------------------
       "args": [
-        "app-import",
+        "app-export",
         "--auth-type",
         "cert",
         "--host",
@@ -149,23 +148,74 @@
         "LAB",
         "--auth-user-id",
         "goran",
-
-        // "--file-type",
-        // "excel",
         
-        "--file-name",
-        "testdata/tasks.xlsx",
-        "--sheet-name",
-        "App import",
+        "--app-tag",
+        "apiCreated",
+        "Ctrl-Q import",
 
-        // "--limit-import-count",
-        //  "2",
+        "--app-id",
+        "eb3ab049-d007-43d3-93da-5962f9208c65",
+        "2933711d-6638-41d4-a2d2-6dd2d965208b",
 
-        // "--sleep-app-upload",
-        //  "500",
+        "--exclude-app-data",
+        "false",
+
+        "--qvf-name-format",
+        // "export-time",
+        "app-name",
+        "export-date", 
+
+        "--qvf-name-separator",
+        "__",
+
+        "--output-dir",
+        "qvfs",
+        // "/home/joe/qvf",
+
+        "--limit-export-count",
+         "2",
+
+        "--sleep-app-export",
+         "500",
 
         // "--dry-run"
       ]
+
+
+      // ------------------------------------
+      // Import apps from Excel file
+      // ------------------------------------
+      // "args": [
+      //   "app-import",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+
+      //   // "--file-type",
+      //   // "excel",
+        
+      //   "--file-name",
+      //   "testdata/tasks.xlsx",
+      //   "--sheet-name",
+      //   "App import",
+
+      //   // "--limit-import-count",
+      //   //  "2",
+
+      //   // "--sleep-app-upload",
+      //   //  "500",
+
+      //   // "--dry-run"
+      // ]
 
 
       // ------------------------------------

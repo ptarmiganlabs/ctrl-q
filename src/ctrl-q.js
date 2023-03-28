@@ -484,7 +484,7 @@ const program = new Command();
 
         .requiredOption('--custom-property-name <name>', 'name of custom property that will be updated')
         .requiredOption('--custom-property-value <values...>', 'one or more values name of custom property that will be updated')
-        .option('--overwrite', 'overwrite existing custom property values without asking')
+        .option('--qvf-overwrite', 'overwrite existing custom property values without asking')
         .addOption(
             new Option('--update-mode <mode>', 'append or replace value(s) to existing custom property')
                 .choices(['append', 'replace'])
@@ -618,8 +618,17 @@ const program = new Command();
         .option('--app-tag <tags...>', 'use app tags to select which apps to export')
 
         .requiredOption('--output-dir <directory>', 'relative or absolut path in which QVF files should be stored.', 'qvf-export')
-        .requiredOption('--qvf-prefix <prefix>', 'text string that will be prefixed to file name of all QVF files', '')
-        .requiredOption('--qvf-psuffix <suffix>', 'text string that will be suffixed to (added to end of) file name of all QVF files', '')
+        .addOption(
+            new Option('--qvf-name-format <format...>', 'structure of QVF file name format')
+                .choices(['app-id', 'app-name', 'export-date', 'export-time'])
+                .default(['app-name'])
+        )
+        .addOption(
+            new Option('--qvf-name-separator <separator>', 'character used to separate parts of the QVF file name')
+                .choices(['-', '--', '_', '__'])
+                .default('_')
+        )
+        .option('--qvf-overwrite', 'overwrite existing QVF files without asking')
 
         .requiredOption('--exclude-app-data <true|false>', 'exclude or include app data in QVF file', true)
         .requiredOption('--limit-export-count <number>', 'export at most x number of apps. Defaults to 0 = no limit', 0)
@@ -628,6 +637,12 @@ const program = new Command();
             'Wait this long before continuing after each app has been exported. Defaults to 1000 = 1 second',
             1000
         )
+
+        // Export of app metadata
+        .option('--metadata-file-create', 'create a separate file with information about all exported apps')
+        .addOption(new Option('--metadata-file-name <name>', 'file name to store app metadata in').default('app_export.xlsx'))
+        .addOption(new Option('--metadata-file-format <format>', 'file type/format').choices(['excel']).default('excel'))
+        .option('--metadata-file-overwrite', 'overwrite app metadata file without asking')
 
         .option('--dry-run', 'do a dry run, i.e. do not export any apps - just show what would be done');
 

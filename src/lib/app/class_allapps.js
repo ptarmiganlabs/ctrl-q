@@ -3,7 +3,9 @@ const axios = require('axios');
 const path = require('path');
 const FormData = require('form-data');
 const fs = require('fs/promises');
-const { validate } = require('uuid');
+const fs2 = require('fs');
+const { v4: uuidv4, validate } = require('uuid');
+const yesno = require('yesno');
 
 const { logger, execPath, mergeDirFilePath, verifyFileExists, sleep } = require('../../globals');
 const { setupQRSConnection } = require('../util/qrs');
@@ -64,9 +66,13 @@ class QlikSenseApps {
                 for (let i = 1; i < this.options.appId.length; i += 1) {
                     filter += encodeURIComponent(` or id eq ${this.options.appId[i]}`);
                 }
-                filter += encodeURIComponent(')');
-                logger.debug(`GET APP: QRS query filter (incl ids): ${filter}`);
             }
+
+            // Add closing parenthesis
+            if (this.options.appId && this.options?.appId.length >= 1) {
+                filter += encodeURIComponent(')');
+            }
+            logger.debug(`GET APP: QRS query filter (incl ids): ${filter}`);
 
             // Add app tag(s) to query string
             if (this.options.appTag && this.options?.appTag.length >= 1) {
@@ -86,9 +92,13 @@ class QlikSenseApps {
                 for (let i = 1; i < this.options.appTag.length; i += 1) {
                     filter += encodeURIComponent(` or tags.name eq '${this.options.appTag[i]}'`);
                 }
-                filter += encodeURIComponent(')');
-                logger.debug(`GET APP: QRS query filter (incl ids, tags): ${filter}`);
             }
+
+            // Add closing parenthesis
+            if (this.options.appTag && this.options?.appTag.length >= 1) {
+                filter += encodeURIComponent(')');
+            }
+            logger.debug(`GET APP: QRS query filter (incl ids, tags): ${filter}`);
 
             let axiosConfig;
             if (filter === '') {
@@ -116,12 +126,15 @@ class QlikSenseApps {
 
             this.clear();
             for (let i = 0; i < apps.length; i += 1) {
-                this.addApp(apps[i], apps[i].id);
+                // eslint-disable-next-line no-await-in-loop
+                await this.addApp(apps[i], apps[i].id);
             }
 
             return apps;
         } catch (err) {
+            // console.log(err)
             logger.error(`GET QS APP 2: ${err}`);
+            logger.error(`GET QS APP 2: ${err.stack}`);
             return false;
         }
     }
@@ -563,6 +576,142 @@ class QlikSenseApps {
             logger.error(`CREATE RELOAD TASK IN QSEOW 2: ${err}`);
             return false;
         }
+    }
+
+    async exportAppStep1(app) {
+        try {
+            const exportToken = uuidv4();
+            const excludeData = this.options.excludeAppData === 'true' ? 'true' : 'false';
+
+            const axiosConfig = setupQRSConnection(this.options, {
+                method: 'post',
+                fileCert: this.fileCert,
+                fileCertKey: this.fileCertKey,
+                path: `/qrs/app/${app.id}/export/${exportToken}`,
+                queryParameters: [{ name: 'skipData', value: excludeData }],
+            });
+
+            const result = await axios.request(axiosConfig);
+            logger.verbose(`Export app step 1 result: [${result.status}] ${result.statusText}`);
+
+            if (result.status === 201) {
+                const exportData = JSON.parse(result.data);
+                exportData.appName = app.name;
+                logger.verbose(`Export app step 1 done`);
+                logger.debug(`Export app step 1 data: ${JSON.stringify(exportData, null, 2)}`);
+                return exportData;
+            }
+
+            logger.warn(`Export app step 1 failed: [${result.status}] ${result.statusText}`);
+            return false;
+        } catch (err) {
+            logger.error(`[${err}] Export app step 1`);
+            return false;
+        }
+    }
+
+    async exportAppStep2(resultStep1) {
+        // resultStep.downloadPath has format
+        // /tempcontent/d989fffd-5310-43b5-b028-f313b53bb8e2/User%20retention.qvf?serverNodeId=80db9b97-8ea2-4208-a79a-c46b7e16c38c
+
+        const urlPath = resultStep1.downloadPath.split('?')[0];
+        const param = resultStep1.downloadPath.split('?')[1];
+        const paramName = param.split('=')[0];
+        const paramValue = param.split('=')[1];
+
+        // Build file name
+        let fileName = '';
+        const qvfNameSeparator = this.options.qvfNameSeparator;
+
+        // Build UTC date and time strings
+        const today = new Date();
+        const todayDate = today.toISOString().split('T')[0];
+        const todayTime = today.toISOString().split('T')[1].split('.')[0].replace(':', '-').replace(':', '-');
+
+        this.options.qvfNameFormat.forEach((element) => {
+            if (element === 'app-id') {
+                fileName += resultStep1.appId + qvfNameSeparator;
+            } else if (element === 'app-name') {
+                fileName += resultStep1.appName + qvfNameSeparator;
+            } else if (element === 'export-date') {
+                fileName += todayDate + qvfNameSeparator;
+            } else if (element === 'export-time') {
+                fileName += todayTime + qvfNameSeparator;
+            }
+        });
+
+        // Remove trailing separator character, if any
+        if (fileName.slice(-qvfNameSeparator.length) === qvfNameSeparator) {
+            fileName = fileName.slice(0, -qvfNameSeparator.length);
+        }
+
+        // Add path to QVF dir
+        const fileDir = mergeDirFilePath([execPath, this.options.outputDir]);
+        fileName = `${path.join(fileDir, fileName)}.qvf`;
+        logger.verbose(`Directory where QVF will be stored: ${fileDir}`);
+        logger.verbose(`Full path to QVF: ${fileName}`);
+
+        // Check if destination QVF file already exists
+        const fileExists = await verifyFileExists(fileName);
+        let fileSkipped = false;
+        let writer;
+
+        if (!fileExists || (fileExists && this.options.qvfOverwrite)) {
+            // File doesn't exist
+        } else if (!this.options.qvfOverwrite) {
+            // Target file exist. Ask if user wants to overwrite
+            logger.info();
+            const ok = await yesno({
+                question: `                                  Destination file "${fileName}" exists. Do you want to overwrite it? (y/n)`,
+            });
+            logger.info();
+            if (!ok) {
+                logger.info(' Not overwriting existing file.');
+                fileSkipped = true;
+            }
+        }
+
+        if (!fileSkipped) {
+            if (this.options.dryRun) {
+                logger.info(`DRY RUN: Storing app [${resultStep1.appId}] "${resultStep1.appName}" to QVF file`);
+            } else {
+                writer = fs2.createWriteStream(fileName);
+
+                const axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: urlPath,
+                    queryParameters: [{ name: paramName, value: paramValue }],
+                });
+
+                axiosConfig.responseType = 'stream';
+
+                logger.info('------------------------------------');
+                logger.info(`App [${resultStep1.appId}] "${resultStep1.appName}.qvf", download starting`);
+                const result = await axios.request(axiosConfig);
+
+                result.data.pipe(writer);
+            }
+        }
+
+        return new Promise((resolve, reject) => {
+            if (fileSkipped) {
+                resolve('skipped');
+            } else if (this.options.dryRun) {
+                resolve(true);
+            } else {
+                writer.on('finish', () => {
+                    const fileSize = fs2.statSync(fileName).size;
+                    logger.info(`✅ App [${resultStep1.appId}] "${resultStep1.appName}.qvf", download complete. Size=${fileSize} bytes`);
+                    resolve('ok');
+                });
+                writer.on('error', () => {
+                    logger.error(`❌ App [${resultStep1.appId}] "${resultStep1.appName}.qvf", download failed`);
+                    reject();
+                });
+            }
+        });
     }
 }
 
