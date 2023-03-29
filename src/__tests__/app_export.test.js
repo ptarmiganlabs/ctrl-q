@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const { exportAppToFile } = require('../lib/cmd/exportapp');
 
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000;  // 5 minute default timeout
@@ -42,7 +45,7 @@ test('get tasks (verify parameters)', async () => {
  * --qvf-overwrite true
  */
 test('export apps, tag "apiCreated",  (should succeed)', async () => {
-    options.outputDir = 'qvfs';
+    options.outputDir = 'qvfs_1';
     options.appTag = ['apiCreated'];
     options.excludeAppData = 'true';
     options.qvfNameFormat = ['app-name', 'export-date'];
@@ -64,7 +67,7 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
  * --qvf-overwrite true
  */
 test('export apps, tag "apiCreated",  (should succeed)', async () => {
-    options.outputDir = 'qvfs';
+    options.outputDir = 'qvfs_2';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.excludeAppData = 'true';
     options.qvfNameFormat = ['app-id', 'app-name', 'export-date', 'export-time'];
@@ -88,7 +91,7 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
  * --qvf-overwrite true
  */
 test('export apps, tag "apiCreated",  (should succeed)', async () => {
-    options.outputDir = 'qvfs';
+    options.outputDir = 'qvfs_3';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.appId = ['eb3ab049-d007-43d3-93da-5962f9208c65'];
     options.excludeAppData = 'true';
@@ -99,7 +102,6 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
     const result = await exportAppToFile(options);
     expect(result).toBe(true);
 });
-
 
 /**
  * Two tags, two IDs, overwrite
@@ -113,7 +115,7 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
  * --qvf-overwrite true
  */
 test('export apps, tag "apiCreated",  (should succeed)', async () => {
-    options.outputDir = 'qvfs';
+    options.outputDir = 'qvfs_4';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.appId = ['eb3ab049-d007-43d3-93da-5962f9208c65', '2933711d-6638-41d4-a2d2-6dd2d965208b'];
     options.excludeAppData = 'true';
@@ -124,3 +126,53 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
     const result = await exportAppToFile(options);
     expect(result).toBe(true);
 });
+
+/**
+ * Two tags, two IDs, overwrite. Export metadata to Excel file
+ * 
+ * --output-dir qvfs
+ * --app-tag apiCreated 'Ctrl-Q import'
+ * --app-id eb3ab049-d007-43d3-93da-5962f9208c65
+ * --exclude-app-data true
+ * --qvf-name-format app-id app-name export-date export-time
+ * --qvf-name-separator _
+ * --qvf-overwrite true
+ */
+test('export apps, tag "apiCreated",  (should succeed)', async () => {
+    options.outputDir = 'qvfs_5';
+    options.appTag = ['apiCreated', 'Ctrl-Q import'];
+    options.appId = ['eb3ab049-d007-43d3-93da-5962f9208c65', '2933711d-6638-41d4-a2d2-6dd2d965208b'];
+    options.excludeAppData = 'true';
+    options.qvfNameFormat = ['export-date', 'export-time', 'app-id', 'app-name'];
+    options.qvfNameSeparator = '_';
+    options.qvfOverwrite = true;
+
+    options.metadataFileCreate = true;
+    options.metadataFileName = 'app-export.xlsx';
+    options.metadataFileFormat = 'excel';
+    options.metadataFileOverwrite = true;
+
+    const result = await exportAppToFile(options);
+    expect(result).toBe(true);
+});
+
+// Delete output dirs
+// let exportDir = path.resolve('qvfs_1');
+// console.log(exportDir);
+// fs.rmdirSync(exportDir, { recursive: true });
+
+// exportDir = path.resolve('qvfs_2');
+// console.log(exportDir);
+// fs.rmdirSync(exportDir, { recursive: true });
+
+// exportDir = path.resolve('qvfs_3');
+// console.log(exportDir);
+// fs.rmdirSync(exportDir, { recursive: true });
+
+// exportDir = path.resolve('qvfs_4');
+// console.log(exportDir);
+// fs.rmdirSync(exportDir, { recursive: true });
+
+// exportDir = path.resolve('qvfs_5');
+// console.log(exportDir);
+// fs.rmdirSync(exportDir, { recursive: true });
