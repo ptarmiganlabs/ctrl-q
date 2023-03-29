@@ -170,15 +170,18 @@
 
         "--output-dir",
         "qvfs",
-        // "/home/joe/qvf",
 
-        "--limit-export-count",
-         "2",
+        // "--limit-export-count",
+        //  "2",
 
         "--sleep-app-export",
          "500",
 
+        "--qvf-overwrite",
+
         // "--dry-run"
+
+        "--metadata-file-create"
       ]
 
 

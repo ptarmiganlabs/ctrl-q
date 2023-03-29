@@ -1,6 +1,7 @@
 const xlsx = require('node-xlsx').default;
 const fs = require('fs');
-const { resolve } = require('path');
+const path = require('path');
+const yesno = require('yesno');
 
 const { logger, setLoggingLevel, isPkg, execPath, mergeDirFilePath, verifyFileExists, isNumeric, sleep } = require('../../globals');
 const { QlikSenseApps } = require('../app/class_allapps');
@@ -49,6 +50,24 @@ const exportAppToFile = async (options) => {
             return false;
         }
 
+        // Variable to store app metadata, which can be written to e.g. Excel file
+        const appMetadata = [
+            [
+                'App counter',
+                'App name',
+                'App id',
+                'QVF directory',
+                'QVF name',
+                'Exclude data connections',
+                'App tags',
+                'App custom properties',
+                'Owner user directory',
+                'Owner user id',
+                'Publish to stream',
+            ],
+        ];
+        let appCounter = 0;
+
         if (appsToExport.length > 0) {
             logger.info(`Number of apps to export: ${appsToExport.length}`);
             let exportCount = 0;
@@ -64,12 +83,72 @@ const exportAppToFile = async (options) => {
                 // eslint-disable-next-line no-await-in-loop
                 await sleep(options.sleepAppExport);
 
+                // keep track of app metadata
+                appCounter += 1;
+                appMetadata.push([
+                    appCounter,
+                    app.name,
+                    app.id,
+                    options.outputDir,
+                    `${resultDownloadApp.appName}.qvf`,
+                    options.excludeAppData,
+                    app.tags.map((item) => item.name).join(' / '),
+                    app.customProperties.map((item) => `${item.definition.name}=${item.value}`).join(' / '),
+                    app.owner.userDirectory,
+                    app.owner.userId,
+                    app.stream ? app.stream.name : '',
+                ]);
+
                 exportCount += 1;
                 if (exportCount === parseInt(options.limitExportCount, 10)) {
+                    // Save app metadata to disk file
+                    // TODO
+
                     logger.warn(
-                        `Exported ${options.limitExportCount} app(s), which is the limit set by the --limit-export-count parameter. Exiting.`
+                        `Exported ${options.limitExportCount} app(s), which is the limit set by the --limit-export-count parameter.`
                     );
-                    process.exit(0);
+                    break;
+                }
+            }
+
+            if (options.metadataFileCreate) {
+                // Save app metadata to disk file
+                const buffer = xlsx.build([{ name: 'Ctrl-Q app export', data: appMetadata }]); // Returns a buffer
+
+                // Build output file name
+                const fileDir = mergeDirFilePath([execPath, options.outputDir]);
+                const fileName = `${path.join(fileDir, options.metadataFileName)}`;
+                logger.verbose(`Directory where app metadata file will be stored: ${fileDir}`);
+                logger.verbose(`Full path to app metadata file: ${fileName}`);
+
+                // Check if app metadata file already exists
+                const fileExists = await verifyFileExists(fileName);
+
+                logger.info('------------------------------------');
+
+                if (!fileExists || (fileExists && options.metadataFileOverwrite)) {
+                    // File doesn't exist
+                    if (options.dryRun) {
+                        logger.info(`DRY RUN: Writing app metadata file "${options.metadataFileName}" to disk`);
+                    } else {
+                        fs.writeFileSync(fileName, buffer);
+                        logger.info(`✅ Done writing app metadata file "${options.metadataFileName}" to disk`);
+                    }
+                } else if (!options.metadataFileOverwrite) {
+                    // Target file exist. Ask if user wants to overwrite
+                    logger.info();
+                    const ok = await yesno({
+                        question: `                                  App metadata file "${fileName}" exists. Do you want to overwrite it? (y/n)`,
+                    });
+                    logger.info();
+                    if (!ok) {
+                        logger.info(`Not overwriting existing app metadata file "${fileName}"`);
+                    } else if (options.dryRun) {
+                        logger.info(`DRY RUN: Writing app metadata file "${options.metadataFileName}" to disk`);
+                    } else {
+                        fs.writeFileSync(fileName, buffer);
+                        logger.info(`✅ Done writing app metadata file "${options.metadataFileName}" to disk`);
+                    }
                 }
             }
         }

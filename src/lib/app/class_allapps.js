@@ -106,14 +106,14 @@ class QlikSenseApps {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
-                    path: '/qrs/app',
+                    path: '/qrs/app/full',
                 });
             } else {
                 axiosConfig = await setupQRSConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
-                    path: '/qrs/app',
+                    path: '/qrs/app/full',
                     queryParameters: [{ name: 'filter', value: filter }],
                 });
             }
@@ -621,7 +621,7 @@ class QlikSenseApps {
 
         // Build file name
         let fileName = '';
-        const qvfNameSeparator = this.options.qvfNameSeparator;
+        const { qvfNameSeparator } = this.options;
 
         // Build UTC date and time strings
         const today = new Date();
@@ -666,7 +666,7 @@ class QlikSenseApps {
             });
             logger.info();
             if (!ok) {
-                logger.info(' Not overwriting existing file.');
+                logger.info('Not overwriting existing file.');
                 fileSkipped = true;
             }
         }
@@ -699,12 +699,12 @@ class QlikSenseApps {
             if (fileSkipped) {
                 resolve('skipped');
             } else if (this.options.dryRun) {
-                resolve(true);
+                resolve(resultStep1);
             } else {
                 writer.on('finish', () => {
                     const fileSize = fs2.statSync(fileName).size;
                     logger.info(`✅ App [${resultStep1.appId}] "${resultStep1.appName}.qvf", download complete. Size=${fileSize} bytes`);
-                    resolve('ok');
+                    resolve(resultStep1);
                 });
                 writer.on('error', () => {
                     logger.error(`❌ App [${resultStep1.appId}] "${resultStep1.appName}.qvf", download failed`);
