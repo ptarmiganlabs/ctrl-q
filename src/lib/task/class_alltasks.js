@@ -795,7 +795,7 @@ class QlikSenseTasks {
                     .request(axiosConfig)
                     .then((result) => {
                         logger.debug(`GET TASK: Result=result.status`);
-                        // const tasks = JSON.parse(result.data);
+
                         const tasks = JSON.parse(result.data);
                         logger.verbose(`GET TASK: # tasks: ${tasks.length}`);
 

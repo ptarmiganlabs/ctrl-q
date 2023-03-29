@@ -1,8 +1,9 @@
 const path = require('path');
 const uuidVersion = require('uuid').version;
 const uuidValidate = require('uuid').validate;
+const fs = require('fs');
 
-const { logger, execPath, verifyFileExists } = require('../../globals');
+const { logger, execPath, mergeDirFilePath, verifyFileExists } = require('../../globals');
 
 const sharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
@@ -197,6 +198,17 @@ const appImportAssertOptions = (options) => {
     //
 };
 
+// eslint-disable-next-line no-unused-vars
+const appExportAssertOptions = async (options) => {
+    // Verify output directory exists
+    // const outputDir = mergeDirFilePath([options.outputDir]);
+    // const existsOutputDir = await fs.promises.access(outputDir);
+    // if (!existsOutputDir) {
+    //     logger.error(`The specified output directory "${options.outputDir}" resolves to "${outputDir}", which does not exist. Exiting.`);
+    //     process.exit(1);
+    // }
+};
+
 module.exports = {
     sharedParamAssertOptions,
     userActivityCustomPropertyAssertOptions,
@@ -210,4 +222,5 @@ module.exports = {
     setTaskCustomPropertyAssertOptions,
     taskImportAssertOptions,
     appImportAssertOptions,
+    appExportAssertOptions,
 };
