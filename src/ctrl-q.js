@@ -484,7 +484,7 @@ const program = new Command();
 
         .requiredOption('--custom-property-name <name>', 'name of custom property that will be updated')
         .requiredOption('--custom-property-value <values...>', 'one or more values name of custom property that will be updated')
-        .option('--qvf-overwrite', 'overwrite existing custom property values without asking')
+        .option('--overwrite', 'overwrite existing custom property values without asking')
         .addOption(
             new Option('--update-mode <mode>', 'append or replace value(s) to existing custom property')
                 .choices(['append', 'replace'])

@@ -91,6 +91,8 @@ Enjoy!
       - [Save task to disk file as JSON](#save-task-to-disk-file-as-json)
   - [Custom properties](#custom-properties)
     - [Set custom property of reload task](#set-custom-property-of-reload-task)
+  - [Export](#export)
+    - [Export apps to QVF files](#export-apps-to-qvf-files)
   - [Import](#import)
     - [Import master items from Excel file](#import-master-items-from-excel-file)
     - [Import apps from QVF files](#import-apps-from-qvf-files)
@@ -196,7 +198,7 @@ Some examples follow, showing different views of reload task trees.
 The command for the most basic task tree is
 
 ```
-ctrl-q.exe task-get `
+.\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
 --auth-user-dir LAB `
@@ -211,7 +213,7 @@ Add the `--tree-details` option and the result contains a lot more details for e
 Note: the `task-get` command has lots of options, these are described in more detail in [List tasks as tree](#list-tasks-as-tree) section below.
 
 ```
-ctrl-q.exe task-get `
+.\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
 --auth-user-dir LAB `
@@ -231,7 +233,7 @@ Thanks to Windows Terminal handling text coloring and emojis we can add a couple
 - `--text-color yes` to get nicely colored text in the task tree
 
 ```
-PS C:\tools\ctrl-q> .\ctrl-q.exe task-get `
+.\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
 --auth-user-dir LAB `
@@ -247,7 +249,7 @@ PS C:\tools\ctrl-q> .\ctrl-q.exe task-get `
 Adding `--tree-details` gives us a tree that's a lot easier to read compared to previous, uncolored version.
 
 ```
-PS C:\tools\ctrl-q> .\ctrl-q.exe task-get `
+.\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
 --auth-user-dir LAB `
@@ -329,24 +331,25 @@ Adapt as needed for macOS, Linux and NodeJS.
 ```
 
 ```
-2023-02-22T14:55:15.193Z info: -----------------------------------------------------------
-2023-02-22T14:55:15.193Z info: | Ctrl-Q
-2023-02-22T14:55:15.193Z info: |
-2023-02-22T14:55:15.193Z info: | Version      : 3.6.0
-2023-02-22T14:55:15.193Z info: | Log level    : info
-2023-02-22T14:55:15.193Z info: |
-2023-02-22T14:55:15.193Z info: | Command      : bookmark-get
-2023-02-22T14:55:15.193Z info: |              : get info about one or more bookmarks
-2023-02-22T14:55:15.193Z info: |
-2023-02-22T14:55:15.193Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-22T14:55:15.193Z info: |
-2023-02-22T14:55:15.193Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-22T14:55:15.193Z info: ----------------------------------------------------------
-2023-02-22T14:55:15.193Z info:
-2023-02-22T14:55:15.207Z info: Get bookmarks
-2023-02-22T14:55:16.223Z info: Bookmarks
+2023-03-30T17:24:02.328Z info: -----------------------------------------------------------
+2023-03-30T17:24:02.328Z info: | Ctrl-Q
+2023-03-30T17:24:02.328Z info: |
+2023-03-30T17:24:02.328Z info: | Version      : 3.8.0
+2023-03-30T17:24:02.328Z info: | Log level    : info
+2023-03-30T17:24:02.328Z info: |
+2023-03-30T17:24:02.328Z info: | Command      : bookmark-get
+2023-03-30T17:24:02.328Z info: |              : get info about one or more bookmarks
+2023-03-30T17:24:02.328Z info: |
+2023-03-30T17:24:02.328Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-30T17:24:02.328Z info: |
+2023-03-30T17:24:02.328Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-30T17:24:02.328Z info: ----------------------------------------------------------
+2023-03-30T17:24:02.328Z info:
+2023-03-30T17:24:02.328Z info: Get bookmarks
+2023-03-30T17:24:03.015Z info: Bookmarks
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Bookmarks (1 bookmark(s) found in the app)                                                                                                                                                                                                                                                               │
+│ Bookmarks (1 bookmark(s) found in the app)
+                                                                                      │
 ├──────────────────────────────────────┬──────────┬───────────┬─────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬───────────┤
 │ Id                                   │ Type     │ Title     │ Description     │ Bookmark definition                                                                                  │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner     │
 ├──────────────────────────────────────┼──────────┼───────────┼─────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┤
@@ -371,38 +374,39 @@ Adapt as needed for macOS, Linux and NodeJS.
 ```
 
 ```
-2023-02-22T14:55:52.347Z info: -----------------------------------------------------------
-2023-02-22T14:55:52.347Z info: | Ctrl-Q
-2023-02-22T14:55:52.347Z info: |
-2023-02-22T14:55:52.347Z info: | Version      : 3.6.0
-2023-02-22T14:55:52.347Z info: | Log level    : info
-2023-02-22T14:55:52.347Z info: |
-2023-02-22T14:55:52.347Z info: | Command      : master-item-measure-get
-2023-02-22T14:55:52.347Z info: |              : get info about one or more master measures
-2023-02-22T14:55:52.347Z info: |
-2023-02-22T14:55:52.347Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-22T14:55:52.347Z info: |
-2023-02-22T14:55:52.347Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-22T14:55:52.347Z info: ----------------------------------------------------------
-2023-02-22T14:55:52.347Z info:
-2023-02-22T14:55:52.347Z info: Get master measures
-2023-02-22T14:55:52.909Z info:
+2023-03-30T17:24:57.168Z info: -----------------------------------------------------------
+2023-03-30T17:24:57.168Z info: | Ctrl-Q
+2023-03-30T17:24:57.168Z info: |
+2023-03-30T17:24:57.168Z info: | Version      : 3.8.0
+2023-03-30T17:24:57.168Z info: | Log level    : info
+2023-03-30T17:24:57.168Z info: |
+2023-03-30T17:24:57.168Z info: | Command      : master-item-measure-get
+2023-03-30T17:24:57.168Z info: |              : get info about one or more master measures
+2023-03-30T17:24:57.168Z info: |
+2023-03-30T17:24:57.168Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-30T17:24:57.168Z info: |
+2023-03-30T17:24:57.168Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-30T17:24:57.168Z info: ----------------------------------------------------------
+2023-03-30T17:24:57.168Z info:
+2023-03-30T17:24:57.183Z info: Get master measures
+2023-03-30T17:24:57.559Z info:
 ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Measures (6 measure(s) found in the app)                                                                                                                                                                                                                                                                                                                                                │
+│ Measures (6 measure(s) found in the app)
+                                                                                                                                                                     │
 ├──────────────────────────────────────┬─────────┬────────────────────────┬───────────────────────────────────────────────────┬──────────────────┬──────────────────┬──────────────────────┬───────────┬───────────────────────────────────────┬──────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬───────────┬───────────┤
 │ Id                                   │ Type    │ Title                  │ Description                                       │ Label            │ Label expression │ Definition           │ Coloring  │ Number format                         │ Grouping │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner     │ Tags      │
 ├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
-│ 04bf8dc9-a354-41f5-ad57-cb445c725479 │ measure │ Revenue EUR            │ Revenue during selected time period.              │ ='Revenue'       │ ='Revenue'       │ Sum(Revenue)         │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ LAB\goran │ Sales     │
-├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
-│ 81f92d37-b201-4752-9314-33af74a57d94 │ measure │ No. of sold units (LY) │ Number of units sold last year.                   │ ='Sold units LY' │ ='Sold units LY' │ Sum(UnitsInOrder_LY) │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-12T18:24:55.392Z │ LAB\goran │ Sales, LY │
-├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
-│ 2a14160f-2bc9-45d0-86da-3c3c50ab3216 │ measure │ Profit EUR (LY)        │ Profit during last year                           │ ='Profit LY'     │ ='Profit LY'     │ Sum(Profit_LY)       │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-13T18:30:45.026Z │ 2022-10-13T18:30:45.026Z │ LAB\goran │ Sales, LY │
-├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
 │ 86c518f1-39b9-4e74-9152-add4218464ef │ measure │ Profit EUR             │ Profit during selected time period.               │ ='Profit'        │ ='Profit'        │ Sum(Profit)          │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-13T18:30:45.026Z │ 2022-10-13T18:30:45.026Z │ LAB\goran │ Sales     │
 ├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
-│ 874c047f-58e6-406d-8e55-fcf016ca67a0 │ measure │ No. of sold units      │ Number of units sold during selected time period. │ ='Sold units'    │ ='Sold units'    │ =Sum(UnitsInOrder)   │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-11-01T08:04:18.540Z │ 2022-11-01T08:04:18.540Z │ LAB\goran │ Sales     │
+│ d72bdd98-3a10-4722-93bd-6533220055e0 │ measure │ No. of sold units (LY) │ Number of units sold last year.                   │ ='Sold units LY' │ ='Sold units LY' │ Sum(UnitsInOrder_LY) │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-02-22T15:34:24.760Z │ 2023-02-22T15:34:24.760Z │ LAB\goran │ Sales, LY │
 ├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
 │ b8a8b192-800c-4b02-89c9-999b4c2e37a0 │ measure │ Revenue EUR (LY)       │ Revenue during last year.                         │ ='Revenue LY'    │ ='Revenue LY'    │ Sum(Revenue_LY)      │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-11-01T08:04:18.540Z │ 2022-11-01T08:04:18.540Z │ LAB\goran │ Sales, LY │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
+│ 6d3f35f2-8887-47bf-839a-5f036fdb0eb9 │ measure │ Profit EUR (LY)        │ Profit during last year                           │ ='Profit LY'     │ ='Profit LY'     │ Sum(Profit_LY)       │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-03-08T16:45:26.610Z │ 2023-03-08T16:45:26.610Z │ LAB\goran │ Sales, LY │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
+│ 827498c9-770a-4825-8621-3e2a5495355a │ measure │ Revenue EUR            │ Revenue during selected time period.              │ ='Revenue'       │ ='Revenue'       │ Sum(Revenue)         │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-03-08T16:45:26.610Z │ 2023-03-08T16:45:26.610Z │ LAB\goran │ Sales     │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼───────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
+│ e392f53f-17b5-4ede-8fd1-f64b4fae630f │ measure │ No. of sold units      │ Number of units sold during selected time period. │ ='Sold units'    │ ='Sold units'    │ =Sum(UnitsInOrder)   │ undefined │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-03-08T16:45:26.610Z │ 2023-03-08T16:45:26.610Z │ LAB\goran │ Sales     │
 └──────────────────────────────────────┴─────────┴────────────────────────┴───────────────────────────────────────────────────┴──────────────────┴──────────────────┴──────────────────────┴───────────┴───────────────────────────────────────┴──────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴───────────┴───────────┘
 ```
 
@@ -453,36 +457,38 @@ Adapt as needed for macOS, Linux and NodeJS.
 ```
 
 ```
-2023-02-22T14:57:13.481Z info: -----------------------------------------------------------
-2023-02-22T14:57:13.481Z info: | Ctrl-Q
-2023-02-22T14:57:13.481Z info: |
-2023-02-22T14:57:13.481Z info: | Version      : 3.6.0
-2023-02-22T14:57:13.481Z info: | Log level    : info
-2023-02-22T14:57:13.481Z info: |
-2023-02-22T14:57:13.481Z info: | Command      : master-item-dim-get
-2023-02-22T14:57:13.481Z info: |              : get info about one or more master dimensions
-2023-02-22T14:57:13.481Z info: |
-2023-02-22T14:57:13.481Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-02-22T14:57:13.481Z info: |
-2023-02-22T14:57:13.481Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-02-22T14:57:13.481Z info: ----------------------------------------------------------
-2023-02-22T14:57:13.481Z info:
-2023-02-22T14:57:13.481Z info: Get master dimensions
-2023-02-22T14:57:13.874Z info:
+2023-03-30T17:26:00.885Z info: -----------------------------------------------------------
+2023-03-30T17:26:00.885Z info: | Ctrl-Q
+2023-03-30T17:26:00.885Z info: |
+2023-03-30T17:26:00.885Z info: | Version      : 3.8.0
+2023-03-30T17:26:00.885Z info: | Log level    : info
+2023-03-30T17:26:00.885Z info: |
+2023-03-30T17:26:00.885Z info: | Command      : master-item-dim-get
+2023-03-30T17:26:00.885Z info: |              : get info about one or more master dimensions
+2023-03-30T17:26:00.885Z info: |
+2023-03-30T17:26:00.885Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-30T17:26:00.885Z info: |
+2023-03-30T17:26:00.885Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-30T17:26:00.885Z info: ----------------------------------------------------------
+2023-03-30T17:26:00.885Z info:
+2023-03-30T17:26:00.885Z info: Get master dimensions
+2023-03-30T17:26:01.260Z info:
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Dimensions (4 dimension(s) found in the app)                                                                                                                                                                                                                                                                                                                                                                                                     │
+│ Dimensions (4 dimension(s) found in the app)
+
+         │
 ├──────────────────────────────────────┬───────────┬─────────────────┬────────────────────────────────┬───────────────────────────────┬────────────────────────┬──────────────────┬──────────────────┬─────────────┬───────────────────────────────────────────────────────────────────────────────┬──────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬───────────┬────────────────┤
 │ Id                                   │ Type      │ Title           │ Description (static)           │ Description (from expression) │ Description expression │ Label expression │ Definition count │ Definition  │ Coloring                                                                      │ Grouping │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner     │ Tags           │
-├──────────────────────────────────────┼───────────┼─────────────────┼────────────────────────────────┼───────────────────────────────┼────────────────────────┼──────────────────┼──────────────────┼─────────────┼───────────────────────────────────────────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼────────────────┤
-│ 866fc972-76fb-49c4-bceb-2db959d1d59e │ dimension │ Country         │ Country where a unit was sold. │                               │                        │ ='Country'       │ 1                │ Country     │ undefined                                                                     │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-10-12T18:24:55.392Z │ 2022-10-13T18:30:45.026Z │ LAB\goran │ Geo            │
 ├──────────────────────────────────────┼───────────┼─────────────────┼────────────────────────────────┼───────────────────────────────┼────────────────────────┼──────────────────┼──────────────────┼─────────────┼───────────────────────────────────────────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼────────────────┤
 │ JDWuPK                               │ dimension │ Dimension 2-3-1 │ Description for 2-3-1          │                               │                        │                  │ 3                │ Dim2        │ {"changeHash":"0.5399463179200534","baseColor":{"color":"#ffffff","index":1}} │ H        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2021-06-07T02:31:02.093Z │ 2021-06-07T02:31:02.093Z │ LAB\goran │ My awesome tag │
 │                                      │           │                 │                                │                               │                        │                  │                  │ Dim3        │                                                                               │          │          │           │                          │                          │                          │           │                │
 │                                      │           │                 │                                │                               │                        │                  │                  │ Dim1        │                                                                               │          │          │           │                          │                          │                          │           │                │
 ├──────────────────────────────────────┼───────────┼─────────────────┼────────────────────────────────┼───────────────────────────────┼────────────────────────┼──────────────────┼──────────────────┼─────────────┼───────────────────────────────────────────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼────────────────┤
-│ 66e62cbc-b34d-4de8-89ae-c7ed33f5d478 │ dimension │ Sales month     │ Date in which a unit was sold. │                               │                        │ ='Sales month'   │ 1                │ Month_Sales │ undefined                                                                     │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-11-01T08:04:18.540Z │ 2022-11-11T06:44:00.808Z │ LAB\goran │ Sales calendar │
+│ b99e54d3-5177-419a-8573-7423175ba6ed │ dimension │ Country         │ Country where a unit was sold. │                               │                        │ ='Country'       │ 1                │ Country     │ undefined                                                                     │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-02-22T15:34:24.760Z │ 2023-02-22T20:16:29.292Z │ LAB\goran │ Geo            │
 ├──────────────────────────────────────┼───────────┼─────────────────┼────────────────────────────────┼───────────────────────────────┼────────────────────────┼──────────────────┼──────────────────┼─────────────┼───────────────────────────────────────────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼────────────────┤
-│ f77fb50e-7b18-4076-b956-90d635df2bfa │ dimension │ Salesperson     │ The person who sold the unit.  │                               │                        │ ='Salesperson'   │ 1                │ Salesperson │ undefined                                                                     │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2022-11-01T08:04:18.540Z │ 2022-11-11T06:44:00.808Z │ LAB\goran │ Staff, Sales   │
+│ 3047e493-f24f-4d31-a0fb-6b797874b049 │ dimension │ Salesperson     │ The person who sold the unit.  │                               │                        │ ='Salesperson'   │ 1                │ Salesperson │ undefined                                                                     │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-03-08T16:45:26.610Z │ 2023-03-08T16:46:09.395Z │ LAB\goran │ Staff, Sales   │
+├──────────────────────────────────────┼───────────┼─────────────────┼────────────────────────────────┼───────────────────────────────┼────────────────────────┼──────────────────┼──────────────────┼─────────────┼───────────────────────────────────────────────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼────────────────┤
+│ c1364941-df5c-4c45-bbe5-8be9f8398373 │ dimension │ Sales month     │ Date in which a unit was sold. │                               │                        │ ='Sales month'   │ 1                │ Month_Sales │ undefined                                                                     │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-03-08T16:45:26.610Z │ 2023-03-08T16:46:09.395Z │ LAB\goran │ Sales calendar │
 └──────────────────────────────────────┴───────────┴─────────────────┴────────────────────────────────┴───────────────────────────────┴────────────────────────┴──────────────────┴──────────────────┴─────────────┴───────────────────────────────────────────────────────────────────────────────┴──────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴───────────┴────────────────┘
 ```
 
@@ -636,46 +642,46 @@ It's possible to save this JSON to disk:
 ```
 
 ```
-2023-03-24T07:05:59.211Z info: -----------------------------------------------------------
-2023-03-24T07:05:59.211Z info: | Ctrl-Q
-2023-03-24T07:05:59.211Z info: |
-2023-03-24T07:05:59.211Z info: | Version      : 3.7.0
-2023-03-24T07:05:59.211Z info: | Log level    : info
-2023-03-24T07:05:59.211Z info: |
-2023-03-24T07:05:59.211Z info: | Command      : task-get
-2023-03-24T07:05:59.211Z info: |              : get info about one or more tasks
-2023-03-24T07:05:59.211Z info: |
-2023-03-24T07:05:59.211Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-03-24T07:05:59.211Z info: |
-2023-03-24T07:05:59.211Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-03-24T07:05:59.211Z info: ----------------------------------------------------------
-2023-03-24T07:05:59.211Z info:
-2023-03-24T07:05:59.288Z info: Successfully retrieved 19 tags from QSEoW
-2023-03-24T07:06:00.397Z info: ✅ Writing task tree to disk file "tasktree.json".
+2023-03-30T17:27:54.107Z info: -----------------------------------------------------------
+2023-03-30T17:27:54.107Z info: | Ctrl-Q
+2023-03-30T17:27:54.107Z info: |
+2023-03-30T17:27:54.107Z info: | Version      : 3.8.0
+2023-03-30T17:27:54.107Z info: | Log level    : info
+2023-03-30T17:27:54.107Z info: |
+2023-03-30T17:27:54.107Z info: | Command      : task-get
+2023-03-30T17:27:54.107Z info: |              : get info about one or more tasks
+2023-03-30T17:27:54.107Z info: |
+2023-03-30T17:27:54.107Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-30T17:27:54.107Z info: |
+2023-03-30T17:27:54.107Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-30T17:27:54.107Z info: ----------------------------------------------------------
+2023-03-30T17:27:54.122Z info:
+2023-03-30T17:27:54.168Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-30T17:27:56.403Z info: ✅ Writing task tree to disk file "tasktree.json".
 ```
 
 Running the same command again, when the destination file already exists, results in a question to overwrite the file:
 
 ```
-2023-03-24T07:06:34.460Z info: -----------------------------------------------------------
-2023-03-24T07:06:34.460Z info: | Ctrl-Q
-2023-03-24T07:06:34.460Z info: |
-2023-03-24T07:06:34.460Z info: | Version      : 3.7.0
-2023-03-24T07:06:34.460Z info: | Log level    : info
-2023-03-24T07:06:34.460Z info: |
-2023-03-24T07:06:34.460Z info: | Command      : task-get
-2023-03-24T07:06:34.460Z info: |              : get info about one or more tasks
-2023-03-24T07:06:34.460Z info: |
-2023-03-24T07:06:34.475Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-03-24T07:06:34.475Z info: |
-2023-03-24T07:06:34.475Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-03-24T07:06:34.475Z info: ----------------------------------------------------------
-2023-03-24T07:06:34.475Z info:
-2023-03-24T07:06:34.538Z info: Successfully retrieved 19 tags from QSEoW
-2023-03-24T07:06:35.803Z info:
+2023-03-30T17:28:15.949Z info: -----------------------------------------------------------
+2023-03-30T17:28:15.949Z info: | Ctrl-Q
+2023-03-30T17:28:15.949Z info: |
+2023-03-30T17:28:15.949Z info: | Version      : 3.8.0
+2023-03-30T17:28:15.949Z info: | Log level    : info
+2023-03-30T17:28:15.949Z info: |
+2023-03-30T17:28:15.949Z info: | Command      : task-get
+2023-03-30T17:28:15.949Z info: |              : get info about one or more tasks
+2023-03-30T17:28:15.949Z info: |
+2023-03-30T17:28:15.949Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-30T17:28:15.949Z info: |
+2023-03-30T17:28:15.949Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-30T17:28:15.949Z info: ----------------------------------------------------------
+2023-03-30T17:28:15.949Z info:
+2023-03-30T17:28:15.996Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-30T17:28:17.980Z info:
                                   Destination file "tasktree.json" exists. Do you want to overwrite it? (y/n) y
-2023-03-24T07:06:37.788Z info:
-2023-03-24T07:06:37.788Z info: ✅ Writing task tree to disk file "tasktree.json".
+2023-03-30T17:28:18.605Z info:
+2023-03-30T17:28:18.605Z info: ✅ Writing task tree to disk file "tasktree.json".
 ```
 
 To forcibly overwrite the destination file the `--output-file-overwrite` option can be specified.
@@ -806,23 +812,22 @@ Here the most common task fileds together with task tags are included in the tab
 ```
 
 ```
-2023-03-24T07:09:56.451Z info: -----------------------------------------------------------
-2023-03-24T07:09:56.451Z info: | Ctrl-Q
-2023-03-24T07:09:56.451Z info: |
-2023-03-24T07:09:56.451Z info: | Version      : 3.7.0
-2023-03-24T07:09:56.451Z info: | Log level    : info
-2023-03-24T07:09:56.451Z info: |
-2023-03-24T07:09:56.451Z info: | Command      : task-get
-2023-03-24T07:09:56.451Z info: |              : get info about one or more tasks
-2023-03-24T07:09:56.451Z info: |
-2023-03-24T07:09:56.451Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-03-24T07:09:56.451Z info: |
-2023-03-24T07:09:56.451Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-03-24T07:09:56.451Z info: ----------------------------------------------------------
-2023-03-24T07:09:56.451Z info:
-2023-03-24T07:09:56.513Z info: Successfully retrieved 19 tags from QSEoW
-2023-03-24T07:10:05.559Z info:
-2023-03-24T07:10:05.559Z info: ✅ Writing task table to disk file "tasktable.csv".
+2023-03-30T17:32:41.982Z info: -----------------------------------------------------------
+2023-03-30T17:32:41.982Z info: | Ctrl-Q
+2023-03-30T17:32:41.982Z info: |
+2023-03-30T17:32:41.982Z info: | Version      : 3.8.0
+2023-03-30T17:32:41.982Z info: | Log level    : info
+2023-03-30T17:32:41.982Z info: |
+2023-03-30T17:32:41.982Z info: | Command      : task-get
+2023-03-30T17:32:41.982Z info: |              : get info about one or more tasks
+2023-03-30T17:32:41.982Z info: |
+2023-03-30T17:32:41.982Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-30T17:32:41.982Z info: |
+2023-03-30T17:32:41.982Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-30T17:32:41.982Z info: ----------------------------------------------------------
+2023-03-30T17:32:41.982Z info:
+2023-03-30T17:32:42.044Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-30T17:32:43.060Z info: ✅ Writing task table to disk file "tasktable.csv".
 ```
 
 #### Save task to disk file as JSON
@@ -844,22 +849,22 @@ Here only the most basic task info included via the `--table-details` option.
 ```
 
 ```
-2023-03-24T07:10:41.762Z info: -----------------------------------------------------------
-2023-03-24T07:10:41.762Z info: | Ctrl-Q
-2023-03-24T07:10:41.762Z info: |
-2023-03-24T07:10:41.762Z info: | Version      : 3.7.0
-2023-03-24T07:10:41.762Z info: | Log level    : info
-2023-03-24T07:10:41.762Z info: |
-2023-03-24T07:10:41.762Z info: | Command      : task-get
-2023-03-24T07:10:41.762Z info: |              : get info about one or more tasks
-2023-03-24T07:10:41.762Z info: |
-2023-03-24T07:10:41.762Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-03-24T07:10:41.762Z info: |
-2023-03-24T07:10:41.762Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-03-24T07:10:41.762Z info: ----------------------------------------------------------
-2023-03-24T07:10:41.762Z info:
-2023-03-24T07:10:41.824Z info: Successfully retrieved 19 tags from QSEoW
-2023-03-24T07:10:42.826Z info: ✅ Writing task table to disk file "tasks.json".
+2023-03-30T17:33:21.746Z info: -----------------------------------------------------------
+2023-03-30T17:33:21.762Z info: | Ctrl-Q
+2023-03-30T17:33:21.762Z info: |
+2023-03-30T17:33:21.762Z info: | Version      : 3.8.0
+2023-03-30T17:33:21.762Z info: | Log level    : info
+2023-03-30T17:33:21.762Z info: |
+2023-03-30T17:33:21.762Z info: | Command      : task-get
+2023-03-30T17:33:21.762Z info: |              : get info about one or more tasks
+2023-03-30T17:33:21.762Z info: |
+2023-03-30T17:33:21.762Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-30T17:33:21.762Z info: |
+2023-03-30T17:33:21.762Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-30T17:33:21.762Z info: ----------------------------------------------------------
+2023-03-30T17:33:21.762Z info:
+2023-03-30T17:33:21.809Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-30T17:33:22.871Z info: ✅ Writing task table to disk file "tasks.json".
 ```
 
 The resulting JSON file looks like this:
@@ -990,6 +995,148 @@ If a task already has values for this custom property new values will be added w
 2023-03-24T07:15:28.808Z info:    ...Custom property "Department" on task "Reload task of Lab 1_1" successfully updated.
 ```
 
+## Export
+
+### Export apps to QVF files
+
+This command exports Sense apps to QVF files, with or without data.
+
+The command optionally also creates an Excel file with metadata about each app, in the same format used by the `app-import` command.  
+It is thus possible to first export apps and get a metadata Excel file, then import those QVFs into another Sense server, using the Excel file to control which apps are imported.
+
+The command options are
+
+```
+.\ctrl-q.exe app-export --help
+```
+
+```
+Usage: index app-export [options]
+
+export Qlik Sense apps to QVF files on disk.
+
+Options:
+  --log-level <level>                log level (choices: "error", "warn", "info", "verbose", "debug", "silly", default: "info")
+  --host <host>                      Qlik Sense server IP/FQDN
+  --port <port>                      Qlik Sense server engine port (default: "4242")
+  --schema-version <string>          Qlik Sense engine schema version (default: "12.612.0")
+  --virtual-proxy <prefix>           Qlik Sense virtual proxy prefix (default: "")
+  --secure <true|false>              connection to Qlik Sense engine is via https (default: true)
+  --auth-user-dir <directory>        user directory for user to connect with
+  --auth-user-id <userid>            user ID for user to connect with
+  -a, --auth-type <type>             authentication type (choices: "cert", default: "cert")
+  --auth-cert-file <file>            Qlik Sense certificate file (exported from QMC) (default: "./cert/client.pem")
+  --auth-cert-key-file <file>        Qlik Sense certificate key file (exported from QMC) (default: "./cert/client_key.pem")
+  --auth-root-cert-file <file>       Qlik Sense root certificate file (exported from QMC) (default: "./cert/root.pem")
+  --app-id <ids...>                  use app IDs to select which apps to export
+  --app-tag <tags...>                use app tags to select which apps to export
+  --output-dir <directory>           relative or absolut path in which QVF files should be stored. (default: "qvf-export")
+  --qvf-name-format <format...>      structure of QVF file name format (choices: "app-id", "app-name", "export-date", "export-time", default: ["app-name"])
+  --qvf-name-separator <separator>   character used to separate parts of the QVF file name (choices: "-", "--", "_", "__", default: "_")
+  --qvf-overwrite                    overwrite existing QVF files without asking
+  --exclude-app-data <true|false>    exclude or include app data in QVF file (default: true)
+  --limit-export-count <number>      export at most x number of apps. Defaults to 0 = no limit (default: 0)
+  --sleep-app-export <milliseconds>  Wait this long before continuing after each app has been exported. Defaults to 1000 = 1 second (default: 1000)
+  --metadata-file-create             create a separate file with information about all exported apps
+  --metadata-file-name <name>        file name to store app metadata in (default: "app_export.xlsx")
+  --metadata-file-format <format>    file type/format (choices: "excel", default: "excel")
+  --metadata-file-overwrite          overwrite app metadata file without asking
+  --dry-run                          do a dry run, i.e. do not export any apps - just show what would be done
+  -h, --help                         display help for command
+```
+
+The next example will export apps (including the data in them) that have either of two different tags set, plus two apps identified by app id.  
+If the QVF files exist a confirmation text will be shown for each existing app.  
+The name of the QVF files will be `<app name>_<exportdate>.qvf`.
+QVF files will be stored in a subdirectory `qvf-export`.
+An Excel file will be created, containing select metadata about the apps.
+
+```
+.\ctrl-q.exe app-export `
+--auth-type cert `
+--host 192.168.100.109 `
+--auth-cert-file ./cert/client.pem `
+--auth-cert-key-file ./cert/client_key.pem `
+--auth-user-dir LAB `
+--auth-user-id goran `
+--output-dir qvf-export `
+--app-tag apiCreated "Ctrl-Q import" `
+--app-id eb3ab049-d007-43d3-93da-5962f9208c65 2933711d-6638-41d4-a2d2-6dd2d965208b `
+--exclude-app-data false `
+--qvf-name-format app-name export-date `
+--qvf-name-separator _ `
+--metadata-file-create
+```
+
+```
+2023-03-30T17:46:25.149Z info: -----------------------------------------------------------
+2023-03-30T17:46:25.149Z info: | Ctrl-Q
+2023-03-30T17:46:25.149Z info: |
+2023-03-30T17:46:25.149Z info: | Version      : 3.8.0
+2023-03-30T17:46:25.149Z info: | Log level    : info
+2023-03-30T17:46:25.149Z info: |
+2023-03-30T17:46:25.149Z info: | Command      : app-export
+2023-03-30T17:46:25.149Z info: |              : export Qlik Sense apps to QVF files on disk.
+2023-03-30T17:46:25.149Z info: |
+2023-03-30T17:46:25.149Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-30T17:46:25.149Z info: |
+2023-03-30T17:46:25.149Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-30T17:46:25.149Z info: ----------------------------------------------------------
+2023-03-30T17:46:25.149Z info:
+2023-03-30T17:46:25.149Z info: Export apps to directory "C:/tools/ctrl-q/qvf-export"
+2023-03-30T17:46:25.227Z info: Number of apps to export: 7
+2023-03-30T17:46:25.649Z info: ------------------------------------
+2023-03-30T17:46:25.649Z info: App [eb3ab049-d007-43d3-93da-5962f9208c65] "User retention.qvf", download starting
+2023-03-30T17:46:25.758Z info: ✅ App [eb3ab049-d007-43d3-93da-5962f9208c65] "User retention.qvf", download complete. Size=360448 bytes
+2023-03-30T17:46:27.291Z info: ------------------------------------
+2023-03-30T17:46:27.291Z info: App [e9d2f9b2-b598-480e-b84f-4c5d34467f6f] "Performance review_2022-03-28.qvf", download starting
+2023-03-30T17:46:27.399Z info: ✅ App [e9d2f9b2-b598-480e-b84f-4c5d34467f6f] "Performance review_2022-03-28.qvf", download complete. Size=327680 bytes
+2023-03-30T17:46:28.930Z info: ------------------------------------
+2023-03-30T17:46:28.930Z info: App [2933711d-6638-41d4-a2d2-6dd2d965208b] "Ctrl-Q CLI.qvf", download starting
+2023-03-30T17:46:29.024Z info: ✅ App [2933711d-6638-41d4-a2d2-6dd2d965208b] "Ctrl-Q CLI.qvf", download complete. Size=262144 bytes
+2023-03-30T17:46:30.508Z info: ------------------------------------
+2023-03-30T17:46:30.508Z info: App [deba4bcf-47e4-472e-97b2-4fe8d6498e11] "Always failing reload (no delay).qvf", download starting
+2023-03-30T17:46:30.602Z info: ✅ App [deba4bcf-47e4-472e-97b2-4fe8d6498e11] "Always failing reload (no delay).qvf", download complete. Size=180224 bytes
+2023-03-30T17:46:32.102Z info: ------------------------------------
+2023-03-30T17:46:32.102Z info: App [83116805-c1e4-4716-9453-71a297b17257] "App 1.qvf", download starting
+2023-03-30T17:46:32.211Z info: ✅ App [83116805-c1e4-4716-9453-71a297b17257] "App 1.qvf", download complete. Size=245760 bytes
+2023-03-30T17:46:33.821Z info: ------------------------------------
+2023-03-30T17:46:33.821Z info: App [7e9f6408-e3d5-44c3-808a-632a71fe359f] "App 3.qvf", download starting
+2023-03-30T17:46:33.899Z info: ✅ App [7e9f6408-e3d5-44c3-808a-632a71fe359f] "App 3.qvf", download complete. Size=245760 bytes
+2023-03-30T17:46:35.352Z info: ------------------------------------
+2023-03-30T17:46:35.352Z info: App [22d58242-902d-42e0-afb5-2dd00cb754ec] "App 2.qvf", download starting
+2023-03-30T17:46:35.451Z info: ✅ App [22d58242-902d-42e0-afb5-2dd00cb754ec] "App 2.qvf", download complete. Size=245760 bytes
+2023-03-30T17:46:36.462Z info: ------------------------------------
+2023-03-30T17:46:36.477Z info: ✅ Done writing app metadata file "app_export.xlsx" to disk
+```
+
+The `qvf-export` directory now contains these files:
+
+```
+dir .\qvf-export\
+```
+
+```
+    Directory: C:\tools\ctrl-q\qvf-export
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        30/03/2023     19:46         180224 Always failing reload (no delay)_2023-03-30.qvf
+-a----        30/03/2023     19:46         245760 App 1_2023-03-30.qvf
+-a----        30/03/2023     19:46         245760 App 2_2023-03-30.qvf
+-a----        30/03/2023     19:46         245760 App 3_2023-03-30.qvf
+-a----        30/03/2023     19:46          18282 app_export.xlsx
+-a----        30/03/2023     19:46         262144 Ctrl-Q CLI_2023-03-30.qvf
+-a----        30/03/2023     19:46         327680 Performance review_2022-03-28_2023-03-30.qvf
+-a----        30/03/2023     19:46         360448 User retention_2023-03-30.qvf
+
+```
+
+The format of the created Excel file is almost identical as the one used when importing apps from QVF files, described [here](#source-file-columns-for-app-import-definitions).  
+The only difference is that the app export format includes an "App id" column, which is not required when importing apps.  
+App import will however work just fine if there is an "App id" column present, it just won't be used for anything.
+
 ## Import
 
 ### Import master items from Excel file
@@ -1024,8 +1171,7 @@ Options:
   -t, --file-type <type>                             source file type (choices: "excel", default: "excel")
   --file <filename>                                  file containing master item definitions
   --sheet <name>                                     name of Excel sheet where dim/measure flag column is found
-  --col-ref-by <reftype>                             how to refer to columns in the source file. Options are by name or by position (zero based) (choices: "name", "position", default:
-                                                     "name")
+  --col-ref-by <reftype>                             how to refer to columns in the source file. Options are by name or by position (zero based) (choices: "name", "position", default: "name")
   --col-item-type <column position or name>          column where dim/measure flag is found. Use "dim" in that column to create master dimension, "measure" for master measure
   --col-master-item-name <column position or name>   column number (zero based) to use as master item name
   --col-master-item-descr <column position or name>  column number (zero based) to use as master item description
@@ -1042,7 +1188,7 @@ Column names will in most cases be easier to read and understand, but sometimes 
 
 Similarly those `--col-master-item-...` options let you use your own column names in the source file.
 
-Note: 
+Note:
 
 - The (intentional) warning for the incorrectly spelled master item type "measur" (which should have been "measure", of course).
 - Master items are referred to by name. This means that if a master item in the source file already exists in the target Sense app, the app's master item will be updated.
@@ -1119,29 +1265,29 @@ Importing apps defined on the `App import` sheet of the `tasks.xlsx` Excel file 
 ```
 
 ```
-2023-03-24T09:59:18.819Z info: -----------------------------------------------------------
-2023-03-24T09:59:18.819Z info: | Ctrl-Q
-2023-03-24T09:59:18.819Z info: |
-2023-03-24T09:59:18.819Z info: | Version      : 3.7.0
-2023-03-24T09:59:18.819Z info: | Log level    : info
-2023-03-24T09:59:18.819Z info: |
-2023-03-24T09:59:18.819Z info: | Command      : app-import
-2023-03-24T09:59:18.819Z info: |              : import apps/upload QVF files on disk to Sense based on definitions in Excel file.
-2023-03-24T09:59:18.819Z info: |
-2023-03-24T09:59:18.819Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-03-24T09:59:18.819Z info: |
-2023-03-24T09:59:18.819Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-03-24T09:59:18.819Z info: ----------------------------------------------------------
-2023-03-24T09:59:18.819Z info:
-2023-03-24T09:59:18.819Z info: Import apps from definitions in file ".\tasks.xlsx"
-2023-03-24T09:59:18.928Z info: Successfully retrieved 19 tags from QSEoW
-2023-03-24T09:59:18.959Z info: Successfully retrieved 29 custom properties from QSEoW
-2023-03-24T09:59:18.990Z info: (1) Importing app "App 1" from file "C:/tools/ctrl-q/testdata/App import 1.qvf"
-2023-03-24T09:59:21.412Z info: App "App 1" published to stream "Ctrl-Q demo apps".
-2023-03-24T09:59:21.412Z info: (2) Importing app "App 2" from file "C:/tools/ctrl-q/testdata/App import 2.qvf"
-2023-03-24T09:59:23.506Z warn: Cannot publish app "App 2" to stream "Stream does not exist" as that stream does not exist.
-2023-03-24T09:59:23.506Z info: (3) Importing app "App 3" from file "C:/tools/ctrl-q/testdata/App import 3.qvf"
-2023-03-24T09:59:25.788Z info: App "App 3" published to stream "9143a1bf-abc3-46f4-8dcb-a1a0ea35860a".
+2023-03-30T17:52:42.369Z info: -----------------------------------------------------------
+2023-03-30T17:52:42.369Z info: | Ctrl-Q
+2023-03-30T17:52:42.369Z info: |
+2023-03-30T17:52:42.369Z info: | Version      : 3.8.0
+2023-03-30T17:52:42.369Z info: | Log level    : info
+2023-03-30T17:52:42.369Z info: |
+2023-03-30T17:52:42.369Z info: | Command      : app-import
+2023-03-30T17:52:42.369Z info: |              : import apps/upload QVF files on disk to Sense based on definitions in Excel file.
+2023-03-30T17:52:42.369Z info: |
+2023-03-30T17:52:42.369Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-03-30T17:52:42.369Z info: |
+2023-03-30T17:52:42.369Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-03-30T17:52:42.369Z info: ----------------------------------------------------------
+2023-03-30T17:52:42.369Z info:
+2023-03-30T17:52:42.384Z info: Import apps from definitions in file "tasks.xlsx"
+2023-03-30T17:52:42.431Z info: Successfully retrieved 19 tags from QSEoW
+2023-03-30T17:52:42.447Z info: Successfully retrieved 29 custom properties from QSEoW
+2023-03-30T17:52:42.478Z info: (1) Importing app "App 1" from file "C:/tools/ctrl-q/testdata/App import 1.qvf"
+2023-03-30T17:52:44.775Z info: App "App 1" published to stream "Ctrl-Q demo apps".
+2023-03-30T17:52:44.775Z info: (2) Importing app "App 2" from file "C:/tools/ctrl-q/testdata/App import 2.qvf"
+2023-03-30T17:52:46.837Z warn: Cannot publish app "App 2" to stream "Stream does not exist" as that stream does not exist.
+2023-03-30T17:52:46.837Z info: (3) Importing app "App 3" from file "C:/tools/ctrl-q/testdata/App import 3.qvf"
+2023-03-30T17:52:49.275Z info: App "App 3" published to stream "9143a1bf-abc3-46f4-8dcb-a1a0ea35860a".
 ```
 
 > NOTE 1: Qlik Sense implements rate limiting for QVF uploads. This means that if you plan to upload more than 60 QVF files you may be affected by this rate limiting.  
