@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.7.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.7.0...ctrl-q-v3.7.1) (2023-03-29)
+
+
+### Miscellaneous
+
+* Tesrt cases for app export ([c2fef5b](https://github.com/ptarmiganlabs/ctrl-q/commit/c2fef5bf37b49fd01f844067edbb11f3c945fbd1))
+
 ## [3.7.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.7.0...ctrl-q-v3.7.0) (2023-03-24)
 
 
