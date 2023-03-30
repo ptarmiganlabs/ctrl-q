@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.8.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.8.0...ctrl-q-v3.8.0) (2023-03-30)
+
+
+### Documentation
+
+* Update wrt 3.8.0 ([344b07e](https://github.com/ptarmiganlabs/ctrl-q/commit/344b07e9c6f122d4cfd36ee3d07e2b09300a0b3a))
+
 ## [3.8.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.7.1...ctrl-q-v3.8.0) (2023-03-30)
 
 
