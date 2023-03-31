@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.8.2](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.8.1...ctrl-q-v3.8.2) (2023-03-31)
+
+
+### Bug Fixes
+
+* Incorrect QVF file name written to Excel file when using app-export command with --metadata-file-create option ([a2cf04e](https://github.com/ptarmiganlabs/ctrl-q/commit/a2cf04e9bdf1822a4699973f8c4f16ddc27ec78a)), closes [#228](https://github.com/ptarmiganlabs/ctrl-q/issues/228)
+
 ## [3.8.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.8.0...ctrl-q-v3.8.1) (2023-03-31)
 
 
