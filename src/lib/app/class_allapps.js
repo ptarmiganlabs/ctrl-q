@@ -614,6 +614,8 @@ class QlikSenseApps {
         // resultStep.downloadPath has format
         // /tempcontent/d989fffd-5310-43b5-b028-f313b53bb8e2/User%20retention.qvf?serverNodeId=80db9b97-8ea2-4208-a79a-c46b7e16c38c
 
+        const resultStep2 = JSON.parse(JSON.stringify(resultStep1));
+
         const urlPath = resultStep1.downloadPath.split('?')[0];
         const param = resultStep1.downloadPath.split('?')[1];
         const paramName = param.split('=')[0];
@@ -630,9 +632,9 @@ class QlikSenseApps {
 
         this.options.qvfNameFormat.forEach((element) => {
             if (element === 'app-id') {
-                fileName += resultStep1.appId + qvfNameSeparator;
+                fileName += resultStep2.appId + qvfNameSeparator;
             } else if (element === 'app-name') {
-                fileName += resultStep1.appName + qvfNameSeparator;
+                fileName += resultStep2.appName + qvfNameSeparator;
             } else if (element === 'export-date') {
                 fileName += todayDate + qvfNameSeparator;
             } else if (element === 'export-time') {
@@ -644,6 +646,9 @@ class QlikSenseApps {
         if (fileName.slice(-qvfNameSeparator.length) === qvfNameSeparator) {
             fileName = fileName.slice(0, -qvfNameSeparator.length);
         }
+
+        // Add app related info that will be useful in upstream code
+        resultStep2.qvfFileName = fileName;
 
         // Add path to QVF dir
         const fileDir = mergeDirFilePath([execPath, this.options.outputDir]);
@@ -673,7 +678,7 @@ class QlikSenseApps {
 
         if (!fileSkipped) {
             if (this.options.dryRun) {
-                logger.info(`DRY RUN: Storing app [${resultStep1.appId}] "${resultStep1.appName}" to QVF file`);
+                logger.info(`DRY RUN: Storing app [${resultStep2.appId}] "${resultStep2.appName}" to QVF file`);
             } else {
                 writer = fs2.createWriteStream(fileName);
 
@@ -688,7 +693,7 @@ class QlikSenseApps {
                 axiosConfig.responseType = 'stream';
 
                 logger.info('------------------------------------');
-                logger.info(`App [${resultStep1.appId}] "${resultStep1.appName}.qvf", download starting`);
+                logger.info(`App [${resultStep2.appId}] "${resultStep2.appName}.qvf", download starting`);
                 const result = await axios.request(axiosConfig);
 
                 result.data.pipe(writer);
@@ -699,15 +704,18 @@ class QlikSenseApps {
             if (fileSkipped) {
                 resolve('skipped');
             } else if (this.options.dryRun) {
-                resolve(resultStep1);
+                resolve(resultStep2);
             } else {
                 writer.on('finish', () => {
                     const fileSize = fs2.statSync(fileName).size;
-                    logger.info(`✅ App [${resultStep1.appId}] "${resultStep1.appName}.qvf", download complete. Size=${fileSize} bytes`);
-                    resolve(resultStep1);
+                    logger.info(`✅ App [${resultStep2.appId}] "${resultStep2.appName}.qvf", download complete. Size=${fileSize} bytes`);
+
+                    // Add app related info that will be useful in upstream code
+                    resultStep2.qvfFileSize = fileSize;
+                    resolve(resultStep2);
                 });
                 writer.on('error', () => {
-                    logger.error(`❌ App [${resultStep1.appId}] "${resultStep1.appName}.qvf", download failed`);
+                    logger.error(`❌ App [${resultStep2.appId}] "${resultStep2.appName}.qvf", download failed`);
                     reject();
                 });
             }
