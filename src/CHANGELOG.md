@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.8.3](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.8.2...ctrl-q-v3.8.3) (2023-03-31)
+
+
+### Bug Fixes
+
+* Add missing .qvf extension to file names in Excel file created by app-export ([23bb188](https://github.com/ptarmiganlabs/ctrl-q/commit/23bb188abc3d0e793cd34d09311597b747765cad)), closes [#231](https://github.com/ptarmiganlabs/ctrl-q/issues/231)
+
 ## [3.8.2](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.8.1...ctrl-q-v3.8.2) (2023-03-31)
 
 
