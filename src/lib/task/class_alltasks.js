@@ -498,7 +498,7 @@ class QlikSenseTasks {
                         // eslint-disable-next-line no-await-in-loop
                         await this.addTask('from_file', currentTask, false);
                     } else {
-                        logger.info(`DRY RUN: Creating reloading task in QSEoW "${currentTask.name}"`);
+                        logger.info(`DRY RUN: Creating reload task in QSEoW "${currentTask.name}"`);
                     }
                 }
 
