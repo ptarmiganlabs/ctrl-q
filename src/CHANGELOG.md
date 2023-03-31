@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.8.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.8.0...ctrl-q-v3.8.1) (2023-03-31)
+
+
+### Bug Fixes
+
+* --task-tag parameter does not work with task-get command ([2201f36](https://github.com/ptarmiganlabs/ctrl-q/commit/2201f36d22807466bbd546dcea48d023aac3316e)), closes [#225](https://github.com/ptarmiganlabs/ctrl-q/issues/225)
+* Improve dry-run messages ([8cd25bc](https://github.com/ptarmiganlabs/ctrl-q/commit/8cd25bc7fb13e0a1e829c0a06066f3fa105e4207)), closes [#196](https://github.com/ptarmiganlabs/ctrl-q/issues/196)
+
 ## [3.8.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.8.0...ctrl-q-v3.8.0) (2023-03-30)
 
 
