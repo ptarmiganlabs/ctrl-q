@@ -154,7 +154,7 @@ const exportAppToFile = async (options) => {
         }
         return true;
     } catch (err) {
-        logger.error(`GET TASK: ${err.stack}`);
+        logger.error(`EXPORT APP: ${err.stack}`);
     }
 };
 
