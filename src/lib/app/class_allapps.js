@@ -648,7 +648,7 @@ class QlikSenseApps {
         }
 
         // Add app related info that will be useful in upstream code
-        resultStep2.qvfFileName = fileName;
+        resultStep2.qvfFileName = `${fileName}.qvf`;
 
         // Add path to QVF dir
         const fileDir = mergeDirFilePath([execPath, this.options.outputDir]);
