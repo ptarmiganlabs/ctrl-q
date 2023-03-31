@@ -1045,11 +1045,13 @@ Options:
   -h, --help                         display help for command
 ```
 
-The next example will export apps (including the data in them) that have either of two different tags set, plus two apps identified by app id.  
-If the QVF files exist a confirmation text will be shown for each existing app.  
-The name of the QVF files will be `<app name>_<exportdate>.qvf`.
-QVF files will be stored in a subdirectory `qvf-export`.
-An Excel file will be created, containing select metadata about the apps.
+The next example will
+
+- Export apps (including the data in them) that have either of two different tags set, plus two apps identified by app id.
+- If the QVF files exist a confirmation text will be shown for each existing app.
+- The name of the QVF files will be `<app name>_<exportdate>.qvf`.
+- QVF files will be stored in a subdirectory `qvf-export`.
+- An Excel file will be created, containing select metadata about the apps.
 
 ```
 .\ctrl-q.exe app-export `
@@ -1133,7 +1135,7 @@ Mode                 LastWriteTime         Length Name
 
 ```
 
-The format of the created Excel file is almost identical as the one used when importing apps from QVF files, described [here](#source-file-columns-for-app-import-definitions).  
+The format of the created Excel file is almost identical to the one used when importing apps from QVF files, described [here](#source-file-columns-for-app-import-definitions).  
 The only difference is that the app export format includes an "App id" column, which is not required when importing apps.  
 App import will however work just fine if there is an "App id" column present, it just won't be used for anything.
 

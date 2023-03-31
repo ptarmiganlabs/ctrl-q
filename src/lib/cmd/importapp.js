@@ -80,7 +80,7 @@ const importAppFromFile = async (options) => {
             logger.debug(`Imported apps:\n${JSON.stringify(importedApps, null, 2)}`);
         }
     } catch (err) {
-        logger.error(`GET TASK: ${err.stack}`);
+        logger.error(`IMPORT APP: ${err.stack}`);
     }
 };
 

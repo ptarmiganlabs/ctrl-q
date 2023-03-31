@@ -394,7 +394,7 @@ const importTaskFromFile = async (options) => {
         await qlikSenseTasks.init(options, importedApps);
         const taskList = await qlikSenseTasks.getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting);
     } catch (err) {
-        logger.error(`GET TASK: ${err.stack}`);
+        logger.error(`IMPORT TASK: ${err.stack}`);
     }
 };
 

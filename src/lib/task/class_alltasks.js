@@ -747,9 +747,13 @@ class QlikSenseTasks {
                     for (let i = 1; i < this.options.taskId.length; i += 1) {
                         filter += encodeURIComponent(` or id eq ${this.options.taskId[i]}`);
                     }
-                    filter += encodeURIComponent(')');
-                    logger.debug(`GET TASK: QRS query filter (incl ids): ${filter}`);
                 }
+
+                // Add closing parenthesis
+                if (this.options.taskId && this.options?.taskId.length >= 1) {
+                    filter += encodeURIComponent(')');
+                }
+                logger.debug(`GET TASK: QRS query filter (incl ids): ${filter}`);
 
                 // Add task tag(s) to query string
                 if (this.options.taskTag && this.options?.taskTag.length >= 1) {
@@ -769,9 +773,12 @@ class QlikSenseTasks {
                     for (let i = 1; i < this.options.taskTag.length; i += 1) {
                         filter += encodeURIComponent(` or tags.name eq '${this.options.taskTag[i]}'`);
                     }
-                    filter += encodeURIComponent(')');
-                    logger.debug(`GET TASK: QRS query filter (incl ids, tags): ${filter}`);
                 }
+                // Add closing parenthesis
+                if (this.options.taskTag && this.options?.taskTag.length >= 1) {
+                    filter += encodeURIComponent(')');
+                }
+                logger.debug(`GET TASK: QRS query filter (incl ids, tags): ${filter}`);
 
                 let axiosConfig;
                 if (filter === '') {
