@@ -90,7 +90,7 @@ const exportAppToFile = async (options) => {
                     app.name,
                     app.id,
                     options.outputDir,
-                    `${resultDownloadApp.appName}.qvf`,
+                    resultDownloadApp.qvfFileName,
                     options.excludeAppData,
                     app.tags.map((item) => item.name).join(' / '),
                     app.customProperties.map((item) => `${item.definition.name}=${item.value}`).join(' / '),
@@ -101,9 +101,6 @@ const exportAppToFile = async (options) => {
 
                 exportCount += 1;
                 if (exportCount === parseInt(options.limitExportCount, 10)) {
-                    // Save app metadata to disk file
-                    // TODO
-
                     logger.warn(
                         `Exported ${options.limitExportCount} app(s), which is the limit set by the --limit-export-count parameter.`
                     );
