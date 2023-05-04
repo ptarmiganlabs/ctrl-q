@@ -11,6 +11,9 @@ const { deleteMasterDimension } = require('./lib/cmd/deletedim');
 const { getMasterMeasure } = require('./lib/cmd/getmeasure');
 const { deleteMasterMeasure } = require('./lib/cmd/deletemeasure');
 
+const { getVariable } = require('./lib/cmd/getvariable');
+const { deleteVariable } = require('./lib/cmd/deletevariable');
+
 const { getBookmark } = require('./lib/cmd/getbookmark');
 
 const { importMasterItemFromFile } = require('./lib/cmd/import-masteritem-excel');
@@ -31,6 +34,8 @@ const {
     masterItemMeasureDeleteAssertOptions,
     masterItemDimDeleteAssertOptions,
     masterItemGetAssertOptions,
+    variableGetAssertOptions,
+    variableDeleteAssertOptions,
     getScriptAssertOptions,
     getBookmarkAssertOptions,
     getTaskAssertOptions,
@@ -301,6 +306,76 @@ const program = new Command();
         .option('--delete-all', 'delete all master dimensions')
         .option('--dry-run', 'do a dry run, i.e. do not delete anything - just show what would be deleted');
 
+    // Get variable command
+    program
+        .command('variable-get')
+        .description('get variable definitions in one or more apps')
+        .action(async (options) => {
+            await sharedParamAssertOptions(options);
+            variableGetAssertOptions(options);
+
+            getVariable(options);
+        })
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+        .option('--engine-port <port>', 'Qlik Sense server engine port', '4747')
+        .option('--qrs-port <port>', 'Qlik Sense repository service (QRS) port', '4242')
+        .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
+        .option('--app-id <id...>', 'Qlik Sense app ID(s) to get variables from')
+        .option('--app-tag <tag...>', 'Qlik Sense app tag(s) to get variables')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+
+        .addOption(
+            new Option('--id-type <type>', 'type of identifier passed in the --variable option').choices(['id', 'name']).default('name')
+        )
+        .option('--variable <ids...>', 'variables to retrieve. If not specified all variables will be retrieved')
+        .addOption(new Option('--output-format <format>', 'output format').choices(['json', 'table']).default('json'));
+
+    // Delete variable command
+    program
+        .command('variable-delete')
+        .description('delete one or more variables in one or more apps')
+        .action(async (options) => {
+            await sharedParamAssertOptions(options);
+            variableDeleteAssertOptions(options);
+
+            deleteVariable(options);
+        })
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+        .option('--port <port>', 'Qlik Sense server engine port', '4747')
+        .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
+        .option('--app-id <id...>', 'Qlik Sense app ID(s) to get variables from')
+        .option('--app-tag <tag...>', 'Qlik Sense app tag(s) to get variables')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+
+        .addOption(
+            new Option('--id-type <type>', 'type of identifier passed in the --variable option').choices(['id', 'name']).default('name')
+        )
+        .option('--variable <ids...>', 'variables to retrieve. If not specified all variables will be retrieved')
+        .option('--delete-all', 'delete all variables')
+        .option('--dry-run', 'do a dry run, i.e. do not delete anything - just show what would be deleted');
+
     // Scramble field command
     program
         .command('field-scramble')
@@ -419,9 +494,9 @@ const program = new Command();
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
         .addOption(
-            new Option('--task-type <type...>', 'type of tasks to list')
-                .choices(['reload', 'ext-program'])
-                .default(['reload', 'ext-program'])
+            new Option('--task-type <type...>', 'type of tasks to list').choices(['reload']).default(['reload'])
+            // .choices(['reload', 'ext-program'])
+            // .default(['reload', 'ext-program'])
         )
         .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve. Only allowed when --output-format=table')
         .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve. Only allowed when --output-format=table')
@@ -483,9 +558,9 @@ const program = new Command();
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
         .addOption(
-            new Option('--task-type <type...>', 'type of tasks to list')
-                .choices(['reload', 'ext-program'])
-                .default(['reload', 'ext-program'])
+            new Option('--task-type <type...>', 'type of tasks to list').choices(['reload']).default(['reload'])
+            // .choices(['reload', 'ext-program'])
+            // .default(['reload', 'ext-program'])
         )
         .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve')
         .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve')

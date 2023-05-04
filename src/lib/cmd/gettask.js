@@ -93,7 +93,7 @@ const getTask = async (options) => {
         // Get all tags
         const tags = await getTagsFromQseow(options);
 
-        // Get reload tasks
+        // Get reload and external program tasks
         const qlikSenseTasks = new QlikSenseTasks();
         await qlikSenseTasks.init(options);
         await qlikSenseTasks.getTaskModelFromQseow();
