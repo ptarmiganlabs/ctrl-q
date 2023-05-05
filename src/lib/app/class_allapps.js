@@ -76,13 +76,13 @@ class QlikSenseApps {
 
             // Add app tag(s) to query string
             if (this.options.appTag && this.options?.appTag.length >= 1) {
-                // At least one app ID specified
+                // At least one app tag specified
                 if (filter.length >= 1) {
-                    // We've previously added some app ids
+                    // We've previously added some app IDs
                     // Add first app tag
                     filter += encodeURIComponent(` or (tags.name eq '${this.options.appTag[0]}'`);
                 } else {
-                    // No app ids added yet
+                    // No app IDs added yet
                     // Add first app tag
                     filter += encodeURIComponent(`(tags.name eq '${this.options.appTag[0]}'`);
                 }

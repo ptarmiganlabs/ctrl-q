@@ -19,7 +19,7 @@ const setupEnigmaConnection = async (options) => {
         schema: qixSchema,
         url: SenseUtilities.buildUrl({
             host: options.host,
-            port: options.port,
+            port: options.enginePort !== undefined ? options.enginePort : options.port,
             prefix: options.virtualProxy,
             secure: options.secure,
             appId: options.appId,

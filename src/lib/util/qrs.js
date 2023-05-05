@@ -19,13 +19,16 @@ const setupQRSConnection = (options, param) => {
         key: readCert(param.fileCertKey),
     });
 
+    // Port is specified slightly differently for different Ctrl-Q commands
+    const port = options.qrsPort === undefined ? options.port : options.qrsPort;
+
     // Set up Sense repository service configuration
     const xrfKey = generateXrfKey();
 
     const axiosConfig = {
         url: `${param.path}?xrfkey=${xrfKey}`,
         method: param.method.toLowerCase(),
-        baseURL: `https://${options.host}:${options.port}`,
+        baseURL: `https://${options.host}:${port}`,
         headers: {
             'x-qlik-xrfkey': xrfKey,
             'X-Qlik-User': 'UserDirectory=Internal; UserId=sa_api',

@@ -79,6 +79,9 @@ Enjoy!
   - [Dimensions](#dimensions)
     - [List dimensions](#list-dimensions)
     - [Delete dimensions](#delete-dimensions)
+  - [Variables](#variables)
+    - [List variables](#list-variables)
+    - [Delete variables](#delete-variables)
   - [Tasks](#tasks)
     - [List tasks as tree](#list-tasks-as-tree)
       - [Tree icons](#tree-icons)
@@ -523,6 +526,12 @@ Adapt as needed for macOS, Linux and NodeJS.
 2023-02-22T22:43:13.244Z info: Deleted master item dimension "Salesperson", id=f77fb50e-7b18-4076-b956-90d635df2bfa in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
 2023-02-22T22:43:13.244Z info: Deleted master item dimension "Sales month", id=be77c955-6dfc-4db7-9667-c90d2ab404a7 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
 ```
+
+## Variables
+
+### List variables
+
+### Delete variables
 
 ## Tasks
 
