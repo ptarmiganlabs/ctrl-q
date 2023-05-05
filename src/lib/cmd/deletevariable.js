@@ -1,6 +1,9 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
 const enigma = require('enigma.js');
 
 const { setupEnigmaConnection } = require('../util/enigma');
+const { getApps } = require('../util/app');
 const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
 
 /**
@@ -14,113 +17,118 @@ const deleteVariable = async (options) => {
 
         logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
-
-        logger.info('Delete master measures');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+
+        // Get IDs of all apps that should be processed
+        const apps = await getApps(options, options.appId, options.appTag);
 
         // Configure Enigma.js
         const configEnigma = await setupEnigmaConnection(options);
 
-        const session = enigma.create(configEnigma);
-        if (options.logLevel === 'silly') {
-            // eslint-disable-next-line no-console
-            session.on('traffic:sent', (data) => console.log('sent:', data));
-            // eslint-disable-next-line no-console
-            session.on('traffic:received', (data) => console.log('received:', data));
-        }
-        const global = await session.open();
+        let allVariables = [];
+        let subsetVariables = [];
 
-        const engineVersion = await global.engineVersion();
-        logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
+        for (const app of apps) {
+            logger.info('------------------------');
+            logger.info(`Deleting variables in app ${app.id} "${app.name}"`);
 
-        const app = await global.openDoc(options.appId, '', '', '', false);
-        logger.verbose(`Opened app ${options.appId}.`);
+            const session = enigma.create(configEnigma);
+            if (options.logLevel === 'silly') {
+                session.on('traffic:sent', (data) => console.log('sent:', data));
+                session.on('traffic:received', (data) => console.log('received:', data));
+            }
+            const global = await session.open();
 
-        // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/definitions-NxLibraryMeasureDef.html
-        const measureCall = {
-            qInfo: {
-                qId: 'measureObject',
-                qType: 'MeasureList',
-            },
-            qMeasureListDef: {
-                qType: 'measure',
-                qData: {
-                    measure: '/qMeasure',
-                },
-            },
-        };
+            const engineVersion = await global.engineVersion();
+            logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
 
-        // Get master measures
-        const genericMeasureObj = await app.createSessionObject(measureCall);
-        const measureObj = await genericMeasureObj.getLayout();
+            const doc = await global.openDoc(app.id, '', '', '', true);
+            logger.verbose(`Opened app ${app.id} "${app.name}".`);
 
-        // Get list of all IDs that should be deleted
-        let deleteMasterItems = [];
+            // Get variables from app
+            // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/services-Doc-GetVariables.html
+            const appVariables = await doc.getVariables({
+                qType: 'variable',
+                qShowReserved: true,
+                qShowConfig: true,
+                // qData: {},
+                qShowSession: true,
+            });
 
-        if (options.deleteAll || options.masterItem === undefined) {
-            // Delete all master item dimensions
-            deleteMasterItems = deleteMasterItems.concat(measureObj.qMeasureList.qItems);
-        } else {
-            // Loop over all master items (identified by name or ID) we should get data for
-            // eslint-disable-next-line no-restricted-syntax
-            for (const masterItem of options.masterItem) {
-                // Can we find this master item in the list retrieved from the app?
+            let variablesToProcess = [];
+            if (options.deleteAll && options.deleteAll === true) {
+                variablesToProcess = variablesToProcess.concat(appVariables);
+            } else {
+                variablesToProcess = variablesToProcess.concat(options.variable);
+            }
+
+            for (const variable of variablesToProcess) {
+                // There will be a slightyly different data structure when --delete-all is used.
+                const variableIdentifier = options.deleteAll === true ? variable.qName : variable;
+
                 if (options.idType === 'name') {
-                    const items = measureObj.qMeasureList.qItems.filter((item) => item.qMeta.title === masterItem);
-                    if (items.length > 0) {
-                        // We've found the measure that's to be retrieved.
-                        deleteMasterItems = deleteMasterItems.concat(items);
+                    // Does to-be-deleted variable exist in this app?
+                    // eslint-disable-next-line arrow-body-style
+                    const variableExists = appVariables.find((item) => {
+                        return item.qName === variableIdentifier;
+                    });
+
+                    if (variableExists) {
+                        if (variableExists.qIsScriptCreated === true) {
+                            logger.warn(
+                                `Variable "${variableIdentifier}" is created in the load script and must be removed there before it can be deleted from app ${app.id} "${app.name}"`
+                            );
+                        } else if (options.dryRun === undefined || options.dryRun === false) {
+                            const res = await doc.destroyVariableByName(variableIdentifier);
+
+                            if (res === true) {
+                                logger.info(`Success: Removed variable ${variableIdentifier} from app ${app.id} "${app.name}"`);
+                            } else {
+                                logger.info(`Failure: Could not remove variable ${variableIdentifier} from app ${app.id} "${app.name}"`);
+                            }
+                        } else {
+                            logger.info(
+                                `DRY RUN: Delete of variable "${variableIdentifier}" in app ${app.id} "${app.name}" would happen here`
+                            );
+                        }
                     } else {
-                        logger.warn(`Master item measure "${masterItem}" not found`);
+                        logger.warn(`Variable "${variableIdentifier}" does not exist in app ${app.id} "${app.name}"`);
                     }
                 } else if (options.idType === 'id') {
-                    const items = measureObj.qMeasureList.qItems.filter((item) => item.qInfo.qId === masterItem);
-                    if (items.length > 0) {
-                        // We've found the measure that's to be retrieved.
-                        deleteMasterItems = deleteMasterItems.concat(items);
+                    // Does to-be-deleted variable exist in this app?
+                    // eslint-disable-next-line arrow-body-style
+                    const variableExists = appVariables.find((item) => {
+                        return item.qInfo.qId === variableIdentifier;
+                    });
+
+                    if (variableExists) {
+                        if (variableExists.qIsScriptCreated === true) {
+                            logger.warn(
+                                `Variable with ID ${variableIdentifier} is created in the load script and must be removed there before it can be deleted from app ${app.id} "${app.name}"`
+                            );
+                        } else if (options.dryRun === undefined || options.dryRun === false) {
+                            const res = await doc.destroyVariableById(variableIdentifier);
+
+                            if (res === true) {
+                                logger.info(`Success: Removed variable ${variableIdentifier} from app ${app.id} "${app.name}"`);
+                            } else {
+                                logger.info(`Failure: Could not remove variable ${variableIdentifier} from app ${app.id} "${app.name}"`);
+                            }
+                        } else {
+                            logger.info(
+                                `DRY RUN: Delete of variable "${variableIdentifier}" in app ${app.id} "${app.name}" would happen here`
+                            );
+                        }
                     } else {
-                        logger.warn(`Master item measure "${masterItem}" not found`);
+                        logger.warn(`Variable "${variableIdentifier}" does not exist in app ${app.id} "${app.name}"`);
                     }
-                } else {
-                    throw Error('Invalid --id-type value');
                 }
             }
-        }
-
-        logger.debug(`Master item measures to be deleted: ${JSON.stringify(deleteMasterItems)}`);
-
-        if (deleteMasterItems.length === 0) {
-            logger.warn(`No matching master item measures found`);
-        } else {
-            // eslint-disable-next-line no-restricted-syntax
-            for (const item of deleteMasterItems) {
-                if (options.dryRun === undefined || options.dryRun === false) {
-                    // eslint-disable-next-line no-await-in-loop
-                    const res = await app.destroyMeasure(item.qInfo.qId);
-                    if (res !== true) {
-                        logger.error(`Failed deleting measure "${item.qMeta.title}", id=${item.qInfo.qId} in app "${item.qInfo.qId}"`);
-                    } else {
-                        logger.info(`Deleted master item measure "${item.qMeta.title}", id=${item.qInfo.qId} in app "${options.appId}"`);
-                    }
-                } else {
-                    logger.info(`DRY RUN: Delete of master item measure "${item.qMeta.title}", id=${item.qInfo.qId} would happen here`);
-                }
-            }
-        }
-
-        if ((await app.destroySessionObject(genericMeasureObj.id)) === true) {
-            logger.debug(`Destroyed session object after managing master items in app ${options.appId} on host ${options.host}`);
-
-            if ((await session.close()) === true) {
-                logger.verbose(`Closed session after managing master items in app ${options.appId} on host ${options.host}`);
-            } else {
-                logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
-            }
-        } else {
-            logger.error(`Error destroying session object for master dimenions`);
+            // Close app session
+            await doc.session.close();
         }
     } catch (err) {
-        logger.error(err.stack);
+        logger.error(`DELETE VARIABLE: ${err.stack}`);
     }
 };
 

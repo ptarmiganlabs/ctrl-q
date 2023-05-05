@@ -221,9 +221,15 @@ const variableGetAssertOptions = (options) => {
 const variableDeleteAssertOptions = (options) => {
     // Make sure options are valid for deleting variables
 
-    // Either --delete-all OR (--id-type and --master-item) should be specified
-    if (options.deleteAll === undefined && options.idType === undefined && options.masterItem === undefined) {
-        logger.error('Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --master-item');
+    // At least one app specified?
+    if (options.appId === undefined && options.appTag === undefined) {
+        logger.error('No app IDs or app tags specified. Exiting.');
+        process.exit(1);
+    }
+
+    // Either --delete-all OR (--id-type and --variable) should be specified
+    if (options.deleteAll === undefined && options.idType === undefined && options.variable === undefined) {
+        logger.error('Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --variable');
         process.exit(1);
     }
 
@@ -231,19 +237,17 @@ const variableDeleteAssertOptions = (options) => {
         if (options.idType === undefined) {
             logger.error('Mandatory options --id-type missing.');
             process.exit(1);
-        } else if (options.masterItem === undefined) {
-            logger.error('Mandatory options --master-item missing.');
+        } else if (options.variable === undefined) {
+            logger.error('Mandatory options --variable missing.');
             process.exit(1);
         }
     }
 
-    // Make sure not *both* --delete-all AND (--id-type and --master-item) are specified
-    if (options.deleteAll !== undefined && options.idType !== undefined && options.masterItem !== undefined) {
-        logger.error('Invalid combination of options.\nUse either --delete-all OR --id-type/--master-item.');
+    // Make sure not *both* --delete-all AND (--id-type and --variable) are specified
+    if (options.deleteAll !== undefined && options.idType !== undefined && options.variable !== undefined) {
+        logger.error('Invalid combination of options.\nUse either --delete-all or both of --id-type and --variable.');
         process.exit(1);
     }
-
-    // TODO
 };
 
 module.exports = {

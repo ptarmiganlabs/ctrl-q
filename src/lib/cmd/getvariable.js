@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
 const enigma = require('enigma.js');
 const { table } = require('table');
 
@@ -56,30 +58,23 @@ const getVariable = async (options) => {
         let allVariables = [];
         let subsetVariables = [];
 
-        // eslint-disable-next-line no-restricted-syntax
         for (const app of apps) {
             const session = enigma.create(configEnigma);
             if (options.logLevel === 'silly') {
-                // eslint-disable-next-line no-console
                 session.on('traffic:sent', (data) => console.log('sent:', data));
-                // eslint-disable-next-line no-console
                 session.on('traffic:received', (data) => console.log('received:', data));
             }
-            // eslint-disable-next-line no-await-in-loop
             const global = await session.open();
 
-            // eslint-disable-next-line no-await-in-loop
             const engineVersion = await global.engineVersion();
             logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
 
             // Open app without data
-            // eslint-disable-next-line no-await-in-loop
             const doc = await global.openDoc(app.id, '', '', '', true);
             logger.verbose(`Opened app ${app.id}, "${app.name}".`);
 
             // Get variables from app
             // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/services-Doc-GetVariables.html
-            // eslint-disable-next-line no-await-in-loop
             const appVariables = await doc.getVariables({
                 qType: 'variable',
                 qShowReserved: true,
@@ -99,7 +94,6 @@ const getVariable = async (options) => {
             subsetVariables = subsetVariables.concat(allVariables);
         } else {
             // Loop over all variables (identified by name or ID) in all apps that we should get data for
-            // eslint-disable-next-line no-restricted-syntax
             for (const app of allVariables) {
                 // Can we find this variable in the list retrieved from the app?
                 if (options.idType === 'name') {
@@ -205,7 +199,7 @@ const getVariable = async (options) => {
             logger.error('Undefined --output-format option');
         }
     } catch (err) {
-        logger.error(err.stack);
+        logger.error(`GET VARIABLE: ${err.stack}`);
     }
 };
 
