@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 const enigma = require('enigma.js');
 const { table } = require('table');
 
@@ -101,6 +102,17 @@ const getMasterDimension = async (options) => {
         if (options.masterItem === undefined) {
             // Get all master item measures
             getMasterItems = getMasterItems.concat(dimObj.qDimensionList.qItems);
+
+            // Find additional coloring data (if available) for each dimension
+            // eslint-disable-next-line no-restricted-syntax
+            for (const dimension of getMasterItems) {
+                if (dimension.qData?.coloring?.colorMapRef) {
+                    // There is a color map for dimensional values. Get it!
+                    const genericColorMapRefModel = await app.getObject(`ColorMapModel_${dimension.qData.coloring.colorMapRef}`);
+                    const colorMapRefLayout = await genericColorMapRefModel.getLayout();
+                    dimension.colorMap = colorMapRefLayout.colorMap;
+                }
+            }
         } else {
             // Loop over all master items (identified by name or ID) we should get data for
             // eslint-disable-next-line no-restricted-syntax
@@ -170,6 +182,14 @@ const getMasterDimension = async (options) => {
             for (const dimension of getMasterItems) {
                 logger.debug(`Dimension about to be stored in table array:\n${JSON.stringify(dimension, null, 2)}`);
 
+                let colorColumn = JSON.stringify(dimension.qData.dim.coloring);
+
+                // Deal with color maps that may be present for some dimensions
+                if (dimension.colorMap) {
+                    colorColumn += '\n\nColor map:\n';
+                    colorColumn += JSON.stringify(dimension.colorMap);
+                }
+
                 dimensionTable.push([
                     dimension.qInfo.qId,
                     dimension.qInfo.qType,
@@ -180,7 +200,7 @@ const getMasterDimension = async (options) => {
                     dimension.qData.dim.qLabelExpression !== undefined ? dimension.qData.dim.qLabelExpression : '',
                     dimension.qData.dim.qFieldDefs.length,
                     dimension.qData.dim.qFieldDefs.join('\n'),
-                    JSON.stringify(dimension.qData.dim.coloring),
+                    colorColumn,
                     dimension.qData.dim.qGrouping,
                     dimension.qMeta.approved,
                     dimension.qMeta.published,
