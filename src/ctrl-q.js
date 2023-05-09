@@ -171,8 +171,8 @@ const program = new Command();
         .requiredOption('--col-master-item-label <column position or name>', 'column number (zero based) or name to use as master item label', 'Label')
         .requiredOption('--col-master-item-expr <column position or name>', 'column number (zero based) or name to use as master item expression', 'Expression')
         .requiredOption('--col-master-item-tag <column position or name>', 'column number (zero based) or name to use as master item tags', 'Tag')
-        .requiredOption('--col-master-item-color <column position or name>', 'column number (zero based) or name to use as color for master items', 'Color')
-        .requiredOption('--col-master-item-per-value-color <column position or name>', 'column number (zero based) or name to use as per-value color for master dimensions', 'Per value color')
+        .requiredOption('--col-master-item-color <column position or name>', 'column number (zero based) or name to use as color for dimensions/measures', 'Color')
+        .requiredOption('--col-master-item-per-value-color <column position or name>', 'column number (zero based) or name to use as per-value/segment color for dimensions/measures', 'Per value color')
 
         .requiredOption(
             '--limit-import-count <number>',

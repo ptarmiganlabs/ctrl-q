@@ -436,13 +436,13 @@ const importMasterItemFromExcel = async (options) => {
                             delete measureData.qMeasure.coloring.baseColor;
                         }
 
-                        // Do we have new per-value color data?
+                        // Do we have new segment color data?
                         if (newSegmentColors) {
-                            // Does existing dimension already has per-value color data?
+                            // Does existing measure already has segment color data?
                             // If so update it rather than creating a new color map
                             measureData.qMeasure.coloring.gradient = newSegmentColors;
                         } else if (existingMeasureLayout.qMeasure?.coloring?.gradient) {
-                            // No new segment color, delete any existing ones
+                            // No new segment color, delete existing one
                             delete measureData.qMeasure.coloring.gradient;
                         }
 
@@ -451,7 +451,6 @@ const importMasterItemFromExcel = async (options) => {
                         logger.info(`Updated existing measure "${measureData.qMetaDef.title}"`);
                     } else {
                         // Create a new master measure in the app
-
                         const newMeasureModel = await app.createMeasure(measureData);
                         const newMeasureLayout = await newMeasureModel.getLayout();
 
@@ -467,10 +466,9 @@ const importMasterItemFromExcel = async (options) => {
                             measureData.qMeasure.coloring.baseColor = newMeasureColor;
                         }
 
-                        // Do we have new per-value color data?
+                        // Do we have new segment color data?
                         if (newSegmentColors) {
-                            // Does existing dimension already has per-value color data?
-                            // If so update it rather than creating a new color map
+                            // Use the measure segment color from the Excel file
                             measureData.qMeasure.coloring.gradient = newSegmentColors;
                         }
 
