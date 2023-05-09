@@ -472,20 +472,20 @@
       // ------------------------------------
       //   Get dimension
       // ------------------------------------
-      "args": [
-        "master-item-dim-get",
-        "--host",
-        "192.168.100.109",
-        "--app-id",
-        // "a3e0f5d2-000a-464f-998d-33d333b175d7",
-        "2933711d-6638-41d4-a2d2-6dd2d965208b",
-        "--output-format",
-        "table",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran"
-      ]
+      // "args": [
+      //   "master-item-dim-get",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--app-id",
+      //   // "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
+      //   "--output-format",
+      //   "table",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran"
+      // ]
       
       // ------------------------------------
       //   Delete dimension
@@ -513,37 +513,37 @@
       // ------------------------------------
       //   Get variables
       // ------------------------------------
-      // "args": [
-      //   "variable-get",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--qrs-port",
-      //   "4242",
-      //   "--app-id",
-      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
-      //   "--app-tag",
-      //   "Ctrl-Q variable 1",
-      //   "Ctrl-Q variable 2",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
-      //   // "--id-type",
-      //   // "id",
-      //   // "--variable",
-      //   // "cd5eb1a8-bd19-42f6-8d58-55905297572b",
-      //   // "3773a685-d3ce-453f-9e7a-d88514207dbe",
-      //   // "548828d1-4e83-4e57-a0ed-b94119fc46ad",
-      //   "--id-type",
-      //   "name",
-      //   "--variable",
-      //   // "Ctrl-Q variable 1",
-      //   // "TimestampFormat",
-      //   // "var1",
-      //   "vVar1",
-      //   "--output-format",
-      //   "table",
-      // ]
+      "args": [
+        "variable-get",
+        "--host",
+        "192.168.100.109",
+        "--qrs-port",
+        "4242",
+        "--app-id",
+        "a3e0f5d2-000a-464f-998d-33d333b175d7",
+        // "--app-tag",
+        // "Ctrl-Q variable 1",
+        // "Ctrl-Q variable 2",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+        // "--id-type",
+        // "id",
+        // "--variable",
+        // "cd5eb1a8-bd19-42f6-8d58-55905297572b",
+        // "3773a685-d3ce-453f-9e7a-d88514207dbe",
+        // "548828d1-4e83-4e57-a0ed-b94119fc46ad",
+        "--id-type",
+        "name",
+        "--variable",
+        // "Ctrl-Q variable 1",
+        // "TimestampFormat",
+        // "var1",
+        "vVar1",
+        "--output-format",
+        "table",
+      ]
       
       // ------------------------------------
       //   Delete variables
