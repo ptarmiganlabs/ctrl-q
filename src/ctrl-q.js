@@ -163,13 +163,16 @@ const program = new Command();
         )
         .requiredOption(
             '--col-item-type <column position or name>',
-            'column where dim/measure flag is found. Use "dim" in that column to create master dimension, "measure" for master measure'
+            'column where dim/measure flag is found. Use "dim-single" in that column to create master dimension, "measure" for master measure',
+            'Master item type'
         )
-        .requiredOption('--col-master-item-name <column position or name>', 'column number (zero based) to use as master item name')
-        .requiredOption('--col-master-item-descr <column position or name>', 'column number (zero based) to use as master item description')
-        .requiredOption('--col-master-item-label <column position or name>', 'column number (zero based) to use as master item label')
-        .requiredOption('--col-master-item-expr <column position or name>', 'column number (zero based) to use as master item expression')
-        .requiredOption('--col-master-item-tag <column position or name>', 'column number (zero based) to use as master item tags')
+        .requiredOption('--col-master-item-name <column position or name>', 'column number (zero based) or name to use as master item name', 'Master item name')
+        .requiredOption('--col-master-item-descr <column position or name>', 'column number (zero based) or name to use as master item description', 'Description')
+        .requiredOption('--col-master-item-label <column position or name>', 'column number (zero based) or name to use as master item label', 'Label')
+        .requiredOption('--col-master-item-expr <column position or name>', 'column number (zero based) or name to use as master item expression', 'Expression')
+        .requiredOption('--col-master-item-tag <column position or name>', 'column number (zero based) or name to use as master item tags', 'Tag')
+        .requiredOption('--col-master-item-color <column position or name>', 'column number (zero based) or name to use as color for master items', 'Color')
+        .requiredOption('--col-master-item-per-value-color <column position or name>', 'column number (zero based) or name to use as per-value color for master dimensions', 'Per value color')
 
         .requiredOption(
             '--limit-import-count <number>',

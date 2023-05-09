@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-await-in-loop */
 const enigma = require('enigma.js');
 const { table } = require('table');
@@ -31,7 +32,7 @@ const consoleTableConfig = {
         // 4: { width: 40 },
         // 5: { width: 40 },
         // 6: { width: 40 },
-        // 9: { width: 40 },
+        9: { width: 100 },
     },
 };
 
@@ -100,17 +101,20 @@ const getMasterDimension = async (options) => {
         let getMasterItems = [];
 
         if (options.masterItem === undefined) {
-            // Get all master item measures
+            // Get ALL master dimensions
             getMasterItems = getMasterItems.concat(dimObj.qDimensionList.qItems);
 
-            // Find additional coloring data (if available) for each dimension
-            // eslint-disable-next-line no-restricted-syntax
+            // Find coloring data (if available) for each dimension
             for (const dimension of getMasterItems) {
-                if (dimension.qData?.coloring?.colorMapRef) {
-                    // There is a color map for dimensional values. Get it!
-                    const genericColorMapRefModel = await app.getObject(`ColorMapModel_${dimension.qData.coloring.colorMapRef}`);
-                    const colorMapRefLayout = await genericColorMapRefModel.getLayout();
-                    dimension.colorMap = colorMapRefLayout.colorMap;
+                // Find per-value colors, if defined
+                if (dimension.qData?.coloring?.hasValueColors === true) {
+                    try {
+                        const genericColorMapRefModel = await app.getObject(`ColorMapModel_${dimension.qData.coloring.colorMapRef}`);
+                        const colorMapRefLayout = await genericColorMapRefModel.getLayout();
+                        dimension.colorMap = colorMapRefLayout.colorMap;
+                    } catch (err) {
+                        logger.error(err.stack);
+                    }
                 }
             }
         } else {
@@ -182,11 +186,21 @@ const getMasterDimension = async (options) => {
             for (const dimension of getMasterItems) {
                 logger.debug(`Dimension about to be stored in table array:\n${JSON.stringify(dimension, null, 2)}`);
 
-                let colorColumn = JSON.stringify(dimension.qData.dim.coloring);
+                let colorColumn = '';
+                if (dimension?.qData?.coloring?.baseColor) {
+                    // There is dimension color defined
+                    colorColumn = JSON.stringify({
+                        baseColor: dimension.qData.coloring.baseColor,
+                    });
+                }
 
-                // Deal with color maps that may be present for some dimensions
-                if (dimension.colorMap) {
-                    colorColumn += '\n\nColor map:\n';
+                if (colorColumn.length > 0) {
+                    colorColumn += '\n\n';
+                }
+
+                if (dimension?.colorMap) {
+                    // There are dimensional per-value colors defined
+                    colorColumn += 'Value colors:\n';
                     colorColumn += JSON.stringify(dimension.colorMap);
                 }
 
@@ -229,6 +243,7 @@ const getMasterDimension = async (options) => {
         }
     } catch (err) {
         logger.error(err);
+        logger.error(err.stack);
     }
 };
 

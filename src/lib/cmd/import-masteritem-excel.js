@@ -1,9 +1,11 @@
 /* eslint-disable no-await-in-loop */
 const enigma = require('enigma.js');
 const xlsx = require('node-xlsx').default;
+const uuidCreate = require('uuid').v4;
 
 const { setupEnigmaConnection } = require('../util/enigma');
 const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../../globals');
+const { promises } = require('winston-daily-rotate-file');
 
 /**
  * Find of column's positioon (zero based) given a column name.
@@ -19,6 +21,59 @@ const getColumnPos = (options, colName, colNameArray) => {
     }
 
     throw Error(`EXCEL IMPORT: Could not find column "${colName}" on sheet ${options.sheet}`);
+};
+
+/**
+ *
+ * @param {*} existingDimModelLayout
+ * @param {*} newPerValueColorMap
+ */
+const createColorMap = async (app, colorMapId, newPerValueColorMap) => {
+    // Get id for new color map
+    if (colorMapId === null) {
+        // We're dealing with a not-yet-created dimension. Get a new ID for the color map
+        // eslint-disable-next-line no-param-reassign
+        colorMapId = uuidCreate();
+    }
+
+    // 2. Create new, empty color map
+    const newGenericColorMapRefModel = await app.createObject({
+        qInfo: {
+            qType: 'ColorMap',
+            qId: `ColorMapModel_${colorMapId}`,
+        },
+        colorMap: {},
+    });
+
+    // 3. Get properties of created color map
+    const newGenericColorMapRefProp = await newGenericColorMapRefModel.getProperties();
+    newGenericColorMapRefProp.colorMap = newPerValueColorMap;
+
+    // const newColorMapProperties = await newGenericColorMapRefModel.getProperties();
+    // const newColorMapPropertiesLayout = await newGenericColorMapRefModel.getLayout();
+    // 4. Set properties of created color map
+    let res = await newGenericColorMapRefModel.setProperties(newGenericColorMapRefProp);
+
+    // let res = await newGenericColorMapRefModel.setProperties({
+    //     qInfo: {
+    //         qId: `ColorMapModel_${colorMapId}`,
+    //         qType: 'ColorMap',
+    //     },
+    //     qExtendsId: '',
+    //     qMetaDef: {},
+    //     qStateName: '',
+    //     colorMap: newPerValueColorMap,
+    // });
+    // let res = await newGenericColorMapRefModel.setProperties(newPerValueColorMap);
+
+    // 5. Get newly created color map object
+    const newColorMapObj = await app.getObject(`ColorMapModel_${colorMapId}`);
+
+    // 6. Get layout of newly created color map object
+    const newColorMapLayout = await newGenericColorMapRefModel.getLayout();
+    // const a1 = await newGenericColorMapRefModel.getLayout();
+
+    return colorMapId;
 };
 
 /**
@@ -73,6 +128,12 @@ const importMasterItemFromExcel = async (options) => {
 
         // --col-master-item-tag
         const colPosMasterItemTag = getColumnPos(options, options.colMasterItemTag, sheet.data[0]);
+
+        // --col-master-item-color
+        const colPosMasterItemColor = getColumnPos(options, options.colMasterItemColor, sheet.data[0]);
+
+        // --col-master-item-color
+        const colPosMasterItemPerValueColor = getColumnPos(options, options.colMasterItemPerValueColor, sheet.data[0]);
 
         // Configure Enigma.js
         const configEnigma = await setupEnigmaConnection(options);
@@ -144,85 +205,155 @@ const importMasterItemFromExcel = async (options) => {
                     // A master dimension of type "single" should be created based on the current row
 
                     // Data that should be written to new dimension
-                    let dimSingleData = {
+                    const dimSingleData = {
                         qInfo: {
                             qType: 'dimension',
                         },
                         qDim: {
-                            // title: row[parseInt(options.columnname, 10)],
                             qGrouping: 'N',
                             qFieldDefs: [row[colPosMasterItemExpr]],
-                            // qFieldLabels: [row[parseInt(options.columnexpr, 10)]],
-                            qFieldLabels: [],
+                            qFieldLabels: [row[colPosMasterItemExpr]],
+                            title: row[colPosMasterItemName],
                             qLabelExpression: row[colPosMasterItemLabel],
                             // row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
                             //     ? row[parseInt(options.columnlabel, 10)]
                             //     : `'${row[parseInt(options.columnlabel, 10)]}'`,
+                            coloring: {},
+                            // coloring: colorBlock,
                         },
                         qMetaDef: {
                             title: row[colPosMasterItemName],
                             description: row[colPosMasterItemDescr],
-                            tags: row[colPosMasterItemTag].split(','),
-                            owner: {
-                                userId: options.authUserId,
-                                userDirectory: options.authUserDir,
-                            },
+                            tags: row[colPosMasterItemTag] ? row[colPosMasterItemTag].split(',') : '',
+                            // owner: {
+                            //   userId: options.authUserId,
+                            //   userDirectory: options.authUserDir,
+                            // },
                         },
                     };
+
+                    // Is there any per-value color data for this row?
+                    let newPerValueColorMap = null;
+                    if (row[colPosMasterItemPerValueColor]?.length > 0) {
+                        const cleanColorString = row[colPosMasterItemPerValueColor].replace('\r', '').replace('\n', '');
+                        newPerValueColorMap = JSON.parse(`${cleanColorString}`);
+                        logger.debug(`Color map loaded from Excel file: ${JSON.stringify(newPerValueColorMap)}`);
+                    }
+
+                    // Is there any dimension color data for this row?
+                    let newDimColor = null;
+                    if (row[colPosMasterItemColor]?.length > 0) {
+                        const cleanColorString = row[colPosMasterItemColor].replace('\r', '').replace('\n', '');
+                        newDimColor = JSON.parse(`${cleanColorString}`);
+                        logger.debug(`Dimension color loaded from Excel file: ${JSON.stringify(newDimColor)}`);
+                    }
 
                     // Test if a master dimension with the given title already exists.
                     // If it does, update it rather than creating a new one.
                     const existingItem = dimObj.qDimensionList.qItems.find((item) => item.qMeta.title === row[colPosMasterItemName]);
                     if (existingItem) {
-                        // An existing master dimension has same name as the one being created.
+                        // An existing master dimension has same name as the one being created
+                        // Update the existing dimension with data from the Excel file
 
-                        // Get existing dimension (that should be updated)
-                        const existingDim = await app.getDimension(existingItem.qInfo.qId);
+                        // Get model and layout for the existing dimension
+                        const existingDimModel = await app.getDimension(existingItem.qInfo.qId);
+                        const existingDimModelLayout = await existingDimModel.getLayout();
 
-                        dimSingleData = {
-                            qInfo: {
-                                qType: 'dimension',
-                            },
-                            qDim: {
-                                qGrouping: 'N',
-                                qFieldDefs: [row[colPosMasterItemExpr]],
-                                qFieldLabels: [],
-                                title: row[colPosMasterItemName],
-                                qLabelExpression: row[colPosMasterItemLabel],
-                                // row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
-                                //     ? row[parseInt(options.columnlabel, 10)]
-                                //     : `'${row[parseInt(options.columnlabel, 10)]}'`,
-                                // coloring: colorBlock,
-                            },
-                            qMetaDef: {
-                                title: row[colPosMasterItemName],
-                                description: row[colPosMasterItemDescr],
-                                tags: row[colPosMasterItemTag].split(','),
-                                // masterScriptId: t.msId,
-                                // owner: {
-                                //   userId: options.authUserId,
-                                //   userDirectory: options.authUserDir,
-                                // },
-                            },
-                        };
+                        // Update dimension with new info
+                        dimSingleData.qInfo.qId = existingItem.qInfo.qId;
 
-                        // Update existing dimension with new data
-                        const res = await existingDim.setProperties(dimSingleData);
-                        logger.info(`Updated existing dimension "${dimSingleData.qMetaDef.title}"`);
-
-                        importCount += 1;
-                        if (importCount === parseInt(options.limitImportCount, 10)) {
-                            break;
+                        // Do we have a new dimension color value?
+                        if (newDimColor) {
+                            // Use the color provided in the Excel file
+                            dimSingleData.qDim.coloring.baseColor = newDimColor.baseColor;
+                        } else if (existingDimModelLayout.qDim?.coloring?.baseColor) {
+                            // Use dimension's existing color, if there is one
+                            dimSingleData.qDim.coloring.baseColor = existingDimModelLayout.qDim.coloring.baseColor;
                         }
+
+                        // Check if there exists a per-value color map for the existing dimension
+                        let existingColorMapPromise;
+                        let existingColorMapModel;
+                        let existingColorMapLayout;
+                        try {
+                            existingColorMapPromise = app.getObject(`ColorMapModel_${existingItem.qInfo.qId}`);
+                            [existingColorMapModel] = await Promise.all([existingColorMapPromise]);
+                            existingColorMapLayout = await existingColorMapModel.getLayout();
+                        } catch (err) {
+                            logger.verbose(`No per-value color map exists for existing dimension "${existingDimModelLayout.qMeta.title}"`);
+                        }
+
+                        // Do we have new per-value color data?
+                        if (newPerValueColorMap) {
+                            // Does existing dimension already has per-value color data?
+                            // If so update it rather than creating a new color map
+                            if (existingColorMapModel?.id) {
+                                let res = await existingColorMapModel.setProperties({
+                                    qInfo: existingColorMapLayout.qInfo,
+                                    qExtendsId: '',
+                                    qMetaDef: {},
+                                    qStateName: '',
+                                    colorMap: newPerValueColorMap,
+                                });
+
+                                dimSingleData.qDim.coloring.colorMapRef = existingDimModelLayout.qInfo.qId;
+                                dimSingleData.qDim.coloring.hasValueColors = true;
+                            } else {
+                                // Create new color map and attach it to the existing dimension
+                                const newColorMapId = await createColorMap(app, existingDimModelLayout.qInfo.qId, newPerValueColorMap);
+
+                                // Update master item with new per-value color data
+                                dimSingleData.qDim.coloring.colorMapRef = newColorMapId;
+                                dimSingleData.qDim.coloring.hasValueColors = true;
+                            }
+                        } else if (existingDimModelLayout.qDim?.coloring?.hasValueColors === true) {
+                            // Use dimension's existing
+                            dimSingleData.qDim.coloring.colorMapRef = existingDimModelLayout.qDim.coloring.colorMapRef;
+                            dimSingleData.qDim.coloring.hasValueColors = existingDimModelLayout.qDim.coloring.hasValueColors;
+                        }
+
+                        // 7. Set properties of existing dimension
+                        res = await existingDimModel.setProperties(dimSingleData);
+                        res = await app.getAppLayout();
+                        logger.info(`Updated existing dimension "${dimSingleData.qMetaDef.title}"`);
                     } else {
                         // Create a new master dimension in the app
-                        const res = await app.createDimension(dimSingleData);
+
+                        // Add owner
+                        dimSingleData.qMetaDef.owner = {
+                            userId: options.authUserId,
+                            userDirectory: options.authUserDir,
+                        };
+
+                        const newDimModel = await app.createDimension(dimSingleData);
+                        const newDimLayout = await newDimModel.getLayout();
                         logger.info(`Created new dimension "${dimSingleData.qMetaDef.title}"`);
 
-                        importCount += 1;
-                        if (importCount === parseInt(options.limitImportCount, 10)) {
-                            break;
+                        // Do we have a new dimension color value?
+                        if (newDimColor) {
+                            // Use the color provided in the Excel file
+                            dimSingleData.qDim.coloring.baseColor = newDimColor.baseColor;
                         }
+
+                        // Do we have new per-value color data?
+                        if (newPerValueColorMap) {
+                            // Create new color map and attach it to the existing dimension
+                            const newColorMapId = await createColorMap(app, newDimLayout.qInfo.qId, newPerValueColorMap);
+
+                            // Update master item with new per-value color data
+                            dimSingleData.qDim.coloring.colorMapRef = newColorMapId;
+                            dimSingleData.qDim.coloring.hasValueColors = true;
+                        }
+
+                        // Set properties of existing dimension
+                        res = await newDimModel.setProperties(dimSingleData);
+                        res = await app.getAppLayout();
+                        logger.info(`Created new dimension "${dimSingleData.qMetaDef.title}"`);
+                    }
+
+                    importCount += 1;
+                    if (importCount === parseInt(options.limitImportCount, 10)) {
+                        break;
                     }
                 } else if (row[colPosMasterItemType] === 'measure') {
                     // A master measure should be created based on the current row
