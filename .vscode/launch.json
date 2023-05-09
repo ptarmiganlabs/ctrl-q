@@ -421,23 +421,27 @@
       //   "--auth-user-id",
       //   "goran",
       //   "--file",
-      //   "'./testdata/ctrl-q-master-items.xlsx'",
+      //   "./testdata/ctrl-q-master-items.xlsx",
       //   "--sheet",
       //   "Sales",
       //   "--col-ref-by",
       //   "name",
       //   "--col-item-type",
-      //   "'Master item type'",
+      //   "Master item type",
       //   "--col-master-item-name",
-      //   "'Master Item Name'",
+      //   "Master Item Name",
       //   "--col-master-item-descr",
-      //   "'Description'",
+      //   "Description",
       //   "--col-master-item-label",
       //   "Label",
       //   "--col-master-item-expr",
       //   "Expression",
       //   "--col-master-item-tag",
       //   "Tag",
+      //   "--col-master-item-color",
+      //   "Color",
+      //   "--col-master-item-per-value-color",
+      //   "Per value color",
       //   // "--limit-import-count",
       //   // "5"
       // ]
@@ -468,19 +472,20 @@
       // ------------------------------------
       //   Get dimension
       // ------------------------------------
-      // "args": [
-      //   "getdim",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--app-id",
-      //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
-      //   "--outputformat",
-      //   "table",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran"
-      // ]
+      "args": [
+        "master-item-dim-get",
+        "--host",
+        "192.168.100.109",
+        "--app-id",
+        // "a3e0f5d2-000a-464f-998d-33d333b175d7",
+        "2933711d-6638-41d4-a2d2-6dd2d965208b",
+        "--output-format",
+        "table",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran"
+      ]
       
       // ------------------------------------
       //   Delete dimension
@@ -543,42 +548,39 @@
       // ------------------------------------
       //   Delete variables
       // ------------------------------------
-      "args": [
-        "variable-delete",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        // "--qrs-port",
-        // "4242",
-        "--app-id",
-        "a3e0f5d2-000a-464f-998d-33d333b175d7",
-        // "--app-tag",
-        // "Ctrl-Q variable 1",
-        // "Ctrl-Q variable 2",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-        // "--id-type",
-        // "id",
-        // "--variable",
-        // "2a70741b-6fdc-4252-a30d-7a2b2b4403a7",
-        // "2a70741b-6fdc-4252-a30d-7a2b2b4403a6",
-        // "2a70741b-6fdc-4252-a30d-7a2b2b4403a8",
-        // "--id-type",
-        // "name",
-        // "--variable",
-        // // // "Ctrl-Q variable 1",
-        // // // "TimestampFormat",
-        // // // "var1",
-        // "var1",
-        "--delete-all",
-        "--dry-run",
-    ]
-
-
-
+    //   "args": [
+    //     "variable-delete",
+    //     "--auth-type",
+    //     "cert",
+    //     "--host",
+    //     "192.168.100.109",
+    //     // "--qrs-port",
+    //     // "4242",
+    //     "--app-id",
+    //     "a3e0f5d2-000a-464f-998d-33d333b175d7",
+    //     // "--app-tag",
+    //     // "Ctrl-Q variable 1",
+    //     // "Ctrl-Q variable 2",
+    //     "--auth-user-dir",
+    //     "LAB",
+    //     "--auth-user-id",
+    //     "goran",
+    //     // "--id-type",
+    //     // "id",
+    //     // "--variable",
+    //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a7",
+    //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a6",
+    //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a8",
+    //     // "--id-type",
+    //     // "name",
+    //     // "--variable",
+    //     // // // "Ctrl-Q variable 1",
+    //     // // // "TimestampFormat",
+    //     // // // "var1",
+    //     // "var1",
+    //     "--delete-all",
+    //     "--dry-run",
+    // ]
 
       // ------------------------------------
       //   Get all bookmarks
