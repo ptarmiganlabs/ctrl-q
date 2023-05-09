@@ -25,9 +25,6 @@ const deleteVariable = async (options) => {
         // Configure Enigma.js
         const configEnigma = await setupEnigmaConnection(options);
 
-        let allVariables = [];
-        let subsetVariables = [];
-
         for (const app of apps) {
             logger.info('------------------------');
             logger.info(`Deleting variables in app ${app.id} "${app.name}"`);
