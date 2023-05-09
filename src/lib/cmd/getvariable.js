@@ -79,7 +79,7 @@ const getVariable = async (options) => {
                 qType: 'variable',
                 qShowReserved: true,
                 qShowConfig: true,
-                // qData: {},
+                qData: { tags: '/tags' },
                 qShowSession: true,
             });
 
@@ -160,6 +160,7 @@ const getVariable = async (options) => {
                 'Size',
                 'Title',
                 'Privileges',
+                'Tags',
             ]);
 
             consoleTableConfig.header = {
@@ -178,17 +179,18 @@ const getVariable = async (options) => {
                         app.appName,
                         variable.qInfo.qId,
                         variable.qName,
-                        variable.qDescription,
+                        variable.qDescription ? variable.qDescription : '',
                         variable.qInfo.qType,
                         variable.qDefinition,
-                        variable.qIsReserved,
-                        variable.qIsScriptCreated,
-                        variable.qMeta.createdDate,
-                        variable.qMeta.modifiedDate,
-                        variable.qMeta.qEngineObjectType,
-                        variable.qMeta.qSize,
-                        variable.qMeta.title,
-                        JSON.stringify(variable.qMeta.privileges),
+                        variable.qIsReserved ? variable.qIsReserved : '',
+                        variable.qIsScriptCreated ? variable.qIsScriptCreated : '',
+                        variable.qMeta.createdDate ? variable.qMeta.createdDate : '',
+                        variable.qMeta.modifiedDate ? variable.qMeta.modifiedDate : '',
+                        variable.qMeta.qEngineObjectType ? variable.qMeta.qEngineObjectType : '',
+                        variable.qMeta.qSize ? variable.qMeta.qSize : '',
+                        variable.qMeta.title ? variable.qMeta.title : '',
+                        variable.qMeta.privileges.toString(),
+                        variable.qData?.tags !== undefined ? variable.qData.tags.toString() : '',
                     ]);
                 }
             }
