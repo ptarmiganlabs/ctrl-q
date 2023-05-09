@@ -25,7 +25,7 @@ const getColumnPos = (options, colName, colNameArray) => {
 
 /**
  *
- * @param {*} existingDimModelLayout
+ * @param {*} existingDimLayout
  * @param {*} newPerValueColorMap
  */
 const createColorMap = async (app, colorMapId, newPerValueColorMap) => {
@@ -173,24 +173,27 @@ const importMasterItemFromExcel = async (options) => {
         // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/definitions-NxLibraryMeasureDef.html
         const measureCall = {
             qInfo: {
-                qId: 'measureObject',
+                qId: 'MeasureList',
                 qType: 'MeasureList',
             },
             qMeasureListDef: {
                 qType: 'measure',
                 qData: {
                     measure: '/qMeasure',
+                    title: '/qMetaDef/title',
+                    tags: '/qMetaDef/tags',
+                    labelExpression: '/qMeasure/qLabelExpression',
                 },
             },
         };
 
         // Get master dimensions
-        const genericDimObj = await app.createSessionObject(dimensionCall);
-        const dimObj = await genericDimObj.getLayout();
+        const dimsModel = await app.createSessionObject(dimensionCall);
+        const dimsLayout = await dimsModel.getLayout();
 
         // Get master measures
-        const genericMeasureObj = await app.createSessionObject(measureCall);
-        const measureObj = await genericMeasureObj.getLayout();
+        const measuresModel = await app.createSessionObject(measureCall);
+        const measuresLayout = await measuresModel.getLayout();
 
         // Loop through rows in Excel file, extracting data for rows flagged as master items
         let importCount = 0;
@@ -250,14 +253,14 @@ const importMasterItemFromExcel = async (options) => {
 
                     // Test if a master dimension with the given title already exists.
                     // If it does, update it rather than creating a new one.
-                    const existingItem = dimObj.qDimensionList.qItems.find((item) => item.qMeta.title === row[colPosMasterItemName]);
+                    const existingItem = dimsLayout.qDimensionList.qItems.find((item) => item.qMeta.title === row[colPosMasterItemName]);
                     if (existingItem) {
                         // An existing master dimension has same name as the one being created
                         // Update the existing dimension with data from the Excel file
 
                         // Get model and layout for the existing dimension
                         const existingDimModel = await app.getDimension(existingItem.qInfo.qId);
-                        const existingDimModelLayout = await existingDimModel.getLayout();
+                        const existingDimLayout = await existingDimModel.getLayout();
 
                         // Update dimension with new info
                         dimSingleData.qInfo.qId = existingItem.qInfo.qId;
@@ -266,9 +269,12 @@ const importMasterItemFromExcel = async (options) => {
                         if (newDimColor) {
                             // Use the color provided in the Excel file
                             dimSingleData.qDim.coloring.baseColor = newDimColor.baseColor;
-                        } else if (existingDimModelLayout.qDim?.coloring?.baseColor) {
+                        } else if (existingDimLayout.qDim?.coloring?.baseColor) {
+                            // No new dimension color, delete any existing ones
+                            delete dimSingleData.qDim.coloring.baseColor;
+
                             // Use dimension's existing color, if there is one
-                            dimSingleData.qDim.coloring.baseColor = existingDimModelLayout.qDim.coloring.baseColor;
+                            // dimSingleData.qDim.coloring.baseColor = existingDimLayout.qDim.coloring.baseColor;
                         }
 
                         // Check if there exists a per-value color map for the existing dimension
@@ -280,7 +286,7 @@ const importMasterItemFromExcel = async (options) => {
                             [existingColorMapModel] = await Promise.all([existingColorMapPromise]);
                             existingColorMapLayout = await existingColorMapModel.getLayout();
                         } catch (err) {
-                            logger.verbose(`No per-value color map exists for existing dimension "${existingDimModelLayout.qMeta.title}"`);
+                            logger.verbose(`No per-value color map exists for existing dimension "${existingDimLayout.qMeta.title}"`);
                         }
 
                         // Do we have new per-value color data?
@@ -296,24 +302,28 @@ const importMasterItemFromExcel = async (options) => {
                                     colorMap: newPerValueColorMap,
                                 });
 
-                                dimSingleData.qDim.coloring.colorMapRef = existingDimModelLayout.qInfo.qId;
+                                dimSingleData.qDim.coloring.colorMapRef = existingDimLayout.qInfo.qId;
                                 dimSingleData.qDim.coloring.hasValueColors = true;
                             } else {
                                 // Create new color map and attach it to the existing dimension
-                                const newColorMapId = await createColorMap(app, existingDimModelLayout.qInfo.qId, newPerValueColorMap);
+                                const newColorMapId = await createColorMap(app, existingDimLayout.qInfo.qId, newPerValueColorMap);
 
                                 // Update master item with new per-value color data
                                 dimSingleData.qDim.coloring.colorMapRef = newColorMapId;
                                 dimSingleData.qDim.coloring.hasValueColors = true;
                             }
-                        } else if (existingDimModelLayout.qDim?.coloring?.hasValueColors === true) {
+                        } else if (existingDimLayout.qDim?.coloring?.hasValueColors === true) {
+                            // No new per value colors, delete any existing ones
+                            delete dimSingleData.qDim.coloring.colorMapRef;
+                            delete dimSingleData.qDim.coloring.hasValueColors;
+
                             // Use dimension's existing
-                            dimSingleData.qDim.coloring.colorMapRef = existingDimModelLayout.qDim.coloring.colorMapRef;
-                            dimSingleData.qDim.coloring.hasValueColors = existingDimModelLayout.qDim.coloring.hasValueColors;
+                            // dimSingleData.qDim.coloring.colorMapRef = existingDimLayout.qDim.coloring.colorMapRef;
+                            // dimSingleData.qDim.coloring.hasValueColors = existingDimLayout.qDim.coloring.hasValueColors;
                         }
 
                         // 7. Set properties of existing dimension
-                        res = await existingDimModel.setProperties(dimSingleData);
+                        let res = await existingDimModel.setProperties(dimSingleData);
                         res = await app.getAppLayout();
                         logger.info(`Updated existing dimension "${dimSingleData.qMetaDef.title}"`);
                     } else {
@@ -359,7 +369,7 @@ const importMasterItemFromExcel = async (options) => {
                     // A master measure should be created based on the current row
 
                     // Data that should be written to new measure
-                    let measureData = {
+                    const measureData = {
                         qInfo: {
                             qType: 'measure',
                         },
@@ -373,12 +383,13 @@ const importMasterItemFromExcel = async (options) => {
                             // row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
                             //     ? row[parseInt(options.columnlabel, 10)]
                             //     : `'${row[parseInt(options.columnlabel, 10)]}'`,
-                            // coloring:colorBlock
+                            coloring: {},
+                            // coloring: colorBlock
                         },
                         qMetaDef: {
                             title: row[colPosMasterItemName],
                             description: row[colPosMasterItemDescr],
-                            tags: row[colPosMasterItemTag].split(','),
+                            tags: row[colPosMasterItemTag] ? row[colPosMasterItemTag].split(',') : '',
                             // masterScriptId:t.msId
                             // owner: {
                             //   userId: options.authUserId,
@@ -387,60 +398,90 @@ const importMasterItemFromExcel = async (options) => {
                         },
                     };
 
+                    // Is there any segment color data for this row?
+                    let newSegmentColors = null;
+                    if (row[colPosMasterItemPerValueColor]?.length > 0) {
+                        const cleanColorString = row[colPosMasterItemPerValueColor].replace('\r', '').replace('\n', '');
+                        newSegmentColors = JSON.parse(`${cleanColorString}`);
+                        logger.debug(`Color map loaded from Excel file: ${JSON.stringify(newSegmentColors)}`);
+                    }
+
+                    // Is there any measure color data for this row?
+                    let newMeasureColor = null;
+                    if (row[colPosMasterItemColor]?.length > 0) {
+                        const cleanColorString = row[colPosMasterItemColor].replace('\r', '').replace('\n', '');
+                        newMeasureColor = JSON.parse(`${cleanColorString}`);
+                        logger.debug(`Dimension color loaded from Excel file: ${JSON.stringify(newMeasureColor)}`);
+                    }
+
                     // Test if a master measure with the given title already exists.
                     // If it does, update it rather than creating a new one.
-                    const existingItem = measureObj.qMeasureList.qItems.find((item) => item.qMeta.title === row[colPosMasterItemName]);
+                    const existingItem = measuresLayout.qMeasureList.qItems.find((item) => item.qMeta.title === row[colPosMasterItemName]);
                     if (existingItem) {
                         // An existing master measure has same name as the one being created.
 
                         // Get existing measure (that should be updated)
-                        const existingMeasure = await app.getMeasure(existingItem.qInfo.qId);
+                        const existingMeasureModel = await app.getMeasure(existingItem.qInfo.qId);
+                        const existingMeasureLayout = await existingMeasureModel.getLayout();
 
-                        measureData = {
-                            qInfo: {
-                                qType: 'measure',
-                            },
-                            qMeasure: {
-                                qLabel: row[colPosMasterItemLabel],
-                                qGrouping: 'N',
-                                qDef: row[colPosMasterItemExpr],
-                                qExpressions: [],
-                                qActiveExpression: 0,
-                                qLabelExpression: row[colPosMasterItemLabel],
-                                //     row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
-                                //         ? row[parseInt(options.columnlabel, 10)]
-                                //         : `'${row[parseInt(options.columnlabel, 10)]}'`,
-                                // coloring:colorBlock
-                            },
-                            qMetaDef: {
-                                title: row[colPosMasterItemName],
-                                description: row[colPosMasterItemDescr],
-                                tags: row[colPosMasterItemTag].split(','),
-                                // masterScriptId:t.msId
-                                // owner: {
-                                //   userId: options.authUserId,
-                                //   userDirectory: options.authUserDir,
-                                // },
-                            },
-                        };
+                        // Update measure with new info
+                        measureData.qInfo.qId = existingItem.qInfo.qId;
+
+                        // Do we have a measure color value?
+                        if (newMeasureColor) {
+                            // Use the measure color in the Excel file
+                            measureData.qMeasure.coloring.baseColor = newMeasureColor;
+                        } else if (existingMeasureLayout.qMeasure?.coloring?.baseColor) {
+                            // No new measure color, delete any existing one
+                            delete measureData.qMeasure.coloring.baseColor;
+                        }
+
+                        // Do we have new per-value color data?
+                        if (newSegmentColors) {
+                            // Does existing dimension already has per-value color data?
+                            // If so update it rather than creating a new color map
+                            measureData.qMeasure.coloring.gradient = newSegmentColors;
+                        } else if (existingMeasureLayout.qMeasure?.coloring?.gradient) {
+                            // No new segment color, delete any existing ones
+                            delete measureData.qMeasure.coloring.gradient;
+                        }
 
                         // Update existing measure with new data
-                        const res = await existingMeasure.setProperties(measureData);
+                        const res = await existingMeasureModel.setProperties(measureData);
                         logger.info(`Updated existing measure "${measureData.qMetaDef.title}"`);
-
-                        importCount += 1;
-                        if (importCount === parseInt(options.limitImportCount, 10)) {
-                            break;
-                        }
                     } else {
                         // Create a new master measure in the app
-                        const res = await app.createMeasure(measureData);
-                        logger.info(`Created new measure "${measureData.qMetaDef.title}"`);
 
-                        importCount += 1;
-                        if (importCount === parseInt(options.limitImportCount, 10)) {
-                            break;
+                        const newMeasureModel = await app.createMeasure(measureData);
+                        const newMeasureLayout = await newMeasureModel.getLayout();
+
+                        // Add owner
+                        measureData.qMetaDef.owner = {
+                            userId: options.authUserId,
+                            userDirectory: options.authUserDir,
+                        };
+
+                        // Do we have a measure color value?
+                        if (newMeasureColor) {
+                            // Use the measure color in the Excel file
+                            measureData.qMeasure.coloring.baseColor = newMeasureColor;
                         }
+
+                        // Do we have new per-value color data?
+                        if (newSegmentColors) {
+                            // Does existing dimension already has per-value color data?
+                            // If so update it rather than creating a new color map
+                            measureData.qMeasure.coloring.gradient = newSegmentColors;
+                        }
+
+                        // Update the created measure with new data
+                        const res = await newMeasureModel.setProperties(measureData);
+                        logger.info(`Created new measure "${measureData.qMetaDef.title}"`);
+                    }
+
+                    importCount += 1;
+                    if (importCount === parseInt(options.limitImportCount, 10)) {
+                        break;
                     }
                 } else {
                     // Don't warn if it's the first line/header in the Excel file
