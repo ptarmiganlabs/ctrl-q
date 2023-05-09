@@ -85,22 +85,22 @@ const getMasterMeasure = async (options) => {
                 },
             },
         };
-        const genericMeasureObj = await app.createSessionObject(measureCall);
-        const measureObj = await genericMeasureObj.getLayout();
+        const measuresModel = await app.createSessionObject(measureCall);
+        const measureLayout = await measuresModel.getLayout();
 
         // Get list of all IDs that should be retrieved
         let getMasterItems = [];
 
         if (options.masterItem === undefined) {
             // Get all master item measures
-            getMasterItems = getMasterItems.concat(measureObj.qMeasureList.qItems);
+            getMasterItems = getMasterItems.concat(measureLayout.qMeasureList.qItems);
         } else {
             // Loop over all master items (identified by name or ID) we should get data for
             // eslint-disable-next-line no-restricted-syntax
             for (const masterItem of options.masterItem) {
                 // Can we find this master item in the list retrieved from the app?
                 if (options.idType === 'name') {
-                    const items = measureObj.qMeasureList.qItems.filter((item) => item.qMeta.title === masterItem);
+                    const items = measureLayout.qMeasureList.qItems.filter((item) => item.qMeta.title === masterItem);
                     if (items.length > 0) {
                         // We've found the measure that's to be retrieved.
                         getMasterItems = getMasterItems.concat(items);
@@ -108,7 +108,7 @@ const getMasterMeasure = async (options) => {
                         logger.warn(`Master item measure "${masterItem}" not found`);
                     }
                 } else if (options.idType === 'id') {
-                    const items = measureObj.qMeasureList.qItems.filter((item) => item.qInfo.qId === masterItem);
+                    const items = measureLayout.qMeasureList.qItems.filter((item) => item.qInfo.qId === masterItem);
                     if (items.length > 0) {
                         // We've found the measure that's to be retrieved.
                         getMasterItems = getMasterItems.concat(items);
@@ -208,7 +208,7 @@ const getMasterMeasure = async (options) => {
             logger.error('Undefined --output-format option');
         }
 
-        if ((await app.destroySessionObject(genericMeasureObj.id)) === true) {
+        if ((await app.destroySessionObject(measuresModel.id)) === true) {
             logger.debug(`Destroyed session object after managing master items in app ${options.appId} on host ${options.host}`);
 
             if ((await session.close()) === true) {
