@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 const enigma = require('enigma.js');
 const { table } = require('table');
 
@@ -29,7 +30,7 @@ const consoleTableConfig = {
         // 3: { width: 40 },
         // 4: { width: 30 },
         // 5: { width: 30 },
-        // 6: { width: 30 },
+        7: { width: 100 },
     },
 };
 
@@ -70,15 +71,17 @@ const getMasterMeasure = async (options) => {
         // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/definitions-NxLibraryMeasureDef.html
         const measureCall = {
             qInfo: {
-                qId: 'measureObject',
+                // qId: 'measureObject',
+                qId: 'MeasureList',
                 qType: 'MeasureList',
-                // qId: 'measureObjectExt',
-                // qType: 'MeasureListExt',
             },
             qMeasureListDef: {
                 qType: 'measure',
                 qData: {
                     measure: '/qMeasure',
+                    title: '/qMetaDef/title',
+                    tags: '/qMetaDef/tags',
+                    labelExpression: '/qMeasure/qLabelExpression',
                 },
             },
         };
@@ -159,6 +162,24 @@ const getMasterMeasure = async (options) => {
             for (const measure of getMasterItems) {
                 logger.debug(`Measure about to be stored in table array:\n${JSON.stringify(measure, null, 2)}`);
 
+                // Build color column
+                let colorColumn = '';
+                if (measure?.qData?.coloring?.baseColor) {
+                    // There is measure color defined
+                    colorColumn = 'Measure color:\n';
+                    colorColumn += JSON.stringify(measure.qData.coloring.baseColor);
+                }
+
+                if (colorColumn.length > 0) {
+                    colorColumn += '\n\n';
+                }
+
+                if (measure?.qData?.coloring?.gradient) {
+                    // There are dimensional per-value colors defined
+                    colorColumn += 'Segment colors:\n';
+                    colorColumn += JSON.stringify(measure.qData.coloring.gradient);
+                }
+
                 measureTable.push([
                     measure.qInfo.qId,
                     measure.qInfo.qType,
@@ -167,7 +188,8 @@ const getMasterMeasure = async (options) => {
                     measure.qData.measure.qLabel,
                     measure.qData.measure.qLabelExpression,
                     measure.qData.measure.qDef,
-                    JSON.stringify(measure.qData.coloring),
+                    colorColumn,
+                    // JSON.stringify(measure.qData.coloring),
                     JSON.stringify(measure.qData.measure.qNumFormat),
                     measure.qData.measure.qGrouping,
                     measure.qMeta.approved,
@@ -176,7 +198,7 @@ const getMasterMeasure = async (options) => {
                     measure.qMeta.createdDate,
                     measure.qMeta.modifiedDate,
                     `${measure.qMeta.owner.userDirectory}\\${measure.qMeta.owner.userId}`,
-                    measure.qMeta.tags,
+                    measure.qMeta.tags !== undefined ? measure.qMeta.tags.toString() : '',
                 ]);
             }
 
