@@ -103,20 +103,6 @@ const getMasterDimension = async (options) => {
         if (options.masterItem === undefined) {
             // Get ALL master dimensions
             getMasterItems = getMasterItems.concat(dimObj.qDimensionList.qItems);
-
-            // Find coloring data (if available) for each dimension
-            for (const dimension of getMasterItems) {
-                // Find per-value colors, if defined
-                if (dimension.qData?.coloring?.hasValueColors === true) {
-                    try {
-                        const genericColorMapRefModel = await app.getObject(`ColorMapModel_${dimension.qData.coloring.colorMapRef}`);
-                        const colorMapRefLayout = await genericColorMapRefModel.getLayout();
-                        dimension.colorMap = colorMapRefLayout.colorMap;
-                    } catch (err) {
-                        logger.error(err.stack);
-                    }
-                }
-            }
         } else {
             // Loop over all master items (identified by name or ID) we should get data for
             // eslint-disable-next-line no-restricted-syntax
@@ -140,6 +126,20 @@ const getMasterDimension = async (options) => {
                     }
                 } else {
                     throw Error('Invalid --id-type value');
+                }
+            }
+        }
+
+        // Find coloring data (if available) for each dimension
+        for (const dimension of getMasterItems) {
+            // Find per-value colors, if defined
+            if (dimension.qData?.coloring?.hasValueColors === true) {
+                try {
+                    const genericColorMapRefModel = await app.getObject(`ColorMapModel_${dimension.qData.coloring.colorMapRef}`);
+                    const colorMapRefLayout = await genericColorMapRefModel.getLayout();
+                    dimension.colorMap = colorMapRefLayout.colorMap;
+                } catch (err) {
+                    logger.error(err.stack);
                 }
             }
         }
@@ -189,9 +189,8 @@ const getMasterDimension = async (options) => {
                 let colorColumn = '';
                 if (dimension?.qData?.coloring?.baseColor) {
                     // There is dimension color defined
-                    colorColumn = JSON.stringify({
-                        baseColor: dimension.qData.coloring.baseColor,
-                    });
+                    colorColumn = 'Dimension color:\n';
+                    colorColumn += JSON.stringify(dimension.qData.coloring.baseColor);
                 }
 
                 if (colorColumn.length > 0) {
@@ -222,7 +221,7 @@ const getMasterDimension = async (options) => {
                     dimension.qMeta.createdDate,
                     dimension.qMeta.modifiedDate,
                     `${dimension.qMeta.owner.userDirectory}\\${dimension.qMeta.owner.userId}`,
-                    dimension.qMeta.tags !== undefined ? dimension.qMeta.tags : '',
+                    dimension.qMeta.tags !== undefined ? dimension.qMeta.tags.toString() : '',
                 ]);
             }
 
