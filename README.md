@@ -56,6 +56,9 @@ As Ctrl-Q is completely command line driven it is very suitable to be used in CI
 Maybe Qlik's CLI tool will evolve to include more of these use cases and engine-focused features too - great if so.  
 Until then Ctrl-Q can hopefully make life a bit easier for Sense developers and admins out there.
 
+Finally, there are several blog posts on [ptarmiganlabs.com](https://ptarmiganlabs.com) where various Ctrl-Q features are examined in detail.  
+Everything from short overviews of new features to very thorough, step-by-step instructions for how to use Ctrl-Q to solve some challenging Qlik Sense related task.
+
 Enjoy!
 
 # Contents
