@@ -337,7 +337,6 @@ const importMasterItemFromExcel = async (options) => {
 
                         const newDimModel = await app.createDimension(dimSingleData);
                         const newDimLayout = await newDimModel.getLayout();
-                        logger.info(`Created new dimension "${dimSingleData.qMetaDef.title}"`);
 
                         // Do we have a new dimension color value?
                         if (newDimColor) {
