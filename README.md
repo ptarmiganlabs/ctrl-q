@@ -40,10 +40,12 @@ The current list of features are:
   All options available in the QMC (and then some!) can be defined.
 - Bulk import of QVF files into Sense apps.
 - Update custom properties for multiple tasks.
-- Import master dimensions and master measures from definitions in Excel file.
-- Show complete definition for all master measures in a Sense app.
+- Import master dimensions and master measures from definitions in Excel file, including per dimension/measure colors.
+- Show complete definitions for all master measures in a Sense app.
 - Delete master measures from a Sense app.
-- Show complete definition for all master dimensions in a Sense app.
+- Show complete definitions for all master dimensions in a Sense app.
+- Delete variables in one or more apps.
+- List complete defintions for all variables in one or more apps.
 - Delete master dimensions from a Sense app.
 - Show complete definition of all bookmarks in a Sense app.
 - Scramble fields in Sense apps.
