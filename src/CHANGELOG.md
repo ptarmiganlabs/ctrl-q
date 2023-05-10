@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.9.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.9.0...ctrl-q-v3.9.0) (2023-05-10)
+
+
+### Features
+
+* Include color info when importing master dimensions from Excel file ([268e136](https://github.com/ptarmiganlabs/ctrl-q/commit/268e13645e8e1e9a1571134a0b4d13da8cdfb1a7)), closes [#238](https://github.com/ptarmiganlabs/ctrl-q/issues/238)
+* **master-item-dim-get:** Show per-value coloring data in table and JSON output for master dimensions ([8f49ab5](https://github.com/ptarmiganlabs/ctrl-q/commit/8f49ab57a62ae7672f037f82d212d93f8ac53db9)), closes [#240](https://github.com/ptarmiganlabs/ctrl-q/issues/240)
+* **master-item-import:** Include color info when importing master measures from Excel file ([d5aa579](https://github.com/ptarmiganlabs/ctrl-q/commit/d5aa5797c828f130d122e12a89b749e33503f035)), closes [#245](https://github.com/ptarmiganlabs/ctrl-q/issues/245)
+* **master-item-measure-get:** Add full color info in table output for master measures ([42ea7a1](https://github.com/ptarmiganlabs/ctrl-q/commit/42ea7a10af89095cf1076481d0cacecda6391e4c)), closes [#244](https://github.com/ptarmiganlabs/ctrl-q/issues/244)
+* **variable-delete:** Add new command for deleting in-app variables ([7b43ac4](https://github.com/ptarmiganlabs/ctrl-q/commit/7b43ac4948508fdaba88a25581fd7dac35681b3d)), closes [#237](https://github.com/ptarmiganlabs/ctrl-q/issues/237)
+* **variable-get:** Add new command for listing in-app variables ([33c5811](https://github.com/ptarmiganlabs/ctrl-q/commit/33c58110464b75cee343e821a59690c8063a2666)), closes [#237](https://github.com/ptarmiganlabs/ctrl-q/issues/237)
+
+
+### Bug Fixes
+
+* **task-get:** A task tree including ext program tasks caused failure ([16e0496](https://github.com/ptarmiganlabs/ctrl-q/commit/16e049624d177e640453348d385ddcdd7320e8c6))
+
+
+### Miscellaneous
+
+* **deps:** Update dependencies to stay safe and secure ([d42281f](https://github.com/ptarmiganlabs/ctrl-q/commit/d42281fa4b5ab403a179c24e8e0d2b2154ac8a9d))
+* **main:** release ctrl-q 3.9.0 ([dec7209](https://github.com/ptarmiganlabs/ctrl-q/commit/dec720915f66e713b01291295ee3e29c3d97cabd))
+
 ## [3.9.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.8.3...ctrl-q-v3.9.0) (2023-05-09)
 
 
