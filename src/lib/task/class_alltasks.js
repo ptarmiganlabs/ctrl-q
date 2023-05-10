@@ -863,7 +863,13 @@ class QlikSenseTasks {
             let subTree = [];
 
             // Does this node (=task) have any downstream connections?
-            const downstreamTasks = self.taskNetwork.edges.filter((edge) => edge.from === task.id);
+            const downstreamTasks = self.taskNetwork.edges.filter((edge) => {
+                if (!task || !task?.id) {
+                    console.log('s');
+                }
+
+                return edge.from === task.id
+            });
 
             let kids = [];
             // eslint-disable-next-line no-restricted-syntax
@@ -871,8 +877,16 @@ class QlikSenseTasks {
                 if (downstreamTask.to !== undefined) {
                     // Get downstream task object
                     const tmp = self.taskNetwork.nodes.find((el) => el.id === downstreamTask.to);
-                    const tmp3 = self.getTaskSubTree(tmp, newTreeLevel);
-                    kids = kids.concat(tmp3);
+
+                    if (!tmp) {
+                        logger.warn(`Downstream task in task tree not found. From: ${downstreamTask.from}, to: ${downstreamTask.to} `)
+                        kids = [{
+                            id: task.id,
+                        }];
+                    } else {
+                        const tmp3 = self.getTaskSubTree(tmp, newTreeLevel);
+                        kids = kids.concat(tmp3);
+                    }
                 }
             }
 
@@ -982,7 +996,7 @@ class QlikSenseTasks {
             return subTree;
             // console.log('subTree: ' + JSON.stringify(subTree));
         } catch (err) {
-            logger.error(`GET TASK SUBTREE: ${err}`);
+            logger.error(`GET TASK SUBTREE: ${err.stack}`);
             return false;
         }
     }
@@ -1438,7 +1452,8 @@ class QlikSenseTasks {
                 taskCustomProperties: node.completeTaskObject.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`),
             });
         }
-        resolve(this.taskNetwork);
+        return this.taskNetwork;
+        // resolve(this.taskNetwork);
     }
 }
 
