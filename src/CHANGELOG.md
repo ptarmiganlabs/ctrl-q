@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.9.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.9.0...ctrl-q-v3.9.1) (2023-05-12)
+
+
+### Bug Fixes
+
+* **variable-delete:** Keep track of system vs script created variables ([366cc14](https://github.com/ptarmiganlabs/ctrl-q/commit/366cc14bfb1e2033340a0cf352b384c2650cc3a0)), closes [#259](https://github.com/ptarmiganlabs/ctrl-q/issues/259)
+
 ## [3.9.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.9.0...ctrl-q-v3.9.0) (2023-05-10)
 
 
