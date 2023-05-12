@@ -13,49 +13,91 @@ class QlikSenseTask {
     async init(source, task, anonymizeTaskNames, options, fileCert, fileCertKey) {
         if (source.toLowerCase() === 'from_qseow') {
             // Data in the "task" parameter was loaded from a Qlik Sense (QSEoW) server
-            this.sourceType = 'from_qseow';
-            this.taskId = task.id;
+            if (task.schemaPath === 'ReloadTask') {
+                this.sourceType = 'from_qseow';
+                this.taskId = task.id;
 
-            if (anonymizeTaskNames === true) {
-                this.taskName = randomWords({ min: 2, max: 5, join: ' ' });
-                this.appName = randomWords({ min: 2, max: 5, join: ' ' });
-            } else {
-                this.taskName = task.name;
-                this.appName = task.app.name;
+                if (anonymizeTaskNames === true) {
+                    this.taskName = randomWords({ min: 2, max: 5, join: ' ' });
+                    this.appName = randomWords({ min: 2, max: 5, join: ' ' });
+                } else {
+                    this.taskName = task.name;
+                    this.appName = task.app.name;
+                }
+                this.taskEnabled = task.enabled;
+                this.appId = task.app.id;
+                this.appPublished = task.app.published;
+                this.appStream = task.app.published ? task.app.stream.name : '';
+                this.taskMaxRetries = task.maxRetries;
+                this.taskSessionTimeout = task.taskSessionTimeout;
+                this.isPartialReload = task.isPartialReload;
+                this.isManuallyTriggered = task.isManuallyTriggered;
+                this.taskLastExecutionStartTimestamp =
+                    task.operational.lastExecutionResult.startTime === '1753-01-01T00:00:00.000Z'
+                        ? ''
+                        : task.operational.lastExecutionResult.startTime;
+                this.taskLastExecutionStopTimestamp =
+                    task.operational.lastExecutionResult.stopTime === '1753-01-01T00:00:00.000Z'
+                        ? ''
+                        : task.operational.lastExecutionResult.stopTime;
+                this.taskLastExecutionDuration = Duration.fromMillis(task.operational.lastExecutionResult.duration).toFormat('h:mm:ss');
+                this.taskLastExecutionExecutingNodeName = task.operational.lastExecutionResult.executingNodeName;
+                this.taskNextExecutionTimestamp =
+                    task.operational.nextExecution === '1753-01-01T00:00:00.000Z' ? '' : task.operational.nextExecution;
+                this.taskTags = task.tags;
+                this.taskTagsFriendly = task.tags.map((tag) => tag.name);
+                this.taskCustomProperties = task.customProperties;
+                this.taskCustomPropertiesFriendly = task.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`);
+
+                if (task?.operational?.lastExecutionResult?.status) {
+                    this.taskLastStatus = mapTaskExecutionStatus.get(task?.operational?.lastExecutionResult?.status);
+                } else {
+                    this.taskLastStatus = '?';
+                }
+
+                this.completeTaskObject = task;
+                logger.debug(`Initialised reload task object from QSEoW: ${task}`);
+            } else if (task.schemaPath === 'ExternalProgramTask') {
+                this.sourceType = 'from_qseow';
+                this.taskId = task.id;
+
+                this.path = task.path;
+                this.parameters = task.parameters;
+
+                if (anonymizeTaskNames === true) {
+                    this.taskName = randomWords({ min: 2, max: 5, join: ' ' });
+                } else {
+                    this.taskName = task.name;
+                }
+                this.taskEnabled = task.enabled;
+                this.taskMaxRetries = task.maxRetries;
+                this.taskSessionTimeout = task.taskSessionTimeout;
+                this.taskLastExecutionStartTimestamp =
+                    task?.operational?.lastExecutionResult?.startTime === '1753-01-01T00:00:00.000Z'
+                        ? ''
+                        : task?.operational?.lastExecutionResult?.startTime;
+                this.taskLastExecutionStopTimestamp =
+                    task?.operational?.lastExecutionResult?.stopTime === '1753-01-01T00:00:00.000Z'
+                        ? ''
+                        : task?.operational?.lastExecutionResult?.stopTime;
+                this.taskLastExecutionDuration = Duration.fromMillis(task?.operational?.lastExecutionResult?.duration).toFormat('h:mm:ss');
+                this.taskLastExecutionExecutingNodeName = task?.operational?.lastExecutionResult?.executingNodeName;
+                this.taskNextExecutionTimestamp =
+                    task?.operational?.nextExecution === '1753-01-01T00:00:00.000Z' ? '' : task?.operational?.nextExecution;
+                this.taskTags = task.tags;
+                this.taskTagsFriendly = task.tags.map((tag) => tag.name);
+                this.taskCustomProperties = task.customProperties;
+                this.taskCustomPropertiesFriendly = task.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`);
+
+                if (task?.operational?.lastExecutionResult?.status) {
+                    this.taskLastStatus = mapTaskExecutionStatus.get(task?.operational?.lastExecutionResult?.status);
+                } else {
+                    this.taskLastStatus = '?';
+                }
+
+                this.completeTaskObject = task;
+                logger.debug(`Initialised external program task object from QSEoW: ${task}`);
             }
-            this.taskEnabled = task.enabled;
-            this.appId = task.app.id;
-            this.appPublished = task.app.published;
-            this.appStream = task.app.published ? task.app.stream.name : '';
-            this.taskMaxRetries = task.maxRetries;
-            this.taskSessionTimeout = task.taskSessionTimeout;
-            this.isPartialReload = task.isPartialReload;
-            this.isManuallyTriggered = task.isManuallyTriggered;
-            this.taskLastExecutionStartTimestamp =
-                task.operational.lastExecutionResult.startTime === '1753-01-01T00:00:00.000Z'
-                    ? ''
-                    : task.operational.lastExecutionResult.startTime;
-            this.taskLastExecutionStopTimestamp =
-                task.operational.lastExecutionResult.stopTime === '1753-01-01T00:00:00.000Z'
-                    ? ''
-                    : task.operational.lastExecutionResult.stopTime;
-            this.taskLastExecutionDuration = Duration.fromMillis(task.operational.lastExecutionResult.duration).toFormat('h:mm:ss');
-            this.taskLastExecutionExecutingNodeName = task.operational.lastExecutionResult.executingNodeName;
-            this.taskNextExecutionTimestamp =
-                task.operational.nextExecution === '1753-01-01T00:00:00.000Z' ? '' : task.operational.nextExecution;
-            this.taskTags = task.tags;
-            this.taskTagsFriendly = task.tags.map((tag) => tag.name);
-            this.taskCustomProperties = task.customProperties;
-            this.taskCustomPropertiesFriendly = task.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`);
-
-            if (task?.operational?.lastExecutionResult?.status) {
-                this.taskLastStatus = mapTaskExecutionStatus.get(task?.operational?.lastExecutionResult?.status);
-            } else {
-                this.taskLastStatus = '?';
-            }
-
-            this.completeTaskObject = task;
-            logger.debug(`Initialised task object from QSEoW: ${task}`);
         } else if (source.toLowerCase() === 'from_file') {
             // Data in the "task" parameter was loaded from a task definition file on disk
             this.sourceType = 'from_file';

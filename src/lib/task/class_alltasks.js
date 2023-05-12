@@ -843,7 +843,7 @@ class QlikSenseTasks {
 
             this.clear();
             for (let i = 0; i < tasks.length; i += 1) {
-                if (tasks[i].taskType === 0) {
+                if (tasks[i].schemaPath === 'ReloadTask' || tasks[i].schemaPath === 'ExternalProgramTask') {
                     this.addTask('from_qseow', tasks[i], anonymizeTaskNames);
                 }
             }
@@ -868,7 +868,7 @@ class QlikSenseTasks {
                     console.log('s');
                 }
 
-                return edge.from === task.id
+                return edge.from === task.id;
             });
 
             let kids = [];
@@ -879,10 +879,12 @@ class QlikSenseTasks {
                     const tmp = self.taskNetwork.nodes.find((el) => el.id === downstreamTask.to);
 
                     if (!tmp) {
-                        logger.warn(`Downstream task in task tree not found. From: ${downstreamTask.from}, to: ${downstreamTask.to} `)
-                        kids = [{
-                            id: task.id,
-                        }];
+                        logger.warn(`Downstream task in task tree not found. From: ${downstreamTask.from}, to: ${downstreamTask.to} `);
+                        kids = [
+                            {
+                                id: task.id,
+                            },
+                        ];
                     } else {
                         const tmp3 = self.getTaskSubTree(tmp, newTreeLevel);
                         kids = kids.concat(tmp3);
@@ -1363,8 +1365,6 @@ class QlikSenseTasks {
                     // There are more than one task involved in triggering a downstream task.
                     // Insert a proxy node that represents a Qlik Sense composite event
 
-                    // eslint-disable-next-line no-lonely-if
-                    // TODO
                     const nodeId = `node-${uuidv4()}`;
                     this.taskNetwork.nodes.push({
                         id: nodeId,
@@ -1378,7 +1378,7 @@ class QlikSenseTasks {
                     // Add edges from upstream tasks to the new meta node
                     // eslint-disable-next-line no-restricted-syntax
                     for (const rule of compositeEvent.compositeEvent.compositeRules) {
-                        if (validate.rule.reloadTask.id) {
+                        if (validate(rule.reloadTask.id)) {
                             // Upstream task is a reload task
                             this.taskNetwork.edges.push({
                                 from: rule.reloadTask.id,
@@ -1418,39 +1418,68 @@ class QlikSenseTasks {
             }
         }
 
-        // Add all regular Sense tasks as nodes in task network
+        // Add all Sense tasks as nodes in task network
         // NB: A top level node is defined as:
         // 1. A task whose taskID does not show up in the "to" field of any edge.
 
         // eslint-disable-next-line no-restricted-syntax
         for (const node of this.taskList) {
-            this.taskNetwork.nodes.push({
-                id: node.taskId,
-                metaNode: false,
-                isTopLevelNode: !this.taskNetwork.edges.find((edge) => edge.to === node.taskId),
-                label: node.taskName,
-                enabled: node.taskEnabled,
+            if (node.completeTaskObject.schemaPath === 'ReloadTask') {
+                this.taskNetwork.nodes.push({
+                    id: node.taskId,
+                    metaNode: false,
+                    isTopLevelNode: !this.taskNetwork.edges.find((edge) => edge.to === node.taskId),
+                    label: node.taskName,
+                    enabled: node.taskEnabled,
 
-                completeTaskObject: node.completeTaskObject,
+                    completeTaskObject: node.completeTaskObject,
 
-                // Tabulator columns
-                taskId: node.taskId,
-                taskName: node.taskName,
-                taskEnabled: node.taskEnabled,
-                appId: node.appId,
-                appName: node.appName,
-                appPublished: node.appPublished,
-                appStream: node.appStream,
-                taskMaxRetries: node.taskMaxRetries,
-                taskLastExecutionStartTimestamp: node.taskLastExecutionStartTimestamp,
-                taskLastExecutionStopTimestamp: node.taskLastExecutionStopTimestamp,
-                taskLastExecutionDuration: node.taskLastExecutionDuration,
-                taskLastExecutionExecutingNodeName: node.taskLastExecutionExecutingNodeName,
-                taskNextExecutionTimestamp: node.taskNextExecutionTimestamp,
-                taskLastStatus: node.taskLastStatus,
-                taskTags: node.completeTaskObject.tags.map((tag) => tag.name),
-                taskCustomProperties: node.completeTaskObject.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`),
-            });
+                    // Tabulator columns
+                    taskId: node.taskId,
+                    taskName: node.taskName,
+                    taskEnabled: node.taskEnabled,
+                    appId: node.appId,
+                    appName: node.appName,
+                    appPublished: node.appPublished,
+                    appStream: node.appStream,
+                    taskMaxRetries: node.taskMaxRetries,
+                    taskLastExecutionStartTimestamp: node.taskLastExecutionStartTimestamp,
+                    taskLastExecutionStopTimestamp: node.taskLastExecutionStopTimestamp,
+                    taskLastExecutionDuration: node.taskLastExecutionDuration,
+                    taskLastExecutionExecutingNodeName: node.taskLastExecutionExecutingNodeName,
+                    taskNextExecutionTimestamp: node.taskNextExecutionTimestamp,
+                    taskLastStatus: node.taskLastStatus,
+                    taskTags: node.completeTaskObject.tags.map((tag) => tag.name),
+                    taskCustomProperties: node.completeTaskObject.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`),
+                });
+            } else if (node.completeTaskObject.schemaPath === 'ExternalProgramTask') {
+                this.taskNetwork.nodes.push({
+                    id: node.taskId,
+                    metaNode: false,
+                    isTopLevelNode: !this.taskNetwork.edges.find((edge) => edge.to === node.taskId),
+                    label: node.taskName,
+                    enabled: node.taskEnabled,
+
+                    completeTaskObject: node.completeTaskObject,
+
+                    // Tabulator columns
+                    taskId: node.taskId,
+                    taskName: node.taskName,
+                    taskEnabled: node.taskEnabled,
+
+                    path: node.path,
+                    parameters: node.parameters,
+                    taskMaxRetries: node.taskMaxRetries,
+                    taskLastExecutionStartTimestamp: node.taskLastExecutionStartTimestamp,
+                    taskLastExecutionStopTimestamp: node.taskLastExecutionStopTimestamp,
+                    taskLastExecutionDuration: node.taskLastExecutionDuration,
+                    taskLastExecutionExecutingNodeName: node.taskLastExecutionExecutingNodeName,
+                    taskNextExecutionTimestamp: node.taskNextExecutionTimestamp,
+                    taskLastStatus: node.taskLastStatus,
+                    taskTags: node.completeTaskObject.tags.map((tag) => tag.name),
+                    taskCustomProperties: node.completeTaskObject.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`),
+                });
+            }
         }
         return this.taskNetwork;
         // resolve(this.taskNetwork);
