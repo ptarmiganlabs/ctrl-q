@@ -621,10 +621,20 @@ Use `--output-format json` to get the results as JSON.
 
 ### Delete variables
 
-Only variables created in the Sense UI (user interface) can be deleted via the Sense variable editing UI or Ctrl-Q.  
-Variables defined in thel load script must first be removed from the load script, then they can be removed using Ctrl-Q or the standard UI.
+There are three kinds of variables in Sense:
 
-The example below deletes certain variables in certain apps. The `--dry-run` option means Ctrl-Q will not delete any variables, but rather show what would be deleted.
+1. Variables created in the load script using `let` or `set` statements. These variables will get the property "Is script created" set to `true` in the output table created by Ctrl-Q.
+2. Variables created in the Sense app development UI. These will have a blank (=undefined) value in "Is script created".
+3. Protected variables of different kinds, these have special meanings in the load script. Examples include [system variables](https://help.qlik.com/en-US/sense/February2023/Subsystems/Hub/Content/Sense_Hub/Scripting/SystemVariables/system-variables.htm), [error variables](https://help.qlik.com/en-US/sense/February2023/Subsystems/Hub/Content/Sense_Hub/Scripting/ErrorVariables/ErrorVariables.htm) and [Number interpretation variables](https://help.qlik.com/en-US/sense/February2023/Subsystems/Hub/Content/Sense_Hub/Scripting/NumberInterpretationVariables/number-interpretation-variables.htm).  
+   These have the property "Is reserved" set to `true` in the variable table created by Ctrl-Q's `variable-get` command.  
+   All the variables that are automatically inserted at the beginning of new apps are of this kind, see image below.
+
+![Qlik sense variables with special meaning](docs/qlik-sense-special-variables-1.png)
+
+The protected variables [cannot be deleted](https://help.qlik.com/en-US/sense-developer/February2023/Subsystems/EngineAPI/Content/Sense_EngineAPI/WorkingWithAppsAndVisualizations/CreateVariables/remove-variable.htm) using the app development UI or by Ctrl-Q, neither can script-created variables.  
+To remove script created variables you must first remove them from the app's load script and then reload the app. Those variables re
+
+The example below deletes certain variables in several apps. The `--dry-run` option means Ctrl-Q will not delete any variables, but rather show what would be deleted.
 
 If all variables should be deleted the `--delete-all` option can be used.  
 Note that if `--delete-all` is used `--id-type` and `--variable` must **not** be used.
