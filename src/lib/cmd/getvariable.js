@@ -75,15 +75,33 @@ const getVariable = async (options) => {
 
             // Get variables from app
             // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/services-Doc-GetVariables.html
-            const appVariables = await doc.getVariables({
-                qType: 'variable',
-                qShowReserved: true,
-                qShowConfig: true,
-                qData: { tags: '/tags' },
-                qShowSession: true,
+            // const appVariables = await doc.getVariables({
+            //     qType: 'variable',
+            //     qShowReserved: true,
+            //     qShowConfig: true,
+            //     qData: { tags: '/tags' },
+            //     qShowSession: true,
+            // });
+
+            const appVariablesModel = await doc.createSessionObject({
+                qInfo: {
+                    qId: 'VariableList',
+                    qType: 'VariableList',
+                },
+                qVariableListDef: {
+                    qType: 'variable',
+                    qShowReserved: true,
+                    qShowConfig: true,
+                    qData: {
+                        tags: '/tags',
+                    },
+                },
             });
 
-            allVariables = allVariables.concat({ appId: app.id, appName: app.name, variables: appVariables });
+            const appVariablesLayout = await appVariablesModel.getLayout();
+
+            // allVariables = allVariables.concat({ appId: app.id, appName: app.name, variables: appVariables });
+            allVariables = allVariables.concat({ appId: app.id, appName: app.name, variables: appVariablesLayout.qVariableList.qItems });
 
             // Close app session
             doc.session.close();

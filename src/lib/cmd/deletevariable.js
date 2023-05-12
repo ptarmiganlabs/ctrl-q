@@ -71,9 +71,13 @@ const deleteVariable = async (options) => {
                     });
 
                     if (variableExists) {
-                        if (variableExists.qIsScriptCreated === true) {
+                        if (variableExists.qIsScriptCreated === true && variableExists?.qIsReserved !== true) {
                             logger.warn(
                                 `Variable "${variableIdentifier}" is created in the load script and must be removed there before it can be deleted from app ${app.id} "${app.name}"`
+                            );
+                        } else if (variableExists.qIsReserved === true) {
+                            logger.warn(
+                                `Variable "${variableIdentifier}" is a system variable and cannot be deleted from app ${app.id} "${app.name}"`
                             );
                         } else if (options.dryRun === undefined || options.dryRun === false) {
                             const res = await doc.destroyVariableByName(variableIdentifier);
@@ -99,9 +103,13 @@ const deleteVariable = async (options) => {
                     });
 
                     if (variableExists) {
-                        if (variableExists.qIsScriptCreated === true) {
+                        if (variableExists.qIsScriptCreated === true && variableExists?.qIsReserved !== true) {
                             logger.warn(
-                                `Variable with ID ${variableIdentifier} is created in the load script and must be removed there before it can be deleted from app ${app.id} "${app.name}"`
+                                `Variable "${variableIdentifier}" is created in the load script and must be removed there before it can be deleted from app ${app.id} "${app.name}"`
+                            );
+                        } else if (variableExists.qIsReserved === true) {
+                            logger.warn(
+                                `Variable "${variableIdentifier}" is a system variable and cannot be deleted from app ${app.id} "${app.name}"`
                             );
                         } else if (options.dryRun === undefined || options.dryRun === false) {
                             const res = await doc.destroyVariableById(variableIdentifier);
