@@ -224,41 +224,45 @@
       // ------------------------------------
       // Get task tree
       // ------------------------------------
-      // "args": [
-      //   "task-get",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--auth-cert-file",
-      //   "./cert/client.pem",
-      //   "--auth-cert-key-file",
-      //   "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
-      // //  "--task-id",
-      //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
-      //   "--output-format",
-      //   // "table",
-      //   "tree",
-      //   // "--tree-icons",
-      //   "--tree-details",
-      //   // "taskid",
-      //   // "appname",
-        
-      //   "--output-dest",
-      //   "screen",
-      //   // "file",
-      //   // "--output-file-name",
-      //   // "tasks.json",
-      //   // "--output-file-format",
-      //   // "json",
+      "args": [
+        "task-get",
+        "--auth-type",
+        "cert",
+        "--host",
+        "192.168.100.109",
+        "--auth-cert-file",
+        "./cert/client.pem",
+        "--auth-cert-key-file",
+        "./cert/client_key.pem",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+      //  "--task-id",
+        // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+        "--output-format",
+        // "table",
+        "tree",
+        // "--tree-icons",
+        "--tree-details",
+        // "taskid",
+        // "appname",
+       "--task-type",
+       "reload",
+       "ext-program",
 
-      //   // "--text-color",
-      //   // "no",
-      // ]
+        
+        "--output-dest",
+        "screen",
+        // "file",
+        // "--output-file-name",
+        // "tasks.json",
+        // "--output-file-format",
+        // "json",
+
+        // "--text-color",
+        // "no",
+      ]
 
       // ------------------------------------
       // Get reload tasks as table
@@ -304,13 +308,14 @@
 
       //   "--table-details",
       //   "common",
+      //   // "extprogram",
       //   // "lastexecution",
       //   // "tag",
-      //   "customproperty",
+      //   // "customproperty",
       //   // "schematrigger",
-      //   // "compositetrigger",
+      //   "compositetrigger",
       //   // "comptimeconstraint", 
-      //   // "comprule"
+      //   "comprule"
       // ]
 
       // ------------------------------------
@@ -536,40 +541,40 @@
       // ------------------------------------
       //   Get variables
       // ------------------------------------
-      "args": [
-        "variable-get",
-        "--host",
-        "192.168.100.109",
-        "--qrs-port",
-        "4242",
-        "--app-id",
-        // "a3e0f5d2-000a-464f-998d-33d333b175d7",
-        "2933711d-6638-41d4-a2d2-6dd2d965208b",
-        // "--app-tag",
-        // "Ctrl-Q variable 1",
-        // "Ctrl-Q variable 2",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-        // "--id-type",
-        // "id",
-        // "--variable",
-        // "cd5eb1a8-bd19-42f6-8d58-55905297572b",
-        // "3773a685-d3ce-453f-9e7a-d88514207dbe",
-        // "548828d1-4e83-4e57-a0ed-b94119fc46ad",
-        // "--id-type",
-        // "name",
-        // "--variable",
-        // // "Ctrl-Q variable 1",
-        // // "TimestampFormat",
-        // // "var1",
-        // "vVar1",
-        "--output-format",
-        "table",
-        // "--log-level",
-        // "info"
-      ]
+      // "args": [
+      //   "variable-get",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--qrs-port",
+      //   "4242",
+      //   "--app-id",
+      //   // "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
+      //   // "--app-tag",
+      //   // "Ctrl-Q variable 1",
+      //   // "Ctrl-Q variable 2",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+      //   // "--id-type",
+      //   // "id",
+      //   // "--variable",
+      //   // "cd5eb1a8-bd19-42f6-8d58-55905297572b",
+      //   // "3773a685-d3ce-453f-9e7a-d88514207dbe",
+      //   // "548828d1-4e83-4e57-a0ed-b94119fc46ad",
+      //   // "--id-type",
+      //   // "name",
+      //   // "--variable",
+      //   // // "Ctrl-Q variable 1",
+      //   // // "TimestampFormat",
+      //   // // "var1",
+      //   // "vVar1",
+      //   "--output-format",
+      //   "table",
+      //   // "--log-level",
+      //   // "info"
+      // ]
       
       // ------------------------------------
       //   Delete variables

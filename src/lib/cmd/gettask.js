@@ -68,12 +68,18 @@ function compareTree(a, b) {
 
 // Used to sort task tables
 function compareTable(a, b) {
-    if (a.taskName < b.taskName) {
+    if (`${a.completeTaskObject.schemaPath}|${a.taskName}` < `${b.completeTaskObject.schemaPath}|${b.taskName}`) {
         return -1;
     }
-    if (a.taskName > b.taskName) {
+    if (`${a.completeTaskObject.schemaPath}|${a.taskName}` > `${b.completeTaskObject.schemaPath}|${b.taskName}`) {
         return 1;
     }
+    // if (a.taskName < b.taskName) {
+    //     return -1;
+    // }
+    // if (a.taskName > b.taskName) {
+    //     return 1;
+    // }
     return 0;
 }
 
@@ -187,7 +193,6 @@ const getTask = async (options) => {
                 await Fs.writeFile(options.outputFileName, buffer);
                 returnValue = true;
             }
-
         } else if (options.outputFormat === 'table') {
             const { tasks } = qlikSenseTasks.taskNetwork;
             const { schemaEventList } = qlikSenseTasks.qlikSenseSchemaEvents;
@@ -196,7 +201,7 @@ const getTask = async (options) => {
             let taskTable = [];
             let taskCount = 1;
 
-            // Sort tasks
+            // Sort tasks, group by task type
             tasks.sort(compareTable);
 
             // Determine which column blocks should be included in table
@@ -205,6 +210,11 @@ const getTask = async (options) => {
                     options.tableDetails === true ||
                     options.tableDetails === '' ||
                     (typeof options.tableDetails === 'object' && options.tableDetails.find((item) => item === 'common'))
+                ),
+                extprogram: !!(
+                    options.tableDetails === true ||
+                    options.tableDetails === '' ||
+                    (typeof options.tableDetails === 'object' && options.tableDetails.find((item) => item === 'extprogram'))
                 ),
                 lastexecution: !!(
                     options.tableDetails === true ||
@@ -245,288 +255,321 @@ const getTask = async (options) => {
 
             // eslint-disable-next-line no-restricted-syntax
             for (const task of tasks) {
-                let row = [];
-                let tmpRow = [];
-                let eventCount = 1;
+                if (
+                    (options.taskType?.find((item) => item === 'reload') && task.completeTaskObject.schemaPath === 'ReloadTask') ||
+                    (options.taskType?.find((item) => item === 'ext-program') &&
+                        task.completeTaskObject.schemaPath === 'ExternalProgramTask')
+                ) {
+                    let row = [];
+                    let tmpRow = [];
+                    let eventCount = 1;
 
-                // Get icon for task status
-                let taskStatus = '';
-                if (task.taskLastStatus) {
-                    if (task.taskLastStatus === 'FinishedSuccess') {
-                        taskStatus = `✅ ${task.taskLastStatus}`;
-                    } else if (task.taskLastStatus === 'FinishedFail') {
-                        taskStatus = `❌ ${task.taskLastStatus}`;
-                    } else if (task.taskLastStatus === 'Skipped') {
-                        taskStatus = `🚫 ${task.taskLastStatus}`;
-                    } else if (task.taskLastStatus === 'Aborted') {
-                        taskStatus = `🛑 ${task.taskLastStatus}`;
-                    } else if (task.taskLastStatus === 'Never started') {
-                        taskStatus = `💤 ${task.taskLastStatus}`;
-                    } else {
-                        taskStatus = `❔ ${task.taskLastStatus}`;
+                    // Get icon for task status
+                    let taskStatus = '';
+                    if (task.taskLastStatus) {
+                        if (task.taskLastStatus === 'FinishedSuccess') {
+                            taskStatus = `✅ ${task.taskLastStatus}`;
+                        } else if (task.taskLastStatus === 'FinishedFail') {
+                            taskStatus = `❌ ${task.taskLastStatus}`;
+                        } else if (task.taskLastStatus === 'Skipped') {
+                            taskStatus = `🚫 ${task.taskLastStatus}`;
+                        } else if (task.taskLastStatus === 'Aborted') {
+                            taskStatus = `🛑 ${task.taskLastStatus}`;
+                        } else if (task.taskLastStatus === 'Never started') {
+                            taskStatus = `💤 ${task.taskLastStatus}`;
+                        } else {
+                            taskStatus = `❔ ${task.taskLastStatus}`;
+                        }
                     }
-                }
 
-                row = [taskCount, 'Reload'];
-
-                if (columnBlockShow.common) {
-                    tmpRow = [
-                        task.taskName,
-                        task.taskId,
-                        task.taskEnabled,
-                        task.taskSessionTimeout,
-                        task.taskMaxRetries,
-                        task.appId,
-                        task.isPartialReload,
-                        task.isManuallyTriggered,
-                    ];
-                    row = row.concat(tmpRow);
-                }
-
-                if (columnBlockShow.lastexecution) {
-                    tmpRow = [
-                        taskStatus,
-                        task.taskLastExecutionStartTimestamp,
-                        task.taskLastExecutionStopTimestamp,
-                        task.taskLastExecutionDuration,
-                        task.taskLastExecutionExecutingNodeName,
-                    ];
-                    row = row.concat(tmpRow);
-                }
-
-                if (columnBlockShow.tag) {
-                    tmpRow = [task.taskTags.map((item) => item.name).join(' / ')];
-                    row = row.concat(tmpRow[0]);
-                }
-
-                if (columnBlockShow.customproperty) {
-                    tmpRow = [task.taskCustomProperties.map((item) => `${item.definition.name}=${item.value}`).join(' / ')];
-                    row = row.concat(tmpRow[0]);
-                }
-
-                if (options.tableDetails === true || options.tableDetails === '') {
-                    tmpRow = Array(14).fill('');
-                    row = row.concat(tmpRow);
-                } else if (columnBlockShow.schematrigger) {
-                    tmpRow = Array(14).fill('');
-                    row = row.concat(tmpRow);
-                } else if (columnBlockShow.compositetrigger) {
-                    tmpRow = Array(7).fill('');
-                    row = row.concat(tmpRow);
-                }
-
-                if (columnBlockShow.comptimeconstraint) {
-                    tmpRow = Array(4).fill('');
-                    row = row.concat(tmpRow);
-                }
-
-                if (columnBlockShow.comprule) {
-                    tmpRow = Array(4).fill('');
-                    row = row.concat(tmpRow);
-                }
-
-                // Add main task info to  table
-                taskTable = taskTable.concat([row]);
-
-                // Find all triggers for this task
-                const schemaEventsForThisTask = schemaEventList.filter((item) => item.schemaEvent?.reloadTask?.id === task.taskId);
-                const compositeEventsForThisTask = compositeEventList.filter((item) => item.compositeEvent?.reloadTask?.id === task.taskId);
-
-                // Write schema events to table
-                if (columnBlockShow.schematrigger) {
-                    // eslint-disable-next-line no-restricted-syntax
-                    for (const event of schemaEventsForThisTask) {
-                        row = [taskCount, ''];
-
-                        if (columnBlockShow.common) {
-                            tmpRow = [...Array(8).fill('')];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.lastexecution) {
-                            tmpRow = [...Array(5).fill('')];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.tag) {
-                            tmpRow = [...Array(1).fill('')];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.customproperty) {
-                            tmpRow = [...Array(1).fill('')];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.schematrigger || columnBlockShow.compositetrigger) {
-                            // Include general event columns if schema or composite columns should be shown
-                            tmpRow = [eventCount, mapEventType.get(event.schemaEvent.eventType)];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.schematrigger) {
-                            tmpRow = [
-                                event.schemaEvent.name,
-                                event.schemaEvent.enabled,
-                                event.schemaEvent.createdDate,
-                                event.schemaEvent.modifiedDate,
-                                event.schemaEvent.modifiedByUserName,
-
-                                mapIncrementOption.get(event.schemaEvent.incrementOption),
-                                event.schemaEvent.incrementDescription,
-                                mapDaylightSavingTime.get(event.schemaEvent.daylightSavingTime),
-                                event.schemaEvent.startDate,
-                                event.schemaEvent.expirationDate,
-                                event.schemaEvent.schemaFilterDescription[0],
-                                event.schemaEvent.timeZone,
-                            ];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.comptimeconstraint) {
-                            tmpRow = Array(4).fill('');
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.comprule) {
-                            tmpRow = Array(4).fill('');
-                            row = row.concat(tmpRow);
-                        }
-
-                        taskTable = taskTable.concat([row]);
-
-                        eventCount += 1;
+                    if (task.completeTaskObject.schemaPath === 'ReloadTask') {
+                        row = [taskCount, 'Reload'];
+                    } else if (task.completeTaskObject.schemaPath === 'ExternalProgramTask') {
+                        row = [taskCount, 'External program'];
                     }
-                }
 
-                if (columnBlockShow.compositetrigger || columnBlockShow.comptimeconstraint || columnBlockShow.comprule) {
-                    // eslint-disable-next-line no-restricted-syntax
-                    for (const event of compositeEventsForThisTask) {
-                        row = [taskCount, ''];
-
-                        if (columnBlockShow.common) {
-                            tmpRow = [...Array(8).fill('')];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.lastexecution) {
-                            tmpRow = [...Array(5).fill('')];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.tag) {
-                            tmpRow = [...Array(1).fill('')];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.customproperty) {
-                            tmpRow = [...Array(1).fill('')];
-                            row = row.concat(tmpRow);
-                        }
-
-                        // Include general event columns if schema or composite columns should be shown
-                        tmpRow = [eventCount, mapEventType.get(event.compositeEvent.eventType)];
+                    if (columnBlockShow.common) {
+                        tmpRow = [
+                            task.taskName,
+                            task.taskId,
+                            task.taskEnabled,
+                            task.taskSessionTimeout,
+                            task.taskMaxRetries,
+                            task.appId ? task.appId : '',
+                            task.isPartialReload ? task.isPartialReload : '',
+                            task.isManuallyTriggered ? task.isManuallyTriggered : '',
+                        ];
                         row = row.concat(tmpRow);
-                        // }
-
-                        if (columnBlockShow.compositetrigger) {
-                            tmpRow = [
-                                event.compositeEvent.name,
-                                event.compositeEvent.enabled,
-                                event.compositeEvent.createdDate,
-                                event.compositeEvent.modifiedDate,
-                                event.compositeEvent.modifiedByUserName,
-                            ];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.schematrigger) {
-                            tmpRow = [...Array(7).fill('')];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.comptimeconstraint) {
-                            // Composite task time constraints
-                            tmpRow = [
-                                event.compositeEvent.timeConstraint.seconds,
-                                event.compositeEvent.timeConstraint.minutes,
-                                event.compositeEvent.timeConstraint.hours,
-                                event.compositeEvent.timeConstraint.days,
-                            ];
-                            row = row.concat(tmpRow);
-                        }
-
-                        if (columnBlockShow.comprule) {
-                            tmpRow = Array(4).fill('');
-                            row = row.concat(tmpRow);
-                        }
-
-                        taskTable = taskTable.concat([row]);
-
-                        // Add all composite rules to table
-                        let ruleCount = 1;
-
-                        if (columnBlockShow.comprule) {
-                            // eslint-disable-next-line no-restricted-syntax
-                            for (const rule of event.compositeEvent.compositeRules) {
-                                row = [taskCount, ''];
-
-                                if (columnBlockShow.common) {
-                                    tmpRow = [...Array(8).fill('')];
-                                    row = row.concat(tmpRow);
-                                }
-
-                                if (columnBlockShow.lastexecution) {
-                                    tmpRow = [...Array(5).fill('')];
-                                    row = row.concat(tmpRow);
-                                }
-
-                                if (columnBlockShow.tag) {
-                                    tmpRow = [...Array(1).fill('')];
-                                    row = row.concat(tmpRow);
-                                }
-
-                                if (columnBlockShow.customproperty) {
-                                    tmpRow = [...Array(1).fill('')];
-                                    row = row.concat(tmpRow);
-                                }
-
-                                // Include general event columns if schema or composite columns should be shown
-                                // tmpRow = [eventCount, mapEventType.get(event.compositeEvent.eventType)];
-                                tmpRow = [eventCount, ''];
-                                row = row.concat(tmpRow);
-
-                                if (columnBlockShow.schematrigger) {
-                                    tmpRow = [...Array(12).fill('')];
-                                    row = row.concat(tmpRow);
-                                } else if (columnBlockShow.compositetrigger) {
-                                    tmpRow = [...Array(5).fill('')];
-                                    row = row.concat(tmpRow);
-                                }
-
-                                if (columnBlockShow.comptimeconstraint) {
-                                    // Composite task time constraints
-                                    tmpRow = [...Array(4).fill('')];
-                                    row = row.concat(tmpRow);
-                                }
-
-                                if (columnBlockShow.comprule) {
-                                    // Composite rules
-                                    tmpRow = [ruleCount, mapRuleState.get(rule.ruleState), rule.reloadTask.name, rule.reloadTask.id];
-                                    row = row.concat(tmpRow);
-                                }
-
-                                taskTable = taskTable.concat([row]);
-
-                                ruleCount += 1;
-                            }
-                        }
-
-                        eventCount += 1;
                     }
-                }
 
-                taskCount += 1;
+                    if (columnBlockShow.extprogram) {
+                        tmpRow = [task.path ? task.path : '', task.parameters ? task.parameters : ''];
+                        row = row.concat(tmpRow);
+                    }
+
+                    if (columnBlockShow.lastexecution) {
+                        tmpRow = [
+                            taskStatus,
+                            task.taskLastExecutionStartTimestamp,
+                            task.taskLastExecutionStopTimestamp,
+                            task.taskLastExecutionDuration,
+                            task.taskLastExecutionExecutingNodeName,
+                        ];
+                        row = row.concat(tmpRow);
+                    }
+
+                    if (columnBlockShow.tag) {
+                        tmpRow = [task.taskTags.map((item) => item.name).join(' / ')];
+                        row = row.concat(tmpRow[0]);
+                    }
+
+                    if (columnBlockShow.customproperty) {
+                        tmpRow = [task.taskCustomProperties.map((item) => `${item.definition.name}=${item.value}`).join(' / ')];
+                        row = row.concat(tmpRow[0]);
+                    }
+
+                    if (options.tableDetails === true || options.tableDetails === '') {
+                        tmpRow = Array(14).fill('');
+                        row = row.concat(tmpRow);
+                    } else if (columnBlockShow.schematrigger) {
+                        tmpRow = Array(14).fill('');
+                        row = row.concat(tmpRow);
+                    } else if (columnBlockShow.compositetrigger) {
+                        tmpRow = Array(7).fill('');
+                        row = row.concat(tmpRow);
+                    }
+
+                    if (columnBlockShow.comptimeconstraint) {
+                        tmpRow = Array(4).fill('');
+                        row = row.concat(tmpRow);
+                    }
+
+                    if (columnBlockShow.comprule) {
+                        tmpRow = Array(4).fill('');
+                        row = row.concat(tmpRow);
+                    }
+
+                    // Add main task info to  table
+                    taskTable = taskTable.concat([row]);
+
+                    // Find all triggers for this task
+                    const schemaEventsForThisTask = schemaEventList.filter((item) => item.schemaEvent?.reloadTask?.id === task.taskId);
+                    const compositeEventsForThisTask = compositeEventList.filter(
+                        (item) => item.compositeEvent?.reloadTask?.id === task.taskId
+                    );
+
+                    // Write schema events to table
+                    if (columnBlockShow.schematrigger) {
+                        // eslint-disable-next-line no-restricted-syntax
+                        for (const event of schemaEventsForThisTask) {
+                            row = [taskCount, ''];
+
+                            if (columnBlockShow.common) {
+                                tmpRow = [...Array(8).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.extprogram) {
+                                tmpRow = [...Array(2).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.lastexecution) {
+                                tmpRow = [...Array(5).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.tag) {
+                                tmpRow = [...Array(1).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.customproperty) {
+                                tmpRow = [...Array(1).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.schematrigger || columnBlockShow.compositetrigger) {
+                                // Include general event columns if schema or composite columns should be shown
+                                tmpRow = [eventCount, mapEventType.get(event.schemaEvent.eventType)];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.schematrigger) {
+                                tmpRow = [
+                                    event.schemaEvent.name,
+                                    event.schemaEvent.enabled,
+                                    event.schemaEvent.createdDate,
+                                    event.schemaEvent.modifiedDate,
+                                    event.schemaEvent.modifiedByUserName,
+
+                                    mapIncrementOption.get(event.schemaEvent.incrementOption),
+                                    event.schemaEvent.incrementDescription,
+                                    mapDaylightSavingTime.get(event.schemaEvent.daylightSavingTime),
+                                    event.schemaEvent.startDate,
+                                    event.schemaEvent.expirationDate,
+                                    event.schemaEvent.schemaFilterDescription[0],
+                                    event.schemaEvent.timeZone,
+                                ];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.comptimeconstraint) {
+                                tmpRow = Array(4).fill('');
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.comprule) {
+                                tmpRow = Array(4).fill('');
+                                row = row.concat(tmpRow);
+                            }
+
+                            taskTable = taskTable.concat([row]);
+
+                            eventCount += 1;
+                        }
+                    }
+
+                    if (columnBlockShow.compositetrigger || columnBlockShow.comptimeconstraint || columnBlockShow.comprule) {
+                        // eslint-disable-next-line no-restricted-syntax
+                        for (const event of compositeEventsForThisTask) {
+                            row = [taskCount, ''];
+
+                            if (columnBlockShow.common) {
+                                tmpRow = [...Array(8).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.extprogram) {
+                                tmpRow = [...Array(2).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.lastexecution) {
+                                tmpRow = [...Array(5).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.tag) {
+                                tmpRow = [...Array(1).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.customproperty) {
+                                tmpRow = [...Array(1).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            // Include general event columns if schema or composite columns should be shown
+                            tmpRow = [eventCount, mapEventType.get(event.compositeEvent.eventType)];
+                            row = row.concat(tmpRow);
+
+                            if (columnBlockShow.compositetrigger) {
+                                tmpRow = [
+                                    event.compositeEvent.name,
+                                    event.compositeEvent.enabled,
+                                    event.compositeEvent.createdDate,
+                                    event.compositeEvent.modifiedDate,
+                                    event.compositeEvent.modifiedByUserName,
+                                ];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.schematrigger) {
+                                tmpRow = [...Array(7).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.comptimeconstraint) {
+                                // Composite task time constraints
+                                tmpRow = [
+                                    event.compositeEvent.timeConstraint.seconds,
+                                    event.compositeEvent.timeConstraint.minutes,
+                                    event.compositeEvent.timeConstraint.hours,
+                                    event.compositeEvent.timeConstraint.days,
+                                ];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.comprule) {
+                                tmpRow = Array(4).fill('');
+                                row = row.concat(tmpRow);
+                            }
+
+                            taskTable = taskTable.concat([row]);
+
+                            // Add all composite rules to table
+                            let ruleCount = 1;
+
+                            if (columnBlockShow.comprule) {
+                                // eslint-disable-next-line no-restricted-syntax
+                                for (const rule of event.compositeEvent.compositeRules) {
+                                    row = [taskCount, ''];
+
+                                    if (columnBlockShow.common) {
+                                        tmpRow = [...Array(8).fill('')];
+                                        row = row.concat(tmpRow);
+                                    }
+
+                                    if (columnBlockShow.extprogram) {
+                                        tmpRow = [...Array(2).fill('')];
+                                        row = row.concat(tmpRow);
+                                    }
+
+                                    if (columnBlockShow.lastexecution) {
+                                        tmpRow = [...Array(5).fill('')];
+                                        row = row.concat(tmpRow);
+                                    }
+
+                                    if (columnBlockShow.tag) {
+                                        tmpRow = [...Array(1).fill('')];
+                                        row = row.concat(tmpRow);
+                                    }
+
+                                    if (columnBlockShow.customproperty) {
+                                        tmpRow = [...Array(1).fill('')];
+                                        row = row.concat(tmpRow);
+                                    }
+
+                                    // Include general event columns if schema or composite columns should be shown
+                                    // tmpRow = [eventCount, mapEventType.get(event.compositeEvent.eventType)];
+                                    tmpRow = [eventCount, ''];
+                                    row = row.concat(tmpRow);
+
+                                    if (columnBlockShow.schematrigger) {
+                                        tmpRow = [...Array(12).fill('')];
+                                        row = row.concat(tmpRow);
+                                    } else if (columnBlockShow.compositetrigger) {
+                                        tmpRow = [...Array(5).fill('')];
+                                        row = row.concat(tmpRow);
+                                    }
+
+                                    if (columnBlockShow.comptimeconstraint) {
+                                        // Composite task time constraints
+                                        tmpRow = [...Array(4).fill('')];
+                                        row = row.concat(tmpRow);
+                                    }
+
+                                    if (columnBlockShow.comprule) {
+                                        // Composite rules
+                                        tmpRow = [ruleCount, mapRuleState.get(rule.ruleState), rule.reloadTask.name, rule.reloadTask.id];
+                                        row = row.concat(tmpRow);
+                                    }
+
+                                    taskTable = taskTable.concat([row]);
+
+                                    ruleCount += 1;
+                                }
+                            }
+
+                            eventCount += 1;
+                        }
+                    }
+
+                    taskCount += 1;
+                } else {
+                    logger.debug(`Skipped task "${task.taskName}" due to incorrect task type`);
+                }
             }
 
             // Add column headers
@@ -543,6 +586,10 @@ const getTask = async (options) => {
                     'Partial reload',
                     'Manually triggered',
                 ]);
+            }
+
+            if (columnBlockShow.extprogram) {
+                headerRow = headerRow.concat(['Path', 'Parameters']);
             }
 
             if (columnBlockShow.lastexecution) {
@@ -596,13 +643,17 @@ const getTask = async (options) => {
 
             consoleTableConfig.header = {
                 alignment: 'left',
-                content: `# tasks: ${taskTable.filter((task) => task[1] === 'Reload').length}, # rows in table: ${taskTable.length}`,
+                content: `# reload tasks: ${taskTable.filter((task) => task[1] === 'Reload').length}, # external program tasks: ${
+                    taskTable.filter((task) => task[1] === 'External program').length
+                }, # rows in table: ${taskTable.length}`,
             };
+
             taskTable.unshift(headerRow);
 
             if (options.outputDest === 'screen') {
                 logger.info(`# rows in table: ${taskTable.length - 1}`);
-                logger.info(`# tasks in table: ${taskTable.filter((task) => task[1] === 'Reload').length}`);
+                logger.info(`# reload tasks in table: ${taskTable.filter((task) => task[1] === 'Reload').length}`);
+                logger.info(`# external program tasks in table: ${taskTable.filter((task) => task[1] === 'External program').length}`);
                 logger.info(`\n${table(taskTable, consoleTableConfig)}`);
                 returnValue = true;
             } else if (options.outputDest === 'file') {

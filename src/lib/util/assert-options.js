@@ -161,6 +161,19 @@ const getTaskAssertOptions = (options) => {
         logger.error(`--tree-details not allowed when --output-format is set to table. Exiting.`);
         process.exit(1);
     }
+
+    // If --table-detail "comptimeconstraint" or "comprule" is set, then --table-detail "compositetrigger" must also be present.
+    if (
+        options.tableDetails &&
+        (options?.tableDetails?.find((item) => item === 'comptimeconstraint') ||
+            options?.tableDetails?.find((item) => item === 'comprule')) &&
+        !options?.tableDetails?.find((item) => item === 'compositetrigger')
+    ) {
+        logger.error(
+            `--table-details "compositetrigger" must be present when using --table-detail "comptimeconstraint" or "comprule". Exiting.`
+        );
+        process.exit(1);
+    }
 };
 
 // eslint-disable-next-line no-unused-vars
