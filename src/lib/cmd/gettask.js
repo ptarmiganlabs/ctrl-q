@@ -647,7 +647,7 @@ const getTask = async (options) => {
                     taskTable.filter((task) => task[1] === 'External program').length
                 }, # rows in table: ${taskTable.length}`,
             };
-            0;
+
             taskTable.unshift(headerRow);
 
             if (options.outputDest === 'screen') {
