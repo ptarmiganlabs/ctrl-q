@@ -224,45 +224,6 @@
       // ------------------------------------
       // Get task tree
       // ------------------------------------
-      // "args": [
-      //   "task-get",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--auth-cert-file",
-      //   "./cert/client.pem",
-      //   "--auth-cert-key-file",
-      //   "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
-      // //  "--task-id",
-      //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
-      //   "--output-format",
-      //   // "table",
-      //   "tree",
-      //   // "--tree-icons",
-      //   "--tree-details",
-      //   // "taskid",
-      //   // "appname",
-        
-      //   "--output-dest",
-      //   "screen",
-      //   // "file",
-      //   // "--output-file-name",
-      //   // "tasks.json",
-      //   // "--output-file-format",
-      //   // "json",
-
-      //   // "--text-color",
-      //   // "no",
-      // ]
-
-      // ------------------------------------
-      // Get reload tasks as table
-      // ------------------------------------
       "args": [
         "task-get",
         "--auth-type",
@@ -277,42 +238,85 @@
         "LAB",
         "--auth-user-id",
         "goran",
-       
+      //  "--task-id",
+        // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+        "--output-format",
+        // "table",
+        "tree",
+        // "--tree-icons",
+        "--tree-details",
+        // "taskid",
+        // "appname",
        "--task-type",
        "reload",
        "ext-program",
-       
-        // "--task-id",
-        // "82bc3e66-c899-4e44-b52f-552145da5ee0",
-        // "5748afa9-3abe-43ab-bb1f-127c48ced075",
-        // "5520e710-91ad-41d2-aeb6-434cafbf366b",
-        "--output-format",
-        "table",
+
         
         "--output-dest",
         "screen",
+        // "file",
         // "--output-file-name",
-        // "tasks.csv",
         // "tasks.json",
         // "--output-file-format",
-        // "csv",
         // "json",
-        // "excel",
 
         // "--text-color",
         // "no",
-
-        "--table-details",
-        "common",
-        // "extprogram",
-        // "lastexecution",
-        // "tag",
-        // "customproperty",
-        // "schematrigger",
-        "compositetrigger",
-        // "comptimeconstraint", 
-        "comprule"
       ]
+
+      // ------------------------------------
+      // Get reload tasks as table
+      // ------------------------------------
+      // "args": [
+      //   "task-get",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+       
+      //  "--task-type",
+      //  "reload",
+      //  "ext-program",
+       
+      //   // "--task-id",
+      //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+      //   // "5748afa9-3abe-43ab-bb1f-127c48ced075",
+      //   // "5520e710-91ad-41d2-aeb6-434cafbf366b",
+      //   "--output-format",
+      //   "table",
+        
+      //   "--output-dest",
+      //   "screen",
+      //   // "--output-file-name",
+      //   // "tasks.csv",
+      //   // "tasks.json",
+      //   // "--output-file-format",
+      //   // "csv",
+      //   // "json",
+      //   // "excel",
+
+      //   // "--text-color",
+      //   // "no",
+
+      //   "--table-details",
+      //   "common",
+      //   // "extprogram",
+      //   // "lastexecution",
+      //   // "tag",
+      //   // "customproperty",
+      //   // "schematrigger",
+      //   "compositetrigger",
+      //   // "comptimeconstraint", 
+      //   "comprule"
+      // ]
 
       // ------------------------------------
       // Get reload tasks as CSV/Excel/JSON file

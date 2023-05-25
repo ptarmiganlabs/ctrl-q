@@ -925,12 +925,22 @@ class QlikSenseTasks {
                 }
 
                 if (this.options.treeDetails === true) {
-                    if (this.options.textColor === 'yes') {
-                        subTree.text += ` \x1b[2mTask id: \x1b[3m${task.id}\x1b[0;2m, Last start/stop: \x1b[3m${task.taskLastExecutionStartTimestamp}/${task.taskLastExecutionStopTimestamp}\x1b[0;2m, Next start: \x1b[3m${task.taskNextExecutionTimestamp}\x1b[0;2m, App name: \x1b[3m${task.appName}\x1b[0;2m, App stream: \x1b[3m${task.appStream}\x1b[0;2m\x1b[0m`;
-                    } else {
-                        subTree.text += ` Task id: ${task.id}, Last start/stop: ${task.taskLastExecutionStartTimestamp}/${task.taskLastExecutionStopTimestamp}, Next start: ${task.taskNextExecutionTimestamp}, App name: ${task.appName}, App stream: ${task.appStream}`;
+                    // All task details should be included
+                    if (task.completeTaskObject.schemaPath === 'ReloadTask') {
+                        if (this.options.textColor === 'yes') {
+                            subTree.text += ` \x1b[2mTask id: \x1b[3m${task.id}\x1b[0;2m, Last start/stop: \x1b[3m${task.taskLastExecutionStartTimestamp}/${task.taskLastExecutionStopTimestamp}\x1b[0;2m, Next start: \x1b[3m${task.taskNextExecutionTimestamp}\x1b[0;2m, App name: \x1b[3m${task.appName}\x1b[0;2m, App stream: \x1b[3m${task.appStream}\x1b[0;2m\x1b[0m`;
+                        } else {
+                            subTree.text += ` Task id: ${task.id}, Last start/stop: ${task.taskLastExecutionStartTimestamp}/${task.taskLastExecutionStopTimestamp}, Next start: ${task.taskNextExecutionTimestamp}, App name: ${task.appName}, App stream: ${task.appStream}`;
+                        }
+                    } else if (task.completeTaskObject.schemaPath === 'ExternalProgramTask') {
+                        if (this.options.textColor === 'yes') {
+                            subTree.text += ` \x1b[2m--EXTERNAL PROGRAM--Task id: \x1b[3m${task.id}\x1b[0;2m, Last start/stop: \x1b[3m${task.taskLastExecutionStartTimestamp}/${task.taskLastExecutionStopTimestamp}\x1b[0;2m, Next start: \x1b[3m${task.taskNextExecutionTimestamp}\x1b[0;2m, Path: \x1b[3m${task.path}\x1b[0;2m, Parameters: \x1b[3m${task.parameters}\x1b[0;2m\x1b[0m`;
+                        } else {
+                            subTree.text += `--EXTERNAL PROGRAM--Task id: ${task.id}, Last start/stop: ${task.taskLastExecutionStartTimestamp}/${task.taskLastExecutionStopTimestamp}, Next start: ${task.taskNextExecutionTimestamp}, path: ${task.path}, Parameters: ${task.oarameters}`;
+                        }
                     }
                 } else if (this.options.treeDetails) {
+                    // Some task details should be included
                     if (this.options.treeDetails.find((item) => item === 'taskid')) {
                         subTree.text +=
                             this.options.textColor === 'yes'
@@ -956,16 +966,30 @@ class QlikSenseTasks {
                                 : `, Next start: ${task.taskNextExecutionTimestamp}`;
                     }
                     if (this.options.treeDetails.find((item) => item === 'appname')) {
-                        subTree.text +=
-                            this.options.textColor === 'yes'
-                                ? `\x1b[2m, App name: \x1b[3m${task.appName}\x1b[0;2m\x1b[0m`
-                                : `, App name: ${task.appName}`;
+                        if (task.completeTaskObject.schemaPath === 'ReloadTask') {
+                            subTree.text +=
+                                this.options.textColor === 'yes'
+                                    ? `\x1b[2m, App name: \x1b[3m${task.appName}\x1b[0;2m\x1b[0m`
+                                    : `, App name: ${task.appName}`;
+                        } else if (task.completeTaskObject.schemaPath === 'ExternalProgramTask') {
+                            subTree.text +=
+                                this.options.textColor === 'yes'
+                                    ? `\x1b[2m, Path: \x1b[3m${task.path}\x1b[0;2m\x1b[0m`
+                                    : `, Path: ${task.path}`;
+                        }
                     }
                     if (this.options.treeDetails.find((item) => item === 'appstream')) {
-                        subTree.text +=
-                            this.options.textColor === 'yes'
-                                ? `\x1b[2m, App stream: \x1b[3m${task.appStream}\x1b[0;2m\x1b[0m`
-                                : `, App stream: ${task.appStream}`;
+                        if (task.completeTaskObject.schemaPath === 'ReloadTask') {
+                            subTree.text +=
+                                this.options.textColor === 'yes'
+                                    ? `\x1b[2m, App stream: \x1b[3m${task.appStream}\x1b[0;2m\x1b[0m`
+                                    : `, App stream: ${task.appStream}`;
+                        } else if (task.completeTaskObject.schemaPath === 'ExternalProgramTask') {
+                            subTree.text +=
+                                this.options.textColor === 'yes'
+                                    ? `\x1b[2m, Parameters: \x1b[3m${task.parameters}\x1b[0;2m\x1b[0m`
+                                    : `, Parameters: ${task.parameters}`;
+                        }
                     }
                 }
 
@@ -1188,7 +1212,7 @@ class QlikSenseTasks {
                 );
             }
 
-            if (compositeEvent.compositeEvent.reloadTask != null) {
+            if (compositeEvent.compositeEvent.reloadTask !== null) {
                 // Current composite event triggers a reload task
 
                 if (compositeEvent.compositeEvent.reloadTask.id === undefined || compositeEvent.compositeEvent.reloadTask.id === null) {
@@ -1300,7 +1324,7 @@ class QlikSenseTasks {
                         to: compositeEvent.compositeEvent.reloadTask.id,
                     });
                 }
-            } else if (compositeEvent.compositeEvent.externalProgramTask != null) {
+            } else if (compositeEvent.compositeEvent.externalProgramTask !== null) {
                 // Current composite event triggers an external program task
 
                 if (

@@ -164,9 +164,10 @@ const getTaskAssertOptions = (options) => {
 
     // If --table-detail "comptimeconstraint" or "comprule" is set, then --table-detail "compositetrigger" must also be present.
     if (
-        (options.tableDetails?.find((item) => item === 'comptimeconstraint') ||
-            options.tableDetails?.find((item) => item === 'comprule')) &&
-        !options.tableDetails?.find((item) => item === 'compositetrigger')
+        options.tableDetails &&
+        (options?.tableDetails?.find((item) => item === 'comptimeconstraint') ||
+            options?.tableDetails?.find((item) => item === 'comprule')) &&
+        !options?.tableDetails?.find((item) => item === 'compositetrigger')
     ) {
         logger.error(
             `--table-details "compositetrigger" must be present when using --table-detail "comptimeconstraint" or "comprule". Exiting.`
