@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.10.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.9.1...ctrl-q-v3.10.0) (2023-05-25)
+
+
+### Features
+
+* **task-get:** Include ext prg tasks in task trees and tables ([69d0946](https://github.com/ptarmiganlabs/ctrl-q/commit/69d094614bc0cf813d777f2750021d845df8c89a)), closes [#250](https://github.com/ptarmiganlabs/ctrl-q/issues/250)
+
+
+### Bug Fixes
+
+* **master-item-dim-get:** Fixed typo in command description ([3705ff0](https://github.com/ptarmiganlabs/ctrl-q/commit/3705ff0f336dfd45e3ac429d5625b8064b9e4373)), closes [#258](https://github.com/ptarmiganlabs/ctrl-q/issues/258)
+
 ## [3.9.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.9.0...ctrl-q-v3.9.1) (2023-05-12)
 
 
