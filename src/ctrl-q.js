@@ -174,6 +174,7 @@ const program = new Command();
         .requiredOption('--col-master-item-color <column position or name>', 'column number (zero based) or name to use as color for dimensions/measures', 'Color')
         .requiredOption('--col-master-item-per-value-color <column position or name>', 'column number (zero based) or name to use as per-value/segment color for dimensions/measures', 'Per value color')
 
+        .requiredOption('--sleep-between-imports <milliseconds>', 'sleep this many milliseconds between imports. Set to 0 to disable', 1000)
         .requiredOption(
             '--limit-import-count <number>',
             'import at most x number of master items from the Excel file. Defaults to 0 = no limit',
