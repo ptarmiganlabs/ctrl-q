@@ -4,7 +4,7 @@ const xlsx = require('node-xlsx').default;
 const uuidCreate = require('uuid').v4;
 
 const { setupEnigmaConnection } = require('../util/enigma');
-const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../../globals');
+const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, sleep } = require('../../globals');
 const { promises } = require('winston-daily-rotate-file');
 
 /**
@@ -143,7 +143,15 @@ const importMasterItemFromExcel = async (options) => {
             // eslint-disable-next-line no-console
             session.on('traffic:sent', (data) => console.log('sent:', data));
             // eslint-disable-next-line no-console
-            session.on('traffic:received', (data) => console.log('received:', data));
+            session.on('traffic:received', (data) => {
+                console.log('received:', data);
+                if (data?.result?.qReturn) {
+                    console.log(`qReturn: ${JSON.stringify(data.result.qReturn, null, 2)}`);
+                }
+                if (data?.result?.qInfo) {
+                    console.log(`qInfo: ${JSON.stringify(data.result.qInfo, null, 2)}`);
+                }
+            })
         }
         const global = await session.open();
 
@@ -325,7 +333,7 @@ const importMasterItemFromExcel = async (options) => {
                         // 7. Set properties of existing dimension
                         let res = await existingDimModel.setProperties(dimSingleData);
                         res = await app.getAppLayout();
-                        logger.info(`Updated existing dimension "${dimSingleData.qMetaDef.title}"`);
+                        logger.info(`(${importCount}) Updated existing dimension "${dimSingleData.qMetaDef.title}"`);
                     } else {
                         // Create a new master dimension in the app
 
@@ -357,7 +365,7 @@ const importMasterItemFromExcel = async (options) => {
                         // Set properties of existing dimension
                         res = await newDimModel.setProperties(dimSingleData);
                         res = await app.getAppLayout();
-                        logger.info(`Created new dimension "${dimSingleData.qMetaDef.title}"`);
+                        logger.info(`(${importCount}) Created new dimension "${dimSingleData.qMetaDef.title}"`);
                     }
 
                     importCount += 1;
@@ -367,33 +375,97 @@ const importMasterItemFromExcel = async (options) => {
                 } else if (row[colPosMasterItemType] === 'measure') {
                     // A master measure should be created based on the current row
 
+                    // Format used when Qlik's web client creates a new measure:'
+                    // {
+                    //     "qInfo": {
+                    //         "qType": "measure",
+                    //         "qId": "sCNnDvj"
+                    //     },
+                    //     "qMetaDef": {
+                    //         "title": "DefName",
+                    //         "description": "DefDescr",
+                    //         "tags": [
+                    //             "Tag1",
+                    //             "Tag2"
+                    //         ]
+                    //     },
+                    //     "qMeasure": {
+                    //         "qLabel": "DefName",
+                    //         "qDef": "'DefExpr'",
+                    //         "qLabelExpression": "'DefLabelExpr'",
+                    //         "isCustomFormatted": false,
+                    //         "qNumFormat": {
+                    //             "qType": "D",
+                    //             "qnDec": 2,
+                    //             "qDec": "",
+                    //             "qThou": "",
+                    //             "qFmt": "YYYY-MM-DD"
+                    //         },
+                    //         "coloring": {
+                    //             "baseColor": {
+                    //                 "color": "#8a85c6",
+                    //                 "index": 8
+                    //             },
+                    //             "gradient": {
+                    //                 "colors": [
+                    //                     {
+                    //                         "color": "#006580",
+                    //                         "index": 6
+                    //                     },
+                    //                     {
+                    //                         "color": "#C4CFDA",
+                    //                         "index": -1
+                    //                     },
+                    //                     {
+                    //                         "color": "#4477aa",
+                    //                         "index": -1
+                    //                     },
+                    //                     {
+                    //                         "color": "#7db8da",
+                    //                         "index": -1
+                    //                     }
+                    //                 ],
+                    //                 "breakTypes": [
+                    //                     false,
+                    //                     false,
+                    //                     true
+                    //                 ],
+                    //                 "limits": [
+                    //                     0.25,
+                    //                     0.433,
+                    //                     0.683
+                    //                 ],
+                    //                 "limitType": "percent"
+                    //             }
+                    //         }
+                    //     }
+                    // }
+
                     // Data that should be written to new measure
                     const measureData = {
                         qInfo: {
                             qType: 'measure',
                         },
-                        qMeasure: {
-                            qLabel: row[colPosMasterItemLabel],
-                            qGrouping: 'N',
-                            qDef: row[colPosMasterItemExpr],
-                            qExpressions: [],
-                            qActiveExpression: 0,
-                            qLabelExpression: row[colPosMasterItemLabel],
-                            // row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
-                            //     ? row[parseInt(options.columnlabel, 10)]
-                            //     : `'${row[parseInt(options.columnlabel, 10)]}'`,
-                            coloring: {},
-                            // coloring: colorBlock
-                        },
                         qMetaDef: {
                             title: row[colPosMasterItemName],
                             description: row[colPosMasterItemDescr],
                             tags: row[colPosMasterItemTag] ? row[colPosMasterItemTag].split(',') : '',
-                            // masterScriptId:t.msId
                             // owner: {
                             //   userId: options.authUserId,
                             //   userDirectory: options.authUserDir,
                             // },
+                        },
+                        qMeasure: {
+                            qLabel: row[colPosMasterItemLabel],
+                            // qGrouping: 'N',
+                            qDef: row[colPosMasterItemExpr],
+                            qLabelExpression: row[colPosMasterItemLabel],
+                            // qExpressions: [],
+                            // qActiveExpression: 0,
+                            // row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
+                            //     ? row[parseInt(options.columnlabel, 10)]
+                            //     : `'${row[parseInt(options.columnlabel, 10)]}'`,
+                            coloring: {},
                         },
                     };
 
@@ -418,6 +490,9 @@ const importMasterItemFromExcel = async (options) => {
                     const existingItem = measuresLayout.qMeasureList.qItems.find((item) => item.qMeta.title === row[colPosMasterItemName]);
                     if (existingItem) {
                         // An existing master measure has same name as the one being created.
+
+                        logger.verbose(`Updating existing measure "${measureData.qMetaDef.title}"`);
+                        logger.debug(`Measure data: ${JSON.stringify(measureData, null, 2)}`);
 
                         // Get existing measure (that should be updated)
                         const existingMeasureModel = await app.getMeasure(existingItem.qInfo.qId);
@@ -447,17 +522,11 @@ const importMasterItemFromExcel = async (options) => {
 
                         // Update existing measure with new data
                         const res = await existingMeasureModel.setProperties(measureData);
-                        logger.info(`Updated existing measure "${measureData.qMetaDef.title}"`);
+                        logger.info(`(${importCount}) Updated existing measure "${measureData.qMetaDef.title}"`);
                     } else {
                         // Create a new master measure in the app
-                        const newMeasureModel = await app.createMeasure(measureData);
-                        const newMeasureLayout = await newMeasureModel.getLayout();
-
-                        // Add owner
-                        measureData.qMetaDef.owner = {
-                            userId: options.authUserId,
-                            userDirectory: options.authUserDir,
-                        };
+                        logger.verbose(`Creating new measure "${measureData.qMetaDef.title}"`);
+                        logger.debug(`Measure data: ${JSON.stringify(measureData, null, 2)}`);
 
                         // Do we have a measure color value?
                         if (newMeasureColor) {
@@ -471,9 +540,20 @@ const importMasterItemFromExcel = async (options) => {
                             measureData.qMeasure.coloring.gradient = newSegmentColors;
                         }
 
+                        // Add owner
+                        // measureData.qMetaDef.owner = {
+                        //     userId: options.authUserId,
+                        //     userDirectory: options.authUserDir,
+                        // };
+
+                        const newMeasureModel = await app.createMeasure(measureData);
+                        // logger.debug(`Measure model returned from Engine: ${JSON.stringify(newMeasureModel, null, 2)}`);
+
+                        // const newMeasureLayout = await newMeasureModel.getLayout();
+
                         // Update the created measure with new data
-                        const res = await newMeasureModel.setProperties(measureData);
-                        logger.info(`Created new measure "${measureData.qMetaDef.title}"`);
+                        // const res = await newMeasureModel.setProperties(measureData);
+                        logger.info(`(${importCount}) Created new measure "${measureData.qMetaDef.title}"`);
                     }
 
                     importCount += 1;
@@ -490,8 +570,17 @@ const importMasterItemFromExcel = async (options) => {
                     }
                 }
                 rowCount += 1;
+
+                if (options.sleepBetweenImports > 0) {
+                    logger.verbose(`Master item created/updated, sleeping for ${options.sleepBetweenImports} milliseconds`);
+                    await sleep(options.sleepBetweenImports);
+                }
             }
         }
+
+        logger.info(`Imported ${importCount} master items from Excel file ${options.file}`)
+
+        const resSave = await app.doSave();
 
         if ((await session.close()) === true) {
             logger.verbose(`Closed session after adding/updating master items in app ${options.appId} on host ${options.host}`);
