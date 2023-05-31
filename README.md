@@ -1400,12 +1400,21 @@ Column names will in most cases be easier to read and understand, but sometimes 
 
 Similarly those `--col-master-item-...` options let you use your own column names in the source file.
 
-Notes on the example below:
+Notes on using the `master-item-import` command:
 
-- The (intentional) warning for the incorrectly spelled master item type "measur" (which should have been "measure", of course).
 - Master items are referred to by name. This means that if a master item in the source file already exists in the target Sense app, the app's master item will be updated.
 - If a master item *does not* exist in the target app the master item will be created.
 - If a master item *does* exist in the target app its content will be overwritten with the info in the source Excel file.
+- The structure of the Excel file is fairly flexible, but some restrictions apply:
+  - The columns can be named anything. Use the `--col-master-item-...` to tell Ctrl-Q which columns contains what data.
+  - The first row in the Excel sheet must contain column headers.
+  - The first column must contain the master item type, i.e. "dim-single" or "measure".
+
+
+
+Notes on the example below:
+
+- The (intentional) warning for the incorrectly spelled master item type "measur" (which should have been "measure", of course).
 
 Now let's run the command.  
 
