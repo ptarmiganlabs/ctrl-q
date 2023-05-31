@@ -70,6 +70,8 @@ Enjoy!
   - [Virus scanning](#virus-scanning)
     - [Positive scan vs false positives](#positive-scan-vs-false-positives)
   - [Signed binaries](#signed-binaries)
+- [Authenticating with Qlik Sense](#authenticating-with-qlik-sense)
+  - [Certificates](#certificates)
 - [Colors \& formatting: Windows vs Windows Server vs macOS/Linux](#colors--formatting-windows-vs-windows-server-vs-macoslinux)
   - [All OSs: plain text](#all-oss-plain-text)
   - [Windows 10 using Windows Terminal](#windows-10-using-windows-terminal)
@@ -181,6 +183,19 @@ The macOS executable binary is signed and notarized by Apple's standard process.
 A warning may still be shown first time the app is started. This is expected and normal.
 
 The Windows executable binary is signed by "Ptarmigan Labs AB".
+
+# Authenticating with Qlik Sense
+
+## Certificates
+
+Ctrl-Q will authenticate with Sense using certificates.  
+These certificates are [exported from the QMC](https://help.qlik.com/en-US/sense-admin/May2023/Subsystems/DeployAdministerQSE/Content/Sense_DeployAdminister/QSEoW/Administer_QSEoW/Managing_QSEoW/export-certificates.htm) and stored on disk in PEM format.
+
+Ctrl-Q can reference these certificates in two ways:
+
+1. if the `--auth-cert-file` and `auth-cert-key-file` options are used, Ctrl-Q will read the certificates from the disk files pointed to by those options. 
+   1. The `--auth-root-cert-file` option refers to the certificate CA, and is optional to use. In most cases it's not needed.
+2. If the options above are *not* specified when Ctrl-Q is started, it will look for certificates in the `config` folder in the same folder as the Ctrl-Q executable. The certificate files must be named `client.pem`, `client_key.pem` and `root.pem`.
 
 # Colors & formatting: Windows vs Windows Server vs macOS/Linux
 
