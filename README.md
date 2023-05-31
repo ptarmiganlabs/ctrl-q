@@ -907,6 +907,7 @@ Show a list of tasks on screen, including main task fields as well as any tags d
 --auth-user-id goran `
 --output-format table `
 --output-dest screen `
+--task-type reload ext-program `
 --table-details common tag extprogram
 ```
 
