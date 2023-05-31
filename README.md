@@ -1406,11 +1406,8 @@ Notes on using the `master-item-import` command:
 - If a master item *does not* exist in the target app the master item will be created.
 - If a master item *does* exist in the target app its content will be overwritten with the info in the source Excel file.
 - The structure of the Excel file is fairly flexible, but some restrictions apply:
-  - The columns can be named anything. Use the `--col-master-item-...` to tell Ctrl-Q which columns contains what data.
-  - The first row in the Excel sheet must contain column headers.
-  - The first column must contain the master item type, i.e. "dim-single" or "measure".
-
-
+  - The columns can be named anything. Use the `--col-item-type` and `--col-master-item-...` columns to tell Ctrl-Q which columns contains what data.
+  - The first row in the Excel sheet must contain column headers if columns are referenced by name.
 
 Notes on the example below:
 
