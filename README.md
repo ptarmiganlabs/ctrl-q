@@ -197,6 +197,8 @@ Ctrl-Q can reference these certificates in two ways:
    1. The `--auth-root-cert-file` option refers to the certificate CA, and is optional to use. In most cases it's not needed.
 2. If the options above are *not* specified when Ctrl-Q is started, it will look for certificates in the `config` folder in the same folder as the Ctrl-Q executable. The certificate files must be named `client.pem`, `client_key.pem` and `root.pem`.
 
+The options `--auth-user-dir` and `-auth-user-id` are also needed to authenticate with Sense. They define which user will be used when interacting with both the engine and repository APIs.
+
 # Colors & formatting: Windows vs Windows Server vs macOS/Linux
 
 Some of the Ctrl-Q commands use colors and emojis to better communicate the information retrieved from Qlik Sense.  
