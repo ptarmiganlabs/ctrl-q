@@ -179,7 +179,8 @@ const program = new Command();
             '--limit-import-count <number>',
             'import at most x number of master items from the Excel file. Defaults to 0 = no limit',
             0
-        );
+        )
+        .option('--dry-run', 'do a dry run, i.e. do not create or update anything - just show what would be done');
 
     // Get measure command
     program

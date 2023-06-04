@@ -684,19 +684,42 @@ const createMasterItems = async (masterItemDefs, options, colPos, existingMeasur
                 const existingItem = existingDimensions.find((item) => item.qMeta.title === masterItemDefRow[colPos.colPosMasterItemName]);
                 if (existingItem) {
                     // An existing master dimension has same name as the one being created.
-                    await updateDimension(
-                        options,
-                        existingItem,
-                        app,
-                        masterItemDefRow,
-                        colPos,
-                        newPerValueColorMap,
-                        newDimColor,
-                        importLimit
-                    );
+
+                    // Is it a dry run?
+                    if (options.dryRun) {
+                        importCount += 1;
+                        logger.info(
+                            `(${importCount}/${importLimit}) Dry run: Would have updated existing dimension "${
+                                masterItemDefRow[colPos.colPosMasterItemName]
+                            }"`
+                        );
+                    } else {
+                        await updateDimension(
+                            options,
+                            existingItem,
+                            app,
+                            masterItemDefRow,
+                            colPos,
+                            newPerValueColorMap,
+                            newDimColor,
+                            importLimit
+                        );
+                    }
                 } else {
                     // A new master dimension should be created based on the current row
-                    await createDimension(options, app, masterItemDefRow, colPos, newPerValueColorMap, newDimColor, importLimit);
+
+                    // Is it a dry run?
+                    // eslint-disable-next-line no-lonely-if
+                    if (options.dryRun) {
+                        importCount += 1;
+                        logger.info(
+                            `(${importCount}/${importLimit}) Dry run: Would have created new dimension "${
+                                masterItemDefRow[colPos.colPosMasterItemName]
+                            }"`
+                        );
+                    } else {
+                        await createDimension(options, app, masterItemDefRow, colPos, newPerValueColorMap, newDimColor, importLimit);
+                    }
                 }
 
                 // masterItemPromises.push(createDimension(measureDef));
@@ -728,19 +751,42 @@ const createMasterItems = async (masterItemDefs, options, colPos, existingMeasur
                 const existingItem = existingMeasures.find((item) => item.qMeta.title === masterItemDefRow[colPos.colPosMasterItemName]);
                 if (existingItem) {
                     // An existing master measure has same name as the one being created.
-                    await updateMeasure(
-                        options,
-                        existingItem,
-                        app,
-                        masterItemDefRow,
-                        colPos,
-                        newSegmentColors,
-                        newMeasureColor,
-                        importLimit
-                    );
+
+                    // Is it a dry run?
+                    if (options.dryRun) {
+                        importCount += 1;
+                        logger.info(
+                            `(${importCount}/${importLimit}) Dry run: Would have updated existing measure "${
+                                masterItemDefRow[colPos.colPosMasterItemName]
+                            }"`
+                        );
+                    } else {
+                        await updateMeasure(
+                            options,
+                            existingItem,
+                            app,
+                            masterItemDefRow,
+                            colPos,
+                            newSegmentColors,
+                            newMeasureColor,
+                            importLimit
+                        );
+                    }
                 } else {
                     // A new master measure should be created based on the current row
-                    await createMeasure(options, app, masterItemDefRow, colPos, newSegmentColors, newMeasureColor, importLimit);
+
+                    // Is it a dry run?
+                    // eslint-disable-next-line no-lonely-if
+                    if (options.dryRun) {
+                        importCount += 1;
+                        logger.info(
+                            `(${importCount}/${importLimit}) Dry run: Would have created new measure "${
+                                masterItemDefRow[colPos.colPosMasterItemName]
+                            }"`
+                        );
+                    } else {
+                        await createMeasure(options, app, masterItemDefRow, colPos, newSegmentColors, newMeasureColor, importLimit);
+                    }
                 }
             } else {
                 // Unknown master item type
