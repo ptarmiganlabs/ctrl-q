@@ -33,6 +33,7 @@ const setupEnigmaConnection = async (options) => {
                 },
                 rejectUnauthorized: false,
             }),
+        protocol: { delta: true },
     };
 };
 

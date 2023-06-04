@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable no-await-in-loop */
 const enigma = require('enigma.js');
 const xlsx = require('node-xlsx').default;
@@ -5,7 +6,8 @@ const uuidCreate = require('uuid').v4;
 
 const { setupEnigmaConnection } = require('../util/enigma');
 const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, sleep } = require('../../globals');
-const { promises } = require('winston-daily-rotate-file');
+
+let importCount = 0;
 
 /**
  * Find of column's positioon (zero based) given a column name.
@@ -52,7 +54,7 @@ const createColorMap = async (app, colorMapId, newPerValueColorMap) => {
     // const newColorMapProperties = await newGenericColorMapRefModel.getProperties();
     // const newColorMapPropertiesLayout = await newGenericColorMapRefModel.getLayout();
     // 4. Set properties of created color map
-    let res = await newGenericColorMapRefModel.setProperties(newGenericColorMapRefProp);
+    const res = await newGenericColorMapRefModel.setProperties(newGenericColorMapRefProp);
 
     // let res = await newGenericColorMapRefModel.setProperties({
     //     qInfo: {
@@ -74,6 +76,695 @@ const createColorMap = async (app, colorMapId, newPerValueColorMap) => {
     // const a1 = await newGenericColorMapRefModel.getLayout();
 
     return colorMapId;
+};
+
+// Function to add logging of session's websocket traffic
+const addTrafficLogging = (session, options) => {
+    if (options.logLevel === 'silly') {
+        session.on('traffic:sent', (data) => console.log('sent:', data));
+
+        session.on('traffic:received', (data) => {
+            console.log('received:', data);
+            if (data?.result?.qReturn) {
+                console.log(`qReturn: ${JSON.stringify(data.result.qReturn, null, 2)}`);
+            }
+
+            if (data?.result?.qInfo) {
+                console.log(`qInfo: ${JSON.stringify(data.result.qInfo, null, 2)}`);
+            }
+
+            if (data?.change?.length > 1) {
+                console.log(`change length > 1: ${JSON.stringify(data.change, null, 2)}`);
+
+                console.log('received:', data);
+                if (data?.result?.qReturn) {
+                    console.log(`qReturn: ${JSON.stringify(data.result.qReturn, null, 2)}`);
+                }
+
+                if (data?.result?.qInfo) {
+                    console.log(`qInfo: ${JSON.stringify(data.result.qInfo, null, 2)}`);
+                }
+            }
+        });
+
+        session.on('notification:*', (eventName, data) => {
+            console.log(`SESSION EVENT=${eventName}: `, data);
+        });
+
+        session.on('closed', (code, message) => {
+            console.log(`SESSION CLOSED, code=${code}, message="${message}"`);
+            process.exit(1);
+        });
+    }
+};
+
+// Create master dimension using Enigma.js
+const createDimension = async (options, app, dimensionDefRow, colPos, newPerValueColorMap, newDimensionColor, importLimit) => {
+    // Create a new master dimension in the app
+
+    const dimensionData = {
+        qInfo: {
+            qType: 'dimension',
+            qId: uuidCreate(),
+        },
+        qMetaDef: {
+            title: dimensionDefRow[colPos.colPosMasterItemName],
+            description: dimensionDefRow[colPos.colPosMasterItemDescr],
+            tags: dimensionDefRow[colPos.colPosMasterItemTag] ? dimensionDefRow[colPos.colPosMasterItemTag].split(',') : '',
+            // owner: {
+            //   userId: options.authUserId,
+            //   userDirectory: options.authUserDir,
+            // },
+        },
+        qDim: {
+            qGrouping: 'N',
+            qFieldDefs: [dimensionDefRow[colPos.colPosMasterItemExpr]],
+            qFieldLabels: [dimensionDefRow[colPos.colPosMasterItemLabel]],
+            title: dimensionDefRow[colPos.colPosMasterItemName],
+            qLabelExpression: dimensionDefRow[colPos.colPosMasterItemLabel],
+            coloring: {},
+        },
+    };
+
+    logger.verbose(`Creating new dimension "${dimensionData.qMetaDef.title}"`);
+    logger.debug(`Measure data: ${JSON.stringify(dimensionData, null, 2)}`);
+
+    // Debug: Add import count to dimension title
+    // dimensionData.qMetaDef.title = `${importCount}: ${dimensionDefRow[colPos.colPosMasterItemName]}`;
+
+    const newDimensionModel = await app.createDimension(dimensionData);
+
+    const newDimensionLayout = await newDimensionModel.getLayout();
+
+    // Do we have any per-value color data for this row?
+    if (newPerValueColorMap) {
+        // Create new color map and attach it to the existing dimension
+        const newColorMapId = await createColorMap(app, dimensionData.qInfo.qId, newPerValueColorMap);
+
+        // Update master item with new per-value color data
+        dimensionData.qDim.coloring.colorMapRef = newColorMapId;
+        dimensionData.qDim.coloring.hasValueColors = true;
+    }
+
+    // Do we have a dimension color value?
+    if (newDimensionColor) {
+        // Use the dimension color in the Excel file
+        dimensionData.qDim.coloring.baseColor = newDimensionColor.baseColor;
+    }
+
+    // Set properties of created dimension
+    const res = await newDimensionModel.setProperties(dimensionData);
+
+    importCount += 1;
+    logger.info(`(${importCount}/${importLimit}) Created new dimension "${dimensionData.qMetaDef.title}"`);
+
+    // Get layout of created dimension
+    const updatedDimensionModel = await app.getDimension(dimensionData.qInfo.qId);
+    const updatedDimensionLayout = updatedDimensionModel.getLayout();
+
+    return updatedDimensionLayout;
+};
+
+// Function to update an existing master dimension in the app
+const updateDimension = async (
+    options,
+    existingDimension,
+    app,
+    dimensionDefRow,
+    colPos,
+    newPerValueColorMap,
+    newDimensionColor,
+    importLimit
+) => {
+    const dimensionData = {
+        qInfo: {
+            qType: 'dimension',
+        },
+        qMetaDef: {
+            title: dimensionDefRow[colPos.colPosMasterItemName],
+            description: dimensionDefRow[colPos.colPosMasterItemDescr],
+            tags: dimensionDefRow[colPos.colPosMasterItemTag] ? dimensionDefRow[colPos.colPosMasterItemTag].split(',') : '',
+        },
+        qDim: {
+            qGrouping: 'N',
+            qFieldDefs: [dimensionDefRow[colPos.colPosMasterItemExpr]],
+            qFieldLabels: [dimensionDefRow[colPos.colPosMasterItemLabel]],
+            title: dimensionDefRow[colPos.colPosMasterItemName],
+            qLabelExpression: dimensionDefRow[colPos.colPosMasterItemLabel],
+            coloring: {},
+        },
+    };
+
+    logger.verbose(`Updating existing dimension "${existingDimension.qMeta.title}"`);
+    logger.debug(`Dimension data for existing dimension: ${JSON.stringify(existingDimension, null, 2)}`);
+
+    // Get existing dimension that should be updated
+    const existingDimensionModel = await app.getDimension(existingDimension.qInfo.qId);
+    const existingDimensionLayout = await existingDimensionModel.getLayout();
+
+    // Update dimension with ID of existing dimension
+    dimensionData.qInfo.qId = existingDimension.qInfo.qId;
+
+    // Do we have a new dimension color value?
+    if (newDimensionColor) {
+        // Use the color provided in the Excel file
+        dimensionData.qDim.coloring.baseColor = newDimensionColor.baseColor;
+    } else if (existingDimensionLayout.qDim?.coloring?.baseColor) {
+        // No new dimension color, delete any existing ones
+        delete dimensionData.qDim.coloring.baseColor;
+
+        // Use dimension's existing color, if there is one
+        // dimSingleData.qDim.coloring.baseColor = existingDimLayout.qDim.coloring.baseColor;
+    }
+
+    // Check if there exists a per-value color map for the existing dimension
+    let existingColorMapPromise;
+    let existingColorMapModel;
+    let existingColorMapLayout;
+    try {
+        existingColorMapPromise = app.getObject(`ColorMapModel_${existingDimension.qInfo.qId}`);
+        [existingColorMapModel] = await Promise.all([existingColorMapPromise]);
+        existingColorMapLayout = await existingColorMapModel.getLayout();
+    } catch (err) {
+        logger.verbose(`No per-value color map exists for existing dimension "${existingDimensionLayout.qMeta.title}"`);
+    }
+
+    // Do we have new per-value color data?
+    if (newPerValueColorMap) {
+        // Does existing dimension already has per-value color data?
+        // If so update it rather than creating a new color map
+        if (existingColorMapLayout?.id) {
+            const res = await existingColorMapModel.setProperties({
+                qInfo: existingColorMapModel.qInfo,
+                qExtendsId: '',
+                qMetaDef: {},
+                qStateName: '',
+                colorMap: newPerValueColorMap,
+            });
+
+            dimensionData.qDim.coloring.colorMapRef = existingDimensionLayout.qInfo.qId;
+            dimensionData.qDim.coloring.hasValueColors = true;
+        } else {
+            // Create new color map and attach it to the existing dimension
+            const newColorMapId = await createColorMap(app, existingDimension.qInfo.qId, newPerValueColorMap);
+
+            // Update master item with new per-value color data
+            dimensionData.qDim.coloring.colorMapRef = newColorMapId;
+            dimensionData.qDim.coloring.hasValueColors = true;
+        }
+    } else if (existingDimensionLayout.qDim?.coloring?.hasValueColors === true) {
+        // No new per-value color data, delete existing one
+        delete dimensionData.qDim.coloring.colorMapRef;
+        delete dimensionData.qDim.coloring.hasValueColors;
+    }
+
+    // Set properties of existing dimension
+    const res = await existingDimensionModel.setProperties(dimensionData);
+
+    importCount += 1;
+    logger.info(`(${importCount}/${importLimit}) Updated existing dimension "${dimensionData.qMetaDef.title}"`);
+
+    // Get layout of updated dimension
+    const updatedDimensionModel = await app.getDimension(existingDimension.qInfo.qId);
+    const updatedDimensionLayout = updatedDimensionModel.getLayout();
+
+    return updatedDimensionLayout;
+};
+
+// Create a master measure using Enigma.js
+// Format used when Qlik's web client creates a new measure:'
+// {
+//     "qInfo": {
+//         "qType": "measure",
+//         "qId": "sCNnDvj"
+//     },
+//     "qMetaDef": {
+//         "title": "DefName",
+//         "description": "DefDescr",
+//         "tags": [
+//             "Tag1",
+//             "Tag2"
+//         ]
+//     },
+//     "qMeasure": {
+//         "qLabel": "DefName",
+//         "qDef": "'DefExpr'",
+//         "qLabelExpression": "'DefLabelExpr'",
+//         "isCustomFormatted": false,
+//         "qNumFormat": {
+//             "qType": "D",
+//             "qnDec": 2,
+//             "qDec": "",
+//             "qThou": "",
+//             "qFmt": "YYYY-MM-DD"
+//         },
+//         "coloring": {
+//             "baseColor": {
+//                 "color": "#8a85c6",
+//                 "index": 8
+//             },
+//             "gradient": {
+//                 "colors": [
+//                     {
+//                         "color": "#006580",
+//                         "index": 6
+//                     },
+//                     {
+//                         "color": "#C4CFDA",
+//                         "index": -1
+//                     },
+//                     {
+//                         "color": "#4477aa",
+//                         "index": -1
+//                     },
+//                     {
+//                         "color": "#7db8da",
+//                         "index": -1
+//                     }
+//                 ],
+//                 "breakTypes": [
+//                     false,
+//                     false,
+//                     true
+//                 ],
+//                 "limits": [
+//                     0.25,
+//                     0.433,
+//                     0.683
+//                 ],
+//                 "limitType": "percent"
+//             }
+//         }
+//     }
+// }
+
+// Create a new master measure in the app
+const createMeasure = async (options, app, measureDefRow, colPos, newSegmentColors, newMeasureColor, importLimit) => {
+    const measureData = {
+        qInfo: {
+            qType: 'measure',
+            qId: uuidCreate(),
+        },
+        qMetaDef: {
+            title: measureDefRow[colPos.colPosMasterItemName],
+            description: measureDefRow[colPos.colPosMasterItemDescr],
+            tags: measureDefRow[colPos.colPosMasterItemTag] ? measureDefRow[colPos.colPosMasterItemTag].split(',') : '',
+            // owner: {
+            //   userId: options.authUserId,
+            //   userDirectory: options.authUserDir,
+            // },
+        },
+        qMeasure: {
+            qLabel: measureDefRow[colPos.colPosMasterItemLabel],
+            // qGrouping: 'N',
+            qDef: measureDefRow[colPos.colPosMasterItemExpr],
+            qLabelExpression: measureDefRow[colPos.colPosMasterItemLabel],
+            // qExpressions: [],
+            // qActiveExpression: 0,
+            // row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
+            //     ? row[parseInt(options.columnlabel, 10)]
+            //     : `'${row[parseInt(options.columnlabel, 10)]}'`,
+            coloring: {},
+        },
+    };
+
+    // Do we have a measure color value?
+    if (newMeasureColor) {
+        // Use the measure color in the Excel file
+        measureData.qMeasure.coloring.baseColor = newMeasureColor;
+    }
+
+    // Do we have new segment color data?
+    if (newSegmentColors) {
+        // Use the measure segment color from the Excel file
+        measureData.qMeasure.coloring.gradient = newSegmentColors;
+    }
+
+    // Add owner
+    // measureData.qMetaDef.owner = {
+    //     userId: options.authUserId,
+    //     userDirectory: options.authUserDir,
+    // };
+
+    logger.verbose(`Creating new measure "${measureData.qMetaDef.title}"`);
+    logger.debug(`Measure data: ${JSON.stringify(measureData, null, 2)}`);
+
+    // Debug: Add import count to measure title
+    // measureData.qMetaDef.title = `${importCount}: ${measureDefRow[colPos.colPosMasterItemName]}`;
+
+    const newMeasureModel = await app.createMeasure(measureData);
+
+    importCount += 1;
+    logger.info(`(${importCount}/${importLimit}) Created new measure "${measureData.qMetaDef.title}"`);
+
+    const newMeasureLayout = newMeasureModel.getLayout();
+
+    return newMeasureLayout;
+};
+
+// Update an existing master measure in the app
+const updateMeasure = async (options, existingMeasure, app, measureDefRow, colPos, newSegmentColors, newMeasureColor, importLimit) => {
+    const measureData = {
+        qInfo: {
+            qType: 'measure',
+        },
+        qMetaDef: {
+            title: measureDefRow[colPos.colPosMasterItemName],
+            description: measureDefRow[colPos.colPosMasterItemDescr],
+            tags: measureDefRow[colPos.colPosMasterItemTag] ? measureDefRow[colPos.colPosMasterItemTag].split(',') : '',
+        },
+        qMeasure: {
+            qLabel: measureDefRow[colPos.colPosMasterItemLabel],
+            qDef: measureDefRow[colPos.colPosMasterItemExpr],
+            qLabelExpression: measureDefRow[colPos.colPosMasterItemLabel],
+            coloring: {},
+        },
+    };
+
+    logger.verbose(`Updating existing measure "${existingMeasure.qMeta.title}"`);
+    logger.debug(`Measure data for existing measure: ${JSON.stringify(existingMeasure, null, 2)}`);
+
+    // Get existing measure that should be updated
+    const existingMeasureModel = await app.getMeasure(existingMeasure.qInfo.qId);
+    const existingMeasureLayout = await existingMeasureModel.getLayout();
+
+    // Update measure with ID of existing measure
+    measureData.qInfo.qId = existingMeasure.qInfo.qId;
+
+    // Do we have a measure color value?
+    if (newMeasureColor) {
+        // Use the measure color in the Excel file
+        measureData.qMeasure.coloring.baseColor = newMeasureColor;
+    } else if (existingMeasureLayout.qMeasure?.coloring?.baseColor) {
+        // No new measure color, delete any existing one
+        delete measureData.qMeasure.coloring.baseColor;
+    }
+
+    // Do we have new segment color data?
+    if (newSegmentColors) {
+        // Does existing measure already has segment color data?
+        // If so update it rather than creating a new color map
+        measureData.qMeasure.coloring.gradient = newSegmentColors;
+    } else if (existingMeasureLayout.qMeasure?.coloring?.gradient) {
+        // No new segment color, delete existing one
+        delete measureData.qMeasure.coloring.gradient;
+    }
+
+    logger.verbose(`Updating existing measure "${measureData.qMetaDef.title}"`);
+    logger.debug(`Measure data: ${JSON.stringify(measureData, null, 2)}`);
+
+    // Update existing measure with new data
+    const res = await existingMeasureModel.setProperties(measureData);
+
+    importCount += 1;
+    logger.info(`(${importCount}/${importLimit}) Updated existing measure "${measureData.qMetaDef.title}"`);
+
+    const updatedMeasureModel = await app.getMeasure(existingMeasure.qInfo.qId);
+    const updatedMeasureLayout = updatedMeasureModel.getLayout();
+
+    return updatedMeasureLayout;
+};
+
+// Validate that fields common to all master items are valid
+const validateMasterItemFields = (masterItemDefRow, colPos) => {
+    // Limitations are listed here: https://help.qlik.com/en-US/sense/May2023/Subsystems/Hub/Content/Sense_Hub/Introduction/guidelines-visualizations-fields-naming.htm
+
+    // Validate master item name
+    if (masterItemDefRow[colPos.colPosMasterItemName] === undefined) {
+        logger.error(`Master item name is undefined`);
+        process.exit(1);
+    }
+
+    // Make sure master item names do not include these characters: = [ ] {} $ ´ ` '. If they do, replace them with _
+    // https://help.qlik.com/en-US/sense/May2023/Subsystems/Hub/Content/Sense_Hub/Introduction/guidelines-visualizations-fields-naming.htm
+    // if (masterItemDefRow[colPos.colPosMasterItemName].match(/[\=\[\]\{\}\(\)\$\´\`\'\"]/g)) {
+    if (masterItemDefRow[colPos.colPosMasterItemName].match(/[=[\]{}$´`'"]/g)) {
+        logger.warn(
+            `Master item name "${masterItemDefRow[colPos.colPosMasterItemName]}" contains characters that are not allowed. Replacing with _`
+        );
+        // eslint-disable-next-line no-param-reassign
+        masterItemDefRow[colPos.colPosMasterItemName] = masterItemDefRow[colPos.colPosMasterItemName].replace(
+            // /[\=\[\]\{\}\(\)\$\´\`\'\"]/g,
+            /[=[\]{}$´`'"]/g,
+            '_'
+        );
+    }
+
+    // Ensure master item name and description are not too long
+    if (masterItemDefRow[colPos.colPosMasterItemName]?.length > 255) {
+        logger.warn(
+            `Measure name "${masterItemDefRow[colPos.colPosMasterItemName]}" is too long (max 255 characters). Truncating to 255 characters`
+        );
+        // eslint-disable-next-line no-param-reassign
+        masterItemDefRow[colPos.colPosMasterItemName] = masterItemDefRow[colPos.colPosMasterItemName].substring(0, 255);
+    }
+    if (masterItemDefRow[colPos.colPosMasterItemDescr]?.length > 512) {
+        logger.warn(
+            `Measure description "${
+                masterItemDefRow[colPos.colPosMasterItemDescr]
+            }" is too long (max 512 characters). Truncating to 512 characters`
+        );
+        // eslint-disable-next-line no-param-reassign
+        masterItemDefRow[colPos.colPosMasterItemDescr] = masterItemDefRow[colPos.colPosMasterItemDescr].substring(0, 512);
+    }
+
+    // Make sure there are no more than 30 tags and that each tag is no longer than 31 characters
+    if (masterItemDefRow[colPos.colPosMasterItemTag]?.length > 0) {
+        const tags = masterItemDefRow[colPos.colPosMasterItemTag].split(',');
+        if (tags.length > 30) {
+            logger.warn(
+                `Measure tags "${
+                    masterItemDefRow[colPos.colPosMasterItemTag]
+                }" contains more than 30 tags. Only the first 30 tags will be used`
+            );
+            // eslint-disable-next-line no-param-reassign
+            masterItemDefRow[colPos.colPosMasterItemTag] = tags.slice(0, 30).join(',');
+        }
+        tags.forEach((tag) => {
+            if (tag.length > 31) {
+                logger.warn(`Measure tag "${tag}" is too long (max 31 characters). Truncating to 31 characters`);
+                // eslint-disable-next-line no-param-reassign
+                tag = tag.substring(0, 31);
+            }
+        });
+    }
+
+    return masterItemDefRow;
+};
+
+// Validate that fields common to all master dimensions are valid
+const validateMasterDimensionFields = (masterItemDefRow, colPos) => {
+    // Limitations are listed here: https://help.qlik.com/en-US/sense/May2023/Subsystems/Hub/Content/Sense_Hub/Introduction/guidelines-visualizations-fields-naming.htm
+
+    // Validate master dimension expression
+    if (masterItemDefRow[colPos.colPosMasterItemExpr]?.length > 64000) {
+        logger.error(
+            `Dimension expression "${masterItemDefRow[colPos.colPosMasterItemExpr]}" is too long (max 64000 characters). Aborting import.`
+        );
+        process.exit(1);
+    }
+
+    if (masterItemDefRow[colPos.colPosMasterItemLabel]?.length > 255) {
+        logger.warn(
+            `Dimension label "${
+                masterItemDefRow[colPos.colPosMasterItemLabel]
+            }" is too long (max 255 characters). Truncating to 255 characters`
+        );
+        // eslint-disable-next-line no-param-reassign
+        masterItemDefRow[colPos.colPosMasterItemLabel] = masterItemDefRow[colPos.colPosMasterItemLabel].substring(0, 255);
+    }
+
+    return masterItemDefRow;
+};
+
+// Validate that fields common to all master measures are valid
+const validateMasterMeasureFields = (masterItemDefRow, colPos) => {
+    // Limitations are listed here: https://help.qlik.com/en-US/sense/May2023/Subsystems/Hub/Content/Sense_Hub/Introduction/guidelines-visualizations-fields-naming.htm
+
+    // Validate master measure expression
+    if (masterItemDefRow[colPos.colPosMasterItemExpr]?.length > 64000) {
+        logger.warn(
+            `Measure expression "${masterItemDefRow[colPos.colPosMasterItemExpr]}" is too long (max 64000 characters). Aborting import.`
+        );
+        process.exit(1);
+    }
+
+    if (masterItemDefRow[colPos.colPosMasterItemLabel]?.length > 255) {
+        logger.warn(
+            `Measure label "${
+                masterItemDefRow[colPos.colPosMasterItemLabel]
+            }" is too long (max 255 characters). Truncating to 255 characters`
+        );
+        // eslint-disable-next-line no-param-reassign
+        masterItemDefRow[colPos.colPosMasterItemLabel] = masterItemDefRow[colPos.colPosMasterItemLabel].substring(0, 255);
+    }
+
+    return masterItemDefRow;
+};
+
+// Take 10 items at a time from defintions array and creates master items for them.
+// Repeat until all definitions have been processed.
+const createMasterItems = async (masterItemDefs, options, colPos, existingMeasures, existingDimensions) => {
+    const masterItemDefinitions = masterItemDefs.slice();
+
+    // Remove header row
+    const headerRow = masterItemDefinitions.splice(0, 1)[0];
+
+    // Remove any empty rows
+    masterItemDefinitions.forEach((row, index) => {
+        if (row[colPos.colPosMasterItemName] === undefined) {
+            logger.debug(`Removing empty row ${index}`);
+            masterItemDefinitions.splice(index, 1);
+        }
+    });
+
+    // Remove all except first --limit-import-count first rows
+    let importLimit = 0;
+    if (options.limitImportCount > 0) {
+        masterItemDefinitions.splice(options.limitImportCount);
+        importLimit = masterItemDefinitions.length;
+    } else {
+        importLimit = masterItemDefinitions.length;
+    }
+
+    while (masterItemDefinitions.length > 0) {
+        const masterItemBatch = masterItemDefinitions.splice(0, 10);
+
+        // Create new session to Sense engine
+        const configEnigma = await setupEnigmaConnection(options);
+        const session = await enigma.create(configEnigma);
+
+        // Set up logging of websocket traffic
+        addTrafficLogging(session, options);
+
+        const global = await session.open();
+
+        const engineVersion = await global.engineVersion();
+        logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
+
+        // Open app
+        const app = await global.openDoc(options.appId, '', '', '', false);
+        logger.verbose(`Opened app ${options.appId}.`);
+
+        // Call for each item in measureDefinition array
+        // eslint-disable-next-line no-restricted-syntax
+        for (const entry of masterItemBatch) {
+            let masterItemDefRow = entry;
+
+            logger.debug(`Current row master item type: ${masterItemDefRow[colPos.colPosMasterItemType]}`);
+
+            // Call function to determine if shared master item fields are valid
+            // eslint-disable-next-line no-param-reassign
+            masterItemDefRow = validateMasterItemFields(masterItemDefRow, colPos);
+
+            if (masterItemDefRow[colPos.colPosMasterItemType] === 'dim-single') {
+                // A master dimension should be created based on the current row
+
+                // eslint-disable-next-line no-param-reassign
+                masterItemDefRow = validateMasterDimensionFields(masterItemDefRow, colPos);
+
+                // Is there any per-value color data for this row?
+                let newPerValueColorMap = null;
+                if (masterItemDefRow[colPos.colPosMasterItemPerValueColor]?.length > 0) {
+                    const cleanColorString = masterItemDefRow[colPos.colPosMasterItemPerValueColor].replace('\r', '').replace('\n', '');
+                    newPerValueColorMap = JSON.parse(`${cleanColorString}`);
+                    logger.debug(`Color map loaded from Excel file: ${JSON.stringify(newPerValueColorMap)}`);
+                }
+
+                // Is there any dimension color data for this row?
+                let newDimColor = null;
+                if (masterItemDefRow[colPos.colPosMasterItemColor]?.length > 0) {
+                    const cleanColorString = masterItemDefRow[colPos.colPosMasterItemColor].replace('\r', '').replace('\n', '');
+                    newDimColor = JSON.parse(`${cleanColorString}`);
+                    logger.debug(`Dimension color loaded from Excel file: ${JSON.stringify(newDimColor)}`);
+                }
+
+                // Test if a master dimension with the given title already exists.
+                // If it does, update it rather than creating a new one.
+                const existingItem = existingDimensions.find((item) => item.qMeta.title === masterItemDefRow[colPos.colPosMasterItemName]);
+                if (existingItem) {
+                    // An existing master dimension has same name as the one being created.
+                    await updateDimension(
+                        options,
+                        existingItem,
+                        app,
+                        masterItemDefRow,
+                        colPos,
+                        newPerValueColorMap,
+                        newDimColor,
+                        importLimit
+                    );
+                } else {
+                    // A new master dimension should be created based on the current row
+                    await createDimension(options, app, masterItemDefRow, colPos, newPerValueColorMap, newDimColor, importLimit);
+                }
+
+                // masterItemPromises.push(createDimension(measureDef));
+            } else if (masterItemDefRow[colPos.colPosMasterItemType] === 'measure') {
+                // A master measure should be created or updated based on the current row
+
+                // Call function to determine if shared master measure fields are valid
+                // eslint-disable-next-line no-param-reassign
+                masterItemDefRow = validateMasterMeasureFields(masterItemDefRow, colPos);
+
+                // Is there any segment color data for this row?
+                let newSegmentColors = null;
+                if (masterItemDefRow[colPos.colPosMasterItemPerValueColor]?.length > 0) {
+                    const cleanColorString = masterItemDefRow[colPos.colPosMasterItemPerValueColor].replace('\r', '').replace('\n', '');
+                    newSegmentColors = JSON.parse(`${cleanColorString}`);
+                    logger.debug(`Color map loaded from Excel file: ${JSON.stringify(newSegmentColors)}`);
+                }
+
+                // Is there any measure color data for this row?
+                let newMeasureColor = null;
+                if (masterItemDefRow[colPos.colPosMasterItemColor]?.length > 0) {
+                    const cleanColorString = masterItemDefRow[colPos.colPosMasterItemColor].replace('\r', '').replace('\n', '');
+                    newMeasureColor = JSON.parse(`${cleanColorString}`);
+                    logger.debug(`Dimension color loaded from Excel file: ${JSON.stringify(newMeasureColor)}`);
+                }
+
+                // Test if a master measure with the given title already exists.
+                // If it does, update it rather than creating a new one.
+                const existingItem = existingMeasures.find((item) => item.qMeta.title === masterItemDefRow[colPos.colPosMasterItemName]);
+                if (existingItem) {
+                    // An existing master measure has same name as the one being created.
+                    await updateMeasure(
+                        options,
+                        existingItem,
+                        app,
+                        masterItemDefRow,
+                        colPos,
+                        newSegmentColors,
+                        newMeasureColor,
+                        importLimit
+                    );
+                } else {
+                    // A new master measure should be created based on the current row
+                    await createMeasure(options, app, masterItemDefRow, colPos, newSegmentColors, newMeasureColor, importLimit);
+                }
+            } else {
+                // Unknown master item type
+                importCount += 1;
+                logger.warn(
+                    `(${importCount}/${importLimit}) Found an unknown master item type: "${
+                        masterItemDefRow[colPos.colPosMasterItemType]
+                    }". Ignoring this line in the imported file.`
+                );
+            }
+
+            // Optional pause before creating next master item. Use async sleep function.
+            if (options.sleepBetweenImports > 0) {
+                logger.debug(`Sleeping for ${options.sleepBetweenImports} ms`);
+                await sleep(options.sleepBetweenImports);
+            }
+        }
+
+        if ((await session.close()) === true) {
+            logger.verbose(`Closed session after adding/updating master items in app ${options.appId} on host ${options.host}`);
+        } else {
+            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+        }
+    }
 };
 
 /**
@@ -139,20 +830,10 @@ const importMasterItemFromExcel = async (options) => {
         const configEnigma = await setupEnigmaConnection(options);
 
         const session = enigma.create(configEnigma);
-        if (options.logLevel === 'silly') {
-            // eslint-disable-next-line no-console
-            session.on('traffic:sent', (data) => console.log('sent:', data));
-            // eslint-disable-next-line no-console
-            session.on('traffic:received', (data) => {
-                console.log('received:', data);
-                if (data?.result?.qReturn) {
-                    console.log(`qReturn: ${JSON.stringify(data.result.qReturn, null, 2)}`);
-                }
-                if (data?.result?.qInfo) {
-                    console.log(`qInfo: ${JSON.stringify(data.result.qInfo, null, 2)}`);
-                }
-            })
-        }
+
+        // Set up logging of websocket traffic
+        addTrafficLogging(session, options);
+
         const global = await session.open();
 
         const engineVersion = await global.engineVersion();
@@ -162,7 +843,6 @@ const importMasterItemFromExcel = async (options) => {
         logger.verbose(`Opened app ${options.appId}.`);
 
         // Get list of all existing master dimensions and measures
-
         // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/definitions-NxLibraryDimensionDef.html
         const dimensionCall = {
             qInfo: {
@@ -187,7 +867,7 @@ const importMasterItemFromExcel = async (options) => {
             qMeasureListDef: {
                 qType: 'measure',
                 qData: {
-                    measure: '/qMeasure',
+                    // measure: '/qMeasure',
                     title: '/qMetaDef/title',
                     tags: '/qMetaDef/tags',
                     labelExpression: '/qMeasure/qLabelExpression',
@@ -203,390 +883,45 @@ const importMasterItemFromExcel = async (options) => {
         const measuresModel = await app.createSessionObject(measureCall);
         const measuresLayout = await measuresModel.getLayout();
 
-        // Loop through rows in Excel file, extracting data for rows flagged as master items
-        let importCount = 0;
-        if (sheet && sheet.data.length > 0) {
-            let rowCount = 0;
-
-            // Loop through all rows
-            // eslint-disable-next-line no-restricted-syntax
-            for (const row of sheet.data) {
-                logger.debug(`Current row master item type: ${row[colPosMasterItemType]}`);
-                if (row[colPosMasterItemType] === 'dim-single') {
-                    // A master dimension of type "single" should be created based on the current row
-
-                    // Data that should be written to new dimension
-                    const dimSingleData = {
-                        qInfo: {
-                            qType: 'dimension',
-                        },
-                        qDim: {
-                            qGrouping: 'N',
-                            qFieldDefs: [row[colPosMasterItemExpr]],
-                            qFieldLabels: [row[colPosMasterItemExpr]],
-                            title: row[colPosMasterItemName],
-                            qLabelExpression: row[colPosMasterItemLabel],
-                            // row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
-                            //     ? row[parseInt(options.columnlabel, 10)]
-                            //     : `'${row[parseInt(options.columnlabel, 10)]}'`,
-                            coloring: {},
-                            // coloring: colorBlock,
-                        },
-                        qMetaDef: {
-                            title: row[colPosMasterItemName],
-                            description: row[colPosMasterItemDescr],
-                            tags: row[colPosMasterItemTag] ? row[colPosMasterItemTag].split(',') : '',
-                            // owner: {
-                            //   userId: options.authUserId,
-                            //   userDirectory: options.authUserDir,
-                            // },
-                        },
-                    };
-
-                    // Is there any per-value color data for this row?
-                    let newPerValueColorMap = null;
-                    if (row[colPosMasterItemPerValueColor]?.length > 0) {
-                        const cleanColorString = row[colPosMasterItemPerValueColor].replace('\r', '').replace('\n', '');
-                        newPerValueColorMap = JSON.parse(`${cleanColorString}`);
-                        logger.debug(`Color map loaded from Excel file: ${JSON.stringify(newPerValueColorMap)}`);
-                    }
-
-                    // Is there any dimension color data for this row?
-                    let newDimColor = null;
-                    if (row[colPosMasterItemColor]?.length > 0) {
-                        const cleanColorString = row[colPosMasterItemColor].replace('\r', '').replace('\n', '');
-                        newDimColor = JSON.parse(`${cleanColorString}`);
-                        logger.debug(`Dimension color loaded from Excel file: ${JSON.stringify(newDimColor)}`);
-                    }
-
-                    // Test if a master dimension with the given title already exists.
-                    // If it does, update it rather than creating a new one.
-                    const existingItem = dimsLayout.qDimensionList.qItems.find((item) => item.qMeta.title === row[colPosMasterItemName]);
-                    if (existingItem) {
-                        // An existing master dimension has same name as the one being created
-                        // Update the existing dimension with data from the Excel file
-
-                        // Get model and layout for the existing dimension
-                        const existingDimModel = await app.getDimension(existingItem.qInfo.qId);
-                        const existingDimLayout = await existingDimModel.getLayout();
-
-                        // Update dimension with new info
-                        dimSingleData.qInfo.qId = existingItem.qInfo.qId;
-
-                        // Do we have a new dimension color value?
-                        if (newDimColor) {
-                            // Use the color provided in the Excel file
-                            dimSingleData.qDim.coloring.baseColor = newDimColor.baseColor;
-                        } else if (existingDimLayout.qDim?.coloring?.baseColor) {
-                            // No new dimension color, delete any existing ones
-                            delete dimSingleData.qDim.coloring.baseColor;
-
-                            // Use dimension's existing color, if there is one
-                            // dimSingleData.qDim.coloring.baseColor = existingDimLayout.qDim.coloring.baseColor;
-                        }
-
-                        // Check if there exists a per-value color map for the existing dimension
-                        let existingColorMapPromise;
-                        let existingColorMapModel;
-                        let existingColorMapLayout;
-                        try {
-                            existingColorMapPromise = app.getObject(`ColorMapModel_${existingItem.qInfo.qId}`);
-                            [existingColorMapModel] = await Promise.all([existingColorMapPromise]);
-                            existingColorMapLayout = await existingColorMapModel.getLayout();
-                        } catch (err) {
-                            logger.verbose(`No per-value color map exists for existing dimension "${existingDimLayout.qMeta.title}"`);
-                        }
-
-                        // Do we have new per-value color data?
-                        if (newPerValueColorMap) {
-                            // Does existing dimension already has per-value color data?
-                            // If so update it rather than creating a new color map
-                            if (existingColorMapModel?.id) {
-                                let res = await existingColorMapModel.setProperties({
-                                    qInfo: existingColorMapLayout.qInfo,
-                                    qExtendsId: '',
-                                    qMetaDef: {},
-                                    qStateName: '',
-                                    colorMap: newPerValueColorMap,
-                                });
-
-                                dimSingleData.qDim.coloring.colorMapRef = existingDimLayout.qInfo.qId;
-                                dimSingleData.qDim.coloring.hasValueColors = true;
-                            } else {
-                                // Create new color map and attach it to the existing dimension
-                                const newColorMapId = await createColorMap(app, existingDimLayout.qInfo.qId, newPerValueColorMap);
-
-                                // Update master item with new per-value color data
-                                dimSingleData.qDim.coloring.colorMapRef = newColorMapId;
-                                dimSingleData.qDim.coloring.hasValueColors = true;
-                            }
-                        } else if (existingDimLayout.qDim?.coloring?.hasValueColors === true) {
-                            // No new per value colors, delete any existing ones
-                            delete dimSingleData.qDim.coloring.colorMapRef;
-                            delete dimSingleData.qDim.coloring.hasValueColors;
-
-                            // Use dimension's existing
-                            // dimSingleData.qDim.coloring.colorMapRef = existingDimLayout.qDim.coloring.colorMapRef;
-                            // dimSingleData.qDim.coloring.hasValueColors = existingDimLayout.qDim.coloring.hasValueColors;
-                        }
-
-                        // 7. Set properties of existing dimension
-                        let res = await existingDimModel.setProperties(dimSingleData);
-                        res = await app.getAppLayout();
-                        logger.info(`(${importCount}) Updated existing dimension "${dimSingleData.qMetaDef.title}"`);
-                    } else {
-                        // Create a new master dimension in the app
-
-                        // Add owner
-                        dimSingleData.qMetaDef.owner = {
-                            userId: options.authUserId,
-                            userDirectory: options.authUserDir,
-                        };
-
-                        const newDimModel = await app.createDimension(dimSingleData);
-                        const newDimLayout = await newDimModel.getLayout();
-
-                        // Do we have a new dimension color value?
-                        if (newDimColor) {
-                            // Use the color provided in the Excel file
-                            dimSingleData.qDim.coloring.baseColor = newDimColor.baseColor;
-                        }
-
-                        // Do we have new per-value color data?
-                        if (newPerValueColorMap) {
-                            // Create new color map and attach it to the existing dimension
-                            const newColorMapId = await createColorMap(app, newDimLayout.qInfo.qId, newPerValueColorMap);
-
-                            // Update master item with new per-value color data
-                            dimSingleData.qDim.coloring.colorMapRef = newColorMapId;
-                            dimSingleData.qDim.coloring.hasValueColors = true;
-                        }
-
-                        // Set properties of existing dimension
-                        res = await newDimModel.setProperties(dimSingleData);
-                        res = await app.getAppLayout();
-                        logger.info(`(${importCount}) Created new dimension "${dimSingleData.qMetaDef.title}"`);
-                    }
-
-                    importCount += 1;
-                    if (importCount === parseInt(options.limitImportCount, 10)) {
-                        break;
-                    }
-                } else if (row[colPosMasterItemType] === 'measure') {
-                    // A master measure should be created based on the current row
-
-                    // Format used when Qlik's web client creates a new measure:'
-                    // {
-                    //     "qInfo": {
-                    //         "qType": "measure",
-                    //         "qId": "sCNnDvj"
-                    //     },
-                    //     "qMetaDef": {
-                    //         "title": "DefName",
-                    //         "description": "DefDescr",
-                    //         "tags": [
-                    //             "Tag1",
-                    //             "Tag2"
-                    //         ]
-                    //     },
-                    //     "qMeasure": {
-                    //         "qLabel": "DefName",
-                    //         "qDef": "'DefExpr'",
-                    //         "qLabelExpression": "'DefLabelExpr'",
-                    //         "isCustomFormatted": false,
-                    //         "qNumFormat": {
-                    //             "qType": "D",
-                    //             "qnDec": 2,
-                    //             "qDec": "",
-                    //             "qThou": "",
-                    //             "qFmt": "YYYY-MM-DD"
-                    //         },
-                    //         "coloring": {
-                    //             "baseColor": {
-                    //                 "color": "#8a85c6",
-                    //                 "index": 8
-                    //             },
-                    //             "gradient": {
-                    //                 "colors": [
-                    //                     {
-                    //                         "color": "#006580",
-                    //                         "index": 6
-                    //                     },
-                    //                     {
-                    //                         "color": "#C4CFDA",
-                    //                         "index": -1
-                    //                     },
-                    //                     {
-                    //                         "color": "#4477aa",
-                    //                         "index": -1
-                    //                     },
-                    //                     {
-                    //                         "color": "#7db8da",
-                    //                         "index": -1
-                    //                     }
-                    //                 ],
-                    //                 "breakTypes": [
-                    //                     false,
-                    //                     false,
-                    //                     true
-                    //                 ],
-                    //                 "limits": [
-                    //                     0.25,
-                    //                     0.433,
-                    //                     0.683
-                    //                 ],
-                    //                 "limitType": "percent"
-                    //             }
-                    //         }
-                    //     }
-                    // }
-
-                    // Data that should be written to new measure
-                    const measureData = {
-                        qInfo: {
-                            qType: 'measure',
-                        },
-                        qMetaDef: {
-                            title: row[colPosMasterItemName],
-                            description: row[colPosMasterItemDescr],
-                            tags: row[colPosMasterItemTag] ? row[colPosMasterItemTag].split(',') : '',
-                            // owner: {
-                            //   userId: options.authUserId,
-                            //   userDirectory: options.authUserDir,
-                            // },
-                        },
-                        qMeasure: {
-                            qLabel: row[colPosMasterItemLabel],
-                            // qGrouping: 'N',
-                            qDef: row[colPosMasterItemExpr],
-                            qLabelExpression: row[colPosMasterItemLabel],
-                            // qExpressions: [],
-                            // qActiveExpression: 0,
-                            // row[parseInt(options.columnlabel, 10)].substring(0, 1) === '='
-                            //     ? row[parseInt(options.columnlabel, 10)]
-                            //     : `'${row[parseInt(options.columnlabel, 10)]}'`,
-                            coloring: {},
-                        },
-                    };
-
-                    // Is there any segment color data for this row?
-                    let newSegmentColors = null;
-                    if (row[colPosMasterItemPerValueColor]?.length > 0) {
-                        const cleanColorString = row[colPosMasterItemPerValueColor].replace('\r', '').replace('\n', '');
-                        newSegmentColors = JSON.parse(`${cleanColorString}`);
-                        logger.debug(`Color map loaded from Excel file: ${JSON.stringify(newSegmentColors)}`);
-                    }
-
-                    // Is there any measure color data for this row?
-                    let newMeasureColor = null;
-                    if (row[colPosMasterItemColor]?.length > 0) {
-                        const cleanColorString = row[colPosMasterItemColor].replace('\r', '').replace('\n', '');
-                        newMeasureColor = JSON.parse(`${cleanColorString}`);
-                        logger.debug(`Dimension color loaded from Excel file: ${JSON.stringify(newMeasureColor)}`);
-                    }
-
-                    // Test if a master measure with the given title already exists.
-                    // If it does, update it rather than creating a new one.
-                    const existingItem = measuresLayout.qMeasureList.qItems.find((item) => item.qMeta.title === row[colPosMasterItemName]);
-                    if (existingItem) {
-                        // An existing master measure has same name as the one being created.
-
-                        logger.verbose(`Updating existing measure "${measureData.qMetaDef.title}"`);
-                        logger.debug(`Measure data: ${JSON.stringify(measureData, null, 2)}`);
-
-                        // Get existing measure (that should be updated)
-                        const existingMeasureModel = await app.getMeasure(existingItem.qInfo.qId);
-                        const existingMeasureLayout = await existingMeasureModel.getLayout();
-
-                        // Update measure with new info
-                        measureData.qInfo.qId = existingItem.qInfo.qId;
-
-                        // Do we have a measure color value?
-                        if (newMeasureColor) {
-                            // Use the measure color in the Excel file
-                            measureData.qMeasure.coloring.baseColor = newMeasureColor;
-                        } else if (existingMeasureLayout.qMeasure?.coloring?.baseColor) {
-                            // No new measure color, delete any existing one
-                            delete measureData.qMeasure.coloring.baseColor;
-                        }
-
-                        // Do we have new segment color data?
-                        if (newSegmentColors) {
-                            // Does existing measure already has segment color data?
-                            // If so update it rather than creating a new color map
-                            measureData.qMeasure.coloring.gradient = newSegmentColors;
-                        } else if (existingMeasureLayout.qMeasure?.coloring?.gradient) {
-                            // No new segment color, delete existing one
-                            delete measureData.qMeasure.coloring.gradient;
-                        }
-
-                        // Update existing measure with new data
-                        const res = await existingMeasureModel.setProperties(measureData);
-                        logger.info(`(${importCount}) Updated existing measure "${measureData.qMetaDef.title}"`);
-                    } else {
-                        // Create a new master measure in the app
-                        logger.verbose(`Creating new measure "${measureData.qMetaDef.title}"`);
-                        logger.debug(`Measure data: ${JSON.stringify(measureData, null, 2)}`);
-
-                        // Do we have a measure color value?
-                        if (newMeasureColor) {
-                            // Use the measure color in the Excel file
-                            measureData.qMeasure.coloring.baseColor = newMeasureColor;
-                        }
-
-                        // Do we have new segment color data?
-                        if (newSegmentColors) {
-                            // Use the measure segment color from the Excel file
-                            measureData.qMeasure.coloring.gradient = newSegmentColors;
-                        }
-
-                        // Add owner
-                        // measureData.qMetaDef.owner = {
-                        //     userId: options.authUserId,
-                        //     userDirectory: options.authUserDir,
-                        // };
-
-                        const newMeasureModel = await app.createMeasure(measureData);
-                        // logger.debug(`Measure model returned from Engine: ${JSON.stringify(newMeasureModel, null, 2)}`);
-
-                        // const newMeasureLayout = await newMeasureModel.getLayout();
-
-                        // Update the created measure with new data
-                        // const res = await newMeasureModel.setProperties(measureData);
-                        logger.info(`(${importCount}) Created new measure "${measureData.qMetaDef.title}"`);
-                    }
-
-                    importCount += 1;
-                    if (importCount === parseInt(options.limitImportCount, 10)) {
-                        break;
-                    }
-                } else {
-                    // Don't warn if it's the first line/header in the Excel file
-                    // eslint-disable-next-line no-lonely-if
-                    if (rowCount !== 0) {
-                        logger.warn(
-                            `Found an unknown master item type: "${row[colPosMasterItemType]}". Ignoring this line in the imported file.`
-                        );
-                    }
-                }
-                rowCount += 1;
-
-                if (options.sleepBetweenImports > 0) {
-                    logger.verbose(`Master item created/updated, sleeping for ${options.sleepBetweenImports} milliseconds`);
-                    await sleep(options.sleepBetweenImports);
-                }
-            }
-        }
-
-        logger.info(`Imported ${importCount} master items from Excel file ${options.file}`)
-
-        const resSave = await app.doSave();
-
+        // Close session
         if ((await session.close()) === true) {
-            logger.verbose(`Closed session after adding/updating master items in app ${options.appId} on host ${options.host}`);
+            logger.verbose(
+                `Closed session after reading list of existing master measure & dimensions in app ${options.appId} on host ${options.host}`
+            );
         } else {
             logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
         }
+
+        // Loop through rows in Excel file, extracting data for rows flagged as master items
+        // let importCount = 0;
+        if (sheet && sheet.data.length > 0) {
+            const res = await createMasterItems(
+                sheet.data,
+                options,
+                {
+                    colPosMasterItemType,
+                    colPosMasterItemName,
+                    colPosMasterItemDescr,
+                    colPosMasterItemLabel,
+                    colPosMasterItemExpr,
+                    colPosMasterItemTag,
+                    colPosMasterItemColor,
+                    colPosMasterItemPerValueColor,
+                },
+                measuresLayout.qMeasureList.qItems,
+                dimsLayout.qDimensionList.qItems
+            );
+        }
+
+        logger.info(`Imported ${importCount} master items from Excel file ${options.file}`);
+
+        // const resSave = await app.doSave();
+
+        // if ((await session.close()) === true) {
+        //     logger.verbose(`Closed session after adding/updating master items in app ${options.appId} on host ${options.host}`);
+        // } else {
+        //     logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+        // }
     } catch (err) {
         logger.error(err.stack);
     }
