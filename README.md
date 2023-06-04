@@ -197,6 +197,8 @@ Ctrl-Q can reference these certificates in two ways:
    1. The `--auth-root-cert-file` option refers to the certificate CA, and is optional to use. In most cases it's not needed.
 2. If the options above are *not* specified when Ctrl-Q is started, it will look for certificates in the `config` folder in the same folder as the Ctrl-Q executable. The certificate files must be named `client.pem`, `client_key.pem` and `root.pem`.
 
+The options `--auth-user-dir` and `-auth-user-id` are also needed to authenticate with Sense. They define which user will be used when interacting with both the engine and repository APIs.
+
 # Colors & formatting: Windows vs Windows Server vs macOS/Linux
 
 Some of the Ctrl-Q commands use colors and emojis to better communicate the information retrieved from Qlik Sense.  
@@ -1398,12 +1400,18 @@ Column names will in most cases be easier to read and understand, but sometimes 
 
 Similarly those `--col-master-item-...` options let you use your own column names in the source file.
 
-Notes on the example below:
+Notes on using the `master-item-import` command:
 
-- The (intentional) warning for the incorrectly spelled master item type "measur" (which should have been "measure", of course).
 - Master items are referred to by name. This means that if a master item in the source file already exists in the target Sense app, the app's master item will be updated.
 - If a master item *does not* exist in the target app the master item will be created.
 - If a master item *does* exist in the target app its content will be overwritten with the info in the source Excel file.
+- The structure of the Excel file is fairly flexible, but some restrictions apply:
+  - The columns can be named anything. Use the `--col-item-type` and `--col-master-item-...` columns to tell Ctrl-Q which columns contains what data.
+  - The first row in the Excel sheet must contain column headers if columns are referenced by name.
+
+Notes on the example below:
+
+- The (intentional) warning for the incorrectly spelled master item type "measur" (which should have been "measure", of course).
 
 Now let's run the command.  
 
