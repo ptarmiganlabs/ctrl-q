@@ -1,5 +1,28 @@
 # Changelog
 
+## [3.11.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.10.0...ctrl-q-v3.11.0) (2023-06-05)
+
+
+### Features
+
+* **master-item-dim-delete:** Add counter showing how many master dimensions have been deleted so far ([b081f2a](https://github.com/ptarmiganlabs/ctrl-q/commit/b081f2ac9b27728ea9a0f0464483bca2e3603836))
+* **master-item-import:** Add --dry-run option ([5bbd08a](https://github.com/ptarmiganlabs/ctrl-q/commit/5bbd08ae25c88c174992eb9c35ce2c788415dd9e)), closes [#270](https://github.com/ptarmiganlabs/ctrl-q/issues/270)
+* **master-item-import:** Add option for delay between master item imports ([b618d12](https://github.com/ptarmiganlabs/ctrl-q/commit/b618d12ce16a9db56a4245fd7c6949ecf0f0d7c4))
+* **master-item-import:** Add support for importing drill-down dimensions ([cc0a36f](https://github.com/ptarmiganlabs/ctrl-q/commit/cc0a36fd3ad9ffdc77bfc988e592d5700e33cec0)), closes [#272](https://github.com/ptarmiganlabs/ctrl-q/issues/272)
+* **master-item-import:** Show counter showing how many master items have been imported so far ([0dff114](https://github.com/ptarmiganlabs/ctrl-q/commit/0dff114160cfed7c1e7a677cfbbdde7032bc4cab))
+* **master-item-import:** Show info showing how many master items were imported in total ([0dff114](https://github.com/ptarmiganlabs/ctrl-q/commit/0dff114160cfed7c1e7a677cfbbdde7032bc4cab))
+* **master-item-measure-delete:** Add counter showing how many master measures have been deleted so far ([15768d5](https://github.com/ptarmiganlabs/ctrl-q/commit/15768d5d1376896b2680f41c1d511831006fa7bf))
+
+
+### Bug Fixes
+
+* Respect user dir/id passed as options when calling Qlik repository APIs ([6689847](https://github.com/ptarmiganlabs/ctrl-q/commit/6689847d2b5668c47b6c0c0d2cf6fe518ffeb963)), closes [#269](https://github.com/ptarmiganlabs/ctrl-q/issues/269)
+
+
+### Refactoring
+
+* **master-item-import:** Make master item import more robust ([4d76c3d](https://github.com/ptarmiganlabs/ctrl-q/commit/4d76c3d962258ff2ec2eb2fe62ed03f51df60cc6)), closes [#271](https://github.com/ptarmiganlabs/ctrl-q/issues/271)
+
 ## [3.10.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.9.1...ctrl-q-v3.10.0) (2023-05-25)
 
 
