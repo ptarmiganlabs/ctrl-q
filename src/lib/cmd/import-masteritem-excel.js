@@ -72,8 +72,8 @@ const createColorMap = async (app, colorMapId, newPerValueColorMap) => {
     const newColorMapObj = await app.getObject(`ColorMapModel_${colorMapId}`);
 
     // 6. Get layout of newly created color map object
-    const newColorMapLayout = await newGenericColorMapRefModel.getLayout();
-    // const a1 = await newGenericColorMapRefModel.getLayout();
+    const newColorMapLayout = await newColorMapObj.getLayout();
+    logger.silly(`newColorMapLayout: ${JSON.stringify(newColorMapLayout, null, 2)}`);
 
     return colorMapId;
 };
@@ -153,8 +153,8 @@ const createDimension = async (options, app, dimensionDefRow, colPos, newPerValu
     // dimensionData.qMetaDef.title = `${importCount}: ${dimensionDefRow[colPos.colPosMasterItemName]}`;
 
     const newDimensionModel = await app.createDimension(dimensionData);
-
     const newDimensionLayout = await newDimensionModel.getLayout();
+    logger.silly(`New dimension layout: ${JSON.stringify(newDimensionLayout, null, 2)}`);
 
     // Do we have any per-value color data for this row?
     if (newPerValueColorMap) {
@@ -283,6 +283,118 @@ const updateDimension = async (
 
     importCount += 1;
     logger.info(`(${importCount}/${importLimit}) Updated existing dimension "${dimensionData.qMetaDef.title}"`);
+
+    // Get layout of updated dimension
+    const updatedDimensionModel = await app.getDimension(existingDimension.qInfo.qId);
+    const updatedDimensionLayout = updatedDimensionModel.getLayout();
+
+    return updatedDimensionLayout;
+};
+
+// Function to create new master drill-down dimension
+const createDrillDownDimension = async (options, app, dimensionDefRow, colPos, newDimensionColor, importLimit) => {
+    // Create a new master drill-down dimension in the app
+    const dimensionData = {
+        qInfo: {
+            qType: 'dimension',
+            qId: uuidCreate(),
+        },
+        qMetaDef: {
+            title: dimensionDefRow[colPos.colPosMasterItemName],
+            description: dimensionDefRow[colPos.colPosMasterItemDescr],
+            tags: dimensionDefRow[colPos.colPosMasterItemTag] ? dimensionDefRow[colPos.colPosMasterItemTag].split(',') : '',
+            // owner: {
+            //   userId: options.authUserId,
+            //   userDirectory: options.authUserDir,
+            // },
+        },
+        qDim: {
+            qGrouping: 'H',
+            qFieldDefs: dimensionDefRow[colPos.colPosMasterItemExpr] ? dimensionDefRow[colPos.colPosMasterItemExpr].split(',') : '',
+            title: dimensionDefRow[colPos.colPosMasterItemName],
+            coloring: {},
+            qFieldLabels: [],
+        },
+    };
+
+    logger.verbose(`Creating new drill-down dimension "${dimensionData.qMetaDef.title}"`);
+    logger.debug(`Measure data: ${JSON.stringify(dimensionData, null, 2)}`);
+
+    // Debug: Add import count to dimension title
+    // dimensionData.qMetaDef.title = `${importCount}: ${dimensionDefRow[colPos.colPosMasterItemName]}`;
+
+    const newDimensionModel = await app.createDimension(dimensionData);
+    const newDimensionLayout = await newDimensionModel.getLayout();
+    logger.silly(`New dimension layout: ${JSON.stringify(newDimensionLayout, null, 2)}`);
+
+    // Do we have a dimension color value?
+    if (newDimensionColor) {
+        // Use the dimension color in the Excel file
+        dimensionData.qDim.coloring.baseColor = newDimensionColor.baseColor;
+        dimensionData.qDim.coloring.hasValueColors = false;
+    }
+
+    // Set properties of created drill-down dimension
+    const res = await newDimensionModel.setProperties(dimensionData);
+
+    importCount += 1;
+    logger.info(`(${importCount}/${importLimit}) Created new drill-down dimension "${dimensionData.qMetaDef.title}"`);
+
+    // Get layout of created dimension
+    const updatedDimensionModel = await app.getDimension(dimensionData.qInfo.qId);
+    const updatedDimensionLayout = updatedDimensionModel.getLayout();
+
+    return updatedDimensionLayout;
+};
+
+// Function to update an existing master drill-down dimension in the app
+const updateDrillDownDimension = async (options, existingDimension, app, dimensionDefRow, colPos, newDimensionColor, importLimit) => {
+    const dimensionData = {
+        qInfo: {
+            qType: 'dimension',
+        },
+        qMetaDef: {
+            title: dimensionDefRow[colPos.colPosMasterItemName],
+            description: dimensionDefRow[colPos.colPosMasterItemDescr],
+            tags: dimensionDefRow[colPos.colPosMasterItemTag] ? dimensionDefRow[colPos.colPosMasterItemTag].split(',') : '',
+        },
+        qDim: {
+            qGrouping: 'H',
+            qFieldDefs: dimensionDefRow[colPos.colPosMasterItemExpr] ? dimensionDefRow[colPos.colPosMasterItemExpr].split(',') : '',
+            title: dimensionDefRow[colPos.colPosMasterItemName],
+            coloring: {},
+            qFieldLabels: [],
+        },
+    };
+
+    logger.verbose(`Updating existing drill-down dimension "${existingDimension.qMeta.title}"`);
+    logger.debug(`Dimension data for existing drill-down dimension: ${JSON.stringify(existingDimension, null, 2)}`);
+
+    // Get existing drill-down dimension that should be updated
+    const existingDimensionModel = await app.getDimension(existingDimension.qInfo.qId);
+    const existingDimensionLayout = await existingDimensionModel.getLayout();
+
+    // Update dimension with ID of existing dimension
+    dimensionData.qInfo.qId = existingDimension.qInfo.qId;
+
+    // Do we have a new dimension color value?
+    if (newDimensionColor) {
+        // Use the color provided in the Excel file
+        dimensionData.qDim.coloring.baseColor = newDimensionColor.baseColor;
+        dimensionData.qDim.coloring.hasValueColors = true;
+    } else if (existingDimensionLayout.qDim?.coloring?.baseColor) {
+        // No new dimension color, delete any existing ones
+        delete dimensionData.qDim.coloring.baseColor;
+
+        // Use dimension's existing color, if there is one
+        // dimSingleData.qDim.coloring.baseColor = existingDimLayout.qDim.coloring.baseColor;
+    }
+
+    // Set properties of existing drill-down dimension
+    const res = await existingDimensionModel.setProperties(dimensionData);
+
+    importCount += 1;
+    logger.info(`(${importCount}/${importLimit}) Updated existing drill-down dimension "${dimensionData.qMetaDef.title}"`);
 
     // Get layout of updated dimension
     const updatedDimensionModel = await app.getDimension(existingDimension.qInfo.qId);
@@ -609,6 +721,7 @@ const createMasterItems = async (masterItemDefs, options, colPos, existingMeasur
 
     // Remove header row
     const headerRow = masterItemDefinitions.splice(0, 1)[0];
+    logger.silly(`Header row: ${JSON.stringify(headerRow)}`);
 
     // Remove any empty rows
     masterItemDefinitions.forEach((row, index) => {
@@ -721,8 +834,53 @@ const createMasterItems = async (masterItemDefs, options, colPos, existingMeasur
                         await createDimension(options, app, masterItemDefRow, colPos, newPerValueColorMap, newDimColor, importLimit);
                     }
                 }
+            } else if (masterItemDefRow[colPos.colPosMasterItemType] === 'dim-drilldown') {
+                // A master drill-down dimension should be created based on the current row
 
-                // masterItemPromises.push(createDimension(measureDef));
+                // eslint-disable-next-line no-param-reassign
+                masterItemDefRow = validateMasterDimensionFields(masterItemDefRow, colPos);
+
+                // Is there any dimension color data for this row?
+                let newDimColor = null;
+                if (masterItemDefRow[colPos.colPosMasterItemColor]?.length > 0) {
+                    const cleanColorString = masterItemDefRow[colPos.colPosMasterItemColor].replace('\r', '').replace('\n', '');
+                    newDimColor = JSON.parse(`${cleanColorString}`);
+                    logger.debug(`Dimension color loaded from Excel file: ${JSON.stringify(newDimColor)}`);
+                }
+
+                // Test if a master drill-down dimension with the given title already exists.
+                // If it does, update it rather than creating a new one.
+                const existingItem = existingDimensions.find((item) => item.qMeta.title === masterItemDefRow[colPos.colPosMasterItemName]);
+                if (existingItem) {
+                    // An existing master drill-down dimension has same name as the one being created.
+
+                    // Is it a dry run?
+                    if (options.dryRun) {
+                        importCount += 1;
+                        logger.info(
+                            `(${importCount}/${importLimit}) Dry run: Would have updated existing drill-down dimension "${
+                                masterItemDefRow[colPos.colPosMasterItemName]
+                            }"`
+                        );
+                    } else {
+                        await updateDrillDownDimension(options, existingItem, app, masterItemDefRow, colPos, newDimColor, importLimit);
+                    }
+                } else {
+                    // A new master drill-down dimension should be created based on the current row
+
+                    // Is it a dry run?
+                    // eslint-disable-next-line no-lonely-if
+                    if (options.dryRun) {
+                        importCount += 1;
+                        logger.info(
+                            `(${importCount}/${importLimit}) Dry run: Would have created new drill-down dimension "${
+                                masterItemDefRow[colPos.colPosMasterItemName]
+                            }"`
+                        );
+                    } else {
+                        await createDrillDownDimension(options, app, masterItemDefRow, colPos, newDimColor, importLimit);
+                    }
+                }
             } else if (masterItemDefRow[colPos.colPosMasterItemType] === 'measure') {
                 // A master measure should be created or updated based on the current row
 
