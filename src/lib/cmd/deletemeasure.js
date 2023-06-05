@@ -3,6 +3,9 @@ const enigma = require('enigma.js');
 const { setupEnigmaConnection } = require('../util/enigma');
 const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
 
+// Variable to keep track of how many measures have been deleted
+let deleteCount = 0;
+
 /**
  *
  * @param {*} options
@@ -100,7 +103,10 @@ const deleteMasterMeasure = async (options) => {
                     if (res !== true) {
                         logger.error(`Failed deleting measure "${item.qMeta.title}", id=${item.qInfo.qId} in app "${item.qInfo.qId}"`);
                     } else {
-                        logger.info(`Deleted master item measure "${item.qMeta.title}", id=${item.qInfo.qId} in app "${options.appId}"`);
+                        deleteCount += 1;
+                        logger.info(
+                            `(${deleteCount}/${deleteMasterItems.length}) Deleted master item measure "${item.qMeta.title}", id=${item.qInfo.qId} in app "${options.appId}"`
+                        );
                     }
                 } else {
                     logger.info(`DRY RUN: Delete of master item measure "${item.qMeta.title}", id=${item.qInfo.qId} would happen here`);

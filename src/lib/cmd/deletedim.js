@@ -3,6 +3,9 @@ const enigma = require('enigma.js');
 const { setupEnigmaConnection } = require('../util/enigma');
 const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
 
+// Variable to keep track of how many dimensions have been deleted
+let deleteCount = 0;
+
 /**
  *
  * @param {*} options
@@ -72,7 +75,7 @@ const deleteMasterDimension = async (options) => {
                 if (options.idType === 'name') {
                     const items = dimObj.qDimensionList.qItems.filter((item) => item.qMeta.title === masterItem);
                     if (items.length > 0) {
-                        // We've found the measure that's to be retrieved.
+                        // We've found the dimension that's to be retrieved.
                         deleteMasterItems = deleteMasterItems.concat(items);
                     } else {
                         logger.warn(`Master item dimension "${masterItem}" not found`);
@@ -80,7 +83,7 @@ const deleteMasterDimension = async (options) => {
                 } else if (options.idType === 'id') {
                     const items = dimObj.qDimensionList.qItems.filter((item) => item.qInfo.qId === masterItem);
                     if (items.length > 0) {
-                        // We've found the measure that's to be retrieved.
+                        // We've found the dimension that's to be retrieved.
                         deleteMasterItems = deleteMasterItems.concat(items);
                     } else {
                         logger.warn(`Master item dimension "${masterItem}" not found`);
@@ -91,7 +94,7 @@ const deleteMasterDimension = async (options) => {
             }
         }
 
-        logger.debug(`Master item measures to be deleted: ${JSON.stringify(deleteMasterItems)}`);
+        logger.debug(`Master item dimensions to be deleted: ${JSON.stringify(deleteMasterItems)}`);
 
         if (deleteMasterItems.length === 0) {
             logger.warn(`No matching master item dimensions found`);
@@ -104,7 +107,10 @@ const deleteMasterDimension = async (options) => {
                     if (res !== true) {
                         logger.error(`Failed deleting dimension "${item.qMeta.title}", id=${item.qInfo.qId} in app "${item.qInfo.qId}"`);
                     } else {
-                        logger.info(`Deleted master item dimension "${item.qMeta.title}", id=${item.qInfo.qId} in app "${options.appId}"`);
+                        deleteCount += 1;
+                        logger.info(
+                            `(${deleteCount}/${deleteMasterItems.length}) Deleted master item dimension "${item.qMeta.title}", id=${item.qInfo.qId} in app "${options.appId}"`
+                        );
                     }
                 } else {
                     logger.info(`DRY RUN: Delete of master item dimension "${item.qMeta.title}", id=${item.qInfo.qId} would happen here`);
