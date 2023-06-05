@@ -163,7 +163,7 @@ const program = new Command();
         )
         .requiredOption(
             '--col-item-type <column position or name>',
-            'column where dim/measure flag is found. Use "dim-single" in that column to create master dimension, "measure" for master measure',
+            'column where dim/measure flag is found. Use "dim-single" in that column to create dimension, "dim-drilldown" for drill-down dimension, "measure" for measure',
             'Master item type'
         )
         .requiredOption('--col-master-item-name <column position or name>', 'column number (zero based) or name to use as master item name', 'Master item name')
