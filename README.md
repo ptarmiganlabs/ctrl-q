@@ -105,7 +105,7 @@ Enjoy!
     - [Export apps to QVF files](#export-apps-to-qvf-files)
   - [Import](#import)
     - [Import master items from Excel file](#import-master-items-from-excel-file)
-    - [Import apps from QVF files](#import-apps-from-qvf-files)
+      - [How to get correct color JSONs](#how-to-get-correct-color-jsons)
     - [Import reload tasks from file](#import-reload-tasks-from-file)
       - [Source file columns for task defintions](#source-file-columns-for-task-defintions)
       - [Source file columns for app import definitions](#source-file-columns-for-app-import-definitions)
@@ -461,23 +461,23 @@ Adapt as needed for macOS, Linux and NodeJS.
 ```
 
 ```
-2023-05-09T20:12:42.902Z info: -----------------------------------------------------------
-2023-05-09T20:12:42.902Z info: | Ctrl-Q
-2023-05-09T20:12:42.902Z info: |
-2023-05-09T20:12:42.902Z info: | Version      : 3.9.0
-2023-05-09T20:12:42.902Z info: | Log level    : info
-2023-05-09T20:12:42.902Z info: |
-2023-05-09T20:12:42.902Z info: | Command      : master-item-measure-delete
-2023-05-09T20:12:42.902Z info: |              : delete master measure(s)
-2023-05-09T20:12:42.902Z info: |
-2023-05-09T20:12:42.902Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T20:12:42.902Z info: |
-2023-05-09T20:12:42.902Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T20:12:42.902Z info: ----------------------------------------------------------
-2023-05-09T20:12:42.902Z info:
-2023-05-09T20:12:42.902Z info: Delete master measures
-2023-05-09T20:12:43.292Z info: Deleted master item measure "Revenue EUR", id=22ad7b77-21ad-4e0a-bc1a-dd8e3bd9a68f in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
-2023-05-09T20:12:43.292Z info: Deleted master item measure "Profit EUR (LY)", id=1c02b9a7-c530-4326-805e-91eba983fecb in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+2023-06-06T00:51:51.425Z info: -----------------------------------------------------------
+2023-06-06T00:51:51.425Z info: | Ctrl-Q
+2023-06-06T00:51:51.425Z info: |
+2023-06-06T00:51:51.425Z info: | Version      : 3.11.0
+2023-06-06T00:51:51.425Z info: | Log level    : info
+2023-06-06T00:51:51.425Z info: |
+2023-06-06T00:51:51.425Z info: | Command      : master-item-measure-delete
+2023-06-06T00:51:51.425Z info: |              : delete master measure(s)
+2023-06-06T00:51:51.425Z info: |
+2023-06-06T00:51:51.425Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-06-06T00:51:51.425Z info: |
+2023-06-06T00:51:51.425Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-06-06T00:51:51.425Z info: ----------------------------------------------------------
+2023-06-06T00:51:51.425Z info:
+2023-06-06T00:51:51.441Z info: Delete master measures
+2023-06-06T00:51:51.878Z info: (1/2) Deleted master item measure "Revenue EUR", id=d0973ebb-0d36-461d-aedd-9c1da07af5f8 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+2023-06-06T00:51:51.878Z info: (2/2) Deleted master item measure "Profit EUR (LY)", id=d57c692d-3789-422e-9951-f6a21eb5f896 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
 ```
 
 ## Dimensions
@@ -557,23 +557,23 @@ Adapt as needed for macOS, Linux and NodeJS.
 ```
 
 ```
-2023-05-09T20:14:12.589Z info: -----------------------------------------------------------
-2023-05-09T20:14:12.606Z info: | Ctrl-Q
-2023-05-09T20:14:12.606Z info: |
-2023-05-09T20:14:12.606Z info: | Version      : 3.9.0
-2023-05-09T20:14:12.606Z info: | Log level    : info
-2023-05-09T20:14:12.606Z info: |
-2023-05-09T20:14:12.606Z info: | Command      : master-item-dim-delete
-2023-05-09T20:14:12.606Z info: |              : delete master dimension(s)
-2023-05-09T20:14:12.606Z info: |
-2023-05-09T20:14:12.606Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T20:14:12.606Z info: |
-2023-05-09T20:14:12.606Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T20:14:12.606Z info: ----------------------------------------------------------
-2023-05-09T20:14:12.606Z info:
-2023-05-09T20:14:12.606Z info: Delete master dimensions
-2023-05-09T20:14:12.981Z info: Deleted master item dimension "Country", id=6cc80b6d-d34b-4188-8e5e-cb0940a21c38 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
-2023-05-09T20:14:12.981Z info: Deleted master item dimension "Sales month", id=b5c1c8d4-6f41-4ff9-994f-be7834fdb255 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+2023-06-05T14:57:36.042Z info: -----------------------------------------------------------
+2023-06-05T14:57:36.042Z info: | Ctrl-Q
+2023-06-05T14:57:36.042Z info: |
+2023-06-05T14:57:36.042Z info: | Version      : 3.11.0
+2023-06-05T14:57:36.042Z info: | Log level    : info
+2023-06-05T14:57:36.042Z info: |
+2023-06-05T14:57:36.042Z info: | Command      : master-item-dim-delete
+2023-06-05T14:57:36.058Z info: |              : delete master dimension(s)
+2023-06-05T14:57:36.058Z info: |
+2023-06-05T14:57:36.058Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-06-05T14:57:36.058Z info: |
+2023-06-05T14:57:36.058Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-06-05T14:57:36.058Z info: ----------------------------------------------------------
+2023-06-05T14:57:36.058Z info:
+2023-06-05T14:57:36.058Z info: Delete master dimensions
+2023-06-05T14:57:36.574Z info: (1/2) Deleted master item dimension "Country", id=66abfa88-9393-4524-a4b6-55b0904326d2 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+2023-06-05T14:57:36.574Z info: (2/2) Deleted master item dimension "Sales month", id=be3e3125-69f8-4c84-afac-ecd815adf537 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
 ```
 
 ## Variables
@@ -1351,7 +1351,10 @@ App import will however work just fine if there is an "App id" column present, i
 
 ### Import master items from Excel file
 
-This command imports dimensions and measures into master items in a Sense app.
+This command imports dimensions and measures defined in an Excel file into master items in a Sense app.
+
+Both single and drill-down dimensions can be created (i.e. the same types that can be created using the Sense web UI), as well as measures.  
+The same coloring options are available as in the web UI for both dimensions and measures.
 
 First let's take a look at the command options:
 
@@ -1382,7 +1385,8 @@ Options:
   --file <filename>                                            file containing master item definitions
   --sheet <name>                                               name of Excel sheet where dim/measure flag column is found
   --col-ref-by <reftype>                                       how to refer to columns in the source file. Options are by name or by position (zero based) (choices: "name", "position", default: "name")
-  --col-item-type <column position or name>                    column where dim/measure flag is found. Use "dim-single" in that column to create master dimension, "measure" for master measure (default: "Master item type")
+  --col-item-type <column position or name>                    column where dim/measure flag is found. Use "dim-single" in that column to create dimension, "dim-drilldown" for drill-down dimension, "measure" for
+                                                               measure (default: "Master item type")
   --col-master-item-name <column position or name>             column number (zero based) or name to use as master item name (default: "Master item name")
   --col-master-item-descr <column position or name>            column number (zero based) or name to use as master item description (default: "Description")
   --col-master-item-label <column position or name>            column number (zero based) or name to use as master item label (default: "Label")
@@ -1390,7 +1394,9 @@ Options:
   --col-master-item-tag <column position or name>              column number (zero based) or name to use as master item tags (default: "Tag")
   --col-master-item-color <column position or name>            column number (zero based) or name to use as color for dimensions/measures (default: "Color")
   --col-master-item-per-value-color <column position or name>  column number (zero based) or name to use as per-value/segment color for dimensions/measures (default: "Per value color")
+  --sleep-between-imports <milliseconds>                       sleep this many milliseconds between imports. Set to 0 to disable (default: 1000)
   --limit-import-count <number>                                import at most x number of master items from the Excel file. Defaults to 0 = no limit (default: 0)
+  --dry-run                                                    do a dry run, i.e. do not create or update anything - just show what would be done
   -h, --help                                                   display help for command
 ```
 
@@ -1399,6 +1405,16 @@ For example, the `--col-ref-by` option determines whether the `--col-master-item
 Column names will in most cases be easier to read and understand, but sometimes a zero-based column position might be preferred.
 
 Similarly those `--col-master-item-...` options let you use your own column names in the source file.
+
+By adding the `--help` option when running Ctrl-Q you get a list of all available options for the `master-item-import` command.  
+`--help` can be added to any Ctrl-Q command, even if there are already other options on the command line.
+
+Some other options that might be useful:
+
+- `--dry-run`- Don't actually create or update any master items, just show what would have been done.
+- `--limit-import-count` - Only import the first N master items from the file. Useful for testing.
+- `--sleep-between-imports` - Pause for N milliseconds between each imported master item. Useful for decreasing the load on the Sense server.
+
 
 Notes on using the `master-item-import` command:
 
@@ -1437,35 +1453,127 @@ Now let's run the command.
 ```
 
 ```
-2023-05-09T18:48:42.047Z info: -----------------------------------------------------------
-2023-05-09T18:48:42.047Z info: | Ctrl-Q
-2023-05-09T18:48:42.047Z info: |
-2023-05-09T18:48:42.047Z info: | Version      : 3.9.0
-2023-05-09T18:48:42.047Z info: | Log level    : info
-2023-05-09T18:48:42.047Z info: |
-2023-05-09T18:48:42.047Z info: | Command      : master-item-import
-2023-05-09T18:48:42.047Z info: |              : create master items based on definitions in a file on disk
-2023-05-09T18:48:42.047Z info: |
-2023-05-09T18:48:42.047Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T18:48:42.047Z info: |
-2023-05-09T18:48:42.047Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T18:48:42.047Z info: ----------------------------------------------------------
-2023-05-09T18:48:42.047Z info:
-2023-05-09T18:48:42.047Z info: Import master items from definitions in Excel file "./ctrl-q-master-items.xlsx"
-2023-05-09T18:48:42.516Z info: Created new measure "No. of sold units"
-2023-05-09T18:48:42.531Z info: Updated existing measure "No. of sold units (LY)"
-2023-05-09T18:48:42.547Z info: Updated existing measure "Revenue EUR"
-2023-05-09T18:48:42.547Z info: Updated existing measure "Revenue EUR (LY)"
-2023-05-09T18:48:42.594Z info: Created new measure "Profit EUR"
-2023-05-09T18:48:42.594Z warn: Found an unknown master item type: "measur". Ignoring this line in the imported file.
-2023-05-09T18:48:42.625Z info: Created new measure "Profit EUR (LY)"
-2023-05-09T18:48:42.719Z info: Created new dimension "Country"
-2023-05-09T18:48:42.766Z info: Created new dimension "Sales month"
-2023-05-09T18:48:42.797Z info: Updated existing dimension "Salesperson"
-2023-05-09T18:48:42.812Z info: Updated existing dimension "Color"
+2023-06-06T00:55:26.225Z info: -----------------------------------------------------------
+2023-06-06T00:55:26.225Z info: | Ctrl-Q
+2023-06-06T00:55:26.225Z info: |
+2023-06-06T00:55:26.225Z info: | Version      : 3.11.0
+2023-06-06T00:55:26.225Z info: | Log level    : info
+2023-06-06T00:55:26.225Z info: |
+2023-06-06T00:55:26.225Z info: | Command      : master-item-import
+2023-06-06T00:55:26.225Z info: |              : create master items based on definitions in a file on disk
+2023-06-06T00:55:26.225Z info: |
+2023-06-06T00:55:26.225Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-06-06T00:55:26.225Z info: |
+2023-06-06T00:55:26.240Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-06-06T00:55:26.240Z info: ----------------------------------------------------------
+2023-06-06T00:55:26.240Z info:
+2023-06-06T00:55:26.240Z info: Import master items from definitions in Excel file "./ctrl-q-master-items.xlsx"
+2023-06-06T00:55:27.335Z info: (1/12) Updated existing measure "No. of sold units"
+2023-06-06T00:55:28.366Z info: (2/12) Updated existing measure "No. of sold units (LY)"
+2023-06-06T00:55:29.398Z info: (3/12) Created new measure "Revenue EUR"
+2023-06-06T00:55:30.413Z info: (4/12) Updated existing measure "Revenue EUR (LY)"
+2023-06-06T00:55:31.428Z info: (5/12) Updated existing measure "Profit EUR"
+2023-06-06T00:55:32.443Z warn: (6/12) Found an unknown master item type: "measur". Ignoring this line in the imported file.
+2023-06-06T00:55:33.459Z info: (7/12) Created new measure "Profit EUR (LY)"
+2023-06-06T00:55:34.506Z info: (8/12) Updated existing dimension "Country"
+2023-06-06T00:55:35.522Z info: (9/12) Updated existing dimension "Sales month"
+2023-06-06T00:55:36.553Z info: (10/12) Updated existing dimension "Salesperson"
+2023-06-06T00:55:38.115Z info: (11/12) Updated existing dimension "Color"
+2023-06-06T00:55:39.131Z info: (12/12) Updated existing drill-down dimension "DimDrill"
+2023-06-06T00:55:40.147Z info: Imported 12 master items from Excel file ./ctrl-q-master-items.xlsx
 ```
 
-> NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/testdata/ctrl-q-master-items.xlsx?raw=true).
+> NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/testdata/ctrl-q-master-items.xlsx?raw=true). That file contains examples of most combinations of master item types and properties.
+
+#### How to get correct color JSONs
+
+If colors are to be associated with master items, the colors must be specified in JSON format, in the correct columns in the Excel file.
+
+The easiest way to get the correct JSONs is to create a master item in the Sense web UI, set the master item's color, and then use Ctrl-Q's `master-item-dim-get` and `master-item-measure-get` commands to view the master item(s), either as a table or as JSON.  
+This will show you what the structure of the JSON looks like, or even provide you with the correct JSON if you entered the desired color info in the Sense web UI.
+
+Different master item types have different coloring options:
+
+- Drill-down dimensions
+  - A general dimension color set in the Excel file's column specified by the `--col-master-item-color` option.
+- Single dimensions
+  - A general dimension color set in the Excel file's column specified by the `--col-master-item-color` option.
+  - A per-value color that can be used to assign different colors to different values of the dimension. Set in the Excel file's column specified by the `--col-master-item-per-value-color` option.
+- Measures
+  - A general measure color set in the Excel file's column specified by the `--col-master-item-color` option.
+  - Segment colors that can be used to assign colors to value ranges of the measure. Set in the Excel file's column specified by the `--col-master-item-per-value-color` option.
+
+Let's look at some examples.
+
+Here we want to get the JSON for the color of the master dimension "Country".
+
+```powershell
+.\ctrl-q.exe master-item-dim-get `
+--host 192.168.100.109 `
+--auth-user-dir LAB `
+--auth-user-id goran `
+--app-id a3e0f5d2-000a-464f-998d-33d333b175d7 `
+--output-format table
+```
+
+The result will be a rather wide table, where the column named `Coloring` contains the color JSONs.  
+The color data for the "Country" dimension looks like this:
+
+```
+Dimension color:
+{"color":"#bbbbbb","index":-1}
+
+Value colors:
+{"colors":[{"value":"Afghanistan","baseColor":{"color":"#8a85c6","index":-1}},{"value":"Albania","ba
+seColor":{"color":"#aaaaaa","index":-1}},{"value":"Algeria","baseColor":{"color":"#a16090","index":9
+}}],"nul":{"color":"#c8c7a9","index":16},"oth":{"color":"#ffec6e","index":-1},"pal":null,"single":nu
+ll,"usePal":true,"autoFill":true}
+```
+
+Let's format those as proper JSONs to make them more readable.  
+These JSONs are what would go into the Excel file's `Color` and `Per-value color` columns.  
+
+> NOTE 1: If unsure about what data to put in some field, just use the ones returned by the `master-item-dim-get` command.  
+> NOTE 2: The same concept works for drill-down dimensions and measures.
+
+```json
+{
+  "color": "#bbbbbb",
+  "index": -1
+}
+````
+
+```json
+{
+  "colors": [
+    {
+      "value": "Afghanistan",
+      "baseColor": {
+        "color": "#8a85c6",
+        "index": -1
+      }
+    },
+    {
+      "value": "Albania","ba
+seColor":{"color":"#aaaaaa","index":-1}},{"value":"Algeria","baseColor":{"color":"#a16090","index":9
+    }
+  }
+],
+"nul": {
+  "color": "#c8c7a9",
+  "index": 16
+},
+"oth": {
+  "color": "#ffec6e",
+  "index": -1
+},
+"pal": null,
+"single":nu
+ll,
+"usePal": true,
+"autoFill": true
+}```
+
 
 ### Import apps from QVF files
 
