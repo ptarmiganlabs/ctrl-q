@@ -1415,7 +1415,6 @@ Some other options that might be useful:
 - `--limit-import-count` - Only import the first N master items from the file. Useful for testing.
 - `--sleep-between-imports` - Pause for N milliseconds between each imported master item. Useful for decreasing the load on the Sense server.
 
-
 Notes on using the `master-item-import` command:
 
 - Master items are referred to by name. This means that if a master item in the source file already exists in the target Sense app, the app's master item will be updated.
@@ -1424,7 +1423,12 @@ Notes on using the `master-item-import` command:
 - The structure of the Excel file is fairly flexible, but some restrictions apply:
   - The columns can be named anything. Use the `--col-item-type` and `--col-master-item-...` columns to tell Ctrl-Q which columns contains what data.
   - The first row in the Excel sheet must contain column headers if columns are referenced by name.
-
+- Master item names, descriptions and labels can contain *almost* any characters and there are some restrictions on the length of these strings.  
+  - See the [Qlik Sense help](https://help.qlik.com/en-US/sense/May2023/Subsystems/Hub/Content/Sense_Hub/Introduction/guidelines-visualizations-fields-naming.htm) for details.
+  - If a master item name or description is too long a warning will be shown and the text will be truncated to the max length allowed by Sense (see the link above).
+  - If a master item has more than 30 tags a warning will be shown and only the first 30 tags will be used.
+  - If a master item tag is longer than 31 characters a warning will be shown and the tag will be truncated to 31 characters.
+  - If a master item expression is too long an error will be shown and Ctrl-Q will exit.
 Notes on the example below:
 
 - The (intentional) warning for the incorrectly spelled master item type "measur" (which should have been "measure", of course).
