@@ -198,6 +198,7 @@ class QlikSenseApps {
                         appOwnerUserDirectory: appRow[0][appFileColumnHeaders.appOwnerUserDirectory.pos],
                         appOwnerUserId: appRow[0][appFileColumnHeaders.appOwnerUserId.pos],
                         appPublishToStream: appRow[0][appFileColumnHeaders.appPublishToStream.pos],
+                        appPublishToStreamOption: appRow[0][appFileColumnHeaders.appPublishToStreamOption.pos],
                     };
 
                     // Verify that QVF file exists and build a full path to it
@@ -398,13 +399,29 @@ class QlikSenseApps {
             const interceptorId = rax.attach(myAxiosInstance);
 
             // Upload QVF
-            const result = await myAxiosInstance.request(axiosConfig);
+            let result = await myAxiosInstance.request(axiosConfig);
             logger.verbose(`App upload done, sleeping for ${this.options.sleepAppUpload} milliseconds`);
             await sleep(this.options.sleepAppUpload);
 
             if (result.status === 201) {
                 logger.debug(`Import app from QVF file success, result from API:\n${JSON.stringify(result.data, null, 2)}`);
-                const app = JSON.parse(result.data);
+                const appUploaded = JSON.parse(result.data);
+
+                // Get info about just uploaded app
+                const axiosConfigUploadedApp = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: `/qrs/app/${appUploaded.id}`,
+                });
+
+                const appUploaded2 = await axios.request(axiosConfigUploadedApp);
+                if (appUploaded2.status !== 200) {
+                    logger.error(`Failed getting info about uploaded app from Sense: ${JSON.stringify(appUploaded2, null, 2)}`);
+                    process.exit(1);
+                }
+
+                const app = JSON.parse(appUploaded2.data);
 
                 // Add tags to imported app
                 app.tags = [...newApp.tags];
@@ -466,7 +483,7 @@ class QlikSenseApps {
 
                 const result2 = await axios.request(axiosConfig2);
                 if (result2.status === 200) {
-                    logger.debug(`Update of imported app wrt tags and custom properties successful`);
+                    logger.debug(`Update of imported app wrt tags, custom properties and owner was successful.`);
                 } else if (result2.status !== 200) {
                     logger.warn(
                         `Failed updating tags, custom properties, app owner on imported app ${newApp.name}, return code ${result2.status}.`
@@ -540,6 +557,13 @@ class QlikSenseApps {
 
                     // Do we know which stream to publish to? Publish if so!
                     if (streamGuid) {
+                        // Are there any publish options?
+                        if (newApp.appPublishOption?.length > 0) {
+                            // Yes, there are publish options
+                            logger.verbose('App publish options: ', newApp.appPublishOption);
+                        }
+
+
                         axiosConfigPublish = setupQRSConnection(this.options, {
                             method: 'put',
                             fileCert: this.fileCert,
