@@ -106,6 +106,7 @@ Enjoy!
   - [Import](#import)
     - [Import master items from Excel file](#import-master-items-from-excel-file)
       - [How to get correct color JSONs](#how-to-get-correct-color-jsons)
+    - [Import apps from QVF files](#import-apps-from-qvf-files)
     - [Import reload tasks from file](#import-reload-tasks-from-file)
       - [Source file columns for task defintions](#source-file-columns-for-task-defintions)
       - [Source file columns for app import definitions](#source-file-columns-for-app-import-definitions)
@@ -1558,8 +1559,7 @@ These JSONs are what would go into the Excel file's `Color` and `Per-value color
       }
     },
     {
-      "value": "Albania","ba
-seColor":{"color":"#aaaaaa","index":-1}},{"value":"Algeria","baseColor":{"color":"#a16090","index":9
+      "value": "Albania","baseColor":{"color":"#aaaaaa","index":-1}},{"value":"Algeria","baseColor":{"color":"#a16090","index":9
     }
   }
 ],
@@ -1576,7 +1576,8 @@ seColor":{"color":"#aaaaaa","index":-1}},{"value":"Algeria","baseColor":{"color"
 ll,
 "usePal": true,
 "autoFill": true
-}```
+}
+```
 
 
 ### Import apps from QVF files
