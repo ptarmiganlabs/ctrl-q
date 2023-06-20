@@ -7,7 +7,10 @@ const setupQRSConnection = (options, param) => {
     // Ensure valid http method
     if (
         !param.method ||
-        (param.method.toLowerCase() !== 'get' && param.method.toLowerCase() !== 'post' && param.method.toLowerCase() !== 'put')
+        (param.method.toLowerCase() !== 'get' &&
+            param.method.toLowerCase() !== 'post' &&
+            param.method.toLowerCase() !== 'put' &&
+            param.method.toLowerCase() !== 'delete')
     ) {
         logger.error(`Setting up connection to QRS. Invalid http method '${param.method}'. Exiting.`);
         process.exit(1);

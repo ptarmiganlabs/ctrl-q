@@ -211,6 +211,11 @@ const appImportAssertOptions = (options) => {
     //
 };
 
+// Assert that values in Excel sheet are valid
+const appImportAssertExcelSheet = (options) => {
+    //
+};
+
 // eslint-disable-next-line no-unused-vars
 const appExportAssertOptions = async (options) => {
     // Verify output directory exists
@@ -278,5 +283,6 @@ module.exports = {
     setTaskCustomPropertyAssertOptions,
     taskImportAssertOptions,
     appImportAssertOptions,
+    appImportAssertExcelSheet,
     appExportAssertOptions,
 };

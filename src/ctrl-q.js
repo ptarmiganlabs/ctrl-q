@@ -1,6 +1,6 @@
 const { Command, Option } = require('commander');
 
-const { logger, appVersion, setLoggingLevel } = require('./globals');
+const { logger, appVersion, setLoggingLevel, setCliOptions } = require('./globals');
 const { logStartupInfo } = require('./lib/util/log');
 
 // const { createUserActivityCustomProperty } = require('./lib/createuseractivitycp');
@@ -60,6 +60,9 @@ const program = new Command();
         )
         .hook('preAction', (thisCommand, actionCommand) => {
             const options = actionCommand.opts();
+
+            // Store CLI options in global variable
+            setCliOptions(options);
 
             // Set log level & show startup info
             setLoggingLevel(options.logLevel);

@@ -133,6 +133,7 @@ const appFileColumnHeaders = {
     appOwnerUserDirectory: { name: 'Owner user directory', pos: -1 },
     appOwnerUserId: { name: 'Owner user id', pos: -1 },
     appPublishToStream: { name: 'Publish to stream', pos: -1 },
+    appPublishToStreamOption: { name: 'Publish options', pos: -1 },
 };
 
 function getColumnPosFromHeaderRow(headerRow) {
@@ -208,6 +209,9 @@ function getAppColumnPosFromHeaderRow(headerRow) {
     );
     appFileColumnHeaders.appOwnerUserId.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appOwnerUserId.name);
     appFileColumnHeaders.appPublishToStream.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appPublishToStream.name);
+    appFileColumnHeaders.appPublishToStreamOption.pos = headerRow.findIndex(
+        (item) => item === appFileColumnHeaders.appPublishToStreamOption.name
+    );
 
     return appFileColumnHeaders;
 }

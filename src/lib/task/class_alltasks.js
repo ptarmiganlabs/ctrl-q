@@ -18,6 +18,8 @@ const { QlikSenseCompositeEvents } = require('./class_allcompositeevents');
 const { getTagIdByName } = require('../util/tag');
 const { getCustomPropertyIdByName } = require('../util/customproperties');
 const { taskExistById } = require('../util/task');
+const { getAppById } = require('../util/app');
+
 const internal = require('stream');
 
 class QlikSenseTasks {
@@ -114,6 +116,10 @@ class QlikSenseTasks {
                     })
                 );
 
+                logger.info('-------------------------------------------------------------------');
+                logger.info('Creating tasks...');
+
+
                 // Loop over all tasks in source file
                 for (let i = 1; i <= taskImportCount; i += 1) {
                     // Get all rows associated with this task
@@ -139,7 +145,7 @@ class QlikSenseTasks {
                             item[taskFileColumnHeaders.taskType.pos].trim().toLowerCase() === 'reload'
                     );
                     if (taskData?.length !== 1) {
-                        logger.error(`PARSE TASKS FROM FILE: Incorrect task input data:\n${JSON.stringify(taskRows, null, 2)}`);
+                        logger.error(`PARSE TASKS FROM FILE: Incorrect task input data:\n${JSON.stringify(taskRows)}`);
                         process.exit(1);
                     } else {
                         // Create task object using same structure as results from QRS API
@@ -148,7 +154,22 @@ class QlikSenseTasks {
                         // an app that's been imported as part of this Ctrl-Q execution.
                         let appId;
                         if (taskData[0][taskFileColumnHeaders.appId.pos].trim().substring(0, 7).toLowerCase() === 'newapp-') {
-                            appId = this.importedApps.appIdMap.get(taskData[0][taskFileColumnHeaders.appId.pos]);
+                            appId = this.importedApps.appIdMap.get(taskData[0][taskFileColumnHeaders.appId.pos].trim().toLowerCase());
+
+                            // Ensure the app exists
+                            // Reasons for the app not existing could be:
+                            // - The app was imported but has since been deleted or replaced. This could happen if the app-import step has several
+                            //   apps that are published-replaced or deleted-published to the same stream. In that case only the last published app will be present
+                            // eslint-disable-next-line no-await-in-loop
+                            const app = await getAppById(appId);
+
+                            if (!app) {
+                                logger.error(
+                                    `PARSE TASKS FROM FILE: App with ID ${appId} not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
+                                );
+                                process.exit(1);
+                            }
+
                         } else {
                             appId = taskData[0][taskFileColumnHeaders.appId.pos];
                         }

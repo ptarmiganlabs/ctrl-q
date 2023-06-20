@@ -77,13 +77,13 @@
       //   "excel",
         
       //   "--file-name",
-      //   // "tasks.xlsx",
+      //   "testdata/tasks.xlsx",
       //   "--sheet-name",
-      //   // "Ctrl-Q task export",
+      //   "Ctrl-Q task import 1",
 
       //   "--import-app",
       //   "--import-app-sheet-name",
-      //   // "App import",
+      //   "App import",
 
       //   // "--qvf-overwrite",
       //   // "no",
@@ -98,7 +98,7 @@
       // ]
 
       // ------------------------------------
-      // Import from CSV file
+      // Import tasks from CSV file
       // ------------------------------------
       // "args": [
       //   "task-import",
@@ -188,28 +188,28 @@
       // ------------------------------------
       // Import apps from Excel file
       // ------------------------------------
-      // "args": [
-      //   "app-import",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--auth-cert-file",
-      //   "./cert/client.pem",
-      //   "--auth-cert-key-file",
-      //   "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
+      "args": [
+        "app-import",
+        "--auth-type",
+        "cert",
+        "--host",
+        "192.168.100.109",
+        "--auth-cert-file",
+        "./cert/client.pem",
+        "--auth-cert-key-file",
+        "./cert/client_key.pem",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
 
-      //   // "--file-type",
-      //   // "excel",
+        // "--file-type",
+        // "excel",
         
-      //   "--file-name",
-      //   "testdata/tasks.xlsx",
-      //   "--sheet-name",
-      //   "App import",
+        "--file-name",
+        "testdata/tasks.xlsx",
+        "--sheet-name",
+        "App import",
 
       //   // "--limit-import-count",
       //   //  "2",
@@ -413,50 +413,50 @@
       // ------------------------------------
       // Import master items from Excel file, using column names
       // ------------------------------------
-      "args": [
-        "master-item-import",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        "--app-id",
-        "2933711d-6638-41d4-a2d2-6dd2d965208b",   // Ctrl-Q CLI app
-        // "a3e0f5d2-000a-464f-998d-33d333b175d7",   // Thumbnail demo app
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-        "--file-type",
-        "excel",
-        "--file",
-        "./testdata/ctrl-q-master-items.xlsx",
-        "--sheet",
-        "Sales",
-        "--col-ref-by",
-        "name",
-        "--col-item-type",
-        "Master item type",
-        "--col-master-item-name",
-        "Master Item Name",
-        "--col-master-item-descr",
-        "Description",
-        "--col-master-item-label",
-        "Label",
-        "--col-master-item-expr",
-        "Expression",
-        "--col-master-item-tag",
-        "Tag",
-        "--col-master-item-color",
-        "Color",
-        "--col-master-item-per-value-color",
-        "Per value color",
-        // "--sleep-between-imports",
-        // "1000",
-        // "--limit-import-count",
-        // "5",
-        "--log-level",
-        "info"
-      ]
+      // "args": [
+      //   "master-item-import",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--app-id",
+      //   "2933711d-6638-41d4-a2d2-6dd2d965208b",   // Ctrl-Q CLI app
+      //   // "a3e0f5d2-000a-464f-998d-33d333b175d7",   // Thumbnail demo app
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+      //   "--file-type",
+      //   "excel",
+      //   "--file",
+      //   "./testdata/ctrl-q-master-items.xlsx",
+      //   "--sheet",
+      //   "Sales",
+      //   "--col-ref-by",
+      //   "name",
+      //   "--col-item-type",
+      //   "Master item type",
+      //   "--col-master-item-name",
+      //   "Master Item Name",
+      //   "--col-master-item-descr",
+      //   "Description",
+      //   "--col-master-item-label",
+      //   "Label",
+      //   "--col-master-item-expr",
+      //   "Expression",
+      //   "--col-master-item-tag",
+      //   "Tag",
+      //   "--col-master-item-color",
+      //   "Color",
+      //   "--col-master-item-per-value-color",
+      //   "Per value color",
+      //   // "--sleep-between-imports",
+      //   // "1000",
+      //   // "--limit-import-count",
+      //   // "5",
+      //   "--log-level",
+      //   "info"
+      // ]
 
       // ------------------------------------
       //   Get measure

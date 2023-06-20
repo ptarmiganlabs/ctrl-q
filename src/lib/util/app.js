@@ -1,7 +1,7 @@
 const axios = require('axios');
 const path = require('path');
 
-const { logger, execPath } = require('../../globals');
+const { logger, execPath, getCliOptions } = require('../../globals');
 const { setupQRSConnection } = require('./qrs');
 
 async function getApps(options, idArray, tagArray) {
@@ -88,6 +88,89 @@ async function getApps(options, idArray, tagArray) {
     }
 }
 
+// Function to get app info from QRS, given app ID
+async function getAppById(appId) {
+    try {
+        logger.debug(`GET APP: Starting get app from QSEoW for app id ${appId}`);
+
+        // Get CLI options
+        const cliOptions = getCliOptions();
+
+        // Make sure certificates exist
+        const fileCert = path.resolve(execPath, cliOptions.authCertFile);
+        const fileCertKey = path.resolve(execPath, cliOptions.authCertKeyFile);
+
+        const axiosConfig = await setupQRSConnection(cliOptions, {
+            method: 'get',
+            fileCert,
+            fileCertKey,
+            path: `/qrs/app/${appId}`,
+        });
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`GET APP: Result=result.status`);
+
+        if (result.status === 200) {
+            const app = JSON.parse(result.data);
+            logger.verbose(`GET APP: ${JSON.stringify(app)}`);
+
+            return app;
+        }
+        return false;
+    } catch (err) {
+        logger.error(`GET APP: ${err}`);
+
+        // Show stack trace if available
+        if (err.stack) {
+            logger.error(`GET APP:\n  ${err.stack}`);
+        }
+
+        return false;
+    }
+}
+
+// Function to delete app given app ID
+async function deleteAppById(appId) {
+    try {
+        logger.debug(`DELETE APP: Starting delete app from QSEoW for app id ${appId}`);
+
+        // Get CLI options
+        const cliOptions = getCliOptions();
+
+        // Make sure certificates exist
+        const fileCert = path.resolve(execPath, cliOptions.authCertFile);
+        const fileCertKey = path.resolve(execPath, cliOptions.authCertKeyFile);
+
+        const axiosConfig = setupQRSConnection(cliOptions, {
+            method: 'delete',
+            fileCert,
+            fileCertKey,
+            path: `/qrs/app/${appId}`,
+        });
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`DELETE APP: Result=result.status`);
+
+        if (result.status !== 204) {
+            logger.error(`DELETE APP: Failed deleting app from QSEoW: ${JSON.stringify(result, null, 2)}. Aborting.`);
+            process.exit(1);
+        }
+
+        return true;
+    } catch (err) {
+        logger.error(`DELETE APP: ${err}`);
+
+        // Show stack trace if available
+        if (err.stack) {
+            logger.error(`DELETE APP:\n  ${err.stack}`);
+        }
+
+        return false;
+    }
+}
+
 module.exports = {
     getApps,
+    getAppById,
+    deleteAppById,
 };

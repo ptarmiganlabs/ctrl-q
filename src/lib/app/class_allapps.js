@@ -12,7 +12,10 @@ const { setupQRSConnection } = require('../util/qrs');
 const { getAppColumnPosFromHeaderRow } = require('../util/lookups');
 const { QlikSenseApp } = require('./class_app');
 const { getTagIdByName } = require('../util/tag');
+const { getAppById, deleteAppById } = require('../util/app');
 const { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } = require('../util/customproperties');
+const { log } = require('console');
+const { stream } = require('winston');
 
 class QlikSenseApps {
     // eslint-disable-next-line no-useless-constructor
@@ -33,6 +36,11 @@ class QlikSenseApps {
             this.appCounterIdMap = new Map();
         } catch (err) {
             logger.error(`QS APP: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`QS APP:\n  ${err.stack}`);
+            }
         }
     }
 
@@ -40,6 +48,7 @@ class QlikSenseApps {
         this.appList = [];
     }
 
+    // Function to add app to class' app list
     async addApp(app, tmpAppId) {
         const newApp = new QlikSenseApp();
         await newApp.init(app, tmpAppId, this.options);
@@ -134,7 +143,12 @@ class QlikSenseApps {
         } catch (err) {
             // console.log(err)
             logger.error(`GET QS APP 2: ${err}`);
-            logger.error(`GET QS APP 2: ${err.stack}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`GET QS APP 2:\n  ${err.stack}`);
+            }
+
             return false;
         }
     }
@@ -177,6 +191,9 @@ class QlikSenseApps {
                 })
             );
 
+            logger.info('-------------------------------------------------------------------');
+            logger.info('Importing apps...');
+
             // Loop over all apps in source file
             for (let i = 1; i <= appImportCount; i += 1) {
                 // Get the line associated with this app
@@ -200,6 +217,21 @@ class QlikSenseApps {
                         appPublishToStream: appRow[0][appFileColumnHeaders.appPublishToStream.pos],
                         appPublishToStreamOption: appRow[0][appFileColumnHeaders.appPublishToStreamOption.pos],
                     };
+
+                    // Deal with the fact that appPublishToStreamOption is not always present
+                    if (appFileColumnHeaders.appPublishToStreamOption.pos !== -1) {
+                        // There is an appPublishToStreamOption column in source file
+                        if (appRow[0][appFileColumnHeaders.appPublishToStreamOption.pos]) {
+                            // There is an appPublishToStreamOption value present
+                            currentApp.appPublishToStreamOption = appRow[0][appFileColumnHeaders.appPublishToStreamOption.pos];
+                        } else {
+                            // There is no appPublishToStreamOption value present
+                            currentApp.appPublishToStreamOption = 'publish-replace'; // Default value
+                        }
+                    } else {
+                        // There is no appPublishToStreamOption column in source file
+                        currentApp.appPublishToStreamOption = 'publish-replace'; // Default value
+                    }
 
                     // Verify that QVF file exists and build a full path to it
                     currentApp.fullQvfPath = mergeDirFilePath([currentApp.qvfDirectory, currentApp.qvfName]);
@@ -303,21 +335,149 @@ class QlikSenseApps {
 
                     // Import app to QSEoW
                     if (this.options.dryRun === false || this.options.dryRun === undefined) {
+                        // 1. Upload the app specified in the Excel file.
                         // eslint-disable-next-line no-await-in-loop
-                        const newAppId = await this.uploadAppToQseow(currentApp);
+                        const uploadedAppId = await this.uploadAppToQseow(currentApp);
 
                         // false returned if the app could not be uploaded to Sense
-                        if (newAppId === false) {
+                        if (uploadedAppId === false) {
                             logger.error(`Failed uploading app to Sense: ${JSON.stringify(currentApp, null, 2)}}`);
                             process.exit(1);
                         }
 
-                        // Add mapping between app counter and the new id of imported app
-                        const tmpAppId = `newapp-${currentApp.appCounter}`;
-                        this.appCounterIdMap.set(tmpAppId, newAppId);
-
+                        // Update tags, custom properties and owner of uploaded app
                         // eslint-disable-next-line no-await-in-loop
-                        await this.addApp(currentApp, tmpAppId);
+                        const result = await this.updateUploadedApp(currentApp, uploadedAppId);
+
+                        // Should the app be published to a stream?
+                        if (currentApp?.appPublishToStream?.length > 0) {
+                            // Yes, publish to stream after app upload
+
+                            // eslint-disable-next-line no-await-in-loop
+                            const { streamId, streamName } = await this.getStreamInfo(currentApp);
+
+                            // Do we know which stream to publish to? Publish if so!
+                            if (streamId) {
+                                if (currentApp.appPublishToStreamOption === 'publish-replace') {
+                                    // eslint-disable-next-line no-await-in-loop
+                                    const result2 = await this.streamAppPublishReplace(
+                                        currentApp.appCounter,
+                                        uploadedAppId,
+                                        streamId,
+                                        streamName
+                                    );
+
+                                    if (result2.res === true) {
+                                        logger.info(
+                                            `(${appRow[0][appFileColumnHeaders.appCounter.pos]}, publish-replace) App "${
+                                                currentApp.name
+                                            }" published to stream "${streamName}", replacing the existing app with the same name. Id of published app: ${
+                                                result2.publishedApp.id
+                                            }`
+                                        );
+
+                                        // Add mapping between app counter and the id of published app
+                                        const tmpAppId = `newapp-${currentApp.appCounter}`;
+                                        this.appCounterIdMap.set(tmpAppId, result2.publishedApp.id);
+
+                                        // eslint-disable-next-line no-await-in-loop
+                                        await this.addApp(currentApp, tmpAppId);
+                                    } else {
+                                        logger.error(
+                                            `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Failed publishing app "${
+                                                currentApp.name
+                                            }" to stream "${streamName}"`
+                                        );
+                                    }
+                                } else if (currentApp.appPublishToStreamOption === 'publish-another') {
+                                    // eslint-disable-next-line no-await-in-loop
+                                    const result2 = await this.streamAppPublishAnother(
+                                        currentApp.appCounter,
+                                        uploadedAppId,
+                                        currentApp.name,
+                                        streamId
+                                    );
+
+                                    if (result2.res === true) {
+                                        logger.info(
+                                            `(${appRow[0][appFileColumnHeaders.appCounter.pos]}, publish-another) App "${
+                                                currentApp.name
+                                            }" published to stream "${streamName}". Id of published app: ${result2.publishedApp.id}`
+                                        );
+
+                                        // Add mapping between app counter and the id of published app
+                                        const tmpAppId = `newapp-${currentApp.appCounter}`;
+                                        this.appCounterIdMap.set(tmpAppId, result2.publishedApp.id);
+
+                                        // eslint-disable-next-line no-await-in-loop
+                                        await this.addApp(currentApp, tmpAppId);
+                                    } else {
+                                        logger.error(
+                                            `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Failed publishing app "${
+                                                currentApp.name
+                                            }" to stream "${streamName}"`
+                                        );
+                                    }
+                                } else if (currentApp.appPublishToStreamOption === 'delete-publish') {
+                                    // eslint-disable-next-line no-await-in-loop
+                                    const result2 = await this.streamAppDeletePublish(
+                                        currentApp.appCounter,
+                                        uploadedAppId,
+                                        currentApp.name,
+                                        streamId,
+                                        streamName
+                                    );
+
+                                    if (result2.res === true) {
+                                        logger.info(
+                                            `(${appRow[0][appFileColumnHeaders.appCounter.pos]}, delete-publish) App "${
+                                                currentApp.name
+                                            }" published to stream "${streamName}", the existing app (if one exists) with the same name in this stream has been deleted. Id of published app: ${
+                                                result2.publishedApp.id
+                                            }`
+                                        );
+
+                                        // Add mapping between app counter and the id of published app
+                                        const tmpAppId = `newapp-${currentApp.appCounter}`;
+                                        this.appCounterIdMap.set(tmpAppId, result2.publishedApp.id);
+
+                                        // eslint-disable-next-line no-await-in-loop
+                                        await this.addApp(currentApp, tmpAppId);
+                                    } else
+                                        logger.error(
+                                            `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Failed publishing app "${
+                                                currentApp.name
+                                            }" to stream "${streamName}"`
+                                        );
+                                } else {
+                                    logger.error(
+                                        `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Invalid publish option specified for app "${
+                                            currentApp.name
+                                        }".`
+                                    );
+                                }
+                            } else {
+                                logger.error(
+                                    `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Failed publishing app "${
+                                        currentApp.name
+                                    }" to stream "${currentApp.appPublishToStream}". The uploaded app is still present in the QMC (id=${uploadedAppId}).`
+                                );
+                            }
+                        } else {
+                            // No, do not publish to stream after app upload
+                            logger.info(
+                                `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) App "${
+                                    currentApp.name
+                                }" uploaded to QSEoW, but not published to any stream.`
+                            );
+
+                            // Add mapping between app counter and the new id of imported app
+                            const tmpAppId = `newapp-${currentApp.appCounter}`;
+                            this.appCounterIdMap.set(tmpAppId, uploadedAppId);
+
+                            // eslint-disable-next-line no-await-in-loop
+                            await this.addApp(currentApp, tmpAppId);
+                        }
                     } else {
                         logger.info(`DRY RUN: Importing app to QSEoW: "${currentApp.name}" in file "${currentApp.fullQvfPath}"`);
                     }
@@ -328,6 +488,553 @@ class QlikSenseApps {
         });
     }
 
+    // Function to update tags, custom properties and owner of uploaded app
+    async updateUploadedApp(newApp, uploadedAppId) {
+        // Get info about just uploaded app
+        const axiosConfigUploadedApp = setupQRSConnection(this.options, {
+            method: 'get',
+            fileCert: this.fileCert,
+            fileCertKey: this.fileCertKey,
+            path: `/qrs/app/${uploadedAppId}`,
+        });
+
+        const appUploaded2 = await axios.request(axiosConfigUploadedApp);
+        if (appUploaded2.status !== 200) {
+            logger.error(`Failed getting info about uploaded app from Sense: ${JSON.stringify(appUploaded2, null, 2)}`);
+            process.exit(1);
+        }
+
+        const app = JSON.parse(appUploaded2.data);
+
+        // Add tags to imported app
+        app.tags = [...newApp.tags];
+
+        // Add custom properties to imported app
+        app.customProperties = [...newApp.customProperties];
+
+        // Is there a new app owner specific in Excel file?
+        // Both user directory and userid must be specified for the app owner to be updated.
+        if (newApp?.appOwnerUserDirectory?.length > 0 && newApp?.appOwnerUserId?.length > 0) {
+            // Set app owner
+
+            // Get full user object from QRS
+            const filter = encodeURIComponent(
+                `userDirectory eq '${newApp.appOwnerUserDirectory}' and userId eq '${newApp.appOwnerUserId}'`
+            );
+
+            const axiosConfigUser = setupQRSConnection(this.options, {
+                method: 'get',
+                fileCert: this.fileCert,
+                fileCertKey: this.fileCertKey,
+                path: '/qrs/user',
+                queryParameters: [{ name: 'filter', value: filter }],
+            });
+
+            const userResult = await axios.request(axiosConfigUser);
+            const userResponse = JSON.parse(userResult.data);
+            logger.debug(`Retrieving app owner data, result from QRS: [${userResult.status}] ${userResult.statusText}`);
+
+            if (userResult.status === 200 && userResponse.length === 1) {
+                logger.verbose(
+                    `Successfully retrieved app owner user ${userResponse[0].userDirectory}\\${userResponse[0].userId} from QSEoW`
+                );
+                logger.debug(`New app owner data from QRS:${JSON.stringify(userResponse[0], null, 2)} `);
+
+                // Yes, the user exists
+                const newUser = userResponse[0];
+                app.owner = newUser;
+            } else if (userResult.status === 200 && userResponse.length === 0) {
+                // Ok query but no matching names in Sense
+                logger.error(
+                    `User ${userResponse[0].userDirectory}\\${userResponse[0].userId} not found in Sense. Owner of app ${newApp.name} will not be updated.`
+                );
+            } else if (userResult.status !== 200) {
+                // Something went wrong
+                logger.error(
+                    `Unexpected result when retrieving app owner data for app ${newApp.name}, result from QRS: [${userResult.status}] ${userResult.statusText}`
+                );
+            }
+        }
+
+        // Uppdate app with tags, custom properties and app owner
+        const axiosConfig2 = setupQRSConnection(this.options, {
+            method: 'put',
+            fileCert: this.fileCert,
+            fileCertKey: this.fileCertKey,
+            path: `/qrs/app/${app.id}`,
+            body: app,
+        });
+
+        const result2 = await axios.request(axiosConfig2);
+        if (result2.status === 200) {
+            logger.debug(`Update of imported app wrt tags, custom properties and owner was successful.`);
+            return true;
+        }
+
+        logger.warn(`Failed updating tags, custom properties, app owner on imported app ${newApp.name}, return code ${result2.status}.`);
+        return false;
+    }
+
+    // Function to implement publish-replace variant of publishing app to a Stream
+    async streamAppPublishReplace(appCounter, uploadedAppId, streamId, streamName) {
+        // 2. If there is already a published app with the same name in the target stream, then do a publish-replace. The app ID of the already published app will not change.
+        // 3. Otherwise do a normal publish. The published app will get the same app ID as the app that was uploaded.
+        // 4. Delete the app uploaded unless keep-source-app is specified in the "Publish options" column.
+        try {
+            logger.debug(`(${appCounter}) PUBLISH APP publish-replace: Starting`);
+
+            // Get info about the created app
+            const appInfo = await getAppById(uploadedAppId);
+
+            // Check if there is an app with the same name in the target stream
+            const matchingAppsInStream = await this.appsInStreamCount(appInfo.name, streamName);
+
+            let result = {};
+            if (matchingAppsInStream === 0) {
+                // No app with the same name in the target stream, do a normal publish
+                result.res = await this.appPublishNormal(streamId, uploadedAppId, appInfo.name);
+
+                if (result.res === true) {
+                    // Get info about the published app
+                    result.publishedApp = await getAppById(uploadedAppId);
+                } else {
+                    result.publishedApp = null;
+                }
+            } else if (matchingAppsInStream > 1) {
+                // More than one app with the same name in the target stream, impossible to know which one to replace
+                logger.warn(
+                    `(${appCounter}) PUBLISH APP publish-replace: More than one app with the same name "${appInfo.name}" in the target stream "${streamName}". Impossible to know which one to replace. Skipping publishing for this app. The uploaded app is still present in the QMC (id=${uploadedAppId}).`
+                );
+                result = { res: false, publishedApp: null };
+            } else if (matchingAppsInStream === 1) {
+                // App with the same name exists in the target stream, do a publish-replace
+                // https://help.qlik.com/en-US/sense-developer/May2023/Subsystems/RepositoryServiceAPI/Content/Sense_RepositoryServiceAPI/RepositoryServiceAPI-App-Replace.htm
+
+                // Get the app ID of the app in the target stream
+                const appInStream = await this.getAppInStream(streamName, appInfo.name);
+
+                // Do the publish-replace
+                result.res = await this.appPublishReplace(uploadedAppId, appInStream.id);
+
+                if (result.res === true) {
+                    // Delete the app uploaded unless keep-source-app is specified in the "Publish options" column.
+                    // if (appInfo.customProperties.find((cp) => cp.definition.name === 'keep-source-app')?.value === 'true') {
+                    //     logger.debug(
+                    //         `PUBLISH APP publish-replace: keep-source-app is set to true for app ${appInfo.name}. The app will not be deleted.`
+                    //     );
+                    // } else {
+                    //     logger.debug(
+                    //         `PUBLISH APP publish-replace: keep-source-app is not set to true for app ${appInfo.name}. The app will be deleted.`
+                    //     );
+
+                    // Delete the uploaded app
+                    await deleteAppById(uploadedAppId);
+                    // }
+
+                    const publishedApp = await getAppById(appInStream.id);
+                    result = { res: true, publishedApp };
+                } else {
+                    // Something went wrong
+                    logger.error(
+                        `(${appCounter}) PUBLISH APP publish-replace: Unexpected result when publishing app ${appInfo.name} to the target stream ${streamName}.`
+                    );
+
+                    result = { res: false, publishedApp: null };
+                }
+            } else {
+                // Something went wrong
+                logger.error(
+                    `(${appCounter}) PUBLISH APP publish-replace: Unexpected result when checking if there is an app with the same name ${appInfo.name} in the target stream ${streamName}.`
+                );
+                result = { res: false, publishedApp: null };
+            }
+
+            return result;
+        } catch (err) {
+            logger.error(`(${appCounter}) PUBLISH APP publish-replace: Failed: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`(${appCounter}) PUBLISH APP publish-replace:\n  ${err.stack}`);
+            }
+            return { res: false, publishedApp: null };
+        }
+    }
+
+    // Function to implement publish-another variant of publishing app to a Stream
+    async streamAppPublishAnother(appCounter, uploadedAppId, appName, streamId) {
+        // 2. Publish the uploaded app into the target stream, even if an app with that name already exists in that stream.
+        // 3. The result is that there may be several apps with the same name (but different app IDs) in a stream.
+        // 4. This is the behaviour in Ctrl-Q version 3.11 and earlier.
+        try {
+            logger.debug(`(${appCounter}) PUBLISH APP publish-another: Starting`);
+
+            const result = {};
+
+            // Publish the uploaded app into the target stream
+            result.res = await this.appPublishNormal(streamId, uploadedAppId, appName);
+
+            if (result.res === true) {
+                // Get info about the published app
+                result.publishedApp = await getAppById(uploadedAppId);
+            } else {
+                result.publishedApp = null;
+            }
+
+            return result;
+        } catch (err) {
+            logger.error(`(${appCounter}) PUBLISH APP publish-another: Failed: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`(${appCounter}) PUBLISH APP publish-another:\n  ${err.stack}`);
+            }
+
+            return { res: false, publishedApp: null };
+        }
+    }
+
+    // Function to implement delete-publish variant of publishing app to a Stream
+    async streamAppDeletePublish(appCounter, uploadedAppId, appName, streamId, streamName) {
+        // 2. If an app with the same name as uploaded file already exists in the target stream: Delete that app.
+        // 3. Publish the uploaded app. The published app will get the same app ID as the app that was uploaded.
+        try {
+            logger.debug(`(${appCounter}) PUBLISH APP delete-publish: Starting`);
+
+            // Check if there is an app with the same name in the target stream
+            const matchingAppsInStream = await this.appsInStreamCount(appName, streamName);
+
+            let result = {};
+            if (matchingAppsInStream === 0) {
+                // No app with the same name in the target stream, do a normal publish
+                result.res = await this.appPublishNormal(streamId, uploadedAppId, appName);
+
+                if (result.res === true) {
+                    // Get info about the published app
+                    result.publishedApp = await getAppById(uploadedAppId);
+                } else {
+                    result.publishedApp = null;
+                }
+
+                // Get info about the published app
+            } else if (matchingAppsInStream > 1) {
+                // More than one app with the same name in the target stream, impossible to know which one to replace
+                logger.warn(
+                    `(${appCounter}) PUBLISH APP delete-publish: More than one app with the same name "${appName}" in the target stream "${streamName}". Impossible to know which one to replace. Skipping publishing for this app. The uploaded app is still present in the QMC (id=${uploadedAppId}).`
+                );
+
+                result = { res: false, publishedApp: null };
+            } else if (matchingAppsInStream === 1) {
+                // App with the same name exists in the target stream, delete that app and then do a normal publish
+
+                // Get the app ID of the app in the target stream
+                const appInStream = await this.getAppInStream(streamName, appName);
+
+                // Delete the app in the target stream
+                await deleteAppById(appInStream.id);
+
+                // Do the normal publish
+                result.res = await this.appPublishNormal(streamId, uploadedAppId, appName);
+
+                if (result.res === true) {
+                    // Get info about the published app
+                    result.publishedApp = await getAppById(uploadedAppId);
+                } else {
+                    result.publishedApp = null;
+                }
+            } else {
+                // Something went wrong
+                logger.error(
+                    `(${appCounter}) PUBLISH APP delete-publish: Unexpected result when checking if there is an app with the same name "${appName}" in the target stream "${streamName}".`
+                );
+                result = { res: false, publishedApp: null };
+            }
+
+            return result;
+        } catch (err) {
+            logger.error(`(${appCounter}) PUBLISH APP delete-publish: Failed: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`(${appCounter}) PUBLISH APP delete-publish:\n  ${err.stack}`);
+            }
+
+            return { res: false, publishedApp: null };
+        }
+    }
+
+    // Function to do a normal publish of an app to a stream
+    async appPublishNormal(streamId, appId, appName) {
+        try {
+            logger.debug('PUBLISH APP NORMAL: Starting');
+
+            // Define query parameters
+            const queryParameters = [
+                { name: 'stream', value: streamId },
+                { name: 'name', value: appName },
+            ];
+
+            // Build QRS query
+            const axiosConfig = setupQRSConnection(this.options, {
+                method: 'put',
+                fileCert: this.fileCert,
+                fileCertKey: this.fileCertKey,
+                path: `/qrs/app/${appId}/publish`,
+                queryParameters,
+            });
+
+            // Execute QRS query
+            const result = await axios.request(axiosConfig);
+            const response = JSON.parse(result.data);
+
+            logger.debug(`PUBLISH APP NORMAL: Done. Response: ${JSON.stringify(response, null, 2)}`);
+            if (result.status === 200) {
+                return true;
+            }
+
+            return false;
+        } catch (err) {
+            logger.error(`PUBLISH APP NORMAL: Failed: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`PUBLISH APP NORMAL:\n  ${err.stack}`);
+            }
+
+            return false;
+        }
+    }
+
+    // Function to do a publish-replace of an app to a stream
+    // This is the same operation that is done when doing a "publish-replace" in the QMC
+    async appPublishReplace(sourceAppId, targetAppId) {
+        try {
+            logger.debug('PUBLISH APP REPLACE: Starting');
+
+            // Define query parameters
+            const queryParameters = [{ name: 'app', value: targetAppId }];
+
+            // Build QRS query
+            const axiosConfig = setupQRSConnection(this.options, {
+                method: 'put',
+                fileCert: this.fileCert,
+                fileCertKey: this.fileCertKey,
+                path: `/qrs/app/${sourceAppId}/replace`,
+                queryParameters,
+            });
+
+            // Execute QRS query
+            const result = await axios.request(axiosConfig);
+            const response = JSON.parse(result.data);
+
+            logger.debug(`PUBLISH APP REPLACE: Done. Response: ${JSON.stringify(response, null, 2)}`);
+            if (result.status === 200) {
+                return true;
+            }
+
+            return false;
+        } catch (err) {
+            logger.error(`PUBLISH APP REPLACE: Failed: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`PUBLISH APP REPLACE:\n  ${err.stack}`);
+            }
+
+            return false;
+        }
+    }
+
+    // Function to check if an app with a certain name already exists in a specific stream
+    // Returns the number of apps (zero or more) with the same name in the stream
+    // If something goes wrong, false is returned
+    async appsInStreamCount(appName, streamName) {
+        try {
+            logger.debug(`CHECK IF APP EXISTS IN STREAM: Starting. App name: "${appName}", Stream name: "${streamName}"`);
+
+            let filter = '';
+
+            // Is the stream name a valid GUID?
+            if (validate(streamName) === true) {
+                // Yes, it is a valid GUID.
+                logger.debug(`CHECK IF APP EXISTS IN STREAM: Stream name "${streamName}" is a valid GUID`);
+
+                // Build QRS query
+                filter = encodeURIComponent(`stream.id eq ${streamName} and name eq '${appName}'`);
+            } else {
+                // No, it is not a valid GUID. We assume it is a stream name
+                logger.debug(`CHECK IF APP EXISTS IN STREAM: Stream name "${streamName}" is not a valid GUID`);
+
+                // Build QRS query
+                filter = encodeURIComponent(`stream.name eq '${streamName}' and name eq '${appName}'`);
+            }
+
+            const axiosConfig = setupQRSConnection(this.options, {
+                method: 'get',
+                fileCert: this.fileCert,
+                fileCertKey: this.fileCertKey,
+                path: `/qrs/app`,
+                queryParameters: [{ name: 'filter', value: filter }],
+            });
+
+            // Execute QRS query
+            const result = await axios.request(axiosConfig);
+            const response = JSON.parse(result.data);
+
+            // Check if app exists in stream
+            if (response.length >= 0) {
+                logger.debug(`CHECK IF APP EXISTS IN STREAM: App "${appName}" exists in stream "${streamName}" ${response.length} times.`);
+                return response.length;
+            }
+
+            logger.debug(`CHECK IF APP EXISTS IN STREAM: App "${appName}" does not exist in stream "${streamName}"`);
+            return 0;
+        } catch (err) {
+            logger.error(`CHECK IF APP EXISTS IN STREAM: Failed: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`CHECK IF APP EXISTS IN STREAM:\n  ${err.stack}`);
+            }
+
+            return false;
+        }
+    }
+
+    // Function to get info about a specific app in a certain stream, both identified by name
+    async getAppInStream(streamName, appName) {
+        try {
+            logger.debug(`GET APP IN STREAM: Starting. App name: "${appName}", Stream name: "${streamName}"`);
+
+            // Build QRS query
+            const filter = encodeURIComponent(`stream.name eq '${streamName}' and name eq '${appName}'`);
+
+            const axiosConfig = setupQRSConnection(this.options, {
+                method: 'get',
+                fileCert: this.fileCert,
+                fileCertKey: this.fileCertKey,
+                path: `/qrs/app`,
+                queryParameters: [{ name: 'filter', value: filter }],
+            });
+
+            // Execute QRS query
+            const result = await axios.request(axiosConfig);
+            const response = JSON.parse(result.data);
+
+            // Check if app exists in stream
+            if (response.length === 1) {
+                logger.debug(`GET APP IN STREAM: App "${appName}" exists in stream "${streamName}"`);
+                return response[0];
+            }
+
+            if (response.length > 1) {
+                logger.error(`GET APP IN STREAM: App "${appName}" exists in stream "${streamName}" more than once`);
+                return false;
+            }
+
+            if (response.length === 0) {
+                logger.debug(`GET APP IN STREAM: App "${appName}" does not exist in stream "${streamName}"`);
+                return false;
+            }
+
+            logger.error(`GET APP IN STREAM: Something went wrong`);
+            return false;
+        } catch (err) {
+            logger.error(`GET APP IN STREAM: Failed: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`GET APP IN STREAM:\n  ${err.stack}`);
+            }
+
+            return false;
+        }
+    }
+
+    // Function to check if a stream exists
+    // Return the stream ID if it exists, false if it does not exist or if something goes wrong
+    async getStreamInfo(uploadedAppInfo) {
+        try {
+            logger.debug(`CHECK IF STREAM EXISTS: Starting. Stream name: "${uploadedAppInfo.appPublishToStream}"`);
+
+            let axiosConfigPublish;
+            let resultPublish;
+            let responsePublish;
+
+            // Is the provided stream name a valid GUID?
+            // If so check if the GUID represents a stream
+            if (validate(uploadedAppInfo.appPublishToStream)) {
+                // It's a valid GUID
+                axiosConfigPublish = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: `/qrs/stream/${uploadedAppInfo.appPublishToStream}`,
+                });
+
+                resultPublish = await axios.request(axiosConfigPublish);
+                if (resultPublish.status === 200) {
+                    // Yes, the GUID represents a stream
+                    responsePublish = JSON.parse(resultPublish.data);
+
+                    // eslint-disable-next-line prefer-destructuring
+                    return { streamId: responsePublish.id, streamName: responsePublish.name };
+                }
+            } else {
+                // Provided stream name is not a GUID, make sure only one stream exists with this name, then get its GUID
+                const filter = encodeURIComponent(`name eq '${uploadedAppInfo.appPublishToStream}'`);
+
+                axiosConfigPublish = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/stream',
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
+
+                resultPublish = await axios.request(axiosConfigPublish);
+                if (resultPublish.status === 200) {
+                    responsePublish = JSON.parse(resultPublish?.data);
+                    if (responsePublish?.length === 1) {
+                        // Exactly one stream has this name
+                        logger.verbose(`Publish stream "${uploadedAppInfo.appPublishToStream}" found, id=${responsePublish[0].id} `);
+
+                        const streamId = responsePublish[0].id;
+                        const streamName = responsePublish[0].name;
+                        return { streamId, streamName };
+                    }
+
+                    if (responsePublish?.length > 1) {
+                        logger.warn(
+                            `More than one stream with the same name "${uploadedAppInfo.appPublishToStream}" found, does not know which one to publish app "${uploadedAppInfo.name}" to.`
+                        );
+                        return false;
+                    }
+
+                    // Stream not found
+                    logger.warn(`Stream "${uploadedAppInfo.appPublishToStream}" does not exist.`);
+                    return false;
+                }
+                // Something went wrong when looking up stream name
+                logger.warn(
+                    `Error while looking publish stream name "${uploadedAppInfo.appPublishToStream}" for app "${uploadedAppInfo.name}": [${resultPublish.status}] ${resultPublish.statusText}`
+                );
+            }
+
+            return false;
+        } catch (err) {
+            logger.error(`CHECK IF STREAM EXISTS: Failed: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`CHECK IF STREAM EXISTS:\n  ${err.stack}`);
+            }
+
+            return false;
+        }
+    }
+
+    // Function to upload an app in QVF format on disk to QSEoW
     async uploadAppToQseow(newApp) {
         try {
             logger.debug('IMPORT APP TO QSEOW: Starting');
@@ -399,7 +1106,7 @@ class QlikSenseApps {
             const interceptorId = rax.attach(myAxiosInstance);
 
             // Upload QVF
-            let result = await myAxiosInstance.request(axiosConfig);
+            const result = await myAxiosInstance.request(axiosConfig);
             logger.verbose(`App upload done, sleeping for ${this.options.sleepAppUpload} milliseconds`);
             await sleep(this.options.sleepAppUpload);
 
@@ -407,184 +1114,7 @@ class QlikSenseApps {
                 logger.debug(`Import app from QVF file success, result from API:\n${JSON.stringify(result.data, null, 2)}`);
                 const appUploaded = JSON.parse(result.data);
 
-                // Get info about just uploaded app
-                const axiosConfigUploadedApp = setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    path: `/qrs/app/${appUploaded.id}`,
-                });
-
-                const appUploaded2 = await axios.request(axiosConfigUploadedApp);
-                if (appUploaded2.status !== 200) {
-                    logger.error(`Failed getting info about uploaded app from Sense: ${JSON.stringify(appUploaded2, null, 2)}`);
-                    process.exit(1);
-                }
-
-                const app = JSON.parse(appUploaded2.data);
-
-                // Add tags to imported app
-                app.tags = [...newApp.tags];
-
-                // Add custom properties to imported app
-                app.customProperties = [...newApp.customProperties];
-
-                // Is there a new app owner specific in Excel file?
-                // Both user directory and userid must be specified for the app owner to be updated.
-                if (newApp?.appOwnerUserDirectory?.length > 0 && newApp?.appOwnerUserId?.length > 0) {
-                    // Set app owner
-
-                    // Get full user object from QRS
-                    const filter = encodeURIComponent(
-                        `userDirectory eq '${newApp.appOwnerUserDirectory}' and userId eq '${newApp.appOwnerUserId}'`
-                    );
-
-                    const axiosConfigUser = setupQRSConnection(this.options, {
-                        method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        path: '/qrs/user',
-                        queryParameters: [{ name: 'filter', value: filter }],
-                    });
-
-                    const userResult = await axios.request(axiosConfigUser);
-                    const userResponse = JSON.parse(userResult.data);
-                    logger.debug(`Retrieving app owner data, result from QRS: [${userResult.status}] ${userResult.statusText}`);
-                    if (userResult.status === 200 && userResponse.length === 1) {
-                        logger.verbose(
-                            `Successfully retrieved app owner user ${userResponse[0].userDirectory}\\${userResponse[0].userId} from QSEoW`
-                        );
-                        logger.debug(`New app owner data from QRS:${JSON.stringify(userResponse[0], null, 2)} `);
-
-                        // Yes, the user exists
-                        const newUser = userResponse[0];
-                        app.owner = newUser;
-                    } else if (userResult.status === 200 && userResponse.length === 0) {
-                        // Ok query but no matching names in Sense
-                        logger.error(
-                            `User ${userResponse[0].userDirectory}\\${userResponse[0].userId} not found in Sense. Owner of app ${newApp.name} will not be updated.`
-                        );
-                    } else if (userResult.status !== 200) {
-                        // Something went wrong
-                        logger.error(
-                            `Unexpected result when retrieving app owner data for app ${newApp.name}, result from QRS: [${userResult.status}] ${userResult.statusText}`
-                        );
-                    }
-                }
-
-                // Uppdate app with tags and custom properties
-                const axiosConfig2 = setupQRSConnection(this.options, {
-                    method: 'put',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    path: `/qrs/app/${app.id}`,
-                    body: app,
-                });
-
-                const result2 = await axios.request(axiosConfig2);
-                if (result2.status === 200) {
-                    logger.debug(`Update of imported app wrt tags, custom properties and owner was successful.`);
-                } else if (result2.status !== 200) {
-                    logger.warn(
-                        `Failed updating tags, custom properties, app owner on imported app ${newApp.name}, return code ${result2.status}.`
-                    );
-                    return false;
-                }
-
-                // Publish app to stream if a stream name is specified
-                if (newApp?.appPublishToStream?.length > 0) {
-                    let axiosConfigPublish;
-                    let streamGuid;
-                    let resultPublish;
-                    let responsePublish;
-
-                    // Is the provided stream name a valid GUID?
-                    // If so check if the GUID represents a stream
-                    if (validate(newApp.appPublishToStream)) {
-                        // It's a valid GUID
-                        axiosConfigPublish = setupQRSConnection(this.options, {
-                            method: 'get',
-                            fileCert: this.fileCert,
-                            fileCertKey: this.fileCertKey,
-                            path: `/qrs/stream/${newApp.appPublishToStream}`,
-                        });
-
-                        resultPublish = await axios.request(axiosConfigPublish);
-                        if (resultPublish.status === 200) {
-                            // Yes, the GUID represents a stream
-                            responsePublish = JSON.parse(resultPublish.data);
-
-                            // eslint-disable-next-line prefer-destructuring
-                            streamGuid = responsePublish.id;
-                        }
-                    } else {
-                        // Provided stream name is not a GUID, make sure only one stream exists with this name, then get its GUID
-                        const filter = encodeURIComponent(`name eq '${newApp.appPublishToStream}'`);
-
-                        axiosConfigPublish = setupQRSConnection(this.options, {
-                            method: 'get',
-                            fileCert: this.fileCert,
-                            fileCertKey: this.fileCertKey,
-                            path: '/qrs/stream',
-                            queryParameters: [{ name: 'filter', value: filter }],
-                        });
-
-                        resultPublish = await axios.request(axiosConfigPublish);
-                        if (resultPublish.status === 200) {
-                            responsePublish = JSON.parse(resultPublish?.data);
-                            if (responsePublish?.length === 1) {
-                                // Exactly one stream has this name
-                                logger.verbose(`Publish stream "${newApp.appPublishToStream}" found, id=${responsePublish[0].id} `);
-
-                                streamGuid = responsePublish[0].id;
-                            } else if (responsePublish?.length > 1) {
-                                logger.warn(
-                                    `More than one stream with the same name "${newApp.appPublishToStream}" found, does not know which one to publish app "${newApp.name}" to.`
-                                );
-                            } else {
-                                // Stream not found
-                                logger.warn(
-                                    `Cannot publish app "${newApp.name}" to stream "${newApp.appPublishToStream}" as that stream does not exist.`
-                                );
-                            }
-                        } else {
-                            // Something went wrong when looking up stream name
-                            logger.warn(
-                                `Error while looking publish stream name "${newApp.appPublishToStream}" for app "${newApp.name}": [${resultPublish.status}] ${resultPublish.statusText}`
-                            );
-                        }
-                    }
-
-                    // Do we know which stream to publish to? Publish if so!
-                    if (streamGuid) {
-                        // Are there any publish options?
-                        if (newApp.appPublishOption?.length > 0) {
-                            // Yes, there are publish options
-                            logger.verbose('App publish options: ', newApp.appPublishOption);
-                        }
-
-
-                        axiosConfigPublish = setupQRSConnection(this.options, {
-                            method: 'put',
-                            fileCert: this.fileCert,
-                            fileCertKey: this.fileCertKey,
-                            path: `/qrs/app/${app.id}/publish`,
-                            queryParameters: [{ name: 'stream', value: streamGuid }],
-                        });
-
-                        resultPublish = await axios.request(axiosConfigPublish);
-                        if (resultPublish.status === 200) {
-                            // Publish successful
-                            logger.info(`App "${newApp.name}" published to stream "${newApp.appPublishToStream}".`);
-                        } else {
-                            // Something went wrong when looking publishing to stream
-                            logger.warn(
-                                `Error while publishing app  "${newApp.name}" to stream "${newApp.appPublishToStream}": [${resultPublish.status}] ${resultPublish.statusText}`
-                            );
-                        }
-                    }
-                }
-                return app.id;
+                return appUploaded.id;
             }
             if (result.status === 429) {
                 // Too many requests, even after retries with exponential backoff
@@ -598,6 +1128,12 @@ class QlikSenseApps {
             return false;
         } catch (err) {
             logger.error(`CREATE RELOAD TASK IN QSEOW 2: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`CREATE RELOAD TASK IN QSEOW 2:\n  ${err.stack}`);
+            }
+
             return false;
         }
     }
@@ -630,6 +1166,12 @@ class QlikSenseApps {
             return false;
         } catch (err) {
             logger.error(`[${err}] Export app step 1`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`[${err}] Export app step 1:\n  ${err.stack}`);
+            }
+
             return false;
         }
     }
