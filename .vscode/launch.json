@@ -58,44 +58,44 @@
       // ------------------------------------
       // Import tasks from Excel file
       // ------------------------------------
-      // "args": [
-      //   "task-import",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   "192.168.100.109",
-      //   "--auth-cert-file",
-      //   "./cert/client.pem",
-      //   "--auth-cert-key-file",
-      //   "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
+      "args": [
+        "task-import",
+        "--auth-type",
+        "cert",
+        "--host",
+        "192.168.100.109",
+        "--auth-cert-file",
+        "./cert/client.pem",
+        "--auth-cert-key-file",
+        "./cert/client_key.pem",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
 
-      //   "--file-type",
-      //   "excel",
+        "--file-type",
+        "excel",
         
-      //   "--file-name",
-      //   "testdata/tasks.xlsx",
-      //   "--sheet-name",
-      //   "Ctrl-Q task import 1",
+        "--file-name",
+        "testdata/tasks.xlsx",
+        "--sheet-name",
+        "Ctrl-Q task import 1",
 
-      //   "--import-app",
-      //   "--import-app-sheet-name",
-      //   "App import",
+        "--import-app",
+        "--import-app-sheet-name",
+        "App import",
 
-      //   // "--qvf-overwrite",
-      //   // "no",
+        // "--qvf-overwrite",
+        // "no",
 
-      //   // "--limit-import-count",
-      //   // "2",
+        // "--limit-import-count",
+        // "2",
 
-      // "--sleep-app-upload",
-      // "500",
+      "--sleep-app-upload",
+      "500",
 
-      //   // "--dry-run"
-      // ]
+        // "--dry-run"
+      ]
 
       // ------------------------------------
       // Import tasks from CSV file
@@ -188,28 +188,28 @@
       // ------------------------------------
       // Import apps from Excel file
       // ------------------------------------
-      "args": [
-        "app-import",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        "--auth-cert-file",
-        "./cert/client.pem",
-        "--auth-cert-key-file",
-        "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
+      // "args": [
+      //   "app-import",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
 
-        // "--file-type",
-        // "excel",
+      //   // "--file-type",
+      //   // "excel",
         
-        "--file-name",
-        "testdata/tasks.xlsx",
-        "--sheet-name",
-        "App import",
+      //   "--file-name",
+      //   "testdata/tasks.xlsx",
+      //   "--sheet-name",
+      //   "App import",
 
       //   // "--limit-import-count",
       //   //  "2",

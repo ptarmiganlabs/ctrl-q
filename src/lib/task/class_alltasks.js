@@ -1,6 +1,7 @@
 const axios = require('axios');
 const path = require('path');
 const { v4: uuidv4, validate } = require('uuid');
+const internal = require('stream');
 
 const { logger, execPath } = require('../../globals');
 const { setupQRSConnection } = require('../util/qrs');
@@ -19,8 +20,6 @@ const { getTagIdByName } = require('../util/tag');
 const { getCustomPropertyIdByName } = require('../util/customproperties');
 const { taskExistById } = require('../util/task');
 const { getAppById } = require('../util/app');
-
-const internal = require('stream');
 
 class QlikSenseTasks {
     // eslint-disable-next-line no-useless-constructor
@@ -119,14 +118,13 @@ class QlikSenseTasks {
                 logger.info('-------------------------------------------------------------------');
                 logger.info('Creating tasks...');
 
-
                 // Loop over all tasks in source file
-                for (let i = 1; i <= taskImportCount; i += 1) {
+                for (let taskCounter = 1; taskCounter <= taskImportCount; taskCounter += 1) {
                     // Get all rows associated with this task
                     // One row will contain task data, other rows will contain event data associated with the task.
-                    const taskRows = tasksFromFile.data.filter((item) => item[taskFileColumnHeaders.taskCounter.pos] === i);
+                    const taskRows = tasksFromFile.data.filter((item) => item[taskFileColumnHeaders.taskCounter.pos] === taskCounter);
                     logger.debug(
-                        `PARSE TASKS FROM FILE: Processing task #${i} of ${taskImportCount}. Data being used:\n${JSON.stringify(
+                        `(${taskCounter}) PARSE TASKS FROM FILE: Processing task #${taskCounter} of ${taskImportCount}. Data being used:\n${JSON.stringify(
                             taskRows,
                             null,
                             2
@@ -145,13 +143,16 @@ class QlikSenseTasks {
                             item[taskFileColumnHeaders.taskType.pos].trim().toLowerCase() === 'reload'
                     );
                     if (taskData?.length !== 1) {
-                        logger.error(`PARSE TASKS FROM FILE: Incorrect task input data:\n${JSON.stringify(taskRows)}`);
+                        logger.error(`(${taskCounter}) PARSE TASKS FROM FILE: Incorrect task input data:\n${JSON.stringify(taskRows)}`);
                         process.exit(1);
                     } else {
                         // Create task object using same structure as results from QRS API
 
                         // Determine if the task is associated with an app that existed before Ctrl-Q was started, or
                         // an app that's been imported as part of this Ctrl-Q execution.
+                        // Possible values for the app ID column:
+                        // - newapp-<app counter> (app has been imported as part of this Ctrl-Q execution)
+                        // - <app ID> A real, existing app ID. I.e. the app existed before Ctrl-Q was started.
                         let appId;
                         if (taskData[0][taskFileColumnHeaders.appId.pos].trim().substring(0, 7).toLowerCase() === 'newapp-') {
                             appId = this.importedApps.appIdMap.get(taskData[0][taskFileColumnHeaders.appId.pos].trim().toLowerCase());
@@ -160,16 +161,30 @@ class QlikSenseTasks {
                             // Reasons for the app not existing could be:
                             // - The app was imported but has since been deleted or replaced. This could happen if the app-import step has several
                             //   apps that are published-replaced or deleted-published to the same stream. In that case only the last published app will be present
+
+                            if (appId === undefined) {
+                                logger.error(
+                                    `(${taskCounter}) PARSE TASKS FROM FILE: Cannot figure out which Sense app "${taskData[0][
+                                        taskFileColumnHeaders.appId.pos
+                                    ].trim()}" belongs to. App with ID "${taskData[0][taskFileColumnHeaders.appId.pos]}" not found.`
+                                );
+
+                                logger.error(
+                                    `(${taskCounter}) PARSE TASKS FROM FILE: This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
+                                );
+
+                                process.exit(1);
+                            }
+
                             // eslint-disable-next-line no-await-in-loop
                             const app = await getAppById(appId);
 
                             if (!app) {
                                 logger.error(
-                                    `PARSE TASKS FROM FILE: App with ID ${appId} not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
+                                    `(${taskCounter}) PARSE TASKS FROM FILE: App with ID "${appId}" not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
                                 );
                                 process.exit(1);
                             }
-
                         } else {
                             appId = taskData[0][taskFileColumnHeaders.appId.pos];
                         }
@@ -254,9 +269,11 @@ class QlikSenseTasks {
                             item[taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'schema'
                     );
                     if (!schemaEventRows || schemaEventRows?.length === 0) {
-                        logger.verbose(`PARSE TASKS FROM FILE: No schema events for task "${currentTask.name}"`);
+                        logger.verbose(`(${taskCounter}) PARSE TASKS FROM FILE: No schema events for task "${currentTask.name}"`);
                     } else {
-                        logger.verbose(`PARSE TASKS FROM FILE: ${schemaEventRows.length} schema event(s) for task "${currentTask.name}"`);
+                        logger.verbose(
+                            `(${taskCounter}) PARSE TASKS FROM FILE: ${schemaEventRows.length} schema event(s) for task "${currentTask.name}"`
+                        );
 
                         // Add schema edges and start/trigger nodes
                         // eslint-disable-next-line no-restricted-syntax
@@ -324,10 +341,10 @@ class QlikSenseTasks {
                             item[taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'composite'
                     );
                     if (!compositeEventRows || compositeEventRows?.length === 0) {
-                        logger.verbose(`PARSE TASKS FROM FILE: No composite events for task "${currentTask.name}"`);
+                        logger.verbose(`(${taskCounter}) PARSE TASKS FROM FILE: No composite events for task "${currentTask.name}"`);
                     } else {
                         logger.verbose(
-                            `PARSE TASKS FROM FILE: ${compositeEventRows.length} composite event(s) for task "${currentTask.name}"`
+                            `(${taskCounter}) PARSE TASKS FROM FILE: ${compositeEventRows.length} composite event(s) for task "${currentTask.name}"`
                         );
 
                         // Loop over all composite events, adding them and their event rules
@@ -385,7 +402,9 @@ class QlikSenseTasks {
                                     }
                                 } else {
                                     logger.verbose(
-                                        `ANALYZE COMPOSITE EVENT: "${rule[taskFileColumnHeaders.ruleTaskId.pos]}" is not a valid UUID`
+                                        `(${taskCounter}) ANALYZE COMPOSITE EVENT: "${
+                                            rule[taskFileColumnHeaders.ruleTaskId.pos]
+                                        }" is not a valid UUID`
                                     );
                                 }
 
@@ -504,7 +523,8 @@ class QlikSenseTasks {
                     // Create reload task in QSEoW
                     if (this.options.dryRun === false || this.options.dryRun === undefined) {
                         // eslint-disable-next-line no-await-in-loop
-                        const newTaskId = await this.createReloadTaskInQseow(currentTask);
+                        const newTaskId = await this.createReloadTaskInQseow(currentTask, taskCounter);
+                        logger.info(`(${taskCounter}) Created new task "${currentTask.name}", new task id: ${newTaskId}.`);
 
                         // Add mapping between fake task ID used when creating task network and actual, newly created task ID
                         this.taskIdMap.set(fakeTaskId, newTaskId);
@@ -520,7 +540,7 @@ class QlikSenseTasks {
                         // eslint-disable-next-line no-await-in-loop
                         await this.addTask('from_file', currentTask, false);
                     } else {
-                        logger.info(`DRY RUN: Creating reload task in QSEoW "${currentTask.name}"`);
+                        logger.info(`(${taskCounter}) DRY RUN: Creating reload task in QSEoW "${currentTask.name}"`);
                     }
                 }
 
@@ -623,11 +643,11 @@ class QlikSenseTasks {
         });
     }
 
-    createReloadTaskInQseow(newTask) {
+    createReloadTaskInQseow(newTask, taskCounter) {
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
-                logger.debug('CREATE RELOAD TASK IN QSEOW: Starting');
+                logger.debug(`(${taskCounter}) CREATE RELOAD TASK IN QSEOW: Starting`);
 
                 // Build a body for the API call
                 const body = {
@@ -662,9 +682,11 @@ class QlikSenseTasks {
                     .request(axiosConfig)
                     .then((result) => {
                         const response = JSON.parse(result.data);
-                        logger.info(
-                            `CREATE RELOAD TASK IN QSEOW: "${newTask.name}", new task id: ${response.id}. Result: ${result.status}/${result.statusText}.`
+
+                        logger.debug(
+                            `(${taskCounter}) CREATE RELOAD TASK IN QSEOW: "${newTask.name}", new task id: ${response.id}. Result: ${result.status}/${result.statusText}.`
                         );
+
                         if (result.status === 201) {
                             resolve(response.id);
                         } else {

@@ -81,7 +81,7 @@ class QlikSenseApps {
             if (this.options.appId && this.options?.appId.length >= 1) {
                 filter += encodeURIComponent(')');
             }
-            logger.debug(`GET APP: QRS query filter (incl ids): ${filter}`);
+            logger.debug(`GET APPS FROM QSEOW: QRS query filter (incl ids): ${filter}`);
 
             // Add app tag(s) to query string
             if (this.options.appTag && this.options?.appTag.length >= 1) {
@@ -107,7 +107,7 @@ class QlikSenseApps {
             if (this.options.appTag && this.options?.appTag.length >= 1) {
                 filter += encodeURIComponent(')');
             }
-            logger.debug(`GET APP: QRS query filter (incl ids, tags): ${filter}`);
+            logger.debug(`GET APPS FROM QSEOW: QRS query filter (incl ids, tags): ${filter}`);
 
             let axiosConfig;
             if (filter === '') {
@@ -128,10 +128,10 @@ class QlikSenseApps {
             }
 
             const result = await axios.request(axiosConfig);
-            logger.debug(`GET APP: Result=result.status`);
+            logger.debug(`GET APPS FROM QSEOW: Result=result.status`);
 
             const apps = JSON.parse(result.data);
-            logger.verbose(`GET APP: # apps: ${apps.length}`);
+            logger.verbose(`GET APPS FROM QSEOW: # apps: ${apps.length}`);
 
             this.clear();
             for (let i = 0; i < apps.length; i += 1) {
@@ -460,7 +460,9 @@ class QlikSenseApps {
                                 logger.error(
                                     `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Failed publishing app "${
                                         currentApp.name
-                                    }" to stream "${currentApp.appPublishToStream}". The uploaded app is still present in the QMC (id=${uploadedAppId}).`
+                                    }" to stream "${
+                                        currentApp.appPublishToStream
+                                    }". The uploaded app is still present in the QMC (id=${uploadedAppId}).`
                                 );
                             }
                         } else {
@@ -490,89 +492,105 @@ class QlikSenseApps {
 
     // Function to update tags, custom properties and owner of uploaded app
     async updateUploadedApp(newApp, uploadedAppId) {
-        // Get info about just uploaded app
-        const axiosConfigUploadedApp = setupQRSConnection(this.options, {
-            method: 'get',
-            fileCert: this.fileCert,
-            fileCertKey: this.fileCertKey,
-            path: `/qrs/app/${uploadedAppId}`,
-        });
-
-        const appUploaded2 = await axios.request(axiosConfigUploadedApp);
-        if (appUploaded2.status !== 200) {
-            logger.error(`Failed getting info about uploaded app from Sense: ${JSON.stringify(appUploaded2, null, 2)}`);
-            process.exit(1);
-        }
-
-        const app = JSON.parse(appUploaded2.data);
-
-        // Add tags to imported app
-        app.tags = [...newApp.tags];
-
-        // Add custom properties to imported app
-        app.customProperties = [...newApp.customProperties];
-
-        // Is there a new app owner specific in Excel file?
-        // Both user directory and userid must be specified for the app owner to be updated.
-        if (newApp?.appOwnerUserDirectory?.length > 0 && newApp?.appOwnerUserId?.length > 0) {
-            // Set app owner
-
-            // Get full user object from QRS
-            const filter = encodeURIComponent(
-                `userDirectory eq '${newApp.appOwnerUserDirectory}' and userId eq '${newApp.appOwnerUserId}'`
-            );
-
-            const axiosConfigUser = setupQRSConnection(this.options, {
+        try {
+            // Get info about just uploaded app
+            const axiosConfigUploadedApp = setupQRSConnection(this.options, {
                 method: 'get',
                 fileCert: this.fileCert,
                 fileCertKey: this.fileCertKey,
-                path: '/qrs/user',
-                queryParameters: [{ name: 'filter', value: filter }],
+                path: `/qrs/app/${uploadedAppId}`,
             });
 
-            const userResult = await axios.request(axiosConfigUser);
-            const userResponse = JSON.parse(userResult.data);
-            logger.debug(`Retrieving app owner data, result from QRS: [${userResult.status}] ${userResult.statusText}`);
-
-            if (userResult.status === 200 && userResponse.length === 1) {
-                logger.verbose(
-                    `Successfully retrieved app owner user ${userResponse[0].userDirectory}\\${userResponse[0].userId} from QSEoW`
-                );
-                logger.debug(`New app owner data from QRS:${JSON.stringify(userResponse[0], null, 2)} `);
-
-                // Yes, the user exists
-                const newUser = userResponse[0];
-                app.owner = newUser;
-            } else if (userResult.status === 200 && userResponse.length === 0) {
-                // Ok query but no matching names in Sense
-                logger.error(
-                    `User ${userResponse[0].userDirectory}\\${userResponse[0].userId} not found in Sense. Owner of app ${newApp.name} will not be updated.`
-                );
-            } else if (userResult.status !== 200) {
-                // Something went wrong
-                logger.error(
-                    `Unexpected result when retrieving app owner data for app ${newApp.name}, result from QRS: [${userResult.status}] ${userResult.statusText}`
-                );
+            const appUploaded2 = await axios.request(axiosConfigUploadedApp);
+            if (appUploaded2.status !== 200) {
+                logger.error(`Failed getting info about uploaded app from Sense: ${JSON.stringify(appUploaded2, null, 2)}`);
+                process.exit(1);
             }
+
+            const app = JSON.parse(appUploaded2.data);
+
+            // Add tags to imported app
+            app.tags = [...newApp.tags];
+
+            // Add custom properties to imported app
+            app.customProperties = [...newApp.customProperties];
+
+            // Is there a new app owner specific in Excel file?
+            // Both user directory and userid must be specified for the app owner to be updated.
+            if (newApp?.appOwnerUserDirectory?.length > 0 && newApp?.appOwnerUserId?.length > 0) {
+                // Set app owner
+
+                // Get full user object from QRS
+                const filter = encodeURIComponent(
+                    `userDirectory eq '${newApp.appOwnerUserDirectory}' and userId eq '${newApp.appOwnerUserId}'`
+                );
+
+                const axiosConfigUser = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/user',
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
+
+                const userResult = await axios.request(axiosConfigUser);
+                const userResponse = JSON.parse(userResult.data);
+                logger.debug(`Retrieving app owner data, result from QRS: [${userResult.status}] ${userResult.statusText}`);
+
+                if (userResult.status === 200 && userResponse.length === 1) {
+                    logger.verbose(
+                        `Successfully retrieved app owner user ${userResponse[0].userDirectory}\\${userResponse[0].userId} from QSEoW`
+                    );
+                    logger.debug(`New app owner data from QRS:${JSON.stringify(userResponse[0], null, 2)} `);
+
+                    // Yes, the user exists
+                    const newUser = userResponse[0];
+                    app.owner = newUser;
+                } else if (userResult.status === 200 && userResponse.length === 0) {
+                    // Ok query but no matching names in Sense
+                    logger.error(
+                        `User ${userResponse[0].userDirectory}\\${userResponse[0].userId} not found in Sense. Owner of app ${newApp.name} will not be updated.`
+                    );
+                } else if (userResult.status !== 200) {
+                    // Something went wrong
+                    logger.error(
+                        `Unexpected result when retrieving app owner data for app ${newApp.name}, result from QRS: [${userResult.status}] ${userResult.statusText}`
+                    );
+                }
+            }
+
+            // Pause for a while to let Sense repository catch up
+            await sleep(1000);
+
+            // Uppdate app with tags, custom properties and app owner
+            const axiosConfig2 = setupQRSConnection(this.options, {
+                method: 'put',
+                fileCert: this.fileCert,
+                fileCertKey: this.fileCertKey,
+                path: `/qrs/app/${app.id}`,
+                body: app,
+            });
+
+            const result2 = await axios.request(axiosConfig2);
+            if (result2.status === 200) {
+                logger.debug(`Update of imported app wrt tags, custom properties and owner was successful.`);
+                return true;
+            }
+
+            logger.warn(
+                `Failed updating tags, custom properties, app owner on imported app ${newApp.name}, return code ${result2.status}.`
+            );
+            return false;
+        } catch (err) {
+            logger.error(`UPDATE UPLOADED APP: ${err}`);
+
+            // Show stack trace if available
+            if (err.stack) {
+                logger.error(`UPDATE UPLOADED APP:\n  ${err.stack}`);
+            }
+
+            return false;
         }
-
-        // Uppdate app with tags, custom properties and app owner
-        const axiosConfig2 = setupQRSConnection(this.options, {
-            method: 'put',
-            fileCert: this.fileCert,
-            fileCertKey: this.fileCertKey,
-            path: `/qrs/app/${app.id}`,
-            body: app,
-        });
-
-        const result2 = await axios.request(axiosConfig2);
-        if (result2.status === 200) {
-            logger.debug(`Update of imported app wrt tags, custom properties and owner was successful.`);
-            return true;
-        }
-
-        logger.warn(`Failed updating tags, custom properties, app owner on imported app ${newApp.name}, return code ${result2.status}.`);
-        return false;
     }
 
     // Function to implement publish-replace variant of publishing app to a Stream
