@@ -59,30 +59,46 @@ describe('taskExistById', () => {
 
 // ************************************************************************************************************
 describe('getTaskByName', () => {
-    test('no matching task)', async () => {
+    test('no matching task', async () => {
         const result = await getTaskByName(nonExistingTaskName, options);
         expect(result).toBe(false);
     });
 
-    test('1 matching task)', async () => {
+    test('1 matching task name', async () => {
         const result = await getTaskByName(existingTaskName, options);
-        expect(result).toEqual(existingTaskId);
+        expect(result.id).toEqual(existingTaskId);
     });
 
-    test('should pass', async () => {
+    test('multiple matching task names', async () => {
         const result = await getTaskByName(multipleMatchingTaskNames, options);
         expect(result).toEqual(false);
 
         // Ensure correct substring was written to global console log
-
         expect(global.console.log).toHaveBeenCalledWith(
             expect.stringContaining(`More than one task with name ${multipleMatchingTaskNames} found.`)
         );
-        // expect(global.console.log).toHaveBeenCalledWith(`More than one task with name ${multipleMatchingTaskNames} found.`);
     });
 
-    test('no task name provided)', async () => {
+    test('no task name provided', async () => {
         const result = await getTaskByName('', options);
+        expect(result).toEqual(false);
+    });
+});
+
+// ************************************************************************************************************
+describe('getTaskById', () => {
+    test('no matching task', async () => {
+        const result = await getTaskById(nonExistingTaskId, options);
+        expect(result).toEqual(false);
+    });
+
+    test('1 matching task', async () => {
+        const result = await getTaskById(existingTaskId, options);
+        expect(result.id).toEqual(existingTaskId);
+    });
+
+    test('no task id provided', async () => {
+        const result = await getTaskById('', options);
         expect(result).toEqual(false);
     });
 });
