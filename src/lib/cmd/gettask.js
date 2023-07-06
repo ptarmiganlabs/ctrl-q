@@ -556,7 +556,24 @@ const getTask = async (options) => {
 
                                     if (columnBlockShow.comprule) {
                                         // Composite rules
-                                        tmpRow = [ruleCount, mapRuleState.get(rule.ruleState), rule.reloadTask.name, rule.reloadTask.id];
+
+                                        // Is it a reload task or external program task?
+                                        if (rule.reloadTask) {
+                                            tmpRow = [
+                                                ruleCount,
+                                                mapRuleState.get(rule.ruleState),
+                                                rule.reloadTask.name,
+                                                rule.reloadTask.id,
+                                            ];
+                                        } else if (rule.externalProgramTask) {
+                                            tmpRow = [
+                                                ruleCount,
+                                                mapRuleState.get(rule.ruleState),
+                                                rule.externalProgramTask.name,
+                                                rule.externalProgramTask.id,
+                                            ];
+                                        }
+
                                         row = row.concat(tmpRow);
                                     }
 
