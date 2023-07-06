@@ -14,8 +14,6 @@ const { QlikSenseApp } = require('./class_app');
 const { getTagIdByName } = require('../util/tag');
 const { getAppById, deleteAppById } = require('../util/app');
 const { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } = require('../util/customproperties');
-const { log } = require('console');
-const { stream } = require('winston');
 
 class QlikSenseApps {
     // eslint-disable-next-line no-useless-constructor

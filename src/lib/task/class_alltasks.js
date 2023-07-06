@@ -438,12 +438,7 @@ class QlikSenseTasks {
                                 // If the task pointed to by the rule doesn't exist in Sense and doesn't point to some other task in the file, an error should be shown.
                                 if (validate(rule[taskFileColumnHeaders.ruleTaskId.pos])) {
                                     // eslint-disable-next-line no-await-in-loop
-                                    const taskExists = await taskExistById(
-                                        rule[taskFileColumnHeaders.ruleTaskId.pos],
-                                        this.options,
-                                        this.fileCert,
-                                        this.fileCertKey
-                                    );
+                                    const taskExists = await taskExistById(rule[taskFileColumnHeaders.ruleTaskId.pos], this.options);
 
                                     if (taskExists) {
                                         // Add task ID to mapping table that will be used later when building the composite event data structures
@@ -604,7 +599,7 @@ class QlikSenseTasks {
                             // If it's not a valid UUID, the ID specified in the source file will be treated as a task name
                             if (!validate(currentTask.id)) {
                                 // eslint-disable-next-line no-await-in-loop
-                                const task = await this.getTaskByName(currentTask.id);
+                                const task = await getTaskByName(currentTask.id);
                                 if (task) {
                                     // eslint-disable-next-line no-await-in-loop
                                     await this.updateReloadTaskInQseow(currentTask, taskCounter);
@@ -626,7 +621,9 @@ class QlikSenseTasks {
                                 } else {
                                     // eslint-disable-next-line no-await-in-loop
                                     await this.updateReloadTaskInQseow(currentTask, taskCounter);
-                                    logger.info(`(${taskCounter}) Updated existing task "${currentTask.name}", task id: ${currentTask.id}.`);
+                                    logger.info(
+                                        `(${taskCounter}) Updated existing task "${currentTask.name}", task id: ${currentTask.id}.`
+                                    );
                                 }
                             }
 
