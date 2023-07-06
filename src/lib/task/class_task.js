@@ -56,7 +56,7 @@ class QlikSenseTask {
                 }
 
                 this.completeTaskObject = task;
-                logger.debug(`Initialised reload task object from QSEoW: ${task}`);
+                logger.silly(`Initialised reload task object from QSEoW: ${JSON.stringify(task)}`);
             } else if (task.schemaPath === 'ExternalProgramTask') {
                 this.sourceType = 'from_qseow';
                 this.taskId = task.id;
@@ -96,7 +96,7 @@ class QlikSenseTask {
                 }
 
                 this.completeTaskObject = task;
-                logger.debug(`Initialised external program task object from QSEoW: ${task}`);
+                logger.silly(`Initialised external program task object from QSEoW: ${JSON.stringify(task)}`);
             }
         } else if (source.toLowerCase() === 'from_file') {
             // Data in the "task" parameter was loaded from a task definition file on disk
@@ -138,7 +138,7 @@ class QlikSenseTask {
 
                 this.completeTaskObject = task;
             }
-            logger.debug(`Initialised task object from file: ${task}`);
+            logger.silly(`Initialised task object from file: ${JSON.stringify(task)}`);
         }
     }
 }

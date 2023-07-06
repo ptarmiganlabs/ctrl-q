@@ -78,12 +78,16 @@ const mapTaskType = new Map([
     ['Distribute', 3],
 ]);
 
+// Used to find the column position in the source csv/Excel file containing the task definition
+// position=999 may be set later in the code and  means that a certain column is not present in the source file.
+// It is then up to the code to handle this situation.
 const taskFileColumnHeaders = {
     taskCounter: { name: 'Task counter', pos: -1 },
     taskType: { name: 'Task type', pos: -1 },
     taskName: { name: 'Task name', pos: -1 },
     // taskRefId: { name: 'Reference task id', pos: -1 },
     taskId: { name: 'Task id', pos: -1 },
+    importOptions: { name: 'Import options', pos: -1 },
     taskEnabled: { name: 'Task enabled', pos: -1 },
     taskSessionTimeout: { name: 'Task timeout', pos: -1 },
     taskMaxRetries: { name: 'Task retries', pos: -1 },
@@ -136,11 +140,12 @@ const appFileColumnHeaders = {
     appPublishToStreamOption: { name: 'Publish options', pos: -1 },
 };
 
-function getColumnPosFromHeaderRow(headerRow) {
+function getTaskColumnPosFromHeaderRow(headerRow) {
     taskFileColumnHeaders.taskCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskCounter.name);
     taskFileColumnHeaders.taskType.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskType.name);
     taskFileColumnHeaders.taskName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskName.name);
     taskFileColumnHeaders.taskId.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskId.name);
+    taskFileColumnHeaders.importOptions.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.importOptions.name);
     taskFileColumnHeaders.taskEnabled.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskEnabled.name);
     taskFileColumnHeaders.taskSessionTimeout.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskSessionTimeout.name);
     taskFileColumnHeaders.taskMaxRetries.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskMaxRetries.name);
@@ -224,6 +229,6 @@ module.exports = {
     mapTaskExecutionStatus,
     mapTaskType,
     taskFileColumnHeaders,
-    getColumnPosFromHeaderRow,
+    getTaskColumnPosFromHeaderRow,
     getAppColumnPosFromHeaderRow,
 };

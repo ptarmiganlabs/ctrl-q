@@ -102,7 +102,11 @@ const getTask = async (options) => {
         // Get reload and external program tasks
         const qlikSenseTasks = new QlikSenseTasks();
         await qlikSenseTasks.init(options);
-        await qlikSenseTasks.getTaskModelFromQseow();
+        const res1 = await qlikSenseTasks.getTaskModelFromQseow();
+        if (!res1) {
+            logger.error('Failed to get task model from QSEoW');
+            return false;
+        }
 
         // What should we do with the retrieved task data?
         if (options.outputFormat === 'tree') {
