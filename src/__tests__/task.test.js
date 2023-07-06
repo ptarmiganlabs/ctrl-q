@@ -1,7 +1,3 @@
-const path = require('path');
-const { createLogger, format, transports } = require('winston');
-
-const { logger, execPath } = require('../globals');
 const { taskExistById, getTaskByName, getTaskById } = require('../lib/util/task');
 
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 5 minute default timeout
@@ -33,10 +29,6 @@ global.console = {
     error: jest.fn(),
 };
 
-// Get certificates
-const fileCert = path.resolve(execPath, options.authCertFile);
-const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-
 // Define existing and non-existing tasks
 const existingTaskId = '58dd8322-e39c-4b71-b74e-13c47a2f6dd4';
 const existingTaskName = 'Reload task of Meetup.com';
@@ -47,12 +39,12 @@ const nonExistingTaskName = 'Non-existing task 298374293874298734';
 // ************************************************************************************************************
 describe('taskExistById', () => {
     test('existing task', async () => {
-        const result = await taskExistById(existingTaskId, options, fileCert, fileCertKey);
+        const result = await taskExistById(existingTaskId, options);
         expect(result).toBe(true);
     });
 
     test('non-existing task', async () => {
-        const result = await taskExistById(nonExistingTaskId, options, fileCert, fileCertKey);
+        const result = await taskExistById(nonExistingTaskId, options);
         expect(result).toBe(false);
     });
 });
