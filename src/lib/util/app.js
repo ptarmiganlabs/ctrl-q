@@ -1,6 +1,7 @@
 const axios = require('axios');
 const path = require('path');
 const { validate } = require('uuid');
+const { error } = require('console');
 
 const { logger, execPath, getCliOptions } = require('../../globals');
 const { setupQRSConnection } = require('./qrs');
@@ -67,7 +68,7 @@ async function getApps(options, idArray, tagArray) {
             logger.error('GET APPS: No apps matching the provided app IDs and and tags. Exiting.');
             process.exit(1);
         } else {
-            axiosConfig = await setupQRSConnection(options, {
+            axiosConfig = setupQRSConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
@@ -90,9 +91,17 @@ async function getApps(options, idArray, tagArray) {
 }
 
 // Function to get app info from QRS, given app ID
-async function getAppById(appId) {
+async function getAppById(appId, optionsParam) {
     try {
         logger.debug(`GET APP BY ID: Starting get app from QSEoW for app id ${appId}`);
+        // Did we get any options as parameter?
+        let options;
+        if (!optionsParam) {
+            // Get CLI options
+            options = getCliOptions();
+        } else {
+            options = optionsParam;
+        }
 
         // Is the app ID a valid GUID?
         if (!validate(appId)) {
@@ -101,14 +110,11 @@ async function getAppById(appId) {
             return false;
         }
 
-        // Get CLI options
-        const cliOptions = getCliOptions();
-
         // Make sure certificates exist
-        const fileCert = path.resolve(execPath, cliOptions.authCertFile);
-        const fileCertKey = path.resolve(execPath, cliOptions.authCertKeyFile);
+        const fileCert = path.resolve(execPath, options.authCertFile);
+        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
 
-        const axiosConfig = await setupQRSConnection(cliOptions, {
+        const axiosConfig = setupQRSConnection(options, {
             method: 'get',
             fileCert,
             fileCertKey,
@@ -116,13 +122,19 @@ async function getAppById(appId) {
         });
 
         const result = await axios.request(axiosConfig);
-        logger.debug(`GET APP BY ID: Result=result.status`);
+        logger.debug(`GET APP BY ID: Result=${result.status}`);
 
         if (result.status === 200) {
             const app = JSON.parse(result.data);
-            logger.verbose(`GET APP BY ID: App details: ${JSON.stringify(app)}`);
+            logger.debug(`GET APP BY ID: App details: ${app}`);
 
-            return app;
+            if (app && app?.id) {
+                // Yes, the task exists
+                logger.verbose(`App exists: ID=${app.id}. App name="${app.name}"`);
+                return app;
+            }
+            // No, the task does not exist
+            logger.verbose(`App does not exist: ID=${appId}`);
         }
 
         return false;
