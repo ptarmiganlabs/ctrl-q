@@ -7,7 +7,7 @@ const fs = require('fs');
 const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } = require('../../globals');
 const { QlikSenseTasks } = require('../task/class_alltasks');
 const { QlikSenseApps } = require('../app/class_allapps');
-const { getColumnPosFromHeaderRow } = require('../util/lookups');
+const { getTaskColumnPosFromHeaderRow } = require('../util/lookups');
 const { getTagsFromQseow } = require('../util/tag');
 const { getCustomPropertiesFromQseow } = require('../util/customproperties');
 
@@ -28,7 +28,7 @@ const processCsvFile = async (options) => {
     }
 
     // Get positions of column headers
-    const colHeaders = getColumnPosFromHeaderRow(headerRow[0]);
+    const colHeaders = getTaskColumnPosFromHeaderRow(headerRow[0]);
 
     const records = [];
     parser = fs.createReadStream(options.fileName).pipe(
@@ -347,7 +347,7 @@ const importTaskFromFile = async (options) => {
             // If so only include the first --limit-import-count tasks
             if (parseInt(options.limitImportCount, 10) > 0) {
                 // Get positions of column headers
-                const colHeaders = getColumnPosFromHeaderRow(tasksFromFile.data[0]);
+                const colHeaders = getTaskColumnPosFromHeaderRow(tasksFromFile.data[0]);
 
                 const limitedTasks = tasksFromFile.data.filter((task) => {
                     // Are we on header line?

@@ -1,7 +1,9 @@
 const axios = require('axios');
 const path = require('path');
+const { validate } = require('uuid');
+const { error } = require('console');
 
-const { logger, execPath } = require('../../globals');
+const { logger, execPath, getCliOptions } = require('../../globals');
 const { setupQRSConnection } = require('./qrs');
 
 async function getApps(options, idArray, tagArray) {
@@ -28,7 +30,7 @@ async function getApps(options, idArray, tagArray) {
         if (idArray && idArray.length >= 1) {
             filter += encodeURIComponent(')');
         }
-        logger.debug(`GET VARIABLE: QRS query filter (incl ids): ${filter}`);
+        logger.debug(`GET APPS: QRS query filter (incl ids): ${filter}`);
 
         // Add app tag(s) to query string
         if (tagArray && tagArray.length >= 1) {
@@ -54,7 +56,7 @@ async function getApps(options, idArray, tagArray) {
         if (tagArray && tagArray.length >= 1) {
             filter += encodeURIComponent(')');
         }
-        logger.debug(`GET VARIABLE: QRS query filter (incl ids, tags): ${filter}`);
+        logger.debug(`GET APPS: QRS query filter (incl ids, tags): ${filter}`);
 
         // Make sure certificates exist
         const fileCert = path.resolve(execPath, options.authCertFile);
@@ -63,10 +65,10 @@ async function getApps(options, idArray, tagArray) {
         let axiosConfig;
         if (filter === '') {
             // No apps matching the provided app IDs and tags. Error!
-            logger.error('No apps matching the provided app IDs and and tags. Exiting.');
+            logger.error('GET APPS: No apps matching the provided app IDs and and tags. Exiting.');
             process.exit(1);
         } else {
-            axiosConfig = await setupQRSConnection(options, {
+            axiosConfig = setupQRSConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
@@ -76,10 +78,10 @@ async function getApps(options, idArray, tagArray) {
         }
 
         const result = await axios.request(axiosConfig);
-        logger.debug(`GET VARIABLE BY TAG: Result=result.status`);
+        logger.debug(`GET APPS BY TAG: Result=result.status`);
 
         const apps = JSON.parse(result.data);
-        logger.verbose(`GET VARIABLE BY TAG: # apps: ${apps.length}`);
+        logger.verbose(`GET APPS BY TAG: # apps: ${apps.length}`);
 
         return apps;
     } catch (err) {
@@ -88,6 +90,108 @@ async function getApps(options, idArray, tagArray) {
     }
 }
 
+// Function to get app info from QRS, given app ID
+async function getAppById(appId, optionsParam) {
+    try {
+        logger.debug(`GET APP BY ID: Starting get app from QSEoW for app id ${appId}`);
+        // Did we get any options as parameter?
+        let options;
+        if (!optionsParam) {
+            // Get CLI options
+            options = getCliOptions();
+        } else {
+            options = optionsParam;
+        }
+
+        // Is the app ID a valid GUID?
+        if (!validate(appId)) {
+            logger.error(`GET APP BY ID: App ID ${appId} is not a valid GUID.`);
+
+            return false;
+        }
+
+        // Make sure certificates exist
+        const fileCert = path.resolve(execPath, options.authCertFile);
+        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+
+        const axiosConfig = setupQRSConnection(options, {
+            method: 'get',
+            fileCert,
+            fileCertKey,
+            path: `/qrs/app/${appId}`,
+        });
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`GET APP BY ID: Result=${result.status}`);
+
+        if (result.status === 200) {
+            const app = JSON.parse(result.data);
+            logger.debug(`GET APP BY ID: App details: ${app}`);
+
+            if (app && app?.id) {
+                // Yes, the task exists
+                logger.verbose(`App exists: ID=${app.id}. App name="${app.name}"`);
+                return app;
+            }
+            // No, the task does not exist
+            logger.verbose(`App does not exist: ID=${appId}`);
+        }
+
+        return false;
+    } catch (err) {
+        logger.error(`GET APP BY ID: ${err}`);
+
+        // Show stack trace if available
+        if (err.stack) {
+            logger.error(`GET APP BY ID:\n  ${err.stack}`);
+        }
+
+        return false;
+    }
+}
+
+// Function to delete app given app ID
+async function deleteAppById(appId) {
+    try {
+        logger.debug(`DELETE APP: Starting delete app from QSEoW for app id ${appId}`);
+
+        // Get CLI options
+        const cliOptions = getCliOptions();
+
+        // Make sure certificates exist
+        const fileCert = path.resolve(execPath, cliOptions.authCertFile);
+        const fileCertKey = path.resolve(execPath, cliOptions.authCertKeyFile);
+
+        const axiosConfig = setupQRSConnection(cliOptions, {
+            method: 'delete',
+            fileCert,
+            fileCertKey,
+            path: `/qrs/app/${appId}`,
+        });
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`DELETE APP: Result=result.status`);
+
+        if (result.status !== 204) {
+            logger.error(`DELETE APP: Failed deleting app from QSEoW: ${JSON.stringify(result, null, 2)}. Aborting.`);
+            process.exit(1);
+        }
+
+        return true;
+    } catch (err) {
+        logger.error(`DELETE APP: ${err}`);
+
+        // Show stack trace if available
+        if (err.stack) {
+            logger.error(`DELETE APP:\n  ${err.stack}`);
+        }
+
+        return false;
+    }
+}
+
 module.exports = {
     getApps,
+    getAppById,
+    deleteAppById,
 };

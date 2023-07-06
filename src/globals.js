@@ -10,6 +10,9 @@ const appVersion = require('./package.json').version;
 // Set up logger with timestamps and colors, and optional logging to disk file
 const logTransports = [];
 
+// CLI options specified when starting Ctrl-Q
+let cliOptions = {};
+
 logTransports.push(
     new winston.transports.Console({
         name: 'console',
@@ -113,6 +116,16 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Function to set CLI options. Clear any existing options first.
+const setCliOptions = (options) => {
+    cliOptions = {};
+
+    Object.assign(cliOptions, options);
+};
+
+// Function to get CLI options
+const getCliOptions = () => cliOptions;
+
 module.exports = {
     logger,
     appVersion,
@@ -126,4 +139,6 @@ module.exports = {
     isNumeric,
     mergeDirFilePath,
     sleep,
+    getCliOptions,
+    setCliOptions,
 };
