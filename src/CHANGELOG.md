@@ -1,5 +1,29 @@
 # Changelog
 
+## [3.12.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.11.0...ctrl-q-v3.12.0) (2023-08-22)
+
+
+### Features
+
+* **app-import:** Add more options for publishing apps ([a548642](https://github.com/ptarmiganlabs/ctrl-q/commit/a5486427c1cb4317fcb971c1bc55e5ba3dc071a1)), closes [#234](https://github.com/ptarmiganlabs/ctrl-q/issues/234)
+* **task-import:** Better progress logging when importing tasks from Excel file ([c2f721b](https://github.com/ptarmiganlabs/ctrl-q/commit/c2f721b60b3f69edebdab4e93b679524649607c6))
+
+
+### Bug Fixes
+
+* **app-import:** Make app import more robust on QSEoW 2023-May and onward ([642e7df](https://github.com/ptarmiganlabs/ctrl-q/commit/642e7df2ceba59ebd8383f883da6af03902e0058))
+* **task-get:** Properly handle ext prg task triggering reload task ([ad9fbae](https://github.com/ptarmiganlabs/ctrl-q/commit/ad9fbae488181b5928a44d58ca3bcb80c3491a87)), closes [#288](https://github.com/ptarmiganlabs/ctrl-q/issues/288)
+
+
+### Miscellaneous
+
+* **deps:** Update dependencies to stay safe and secure ([32714b7](https://github.com/ptarmiganlabs/ctrl-q/commit/32714b724a7efa2314ff6976ba54ce9e88ae1949))
+
+
+### Refactoring
+
+* **task-get:** Improved logging and error checking. ([ad9fbae](https://github.com/ptarmiganlabs/ctrl-q/commit/ad9fbae488181b5928a44d58ca3bcb80c3491a87))
+
 ## [3.11.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.10.0...ctrl-q-v3.11.0) (2023-06-05)
 
 

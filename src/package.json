@@ -1,11 +1,11 @@
 {
   "name": "ctrl-q",
-  "version": "3.11.0",
+  "version": "3.12.0",
   "description": "Command line tool for interacting with Qlik Sense Enterprise servers",
   "main": "./ctrl-q.js",
   "scripts": {
     "test": "jest --verbose false --watch",
-    "lint": "npx eslint ./lib/**/*.js"    
+    "lint": "npx eslint ./lib/**/*.js"
   },
   "homepage": "https://github.com/ptarmiganlabs/ctrl-q",
   "author": "Göran Sander",
