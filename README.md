@@ -38,7 +38,7 @@ The current list of features are:
 - Bulk import of reload tasks from disk files. Optionally also import QVF files.<br>
   Building task chains with new and/or existing tasks supported. <br>
   All options available in the QMC (and then some!) can be defined.
-- Bulk import of QVF files into Sense apps.
+- Bulk import of QVF files into Sense apps, including (re-)publishing of the apps.
 - Update custom properties for multiple tasks.
 - Import master dimensions and master measures from definitions in Excel file, including per dimension/measure colors.
 - Show complete definitions for all master measures in a Sense app.
@@ -1579,7 +1579,6 @@ ll,
 }
 ```
 
-
 ### Import apps from QVF files
 
 .QVF files are Sense apps stored on disk.  
@@ -1637,7 +1636,8 @@ The Excel file with definitions on what QVF files should be imported, what the a
 
 ![QVF app files that should be imported into Qlik Sense](docs/ctrl-q-app-import-1.png "QVF app files that should be imported into Qlik Sense")
 
-An explanation of each column is available [here](#defining-apps-to-be-imported).
+The available columns in the Excel file are the same as when importing apps as part of task import.  
+The columns are described [here](#source-file-columns-for-app-import-definitions).
 
 > NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/testdata/tasks.xlsx?raw=true).
 
@@ -1752,20 +1752,23 @@ Meaning of "Comment" column above:
 If apps should be imported (by means of the `--import-app` option) an Excel file must be provided with info about what app QVF files should be imported, as well as details about each app import.  
 A sheet name (where the app details are found) in the Excel file must also be specified using the `--import-app-sheet-name` option.
 
-The mandatory columns (case sensitive!) in the app import definition file are:
+The columns (case sensitive!) in the app import definition file are:
 
-| Column name                  | Comment | Description | Valid values |
-|------------------------------|-----------|-------------|------|
-| App counter                  |   | Counter starting at 1. Increments one step for each app. | Integer > 0 |
-| App name                     |   | Name of the app that will be created based on the specified QVF file. | Any string. Emojis allowed. |
-| QVF directory                |   | Directory where app QVF files are stored | Any valid path, absolute or relative. |
-| QVF name                     |   | Name of QVD file, including extension. | Any valid file name. |
-| Exclude data connections     |   | Should data connections stored in the QVF file be excluded during app import or not. | true / false |
-| App tags                     |   | Tags to set on the imported app. | Format is "tag1 / tag2 / tag with spaces in it", i.e. separate tag names by "space-forward slash-space". |
-| App custom properties        |   | Custom properties to set on the imported app. | Format is CustPropName1=Value1 / CustPropName2=Value2 |
-| Owner user directory         |   | If app owner should be set for this app, specify the user directory name here. Both user directory and user id must be correctly defined for the app owner to be updated.  | Any user directory currently defined in the QMC, or `Internal` for Sense internal accounts. |
-| Owner user id                |   | If app owner should be set for this app, specify the user id here. Both user directory and user id must be correctly defined for the app owner to be updated. | Any user ID defined in the user directory defined in `Owner user directory` column (above). |
-| Publish to stream            |   | If this app should be published, specify stream id or name here. If the id is not associated with a stream or the specified stream name does not exist the app will not be published | Any existing stream name or id associated with an existing stream. |
+| Column name                  | Description | Valid values |
+|------------------------------|---------------|------|
+| App counter                  | Counter starting at 1. Increments one step for each app. | Integer > 0 |
+| App name                     | Name of the app that will be created based on the specified QVF file. | Any string. Emojis allowed. |
+| QVF directory                | Directory where app QVF files are stored | Any valid path, absolute or relative. |
+| QVF name                     | Name of QVD file, including extension. | Any valid file name. |
+| Exclude data connections     | Should data connections stored in the QVF file be excluded during app import or not. | true / false |
+| App tags                     | Tags to set on the imported app. | Format is "tag1 / tag2 / tag with spaces in it", i.e. separate tag names by "space-forward slash-space". |
+| App custom properties        | Custom properties to set on the imported app. | Format is CustPropName1=Value1 / CustPropName2=Value2 |
+| Owner user directory         | If app owner should be set for this app, specify the user directory name here. Both user directory and user id must be correctly defined for the app owner to be updated.  | Any user directory currently defined in the QMC, or `Internal` for Sense internal accounts. |
+| Owner user id                | If app owner should be set for this app, specify the user id here. Both user directory and user id must be correctly defined for the app owner to be updated. | Any user ID defined in the user directory defined in `Owner user directory` column (above). |
+| Publish to stream            | If this app should be published, specify stream id or name here. If the id is not associated with a stream or the specified stream name does not exist the app will not be published | Any existing stream name or id associated with an existing stream. |
+| Publish options <br>(optional) | Specify publish options here, for example if an already published app with the same name should be overwritten or not. <br>The default behaviour is `publish-replace`, which will be used when no "Publish options" column is present in the Excel sheet or that column exists but is empty. | `publish-replace`: If there already exists a published app with the same name in the specified stream, replace that app with the new one. <br>  `publish-another`: If there already exists a published app with the same name in the specified stream, publish tnother one. <br>`delete-publish`: First delete an already existing app (if there is one), then publish the new app. |
+
+The publish options are described in more detail [here](https://github.com/ptarmiganlabs/ctrl-q/discussions/234#discussioncomment-6173760).
 
 #### Example: Export tasks to CSV, then import tasks from same CSV
 
