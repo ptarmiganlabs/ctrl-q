@@ -1,5 +1,7 @@
 # Project specific ignores
+testdata/testdata-private
 cert/
+.vscode/launch.json
 launch.json
 tasks_.csv
 tasks_.xlsx
@@ -126,3 +128,4 @@ dist
 tasktree.json
 tasktable.csv
 task-chain.csv
+.vscode/launch.json
