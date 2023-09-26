@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.13.0](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.12.0...v3.13.0) (2023-09-26)
+
+
+### Miscellaneous
+
+* Add insiders build step in CI pipeline ([97e933f](https://github.com/ptarmiganlabs/ctrl-q/commit/97e933fb89aed09fbac285a2ba870b3010a02cf2)), closes [#303](https://github.com/ptarmiganlabs/ctrl-q/issues/303)
+* **deps:** update actions/checkout action to v4 ([460fd6b](https://github.com/ptarmiganlabs/ctrl-q/commit/460fd6b00e205835ad26c584c6a786c68dde483f))
+* **deps:** update crazy-max/ghaction-virustotal action to v4 ([49d4c23](https://github.com/ptarmiganlabs/ctrl-q/commit/49d4c23e8e308baf51920dc674b50050c2f38251))
+* Fix version number after build refactoring ([5f4347c](https://github.com/ptarmiganlabs/ctrl-q/commit/5f4347c640c58f9a31d8399350af7cededf8b7da))
+
+
+### Documentation
+
+* **app-import:** Add description of publishing apps after import from QVF files ([072a14f](https://github.com/ptarmiganlabs/ctrl-q/commit/072a14fc36438cfc9d0a85e99bc251cf7fe92dd8)), closes [#302](https://github.com/ptarmiganlabs/ctrl-q/issues/302)
+* **app-import:** Add link to app import Excel file columns ([28cd76a](https://github.com/ptarmiganlabs/ctrl-q/commit/28cd76ae51b5eb4992dfcff3f670655b456e15a5)), closes [#301](https://github.com/ptarmiganlabs/ctrl-q/issues/301)
+
 ## [3.4.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.4.0...ctrl-q-v3.4.1) (2023-02-08)
 
 ### Bug Fixes
