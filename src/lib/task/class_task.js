@@ -1,8 +1,10 @@
 const { Duration } = require('luxon');
-const { randomWords } = require('random-words');
+// const { randomWords } = require('random-words');
 
 const { logger } = require('../../globals');
 const { mapTaskExecutionStatus } = require('../util/lookups');
+
+// const randomWords2 = (...args) => import('random-words').then(({ default: randomWords }) => randomWords(...args));
 
 class QlikSenseTask {
     // eslint-disable-next-line no-useless-constructor
@@ -11,6 +13,9 @@ class QlikSenseTask {
     }
 
     async init(source, task, anonymizeTaskNames, options, fileCert, fileCertKey) {
+        // Dynamically import random-words to get arouond the fact it is import-only
+        const randomWords = (await import('random-words')).default;
+
         if (source.toLowerCase() === 'from_qseow') {
             // Data in the "task" parameter was loaded from a Qlik Sense (QSEoW) server
             if (task.schemaPath === 'ReloadTask') {

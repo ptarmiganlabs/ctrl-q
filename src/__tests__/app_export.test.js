@@ -3,7 +3,7 @@ const path = require('path');
 
 const { exportAppToFile } = require('../lib/cmd/exportapp');
 
-const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000;  // 5 minute default timeout
+const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 5 minute default timeout
 
 console.log(`Jest timeout: ${defaultTestTimeout}`);
 
@@ -36,7 +36,7 @@ test('get tasks (verify parameters)', async () => {
 
 /**
  * One tag, overwrite
- * 
+ *
  * --output-dir qvfs
  * --app-tag apiCreated
  * --exclude-app-data true
@@ -58,7 +58,7 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
 
 /**
  * Two tags, overwrite
- * 
+ *
  * --output-dir qvfs
  * --app-tag apiCreated 'Ctrl-Q import'
  * --exclude-app-data true
@@ -78,10 +78,9 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
     expect(result).toBe(true);
 });
 
-
 /**
  * Two tags, one ID, overwrite
- * 
+ *
  * --output-dir qvfs
  * --app-tag apiCreated 'Ctrl-Q import'
  * --app-id eb3ab049-d007-43d3-93da-5962f9208c65
@@ -105,7 +104,7 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
 
 /**
  * Two tags, two IDs, overwrite
- * 
+ *
  * --output-dir qvfs
  * --app-tag apiCreated 'Ctrl-Q import'
  * --app-id eb3ab049-d007-43d3-93da-5962f9208c65
@@ -129,7 +128,7 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
 
 /**
  * Two tags, two IDs, overwrite. Export metadata to Excel file
- * 
+ *
  * --output-dir qvfs
  * --app-tag apiCreated 'Ctrl-Q import'
  * --app-id eb3ab049-d007-43d3-93da-5962f9208c65

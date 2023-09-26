@@ -5,7 +5,7 @@ const fs = require('fs');
 require('winston-daily-rotate-file');
 
 // Get app version from package.json file
-const appVersion = require('./package.json').version;
+const appVersion = require('../package.json').version;
 
 // Set up logger with timestamps and colors, and optional logging to disk file
 const logTransports = [];

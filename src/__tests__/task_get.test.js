@@ -1,6 +1,6 @@
 const { getTask } = require('../lib/cmd/gettask');
 
-const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000;  // 5 minute default timeout
+const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 5 minute default timeout
 
 console.log(`Jest timeout: ${defaultTestTimeout}`);
 
@@ -99,4 +99,3 @@ test('get tasks as tree on screen, full detail columns, no colored text (should 
     const result = await getTask(options);
     expect(result).toBe(true);
 });
-
