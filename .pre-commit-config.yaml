@@ -21,8 +21,7 @@ repos:
               src/config/.*|
               src/CHANGELOG.md|
               src/config/.*|
-              changelog.md|
-              docs/api_doc/butler-api.html
+              changelog.md
           )$
 
   - repo: https://github.com/pre-commit/pre-commit-hooks

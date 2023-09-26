@@ -40,7 +40,7 @@ const importAppFromFile = async (options) => {
             // Parse Excel file
             const workSheetsFromFile = xlsx.parse(options.fileName);
 
-            // Verify that task definitions sheet exists
+            // Verify that app definitions sheet exists
             appsFromFile = workSheetsFromFile.find((item) => item.name === options.sheetName);
             if (!appsFromFile) {
                 throw new Error(`EXCEL APP IMPORT: Can't find sheet ${options.sheetName} in file ${options.fileName}`);
