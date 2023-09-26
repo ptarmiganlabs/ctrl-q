@@ -5,7 +5,8 @@
   "main": "ctrl-q.js",
   "scripts": {
     "test": "jest --verbose false --watch",
-    "lint": "npx eslint ./src/**/*.js"
+    "lint": "npx eslint ./src/**/*.js",
+    "pc": "pre-commit run --all-files"
   },
   "homepage": "https://github.com/ptarmiganlabs/ctrl-q",
   "author": "Göran Sander",

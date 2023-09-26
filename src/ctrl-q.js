@@ -169,13 +169,41 @@ const program = new Command();
             'column where dim/measure flag is found. Use "dim-single" in that column to create dimension, "dim-drilldown" for drill-down dimension, "measure" for measure',
             'Master item type'
         )
-        .requiredOption('--col-master-item-name <column position or name>', 'column number (zero based) or name to use as master item name', 'Master item name')
-        .requiredOption('--col-master-item-descr <column position or name>', 'column number (zero based) or name to use as master item description', 'Description')
-        .requiredOption('--col-master-item-label <column position or name>', 'column number (zero based) or name to use as master item label', 'Label')
-        .requiredOption('--col-master-item-expr <column position or name>', 'column number (zero based) or name to use as master item expression', 'Expression')
-        .requiredOption('--col-master-item-tag <column position or name>', 'column number (zero based) or name to use as master item tags', 'Tag')
-        .requiredOption('--col-master-item-color <column position or name>', 'column number (zero based) or name to use as color for dimensions/measures', 'Color')
-        .requiredOption('--col-master-item-per-value-color <column position or name>', 'column number (zero based) or name to use as per-value/segment color for dimensions/measures', 'Per value color')
+        .requiredOption(
+            '--col-master-item-name <column position or name>',
+            'column number (zero based) or name to use as master item name',
+            'Master item name'
+        )
+        .requiredOption(
+            '--col-master-item-descr <column position or name>',
+            'column number (zero based) or name to use as master item description',
+            'Description'
+        )
+        .requiredOption(
+            '--col-master-item-label <column position or name>',
+            'column number (zero based) or name to use as master item label',
+            'Label'
+        )
+        .requiredOption(
+            '--col-master-item-expr <column position or name>',
+            'column number (zero based) or name to use as master item expression',
+            'Expression'
+        )
+        .requiredOption(
+            '--col-master-item-tag <column position or name>',
+            'column number (zero based) or name to use as master item tags',
+            'Tag'
+        )
+        .requiredOption(
+            '--col-master-item-color <column position or name>',
+            'column number (zero based) or name to use as color for dimensions/measures',
+            'Color'
+        )
+        .requiredOption(
+            '--col-master-item-per-value-color <column position or name>',
+            'column number (zero based) or name to use as per-value/segment color for dimensions/measures',
+            'Per value color'
+        )
 
         .requiredOption('--sleep-between-imports <milliseconds>', 'sleep this many milliseconds between imports. Set to 0 to disable', 1000)
         .requiredOption(
@@ -738,5 +766,3 @@ const program = new Command();
     // Parse command line params
     await program.parseAsync(process.argv);
 })();
-
-

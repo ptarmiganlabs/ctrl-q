@@ -30,7 +30,7 @@ The Butler tools each focus on a specific feature (or features in the case of [t
 For example, [Butler SOS](https://github.com/ptarmiganlabs/butler-sos) focus on getting real-time metrics and events out of Sense and into a wide range of target databases and monitoring tools.  
 [Butler Sheet Icons](https://github.com/ptarmiganlabs/butler-sheet-icons) creates sheet thumbnails for Sense apps - but offers lots of flexibility and power around that use case.
 
-Ctrl-Q instead focus on specific, high-value uses cases that tend to be very time consuming and/or error prone to do manually.  
+Ctrl-Q instead focus on specific, high-value uses cases that tend to be very time consuming and/or error prone to do manually.
 
 The current list of features are:
 
@@ -133,26 +133,26 @@ Logging is controlled by the --log-level option.
 
 Valid values are (in order of increasing verbosity): error, warn, info, verbose, debug, silly.
 
-Note: When using log level silly all websocket communication to/from the Sense server will be logged to the console. This means *lots* of log output.
+Note: When using log level silly all websocket communication to/from the Sense server will be logged to the console. This means _lots_ of log output.
 
 # Security
 
 Ctrl-Q is open source and you have access to all source code.
 
-It is ***your responsibility*** to determine if Ctrl-Q is suitable for **your** use case.  
+It is **_your responsibility_** to determine if Ctrl-Q is suitable for **your** use case.  
 The creators of Ctrl-Q, including Ptarmigan Labs, Göran Sander or any other contributor, can and must never be held liable to past or future security issues of Ctrl-Q.
 If you have security concerns or ideas around Ctrl-Q, please get involved in the project and contribute to making it better!
 
-    If you discover a serious bug with Ctrl-Q that may pose a security problem, please disclose it  
-    confidentially to security@ptarmiganlabs.com first, so it can be assessed and hopefully fixed  
-    prior to being exploited.  
-    
+    If you discover a serious bug with Ctrl-Q that may pose a security problem, please disclose it
+    confidentially to security@ptarmiganlabs.com first, so it can be assessed and hopefully fixed
+    prior to being exploited.
+
     Please do not raise GitHub issues for serious security-related doubts or problems.
 
 ## Virus scanning
 
 Every time a Ctrl-Q release is done the created binaries are sent to [VirusTotal](https://www.virustotal.com/) for scanning.  
-VirusTotal acts as an aggregated virus scanner that sends the Ctrl-Q binaries to dozens of anti-virus scanners, including many of the major/most widely used ones.  
+VirusTotal acts as an aggregated virus scanner that sends the Ctrl-Q binaries to dozens of anti-virus scanners, including many of the major/most widely used ones.
 
 Links to the VirusTotal scan report are included in each release notes, making it easy to check the status of each binary:
 
@@ -194,9 +194,9 @@ These certificates are [exported from the QMC](https://help.qlik.com/en-US/sense
 
 Ctrl-Q can reference these certificates in two ways:
 
-1. if the `--auth-cert-file` and `auth-cert-key-file` options are used, Ctrl-Q will read the certificates from the disk files pointed to by those options. 
+1. if the `--auth-cert-file` and `auth-cert-key-file` options are used, Ctrl-Q will read the certificates from the disk files pointed to by those options.
    1. The `--auth-root-cert-file` option refers to the certificate CA, and is optional to use. In most cases it's not needed.
-2. If the options above are *not* specified when Ctrl-Q is started, it will look for certificates in the `config` folder in the same folder as the Ctrl-Q executable. The certificate files must be named `client.pem`, `client_key.pem` and `root.pem`.
+2. If the options above are _not_ specified when Ctrl-Q is started, it will look for certificates in the `config` folder in the same folder as the Ctrl-Q executable. The certificate files must be named `client.pem`, `client_key.pem` and `root.pem`.
 
 The options `--auth-user-dir` and `-auth-user-id` are also needed to authenticate with Sense. They define which user will be used when interacting with both the engine and repository APIs.
 
@@ -211,7 +211,7 @@ MS-DOS supported it, as did early Windows versions.
 Today this feature is quite fragmented.
 
 Console applications using colors are natively supported on macOS and Linux.  
-On Windows Server 2016 and earlier it's *very* hard to get this working, later versions may be easier.  
+On Windows Server 2016 and earlier it's _very_ hard to get this working, later versions may be easier.  
 On Windows 10 and later it's possible to use Microsoft's excellent new command line shell, [Windows Terminal](https://github.com/microsoft/terminal).  
 Highly recommended if you use a desktop Windows operating system!
 
@@ -300,9 +300,9 @@ Many of Ctrl-Q's commands will create, update or delete things in Sense.
 As long as you have specified the correct parameters that's all good - but there is also the risk of using incorrect parameters or filters, causing too many (or too few or the wrong ones) resources in Sense to be affected.
 
 Most Ctrl-Q commands that change things in Sense have a `--dry-run` option.  
-If it is used, Ctrl-Q will not make any changes in Sense, but instead only show what *would* happen.
+If it is used, Ctrl-Q will not make any changes in Sense, but instead only show what _would_ happen.
 
-It's thus a *very* good idea to first do a dry run of the intended command, verify that the correct things would happen and then finally do a real execution of the desired Ctrl-Q command.
+It's thus a _very_ good idea to first do a dry run of the intended command, verify that the correct things would happen and then finally do a real execution of the desired Ctrl-Q command.
 
 Might take a bit of extra time, but better safe than sorry.
 
@@ -784,15 +784,15 @@ If `--tree-icons` is used when starting Ctrl-Q emojis will be used to indicate t
 
 The used emojis are
 
-|   | Descriptions  |
-|---|---|
-| ⏰ | Shown at the top of the tree of scheduled tasks. All tasks below this node have a time-based scheduled. |
-| ✅ | Finished successfully. |
-| ❌ | Failed  |
-| 🚫 | Skipped  |
-| 🛑 | Aborted  |
-| 💤 | Never started  |
-| ❔ | Unknown  |
+|     | Descriptions                                                                                            |
+| --- | ------------------------------------------------------------------------------------------------------- |
+| ⏰  | Shown at the top of the tree of scheduled tasks. All tasks below this node have a time-based scheduled. |
+| ✅  | Finished successfully.                                                                                  |
+| ❌  | Failed                                                                                                  |
+| 🚫  | Skipped                                                                                                 |
+| 🛑  | Aborted                                                                                                 |
+| 💤  | Never started                                                                                           |
+| ❔  | Unknown                                                                                                 |
 
 #### Text color
 
@@ -900,7 +900,7 @@ Note that some options are used when creating task tables, these are not applica
 
 #### Show task table on screen
 
-Show a list of tasks on screen, including main task fields as well as any tags defined for the tasks.  
+Show a list of tasks on screen, including main task fields as well as any tags defined for the tasks.
 
 ```
 .\ctrl-q.exe task-get `
@@ -919,7 +919,7 @@ It's possible to get more information about tasks by adding additional values to
 Run `.\ctrl-q.exe task-get --help` to show a complete list of all options and their allowed values.
 
 If `--table-details` is not specified all available information will be showed about the tasks.  
-This will result in a *very* wide table!
+This will result in a _very_ wide table!
 
 ```
 2023-05-25T13:21:12.187Z info: -----------------------------------------------------------
@@ -1402,7 +1402,7 @@ Options:
 ```
 
 There are several options that allow for a great deal of flexibility.  
-For example, the `--col-ref-by` option determines whether the `--col-master-item-...` options refer to columns by position or name. 
+For example, the `--col-ref-by` option determines whether the `--col-master-item-...` options refer to columns by position or name.
 Column names will in most cases be easier to read and understand, but sometimes a zero-based column position might be preferred.
 
 Similarly those `--col-master-item-...` options let you use your own column names in the source file.
@@ -1419,22 +1419,23 @@ Some other options that might be useful:
 Notes on using the `master-item-import` command:
 
 - Master items are referred to by name. This means that if a master item in the source file already exists in the target Sense app, the app's master item will be updated.
-- If a master item *does not* exist in the target app the master item will be created.
-- If a master item *does* exist in the target app its content will be overwritten with the info in the source Excel file.
+- If a master item _does not_ exist in the target app the master item will be created.
+- If a master item _does_ exist in the target app its content will be overwritten with the info in the source Excel file.
 - The structure of the Excel file is fairly flexible, but some restrictions apply:
   - The columns can be named anything. Use the `--col-item-type` and `--col-master-item-...` columns to tell Ctrl-Q which columns contains what data.
   - The first row in the Excel sheet must contain column headers if columns are referenced by name.
-- Master item names, descriptions and labels can contain *almost* any characters and there are some restrictions on the length of these strings.  
+- Master item names, descriptions and labels can contain _almost_ any characters and there are some restrictions on the length of these strings.
+
   - See the [Qlik Sense help](https://help.qlik.com/en-US/sense/May2023/Subsystems/Hub/Content/Sense_Hub/Introduction/guidelines-visualizations-fields-naming.htm) for details.
   - If a master item name or description is too long a warning will be shown and the text will be truncated to the max length allowed by Sense (see the link above).
   - If a master item has more than 30 tags a warning will be shown and only the first 30 tags will be used.
   - If a master item tag is longer than 31 characters a warning will be shown and the tag will be truncated to 31 characters.
   - If a master item expression is too long an error will be shown and Ctrl-Q will exit.
-Notes on the example below:
+    Notes on the example below:
 
 - The (intentional) warning for the incorrectly spelled master item type "measur" (which should have been "measure", of course).
 
-Now let's run the command.  
+Now let's run the command.
 
 ```
 .\ctrl-q.exe master-item-import `
@@ -1536,7 +1537,7 @@ ll,"usePal":true,"autoFill":true}
 ```
 
 Let's format those as proper JSONs to make them more readable.  
-These JSONs are what would go into the Excel file's `Color` and `Per-value color` columns.  
+These JSONs are what would go into the Excel file's `Color` and `Per-value color` columns.
 
 > NOTE 1: If unsure about what data to put in some field, just use the ones returned by the `master-item-dim-get` command.  
 > NOTE 2: The same concept works for drill-down dimensions and measures.
@@ -1546,7 +1547,7 @@ These JSONs are what would go into the Excel file's `Color` and `Per-value color
   "color": "#bbbbbb",
   "index": -1
 }
-````
+```
 
 ```json
 {
@@ -1683,7 +1684,7 @@ Options:
   -h, --help                         display help for command
 ```
 
-The options are *almost* the same irrespective of source file type:
+The options are _almost_ the same irrespective of source file type:
 
 The `--sheet-name` is only used/valid/relevant when `--file-type` is set to `excel`.  
 Why? Because there are no sheets/tabs in CSV files.
@@ -1692,60 +1693,60 @@ Why? Because there are no sheets/tabs in CSV files.
 
 The source file format is quite relaxed, but a few rules apply:
 
-- The first column in the source file *must* be the task number. This value uniquely identifies each task that should be imported and should be incremented by one for each task.
+- The first column in the source file _must_ be the task number. This value uniquely identifies each task that should be imported and should be incremented by one for each task.
 - All other columns, mandatory and optional, beyond the first one may be placed in any order.
-  - For mandatory columns the names listed below *must* be used (but they can be placed in any order in the file, except the first column).
+  - For mandatory columns the names listed below _must_ be used (but they can be placed in any order in the file, except the first column).
   - All mandatory columns must be present in the source file, even if they are not used/empty.
     For example, a task may not have a scheduled trigger, but the schema trigger columns must still be present in the source file.
 - "Counter" columns are used to keep together lines that are associated.
   - All lines involved in defining a certain task have the same "Task counter" value.
   - All lines involved in defining a certain schema or composite event have the same "Event counter" value.
   - All lines involved in defining a certain composite event rule have the same "Rule counter" value.
-- The file format used when *exporting* task tables to disk is a superset of the format used for task *import*.
+- The file format used when _exporting_ task tables to disk is a superset of the format used for task _import_.
   It's thus a good idea to first do a task export, look at the file format and then adopt as needed before importing.
 
-The *mandatory* columns in the task definition file are:
+The _mandatory_ columns in the task definition file are:
 
-| Column name                  | Comment | Description | Valid values |
-|------------------------------|-----------|-------------|------|
-| Task counter                 | 1 | Counter starting at 1. Increments one step for each task. All rows associated with a specific task should have the same value in this column. | Integer > 0 |
-| Task type                    | 1 | Type of task. In the future Ctrl-Q may support more task types. | Reload |
-| Task name                    | 1 | Name of the task that will be created. | Any string. Emojis allowed. |
-| Task id                      | 1 | When creating new tasks a new task ID will always be created. This column is instead used to create task chains: it links a composite trigger in a downstream task with an upstream task via this column's value. | Any string, but to make it easier to verify task chains it's recommended to use integers in this column. |
-| Task enabled                 | 1 | Should the created task be enabled or not. | 1 / 0 / blank. 1=enabled, 0 or blank=disabled |
-| Task timeout                 | 1 | Timeout for the created task, i.e. number of seconds the task is allowed to run before it's aborted. | Seconds |
-| Task retries                 | 1 | Number of retries to make if the task execution fails. | Integer >= 0 |
-| App id                       | 1 | The Sense app the task should be associated with. | If a valid GUID is specified it's assumed to be an app id. The task will be associated with that app. If the app id starts with `newapp-` it is a reference to an app that is imported during the current Ctrl-Q execution. The integer following `newapp-` is the value in the `App counter` column in the Excel definitions file. |
-| Partial reload               | 1 | Should the task do a partial or full reload of the app? | 1 / 0 / blank. 1=true, 0 or blank=false |
-| Manually triggered           | 1 | Is the task manually triggered or not? | 1 / 0 / blank. 1=true, 0 or blank=false |
-| Tags                         | 1 | Tags to set on the created task. | Format is "tag1 / tag2 / tag with spaces in it", i.e. separate tag names by "space-forward slash-space". |
-| Custom properties            | 1 | Custom properties to set on the created task. | Format is CustPropName1=Value1 / CustPropName2=Value2 |
-| Event counter                | 2 | Counter identifying events associated with the task defined in the previous line. One task can have zero or more events associated with it. | Integer > 0     |
-| Event type                   | 2 | Which event type does this line specify? Schema events deal with time-based execution of the task. Composite events are used to build task chains. | Schema / Composite |
-| Event name                   | 2 | Name of the event. | Any string |
-| Event enabled                | 2 | Is event enabled. | 1 / 0 / blank. 1=enabled, 0 or blank=disabled |
-| Schema increment option      | 3 | Type of schema event. For reference only, not used when Sense evaluates schema events (or??). | once / hourly / daily / weekly / monthly / custom |
-| Schema increment description | 3 | Structured description of the schema increment option. For reference only, not used when Sense evaluates schema events (or??). | Integers separated by space, e.g. "0 0 1 0" for weekly |
-| Daylight savings time        | 3 | Control how the schema event should deal with dayligt savings time. | ObserveDaylightSavingTime / PermanentStandardTime / PermanentDaylightSavingTime |
-| Schema start                 | 3 | First valid time for the schema event. The event will not fire before this moment. | A valid timestamp string, e.g. 2022-10-19T10:19:30.000 |
-| Schema expiration            | 3 | Last valid time for the schema event. The event will not fire after this moment. | A valid timestamp string or 9999-01-01T00:00:00.000 to signify "never" |
-| Schema filter description    | 3 | Used to control when a schema event is allower to trigger. More info [here](https://community.qlik.com/t5/Integration-Extension-APIs/Interval-and-time-explanation-for-creating-a-new-SchemaEvent/m-p/1784892/highlight/true#M13886). | Default: "* * - * * * *" |
-| Schema time zone             | 3 | Time zone the schema event is evaluated in | E.g. "Europe/Paris" |
-| Time contstraint seconds     | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
-| Time contstraint minutes     | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
-| Time contstraint hours       | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
-| Time contstraint days        | 4 | Used for composite events. Defines a window in which all dependent tasks have to complete. | Integer >= 0 |
-| Rule counter                 | 4 | Counter identifying rules that define upstream task executions the current task is depending on. | Integer > 0 |
-| Rule state                   | 4 | Is the rule waiting for success or failure of upstream task? | TaskSuccessful / TaskFail |
-| Rule task name               |   | Name of the rule | Any string |
-| Rule task id                 | 4 | Reference to the upstream task. | Any string (if referring to a task within the same file), **or** a valid id of a task that already exists in Sense.<br>Two options exist: If the "Rule task id" has the same value as the "Task id" of another task in the source file, those two tasks will be linked via this rule. If the "Rule task id" refers to an existing task id in Sense, the new rule will link to that existing task. |
+| Column name                  | Comment | Description                                                                                                                                                                                                                           | Valid values                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Task counter                 | 1       | Counter starting at 1. Increments one step for each task. All rows associated with a specific task should have the same value in this column.                                                                                         | Integer > 0                                                                                                                                                                                                                                                                                                                                                                                       |
+| Task type                    | 1       | Type of task. In the future Ctrl-Q may support more task types.                                                                                                                                                                       | Reload                                                                                                                                                                                                                                                                                                                                                                                            |
+| Task name                    | 1       | Name of the task that will be created.                                                                                                                                                                                                | Any string. Emojis allowed.                                                                                                                                                                                                                                                                                                                                                                       |
+| Task id                      | 1       | When creating new tasks a new task ID will always be created. This column is instead used to create task chains: it links a composite trigger in a downstream task with an upstream task via this column's value.                     | Any string, but to make it easier to verify task chains it's recommended to use integers in this column.                                                                                                                                                                                                                                                                                          |
+| Task enabled                 | 1       | Should the created task be enabled or not.                                                                                                                                                                                            | 1 / 0 / blank. 1=enabled, 0 or blank=disabled                                                                                                                                                                                                                                                                                                                                                     |
+| Task timeout                 | 1       | Timeout for the created task, i.e. number of seconds the task is allowed to run before it's aborted.                                                                                                                                  | Seconds                                                                                                                                                                                                                                                                                                                                                                                           |
+| Task retries                 | 1       | Number of retries to make if the task execution fails.                                                                                                                                                                                | Integer >= 0                                                                                                                                                                                                                                                                                                                                                                                      |
+| App id                       | 1       | The Sense app the task should be associated with.                                                                                                                                                                                     | If a valid GUID is specified it's assumed to be an app id. The task will be associated with that app. If the app id starts with `newapp-` it is a reference to an app that is imported during the current Ctrl-Q execution. The integer following `newapp-` is the value in the `App counter` column in the Excel definitions file.                                                               |
+| Partial reload               | 1       | Should the task do a partial or full reload of the app?                                                                                                                                                                               | 1 / 0 / blank. 1=true, 0 or blank=false                                                                                                                                                                                                                                                                                                                                                           |
+| Manually triggered           | 1       | Is the task manually triggered or not?                                                                                                                                                                                                | 1 / 0 / blank. 1=true, 0 or blank=false                                                                                                                                                                                                                                                                                                                                                           |
+| Tags                         | 1       | Tags to set on the created task.                                                                                                                                                                                                      | Format is "tag1 / tag2 / tag with spaces in it", i.e. separate tag names by "space-forward slash-space".                                                                                                                                                                                                                                                                                          |
+| Custom properties            | 1       | Custom properties to set on the created task.                                                                                                                                                                                         | Format is CustPropName1=Value1 / CustPropName2=Value2                                                                                                                                                                                                                                                                                                                                             |
+| Event counter                | 2       | Counter identifying events associated with the task defined in the previous line. One task can have zero or more events associated with it.                                                                                           | Integer > 0                                                                                                                                                                                                                                                                                                                                                                                       |
+| Event type                   | 2       | Which event type does this line specify? Schema events deal with time-based execution of the task. Composite events are used to build task chains.                                                                                    | Schema / Composite                                                                                                                                                                                                                                                                                                                                                                                |
+| Event name                   | 2       | Name of the event.                                                                                                                                                                                                                    | Any string                                                                                                                                                                                                                                                                                                                                                                                        |
+| Event enabled                | 2       | Is event enabled.                                                                                                                                                                                                                     | 1 / 0 / blank. 1=enabled, 0 or blank=disabled                                                                                                                                                                                                                                                                                                                                                     |
+| Schema increment option      | 3       | Type of schema event. For reference only, not used when Sense evaluates schema events (or??).                                                                                                                                         | once / hourly / daily / weekly / monthly / custom                                                                                                                                                                                                                                                                                                                                                 |
+| Schema increment description | 3       | Structured description of the schema increment option. For reference only, not used when Sense evaluates schema events (or??).                                                                                                        | Integers separated by space, e.g. "0 0 1 0" for weekly                                                                                                                                                                                                                                                                                                                                            |
+| Daylight savings time        | 3       | Control how the schema event should deal with dayligt savings time.                                                                                                                                                                   | ObserveDaylightSavingTime / PermanentStandardTime / PermanentDaylightSavingTime                                                                                                                                                                                                                                                                                                                   |
+| Schema start                 | 3       | First valid time for the schema event. The event will not fire before this moment.                                                                                                                                                    | A valid timestamp string, e.g. 2022-10-19T10:19:30.000                                                                                                                                                                                                                                                                                                                                            |
+| Schema expiration            | 3       | Last valid time for the schema event. The event will not fire after this moment.                                                                                                                                                      | A valid timestamp string or 9999-01-01T00:00:00.000 to signify "never"                                                                                                                                                                                                                                                                                                                            |
+| Schema filter description    | 3       | Used to control when a schema event is allower to trigger. More info [here](https://community.qlik.com/t5/Integration-Extension-APIs/Interval-and-time-explanation-for-creating-a-new-SchemaEvent/m-p/1784892/highlight/true#M13886). | Default: "\* _ - _ \* \* \*"                                                                                                                                                                                                                                                                                                                                                                      |
+| Schema time zone             | 3       | Time zone the schema event is evaluated in                                                                                                                                                                                            | E.g. "Europe/Paris"                                                                                                                                                                                                                                                                                                                                                                               |
+| Time contstraint seconds     | 4       | Used for composite events. Defines a window in which all dependent tasks have to complete.                                                                                                                                            | Integer >= 0                                                                                                                                                                                                                                                                                                                                                                                      |
+| Time contstraint minutes     | 4       | Used for composite events. Defines a window in which all dependent tasks have to complete.                                                                                                                                            | Integer >= 0                                                                                                                                                                                                                                                                                                                                                                                      |
+| Time contstraint hours       | 4       | Used for composite events. Defines a window in which all dependent tasks have to complete.                                                                                                                                            | Integer >= 0                                                                                                                                                                                                                                                                                                                                                                                      |
+| Time contstraint days        | 4       | Used for composite events. Defines a window in which all dependent tasks have to complete.                                                                                                                                            | Integer >= 0                                                                                                                                                                                                                                                                                                                                                                                      |
+| Rule counter                 | 4       | Counter identifying rules that define upstream task executions the current task is depending on.                                                                                                                                      | Integer > 0                                                                                                                                                                                                                                                                                                                                                                                       |
+| Rule state                   | 4       | Is the rule waiting for success or failure of upstream task?                                                                                                                                                                          | TaskSuccessful / TaskFail                                                                                                                                                                                                                                                                                                                                                                         |
+| Rule task name               |         | Name of the rule                                                                                                                                                                                                                      | Any string                                                                                                                                                                                                                                                                                                                                                                                        |
+| Rule task id                 | 4       | Reference to the upstream task.                                                                                                                                                                                                       | Any string (if referring to a task within the same file), **or** a valid id of a task that already exists in Sense.<br>Two options exist: If the "Rule task id" has the same value as the "Task id" of another task in the source file, those two tasks will be linked via this rule. If the "Rule task id" refers to an existing task id in Sense, the new rule will link to that existing task. |
 
 Meaning of "Comment" column above:
 
 1: These columns are required for all lines where top-level task information is defined.  
 2: These columns are required for all lines where general event info (shared for schema and composite events) is defined. There may be zero or more such lines for a specific task.  
 3: These columns are required for all lines where schema events info are defined.  
-4: These columns are required for all lines where composite events ("task chains") are defined.  
+4: These columns are required for all lines where composite events ("task chains") are defined.
 
 #### Source file columns for app import definitions
 
@@ -1754,19 +1755,19 @@ A sheet name (where the app details are found) in the Excel file must also be sp
 
 The columns (case sensitive!) in the app import definition file are:
 
-| Column name                  | Description | Valid values |
-|------------------------------|---------------|------|
-| App counter                  | Counter starting at 1. Increments one step for each app. | Integer > 0 |
-| App name                     | Name of the app that will be created based on the specified QVF file. | Any string. Emojis allowed. |
-| QVF directory                | Directory where app QVF files are stored | Any valid path, absolute or relative. |
-| QVF name                     | Name of QVD file, including extension. | Any valid file name. |
-| Exclude data connections     | Should data connections stored in the QVF file be excluded during app import or not. | true / false |
-| App tags                     | Tags to set on the imported app. | Format is "tag1 / tag2 / tag with spaces in it", i.e. separate tag names by "space-forward slash-space". |
-| App custom properties        | Custom properties to set on the imported app. | Format is CustPropName1=Value1 / CustPropName2=Value2 |
-| Owner user directory         | If app owner should be set for this app, specify the user directory name here. Both user directory and user id must be correctly defined for the app owner to be updated.  | Any user directory currently defined in the QMC, or `Internal` for Sense internal accounts. |
-| Owner user id                | If app owner should be set for this app, specify the user id here. Both user directory and user id must be correctly defined for the app owner to be updated. | Any user ID defined in the user directory defined in `Owner user directory` column (above). |
-| Publish to stream            | If this app should be published, specify stream id or name here. If the id is not associated with a stream or the specified stream name does not exist the app will not be published | Any existing stream name or id associated with an existing stream. |
-| Publish options <br>(optional) | Specify publish options here, for example if an already published app with the same name should be overwritten or not. <br>The default behaviour is `publish-replace`, which will be used when no "Publish options" column is present in the Excel sheet or that column exists but is empty. | `publish-replace`: If there already exists a published app with the same name in the specified stream, replace that app with the new one. <br>  `publish-another`: If there already exists a published app with the same name in the specified stream, publish tnother one. <br>`delete-publish`: First delete an already existing app (if there is one), then publish the new app. |
+| Column name                    | Description                                                                                                                                                                                                                                                                                  | Valid values                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| App counter                    | Counter starting at 1. Increments one step for each app.                                                                                                                                                                                                                                     | Integer > 0                                                                                                                                                                                                                                                                                                                                                                        |
+| App name                       | Name of the app that will be created based on the specified QVF file.                                                                                                                                                                                                                        | Any string. Emojis allowed.                                                                                                                                                                                                                                                                                                                                                        |
+| QVF directory                  | Directory where app QVF files are stored                                                                                                                                                                                                                                                     | Any valid path, absolute or relative.                                                                                                                                                                                                                                                                                                                                              |
+| QVF name                       | Name of QVD file, including extension.                                                                                                                                                                                                                                                       | Any valid file name.                                                                                                                                                                                                                                                                                                                                                               |
+| Exclude data connections       | Should data connections stored in the QVF file be excluded during app import or not.                                                                                                                                                                                                         | true / false                                                                                                                                                                                                                                                                                                                                                                       |
+| App tags                       | Tags to set on the imported app.                                                                                                                                                                                                                                                             | Format is "tag1 / tag2 / tag with spaces in it", i.e. separate tag names by "space-forward slash-space".                                                                                                                                                                                                                                                                           |
+| App custom properties          | Custom properties to set on the imported app.                                                                                                                                                                                                                                                | Format is CustPropName1=Value1 / CustPropName2=Value2                                                                                                                                                                                                                                                                                                                              |
+| Owner user directory           | If app owner should be set for this app, specify the user directory name here. Both user directory and user id must be correctly defined for the app owner to be updated.                                                                                                                    | Any user directory currently defined in the QMC, or `Internal` for Sense internal accounts.                                                                                                                                                                                                                                                                                        |
+| Owner user id                  | If app owner should be set for this app, specify the user id here. Both user directory and user id must be correctly defined for the app owner to be updated.                                                                                                                                | Any user ID defined in the user directory defined in `Owner user directory` column (above).                                                                                                                                                                                                                                                                                        |
+| Publish to stream              | If this app should be published, specify stream id or name here. If the id is not associated with a stream or the specified stream name does not exist the app will not be published                                                                                                         | Any existing stream name or id associated with an existing stream.                                                                                                                                                                                                                                                                                                                 |
+| Publish options <br>(optional) | Specify publish options here, for example if an already published app with the same name should be overwritten or not. <br>The default behaviour is `publish-replace`, which will be used when no "Publish options" column is present in the Excel sheet or that column exists but is empty. | `publish-replace`: If there already exists a published app with the same name in the specified stream, replace that app with the new one. <br> `publish-another`: If there already exists a published app with the same name in the specified stream, publish tnother one. <br>`delete-publish`: First delete an already existing app (if there is one), then publish the new app. |
 
 The publish options are described in more detail [here](https://github.com/ptarmiganlabs/ctrl-q/discussions/234#discussioncomment-6173760).
 
@@ -1827,7 +1828,7 @@ Now let's import tasks from the `tasks.csv` file:
 --file-name tasks.csv
 ```
 
-It's worth noting that all the created tasks will be linked into the task chains that existed when the tasks where first *exported* into the CSV file.  
+It's worth noting that all the created tasks will be linked into the task chains that existed when the tasks where first _exported_ into the CSV file.  
 This happens because the composite event rules that were exported into the CSV file (i.e. "start the task when task A and task B have successfully finished reloaded") contain task IDs that point to already existing reload tasks in Sense.  
 When that's the case the newly created tasks (based on the info in the CSV file) will link to those existing tasks.
 
@@ -1929,8 +1930,8 @@ More info [here](#source-file-columns-for-task-defintions).
 
 A few special cases apply when tasks are created **and** apps also imported.
 
-In this situation it's important that tasks can be associated with either the newly imported apps *or* already existing apps.  
-Similarly, for composite task triggers (used to create task chains) it's important that either newly created tasks *or* already existing tasks can be referenced.
+In this situation it's important that tasks can be associated with either the newly imported apps _or_ already existing apps.  
+Similarly, for composite task triggers (used to create task chains) it's important that either newly created tasks _or_ already existing tasks can be referenced.
 
 Let's say the following three QVF files should be imported into Sense.  
 Note the `App counter` column, with values 1, 2 and 3.
@@ -1949,8 +1950,8 @@ That composite trigger relies on two tasks, one that should fail (`TaskFail`) to
 
 The important part here is the last column, `Rule task id`:
 
-- If that column contains a valid GUID it is assumed to be a reference to an *existing* task.
-- If the column contains an integer it is assumed to be a reference to a *newly created* task. <br>
+- If that column contains a valid GUID it is assumed to be a reference to an _existing_ task.
+- If the column contains an integer it is assumed to be a reference to a _newly created_ task. <br>
   Which task? The one with the same integer number in the `Task id` column (see previous paragraph).
 
 This way it's possible to chain new reload tasks to both already existing tasks and new ones.
@@ -1959,14 +1960,13 @@ This way it's possible to chain new reload tasks to both already existing tasks 
 
 ## Scramble fields in Sense app
 
-Scramble one or more fields in an app using Qlik Sense's internal scrambling feature.  
+Scramble one or more fields in an app using Qlik Sense's internal scrambling feature.
 
-Note:  
+Note:
 
 - If more than one field is to be scrambled, the indidivudal field names should be separated by the character or string specified in the `--separator` option.
 - The entire list of field names (the `--fieldname` option) should be surrounded by double quotes.
 - A new app with the scrambled data will be created. Specify its name in the `--newappname` option.
-  
 
 ```
 .\ctrl-q.exe field-scramble `

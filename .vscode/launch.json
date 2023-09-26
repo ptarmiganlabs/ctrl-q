@@ -38,7 +38,7 @@
       //   // "--task-tag",
       //   // "Test data",
       //   // "api1",
-        
+
       //   "--custom-property-name",
       //   // "Department",
       //   // "Department2",
@@ -75,7 +75,7 @@
 
       //   "--file-type",
       //   "excel",
-        
+
       // //   "--file-name",
       // //   "testdata/tasks.xlsx",
       // //   "--sheet-name",
@@ -117,7 +117,7 @@
 
       //   "--file-type",
       //   "csv",
-        
+
       //   "--file-name",
       //   // "tasks2source.csv",
       //   "task-chain.csv",
@@ -148,7 +148,7 @@
       //   "LAB",
       //   "--auth-user-id",
       //   "goran",
-        
+
       //   "--app-tag",
       //   "apiCreated",
       //   "Ctrl-Q import",
@@ -163,7 +163,7 @@
       //   "--qvf-name-format",
       //   // "export-time",
       //   "app-name",
-      //   "export-date", 
+      //   "export-date",
 
       //   "--qvf-name-separator",
       //   "__",
@@ -183,7 +183,6 @@
 
       //   "--metadata-file-create"
       // ]
-
 
       // ------------------------------------
       // Import apps from Excel file
@@ -205,7 +204,7 @@
 
         // "--file-type",
         // "excel",
-        
+
         "--file-name",
         "testdata/tasks.xlsx",
         "--sheet-name",
@@ -214,12 +213,11 @@
         // "--limit-import-count",
         //  "2",
 
-      "--sleep-app-upload",
-       "500",
+        "--sleep-app-upload",
+        "500"
 
         // "--dry-run"
       ]
-
 
       // ------------------------------------
       // Get task tree
@@ -253,7 +251,6 @@
       // //  "reload",
       // //  "ext-program",
 
-        
       //   // "--output-dest",
       //   // "screen",
       //   // "file",
@@ -283,18 +280,18 @@
       //   "LAB",
       //   "--auth-user-id",
       //   "goran",
-       
+
       //  "--task-type",
       //  "reload",
       //  "ext-program",
-       
+
       //   // "--task-id",
       //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
       //   // "5748afa9-3abe-43ab-bb1f-127c48ced075",
       //   // "5520e710-91ad-41d2-aeb6-434cafbf366b",
       //   "--output-format",
       //   "table",
-        
+
       //   "--output-dest",
       //   "screen",
       //   // "--output-file-name",
@@ -316,7 +313,7 @@
       //   // "customproperty",
       //   // "schematrigger",
       //   "compositetrigger",
-      //   // "comptimeconstraint", 
+      //   // "comptimeconstraint",
       //   "comprule"
       // ]
 
@@ -348,7 +345,7 @@
 
       //   "--output-format",
       //   "table",
-        
+
       //   "--output-dest",
       //   "file",
       //   "--output-file-name",
@@ -376,7 +373,7 @@
       //   // "customproperty",
       //   // "schematrigger",
       //   // "compositetrigger",
-      //   // "comptimeconstraint", 
+      //   // "comptimeconstraint",
       //   // "comprule",
 
       //   // "--log-level",
@@ -480,7 +477,7 @@
       //   "LAB",
       //   "--auth-user-id",
       //   "goran"
-      // ] 
+      // ]
 
       // ------------------------------------
       // Delete master measure
@@ -522,7 +519,7 @@
       //   "--auth-user-id",
       //   "goran"
       // ]
-      
+
       // ------------------------------------
       //   Delete dimension
       // ------------------------------------
@@ -544,7 +541,6 @@
       //   "Dim2",
       //   "Dim3"
       // ]
-
 
       // ------------------------------------
       //   Get variables
@@ -583,68 +579,68 @@
       //   // "--log-level",
       //   // "info"
       // ]
-      
+
       // ------------------------------------
       //   Delete variables
       // ------------------------------------
-    //   "args": [
-    //     "variable-delete",
-    //     "--auth-type",
-    //     "cert",
-    //     "--host",
-    //     "192.168.100.109",
-    //     // "--qrs-port",
-    //     // "4242",
-    //     "--app-id",
-    //     // "a3e0f5d2-000a-464f-998d-33d333b175d7",
-    //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
-    //     // "--app-tag",
-    //     // "Ctrl-Q variable 1",
-    //     // "Ctrl-Q variable 2",
-    //     "--auth-user-dir",
-    //     "LAB",
-    //     "--auth-user-id",
-    //     "goran",
-    //     // "--id-type",
-    //     // "id",
-    //     // "--variable",
-    //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a7",
-    //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a6",
-    //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a8",
-    //     // "--id-type",
-    //     // "name",
-    //     // "--variable",
-    //     // // // // "Ctrl-Q variable 1",
-    //     // // // // "TimestampFormat",
-    //     // // // // "var1",
-    //     // "var2",
-    //     "--delete-all",
-    //     "--dry-run",
-    // ]
+      //   "args": [
+      //     "variable-delete",
+      //     "--auth-type",
+      //     "cert",
+      //     "--host",
+      //     "192.168.100.109",
+      //     // "--qrs-port",
+      //     // "4242",
+      //     "--app-id",
+      //     // "a3e0f5d2-000a-464f-998d-33d333b175d7",
+      //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
+      //     // "--app-tag",
+      //     // "Ctrl-Q variable 1",
+      //     // "Ctrl-Q variable 2",
+      //     "--auth-user-dir",
+      //     "LAB",
+      //     "--auth-user-id",
+      //     "goran",
+      //     // "--id-type",
+      //     // "id",
+      //     // "--variable",
+      //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a7",
+      //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a6",
+      //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a8",
+      //     // "--id-type",
+      //     // "name",
+      //     // "--variable",
+      //     // // // // "Ctrl-Q variable 1",
+      //     // // // // "TimestampFormat",
+      //     // // // // "var1",
+      //     // "var2",
+      //     "--delete-all",
+      //     "--dry-run",
+      // ]
 
       // ------------------------------------
       //   Get all bookmarks
       // ------------------------------------
-    //   "args": [
-    //     "bookmark-get",
-    //     "--auth-type",
-    //     "cert",
-    //     "--host",
-    //     "192.168.100.109",
-    //     "--app-id",
-    //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
-    //     "--auth-user-dir",
-    //     "LAB",
-    //     "--auth-user-id",
-    //     "goran",
-    //     "--id-type",
-    //     "id",
-    //     // "--bookmark",
-    //     // "Bookmark 1",
-    //     // "Bookmark 3",
-    //     "--output-format",
-    //     "table"
-    // ]
+      //   "args": [
+      //     "bookmark-get",
+      //     "--auth-type",
+      //     "cert",
+      //     "--host",
+      //     "192.168.100.109",
+      //     "--app-id",
+      //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
+      //     "--auth-user-dir",
+      //     "LAB",
+      //     "--auth-user-id",
+      //     "goran",
+      //     "--id-type",
+      //     "id",
+      //     // "--bookmark",
+      //     // "Bookmark 1",
+      //     // "Bookmark 3",
+      //     "--output-format",
+      //     "table"
+      // ]
 
       // ------------------------------------
       //   Get measure by id
@@ -668,7 +664,7 @@
       //   "f992239e-0a66-400c-b974-fcb90e1b554e",
       //   "--output-format",
       //   "table"
-      // ]      
+      // ]
 
       // ------------------------------------
       //   Get measure by name
@@ -692,7 +688,7 @@
       //   "'No. of Contacts Index2'",
       //   "--output-format",
       //   "table"
-      // ]   
+      // ]
 
       // ------------------------------------
       //   Delete measure by id
