@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.13.1](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.1...v3.13.1) (2023-09-27)
+
+
+### Miscellaneous
+
+* Fix broken build flow post refactoring ([1c91e56](https://github.com/ptarmiganlabs/ctrl-q/commit/1c91e5651c0a408cf2527abae65763a8aa6bf09f))
+* Fix broken Linux build ([7847a6d](https://github.com/ptarmiganlabs/ctrl-q/commit/7847a6def5dafa180361fce48d493d8be68058b7))
+* **main:** release 3.13.1 ([3a42857](https://github.com/ptarmiganlabs/ctrl-q/commit/3a428572fbb2f364ab45fdcb8b26ae33aec84c80))
+* Recover from build refactoring ([bd865b6](https://github.com/ptarmiganlabs/ctrl-q/commit/bd865b67c14787dbc8e1fed562f984d8a6a56e43))
+
 ## [3.13.1](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.0...v3.13.1) (2023-09-27)
 
 
