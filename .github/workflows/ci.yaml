@@ -10,9 +10,9 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.release.outputs.src--release_created }}
-      release_tag_name: ${{ steps.release.outputs['src--tag_name'] }}
-      release_upload_url: ${{ steps.release.outputs['src--upload_url'] }}
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      release_tag_name: ${{ steps.release.outputs['tag_name'] }}
+      release_upload_url: ${{ steps.release.outputs['upload_url'] }}
     env:
       GITHUB_REF: ${{ github.ref }}
       GITHUB_TOKEN: ${{ secrets.PAT }}
@@ -27,9 +27,9 @@ jobs:
           github.repository_owner == 'ptarmiganlabs' 
         with:
           # command: manifest
-          bootstrap-sha: e0fd792f506ad88db030972c1baa201907844d6a
-          last-release-sha: e0fd792f506ad88db030972c1baa201907844d6a
-          release-as: 3.13.0
+          # bootstrap-sha: e0fd792f506ad88db030972c1baa201907844d6a
+          # last-release-sha: e0fd792f506ad88db030972c1baa201907844d6a
+          # release-as: 3.13.0
           release-type: node
           package-name: ctrl-q
           default-branch: main
@@ -46,20 +46,19 @@ jobs:
         run: echo "$RELEASE_PLEASE_OUTPUT"
 
       - name: Show output from Release-Please
-        # if: ${{ steps.release.outputs.releases_created }}
         run: |
           echo "releases_created: ${{ steps.release.outputs.releases_created }}"
-          echo "release_created : ${{ steps.release.outputs.src--release_created }}"
-          echo "draft           : ${{ steps.release.outputs['src--draft'] }}"
-          echo "path            : ${{ steps.release.outputs['src--path'] }}"
-          echo "upload_url      : ${{ steps.release.outputs['src--upload_url'] }}"
-          echo "html_url        : ${{ steps.release.outputs['src--html_url'] }}"
-          echo "tag_name        : ${{ steps.release.outputs['src--tag_name'] }}"
-          echo "version         : ${{ steps.release.outputs['src--version'] }}"
-          echo "major           : ${{ steps.release.outputs['src--major'] }}"
-          echo "minor           : ${{ steps.release.outputs['src--minor'] }}"
-          echo "patch           : ${{ steps.release.outputs['src--patch'] }}"
-          echo "sha             : ${{ steps.release.outputs['src--sha'] }}"
+          echo "release_created : ${{ steps.release.outputs.release_created }}"
+          echo "draft           : ${{ steps.release.outputs['draft'] }}"
+          echo "path            : ${{ steps.release.outputs['path'] }}"
+          echo "upload_url      : ${{ steps.release.outputs['upload_url'] }}"
+          echo "html_url        : ${{ steps.release.outputs['html_url'] }}"
+          echo "tag_name        : ${{ steps.release.outputs['tag_name'] }}"
+          echo "version         : ${{ steps.release.outputs['version'] }}"
+          echo "major           : ${{ steps.release.outputs['major'] }}"
+          echo "minor           : ${{ steps.release.outputs['minor'] }}"
+          echo "patch           : ${{ steps.release.outputs['patch'] }}"
+          echo "sha             : ${{ steps.release.outputs['sha'] }}"
 
 
   #####################
