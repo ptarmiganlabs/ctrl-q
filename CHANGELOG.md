@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.13.1](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.0...v3.13.1) (2023-09-27)
+
+
+### Miscellaneous
+
+* Fix broken build flow post refactoring ([1c91e56](https://github.com/ptarmiganlabs/ctrl-q/commit/1c91e5651c0a408cf2527abae65763a8aa6bf09f))
+
 ## [3.13.0](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.12.0...v3.13.0) (2023-09-26)
 
 
