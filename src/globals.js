@@ -38,7 +38,7 @@ const logger = winston.createLogger({
 
 // Are we running as standalone app or not?
 const isPkg = typeof process.pkg !== 'undefined';
-const execPath = isPkg ? upath.dirname(process.execPath) : __dirname;
+const execPath = isPkg ? upath.dirname(process.execPath) : process.cwd();
 
 // Functions to get/set current console logging level
 const getLoggingLevel = () => logTransports.find((transport) => transport.name === 'console').level;

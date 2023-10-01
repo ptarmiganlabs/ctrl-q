@@ -12,13 +12,19 @@ const sharedParamAssertOptions = async (options) => {
         process.exit(1);
     }
 
+    // Debug
+    logger.debug(`Auth type: ${options.authType}`);
+    logger.debug(`execPath: ${execPath}`);
+    logger.debug(`authCertFile: ${options.authCertFile}`);
+    logger.debug(`authCertKeyFile: ${options.authCertKeyFile}`);
+
     // Verify that certificate files exists (if specified)
     const fileCert = path.resolve(execPath, options.authCertFile);
     const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
 
     const fileCertExists = await verifyFileExists(fileCert);
     if (fileCertExists === false) {
-        logger.error(`Missing certificate key file ${fileCert}. Aborting`);
+        logger.error(`Missing certificate file ${fileCert}. Aborting`);
         process.exit(1);
     } else {
         logger.verbose(`Certificate file ${fileCert} found`);
