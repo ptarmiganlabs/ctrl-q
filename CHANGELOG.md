@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.13.2](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.1...v3.13.2) (2023-10-06)
+
+
+### Bug Fixes
+
+* Handle relative config file paths ([72285e4](https://github.com/ptarmiganlabs/ctrl-q/commit/72285e4d6130f9ea1bdc96b25ada7491b265788f))
+* **master-item-dim-get:** Get correct colors for drill-down dimensions ([f0fae78](https://github.com/ptarmiganlabs/ctrl-q/commit/f0fae780c4dff16ac993dfe1f41cb49edb4847a5)), closes [#314](https://github.com/ptarmiganlabs/ctrl-q/issues/314)
+* **task-get:** Fix task tree bug when task is triggered by ext program task ([98584b7](https://github.com/ptarmiganlabs/ctrl-q/commit/98584b7e0bad97c73e5aaa1015625e2eae5f1aee))
+* **task-get:** Include all tasks in task trees ([3fbc4d3](https://github.com/ptarmiganlabs/ctrl-q/commit/3fbc4d307179476e89068e5db2030b990e6603da)), closes [#308](https://github.com/ptarmiganlabs/ctrl-q/issues/308)
+* **task-get:** Make "reload" and "ext-program" default for --task-type option ([9b13cce](https://github.com/ptarmiganlabs/ctrl-q/commit/9b13cce142ce07e8e56479f3dfa1b693f55e20da))
+* **task-get:** Warn if --task-type is used in task tree view ([1fe4764](https://github.com/ptarmiganlabs/ctrl-q/commit/1fe47642bc8c1e7ac516110febb925e354f907b2)), closes [#319](https://github.com/ptarmiganlabs/ctrl-q/issues/319)
+
+
+### Miscellaneous
+
+* **deps:** Update dependencies to stay safe and secure ([ce0f7b4](https://github.com/ptarmiganlabs/ctrl-q/commit/ce0f7b42fe53b9bbeb7389345d537ffb0e2ef3a2))
+
 ## [3.13.1](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.1...v3.13.1) (2023-09-27)
 
 
