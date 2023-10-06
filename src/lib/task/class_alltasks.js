@@ -884,49 +884,54 @@ class QlikSenseTasks {
             // Are there any task filters specified?
             // If so, build a query string
 
-            // Add task id(s) to query string
-            if (this.options.taskId && this.options?.taskId.length >= 1) {
-                // At least one task ID specified
-                // Add first task ID
-                filter += encodeURIComponent(`(id eq ${this.options.taskId[0]}`);
-            }
-            if (this.options.taskId && this.options?.taskId.length >= 2) {
-                // Add remaining task IDs, if any
-                for (let i = 1; i < this.options.taskId.length; i += 1) {
-                    filter += encodeURIComponent(` or id eq ${this.options.taskId[i]}`);
+            // Don't add task id and tag filtering if the output is a task tree
+            if (this.options.outputFormat !== 'tree') {
+
+                // Add task id(s) to query string
+                if (this.options.taskId && this.options?.taskId.length >= 1) {
+                    // At least one task ID specified
+                    // Add first task ID
+                    filter += encodeURIComponent(`(id eq ${this.options.taskId[0]}`);
+                }
+                if (this.options.taskId && this.options?.taskId.length >= 2) {
+                    // Add remaining task IDs, if any
+                    for (let i = 1; i < this.options.taskId.length; i += 1) {
+                        filter += encodeURIComponent(` or id eq ${this.options.taskId[i]}`);
+                    }
+                }
+
+                // Add closing parenthesis
+                if (this.options.taskId && this.options?.taskId.length >= 1) {
+                    filter += encodeURIComponent(')');
+                }
+                logger.debug(`GET TASK: QRS query filter (incl ids): ${filter}`);
+
+                // Add task tag(s) to query string
+                if (this.options.taskTag && this.options?.taskTag.length >= 1) {
+                    // At least one task ID specified
+                    if (filter.length >= 1) {
+                        // We've previously added some task ids
+                        // Add first task tag
+                        filter += encodeURIComponent(` or (tags.name eq '${this.options.taskTag[0]}'`);
+                    } else {
+                        // No task ids added yet
+                        // Add first task tag
+                        filter += encodeURIComponent(`(tags.name eq '${this.options.taskTag[0]}'`);
+                    }
+                }
+                if (this.options.taskTag && this.options?.taskTag.length >= 2) {
+                    // Add remaining task tags, if any
+                    for (let i = 1; i < this.options.taskTag.length; i += 1) {
+                        filter += encodeURIComponent(` or tags.name eq '${this.options.taskTag[i]}'`);
+                    }
+                }
+
+                // Add closing parenthesis
+                if (this.options.taskTag && this.options?.taskTag.length >= 1) {
+                    filter += encodeURIComponent(')');
                 }
             }
 
-            // Add closing parenthesis
-            if (this.options.taskId && this.options?.taskId.length >= 1) {
-                filter += encodeURIComponent(')');
-            }
-            logger.debug(`GET TASK: QRS query filter (incl ids): ${filter}`);
-
-            // Add task tag(s) to query string
-            if (this.options.taskTag && this.options?.taskTag.length >= 1) {
-                // At least one task ID specified
-                if (filter.length >= 1) {
-                    // We've previously added some task ids
-                    // Add first task tag
-                    filter += encodeURIComponent(` or (tags.name eq '${this.options.taskTag[0]}'`);
-                } else {
-                    // No task ids added yet
-                    // Add first task tag
-                    filter += encodeURIComponent(`(tags.name eq '${this.options.taskTag[0]}'`);
-                }
-            }
-            if (this.options.taskTag && this.options?.taskTag.length >= 2) {
-                // Add remaining task tags, if any
-                for (let i = 1; i < this.options.taskTag.length; i += 1) {
-                    filter += encodeURIComponent(` or tags.name eq '${this.options.taskTag[i]}'`);
-                }
-            }
-
-            // Add closing parenthesis
-            if (this.options.taskTag && this.options?.taskTag.length >= 1) {
-                filter += encodeURIComponent(')');
-            }
             logger.debug(`GET TASK: QRS query filter (incl ids, tags): ${filter}`);
 
             let axiosConfig;
