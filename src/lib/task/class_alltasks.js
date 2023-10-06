@@ -19,7 +19,7 @@ const { getTagIdByName } = require('../util/tag');
 const { getCustomPropertyIdByName } = require('../util/customproperties');
 const { taskExistById } = require('../util/task');
 const { getAppById } = require('../util/app');
-const { getTaskByName } = require('../util/task');
+const { getTaskById, getTaskByName } = require('../util/task');
 
 class QlikSenseTasks {
     // eslint-disable-next-line no-useless-constructor
@@ -72,6 +72,11 @@ class QlikSenseTasks {
         this.taskList.push(newTask);
     }
 
+    // Function to read task definitions from disk file (CSV or Excel)
+    // Parameters:
+    // - tasksFromFile: Object containing data read from file
+    // - tagsExisting: Array of existing tags in QSEoW
+    // - cpExisting: Array of existing custom properties in QSEoW 
     async getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting) {
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
@@ -146,7 +151,7 @@ class QlikSenseTasks {
                     let taskCreationOption;
 
                     // Get task specific data for the current task
-                    // The row containing task data will have a "Reload" in the task type column
+                    // The row containing task data will have "Reload" in the task type column
                     const taskData = taskRows.filter(
                         (item) =>
                             item[taskFileColumnHeaders.taskType.pos] &&
@@ -612,7 +617,7 @@ class QlikSenseTasks {
                             } else {
                                 // Verify task ID exists in QSEoW
                                 // eslint-disable-next-line no-await-in-loop
-                                const taskExists = await this.getTaskById(currentTask.id);
+                                const taskExists = await getTaskById(currentTask.id);
                                 if (!taskExists) {
                                     throw new Error(
                                         `Task "${currentTask.id}" does not exist in QSEoW and cannot be updated. ` +
@@ -682,13 +687,13 @@ class QlikSenseTasks {
 
                 resolve(this.taskList);
             } catch (err) {
-                if (err.response?.status) {
+                if (err?.response?.status) {
                     logger.error(`Received error ${err.response?.status}/${err.response?.statusText} from QRS API`);
                 }
-                if (err.response.data) {
+                if (err?.response?.data) {
                     logger.error(`Error message from QRS API: ${err.response.data}`);
                 }
-                if (err.config.data) {
+                if (err?.config?.data) {
                     logger.error(`Data sent to Sense: ${JSON.stringify(JSON.parse(err.config.data), null, 2)}}`);
                 }
                 logger.error(`PARSE TASKS FROM FILE 1: ${err}`);
@@ -869,7 +874,7 @@ class QlikSenseTasks {
     }
 
     async getTasksFromQseow() {
-        // eslint-disable-next-line no-async-promise-executor
+        // eslint-disable-next-line no-async-promise-executor, no-unused-vars
         return new Promise(async (resolve, reject) => {
             // try {
             logger.debug('GET TASK: Starting get reload tasks from QSEoW');
@@ -879,49 +884,54 @@ class QlikSenseTasks {
             // Are there any task filters specified?
             // If so, build a query string
 
-            // Add task id(s) to query string
-            if (this.options.taskId && this.options?.taskId.length >= 1) {
-                // At least one task ID specified
-                // Add first task ID
-                filter += encodeURIComponent(`(id eq ${this.options.taskId[0]}`);
-            }
-            if (this.options.taskId && this.options?.taskId.length >= 2) {
-                // Add remaining task IDs, if any
-                for (let i = 1; i < this.options.taskId.length; i += 1) {
-                    filter += encodeURIComponent(` or id eq ${this.options.taskId[i]}`);
+            // Don't add task id and tag filtering if the output is a task tree
+            if (this.options.outputFormat !== 'tree') {
+
+                // Add task id(s) to query string
+                if (this.options.taskId && this.options?.taskId.length >= 1) {
+                    // At least one task ID specified
+                    // Add first task ID
+                    filter += encodeURIComponent(`(id eq ${this.options.taskId[0]}`);
+                }
+                if (this.options.taskId && this.options?.taskId.length >= 2) {
+                    // Add remaining task IDs, if any
+                    for (let i = 1; i < this.options.taskId.length; i += 1) {
+                        filter += encodeURIComponent(` or id eq ${this.options.taskId[i]}`);
+                    }
+                }
+
+                // Add closing parenthesis
+                if (this.options.taskId && this.options?.taskId.length >= 1) {
+                    filter += encodeURIComponent(')');
+                }
+                logger.debug(`GET TASK: QRS query filter (incl ids): ${filter}`);
+
+                // Add task tag(s) to query string
+                if (this.options.taskTag && this.options?.taskTag.length >= 1) {
+                    // At least one task ID specified
+                    if (filter.length >= 1) {
+                        // We've previously added some task ids
+                        // Add first task tag
+                        filter += encodeURIComponent(` or (tags.name eq '${this.options.taskTag[0]}'`);
+                    } else {
+                        // No task ids added yet
+                        // Add first task tag
+                        filter += encodeURIComponent(`(tags.name eq '${this.options.taskTag[0]}'`);
+                    }
+                }
+                if (this.options.taskTag && this.options?.taskTag.length >= 2) {
+                    // Add remaining task tags, if any
+                    for (let i = 1; i < this.options.taskTag.length; i += 1) {
+                        filter += encodeURIComponent(` or tags.name eq '${this.options.taskTag[i]}'`);
+                    }
+                }
+
+                // Add closing parenthesis
+                if (this.options.taskTag && this.options?.taskTag.length >= 1) {
+                    filter += encodeURIComponent(')');
                 }
             }
 
-            // Add closing parenthesis
-            if (this.options.taskId && this.options?.taskId.length >= 1) {
-                filter += encodeURIComponent(')');
-            }
-            logger.debug(`GET TASK: QRS query filter (incl ids): ${filter}`);
-
-            // Add task tag(s) to query string
-            if (this.options.taskTag && this.options?.taskTag.length >= 1) {
-                // At least one task ID specified
-                if (filter.length >= 1) {
-                    // We've previously added some task ids
-                    // Add first task tag
-                    filter += encodeURIComponent(` or (tags.name eq '${this.options.taskTag[0]}'`);
-                } else {
-                    // No task ids added yet
-                    // Add first task tag
-                    filter += encodeURIComponent(`(tags.name eq '${this.options.taskTag[0]}'`);
-                }
-            }
-            if (this.options.taskTag && this.options?.taskTag.length >= 2) {
-                // Add remaining task tags, if any
-                for (let i = 1; i < this.options.taskTag.length; i += 1) {
-                    filter += encodeURIComponent(` or tags.name eq '${this.options.taskTag[i]}'`);
-                }
-            }
-
-            // Add closing parenthesis
-            if (this.options.taskTag && this.options?.taskTag.length >= 1) {
-                filter += encodeURIComponent(')');
-            }
             logger.debug(`GET TASK: QRS query filter (incl ids, tags): ${filter}`);
 
             let axiosConfig;
@@ -989,10 +999,6 @@ class QlikSenseTasks {
                 }
             }
             resolve(this.taskList);
-            // } catch (err) {
-            //     logger.error(`GET QS TASK 2: ${err}`);
-            //     reject(err);
-            // }
         });
     }
 
@@ -1006,6 +1012,11 @@ class QlikSenseTasks {
 
             const newTreeLevel = parentTreeLevel + 1;
             let subTree = [];
+
+            // Debug
+            logger.debug(
+                `GET TASK SUBTREE: Meta node type: ${task.metaNodeType}, task type: ${task.taskType}, tree level: ${newTreeLevel}, task name: ${task.taskName}`
+            );
 
             // Does this node (=task) have any downstream connections?
             const downstreamTasks = self.taskNetwork.edges.filter((edge) => edge.from === task.id);
@@ -1161,7 +1172,7 @@ class QlikSenseTasks {
             return subTree;
             // console.log('subTree: ' + JSON.stringify(subTree));
         } catch (err) {
-            logger.error(`GET TASK SUBTREE: ${err.stack}`);
+            logger.error(`GET TASK SUBTREE (tree): ${err.stack}`);
             return false;
         }
     }
@@ -1172,6 +1183,9 @@ class QlikSenseTasks {
 
             const newTreeLevel = parentTreeLevel + 1;
             let subTree = [];
+
+            // Debug
+            // logger.debug(`GET TASK SUBTABLE: Tree level: ${newTreeLevel}, task name: ${task.taskName}`);
 
             // Does this node (=task) have any downstream connections?
             const downstreamTasks = self.taskNetwork.edges.filter((edge) => edge.from === task.id);
@@ -1232,7 +1246,7 @@ class QlikSenseTasks {
 
             return subTree;
         } catch (err) {
-            logger.error(`GET TASK SUBTREE: ${err}`);
+            logger.error(`GET TASK SUBTREE (table): ${err}`);
             return null;
         }
     }
@@ -1270,6 +1284,8 @@ class QlikSenseTasks {
         try {
             logger.verbose(`Getting schema events from QSEoW...`);
             const result1 = await this.qlikSenseSchemaEvents.getSchemaEventsFromQseow();
+
+            logger.silly(`Schema events from QSEoW: ${JSON.stringify(result1, null, 2)}`);
         } catch (err) {
             logger.error(`GET TASK MODEL FROM QSEOW 2: ${err}`);
             return false;
@@ -1279,6 +1295,8 @@ class QlikSenseTasks {
         try {
             logger.verbose(`Getting composite events from QSEoW...`);
             const result2 = await this.qlikSenseCompositeEvents.getCompositeEventsFromQseow();
+
+            logger.silly(`Composite events from QSEoW: ${JSON.stringify(result2, null, 2)}`);
         } catch (err) {
             logger.error(`GET TASK MODEL FROM QSEOW 3: ${err}`);
             return false;
@@ -1546,8 +1564,8 @@ class QlikSenseTasks {
                         });
                         // Keep a note that this node has associated events
                         nodesWithEvents.add(compositeEvent.compositeEvent.compositeRules[0].reloadTask.id);
-                        nodesWithEvents.add(compositeEvent.compositeEvent.reloadTask.id);
-                    } else if (validate(compositeEvent.compositeEvent.compositeRules[0].externalProgramTask.id)) {
+                        nodesWithEvents.add(compositeEvent.compositeEvent.externalProgramTask.id);
+                    } else if (validate(compositeEvent.compositeEvent.compositeRules[0]?.externalProgramTask?.id)) {
                         logger.verbose(
                             `Composite event "${compositeEvent.compositeEvent.name}" has an external program task triggered by external program task with ID=${compositeEvent.compositeEvent.compositeRules[0].externalProgramTask.id}.`
                         );
@@ -1570,7 +1588,7 @@ class QlikSenseTasks {
 
                         // Keep a note that this node has associated events
                         nodesWithEvents.add(compositeEvent.compositeEvent.compositeRules[0].externalProgramTask.id);
-                        nodesWithEvents.add(compositeEvent.compositeEvent.reloadTask.id);
+                        nodesWithEvents.add(compositeEvent.compositeEvent.externalProgramTask.id);
                     } else {
                         logger.warn(`Composite event "${compositeEvent.compositeEvent.name}" is triggered by an unsupported task type.`);
                     }

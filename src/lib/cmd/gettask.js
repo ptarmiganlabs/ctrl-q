@@ -153,7 +153,7 @@ const getTask = async (options) => {
                 taskTree = taskTree.concat(subTree);
             }
 
-            // Sort array alfabetically
+            // Sort tree alfabetically
             taskTree.sort(compareTree);
 
             // Output task tree to correct destination

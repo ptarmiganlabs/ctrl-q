@@ -12,13 +12,19 @@ const sharedParamAssertOptions = async (options) => {
         process.exit(1);
     }
 
+    // Debug
+    logger.debug(`Auth type: ${options.authType}`);
+    logger.debug(`execPath: ${execPath}`);
+    logger.debug(`authCertFile: ${options.authCertFile}`);
+    logger.debug(`authCertKeyFile: ${options.authCertKeyFile}`);
+
     // Verify that certificate files exists (if specified)
     const fileCert = path.resolve(execPath, options.authCertFile);
     const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
 
     const fileCertExists = await verifyFileExists(fileCert);
     if (fileCertExists === false) {
-        logger.error(`Missing certificate key file ${fileCert}. Aborting`);
+        logger.error(`Missing certificate file ${fileCert}. Aborting`);
         process.exit(1);
     } else {
         logger.verbose(`Certificate file ${fileCert} found`);
@@ -129,10 +135,10 @@ const getBookmarkAssertOptions = (options) => {
 
 // eslint-disable-next-line no-unused-vars
 const getTaskAssertOptions = (options) => {
-    // --task-id and --task-tag only allowed for task tables, not trees
+    // ---task-id and --task-tag only allowed for task tables, not trees
     if (options.taskId || options.taskTag) {
         if (options.outputFormat === 'tree') {
-            logger.error('Task tree view is not supported when specifying task IDs and/or task tags. Exiting.');
+            logger.error('Task tree view is not supported when using --task-id or --task-tag. Exiting.');
             process.exit(1);
         }
 
@@ -148,6 +154,11 @@ const getTaskAssertOptions = (options) => {
                 }
             }
         }
+    }
+
+    // Warn if --task-type has been specified when output format is tree
+    if (options.outputFormat === 'tree' && options.taskType) {
+        logger.warn('Task tree view is not supported when using --task-type. Ignoring --task-type option.');
     }
 
     // --table-details not allowed when --output-format is set to tree.

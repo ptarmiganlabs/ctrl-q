@@ -36,7 +36,7 @@ class QlikSenseApps {
             logger.error(`QS APP: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`QS APP:\n  ${err.stack}`);
             }
         }
@@ -143,7 +143,7 @@ class QlikSenseApps {
             logger.error(`GET QS APP 2: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`GET QS APP 2:\n  ${err.stack}`);
             }
 
@@ -583,7 +583,7 @@ class QlikSenseApps {
             logger.error(`UPDATE UPLOADED APP: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`UPDATE UPLOADED APP:\n  ${err.stack}`);
             }
 
@@ -670,7 +670,7 @@ class QlikSenseApps {
             logger.error(`(${appCounter}) PUBLISH APP publish-replace: Failed: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`(${appCounter}) PUBLISH APP publish-replace:\n  ${err.stack}`);
             }
             return { res: false, publishedApp: null };
@@ -702,7 +702,7 @@ class QlikSenseApps {
             logger.error(`(${appCounter}) PUBLISH APP publish-another: Failed: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`(${appCounter}) PUBLISH APP publish-another:\n  ${err.stack}`);
             }
 
@@ -771,7 +771,7 @@ class QlikSenseApps {
             logger.error(`(${appCounter}) PUBLISH APP delete-publish: Failed: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`(${appCounter}) PUBLISH APP delete-publish:\n  ${err.stack}`);
             }
 
@@ -813,7 +813,7 @@ class QlikSenseApps {
             logger.error(`PUBLISH APP NORMAL: Failed: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`PUBLISH APP NORMAL:\n  ${err.stack}`);
             }
 
@@ -853,7 +853,7 @@ class QlikSenseApps {
             logger.error(`PUBLISH APP REPLACE: Failed: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`PUBLISH APP REPLACE:\n  ${err.stack}`);
             }
 
@@ -909,7 +909,7 @@ class QlikSenseApps {
             logger.error(`CHECK IF APP EXISTS IN STREAM: Failed: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`CHECK IF APP EXISTS IN STREAM:\n  ${err.stack}`);
             }
 
@@ -959,7 +959,7 @@ class QlikSenseApps {
             logger.error(`GET APP IN STREAM: Failed: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`GET APP IN STREAM:\n  ${err.stack}`);
             }
 
@@ -1042,7 +1042,7 @@ class QlikSenseApps {
             logger.error(`CHECK IF STREAM EXISTS: Failed: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`CHECK IF STREAM EXISTS:\n  ${err.stack}`);
             }
 
@@ -1146,7 +1146,7 @@ class QlikSenseApps {
             logger.error(`CREATE RELOAD TASK IN QSEOW 2: ${err}`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`CREATE RELOAD TASK IN QSEOW 2:\n  ${err.stack}`);
             }
 
@@ -1184,7 +1184,7 @@ class QlikSenseApps {
             logger.error(`[${err}] Export app step 1`);
 
             // Show stack trace if available
-            if (err.stack) {
+            if (err?.stack) {
                 logger.error(`[${err}] Export app step 1:\n  ${err.stack}`);
             }
 

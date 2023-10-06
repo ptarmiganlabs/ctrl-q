@@ -142,7 +142,7 @@ async function getAppById(appId, optionsParam) {
         logger.error(`GET APP BY ID: ${err}`);
 
         // Show stack trace if available
-        if (err.stack) {
+        if (err?.stack) {
             logger.error(`GET APP BY ID:\n  ${err.stack}`);
         }
 
@@ -182,7 +182,7 @@ async function deleteAppById(appId) {
         logger.error(`DELETE APP: ${err}`);
 
         // Show stack trace if available
-        if (err.stack) {
+        if (err?.stack) {
             logger.error(`DELETE APP:\n  ${err.stack}`);
         }
 

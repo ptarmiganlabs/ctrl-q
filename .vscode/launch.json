@@ -76,14 +76,14 @@
       //   "--file-type",
       //   "excel",
 
-      // //   "--file-name",
-      // //   "testdata/tasks.xlsx",
-      // //   "--sheet-name",
-      // //   "Ctrl-Q task import 1",
+      //   "--file-name",
+      //   "testdata/tasks.xlsx",
+      //   "--sheet-name",
+      //   "Ctrl-Q task import 1",
 
-      //   "--import-app",
-      //   "--import-app-sheet-name",
-      //   "App import",
+      //   // "--import-app",
+      //   // "--import-app-sheet-name",
+      //   // "App import",
 
       //   // "--qvf-overwrite",
       //   // "no",
@@ -91,8 +91,8 @@
       //   // "--limit-import-count",
       //   // "2",
 
-      // "--sleep-app-upload",
-      // "500",
+      // // "--sleep-app-upload",
+      // // "500",
 
       //   // "--dry-run"
       // ]
@@ -187,81 +187,81 @@
       // ------------------------------------
       // Import apps from Excel file
       // ------------------------------------
-      "args": [
-        "app-import",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        "--auth-cert-file",
-        "./cert/client.pem",
-        "--auth-cert-key-file",
-        "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-
-        // "--file-type",
-        // "excel",
-
-        "--file-name",
-        "testdata/tasks.xlsx",
-        "--sheet-name",
-        "App-import",
-
-        // "--limit-import-count",
-        //  "2",
-
-        "--sleep-app-upload",
-        "500"
-
-        // "--dry-run"
-      ]
-
-      // ------------------------------------
-      // Get task tree
-      // ------------------------------------
       // "args": [
-      //   "task-get",
+      //   "app-import",
       //   "--auth-type",
       //   "cert",
       //   "--host",
       //   "192.168.100.109",
-      //   // "--auth-cert-file",
-      //   // "./cert/client.pem",
-      //   // "--auth-cert-key-file",
-      //   // "./cert/client_key.pem",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
       //   "--auth-user-dir",
       //   "LAB",
       //   "--auth-user-id",
       //   "goran",
-      // //  "--task-id",
-      //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
-      //   "--task-tag",
-      //   "Test data",
-      //   "--output-format",
-      //   "table",
-      //   // "tree",
-      //   // "--tree-icons",
-      //   // "--tree-details",
-      //   // "taskid",
-      //   // "appname",
-      // //  "--task-type",
-      // //  "reload",
-      // //  "ext-program",
 
-      //   // "--output-dest",
-      //   // "screen",
-      //   // "file",
-      //   // "--output-file-name",
-      //   // "tasks.json",
-      //   // "--output-file-format",
-      //   // "json",
+      //   // "--file-type",
+      //   // "excel",
 
-      //   // "--text-color",
-      //   // "no",
+      //   "--file-name",
+      //   "testdata/tasks.xlsx",
+      //   "--sheet-name",
+      //   "App-import",
+
+      //   // "--limit-import-count",
+      //   //  "2",
+
+      //   "--sleep-app-upload",
+      //   "500"
+
+      //   // "--dry-run"
       // ]
+
+      // ------------------------------------
+      // Get task tree
+      // ------------------------------------
+      "args": [
+        "task-get",
+        // "--auth-type",
+        // "cert",
+        "--host",
+        "192.168.100.109",
+        // "--auth-cert-file",
+        // "./cert/client.pem",
+        // "--auth-cert-key-file",
+        // "./cert/client_key.pem",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+      //  "--task-id",
+        // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+        // "--task-tag",
+        // "Test data",
+        // "--output-format",
+        // "table",
+        // "tree",
+        // "--tree-icons",
+        // "--tree-details",
+        // "taskid",
+        // "appname",
+      //  "--task-type",
+      //  "reload",
+      //  "ext-program",
+
+        // "--output-dest",
+        // "screen",
+        // "file",
+        // "--output-file-name",
+        // "tasks.json",
+        // "--output-file-format",
+        // "json",
+
+        // "--text-color",
+        // "no",
+      ]
 
       // ------------------------------------
       // Get reload tasks as table
