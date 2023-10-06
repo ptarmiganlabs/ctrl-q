@@ -65,7 +65,7 @@ async function taskExistById(taskId, optionsParam) {
         logger.error(`TASK EXIST BY ID: ${err}`);
 
         // Show stack trace if available
-        if (err.stack) {
+        if (err?.stack) {
             logger.error(`TASK EXIST BY ID:\n  ${err.stack}`);
         }
 
@@ -121,7 +121,7 @@ async function getTaskByName(taskName, optionsParam) {
         logger.error(`GET TASK BY NAME: ${err}`);
 
         // Show stack trace if available
-        if (err.stack) {
+        if (err?.stack) {
             logger.error(`GET TASK BY NAME:\n  ${err.stack}`);
         }
 
@@ -186,7 +186,7 @@ async function getTaskById(taskId, optionsParam) {
         logger.error(`GET TASK BY ID: ${err}`);
 
         // Show stack trace if available
-        if (err.stack) {
+        if (err?.stack) {
             logger.error(`GET TASK BY ID:\n  ${err.stack}`);
         }
 
