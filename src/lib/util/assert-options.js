@@ -135,10 +135,10 @@ const getBookmarkAssertOptions = (options) => {
 
 // eslint-disable-next-line no-unused-vars
 const getTaskAssertOptions = (options) => {
-    // --task-id and --task-tag only allowed for task tables, not trees
+    // ---task-id and --task-tag only allowed for task tables, not trees
     if (options.taskId || options.taskTag) {
         if (options.outputFormat === 'tree') {
-            logger.error('Task tree view is not supported when specifying task IDs and/or task tags. Exiting.');
+            logger.error('Task tree view is not supported when using --task-id or --task-tag. Exiting.');
             process.exit(1);
         }
 
@@ -154,6 +154,11 @@ const getTaskAssertOptions = (options) => {
                 }
             }
         }
+    }
+
+    // Warn if --task-type has been specified when output format is tree
+    if (options.outputFormat === 'tree' && options.taskType) {
+        logger.warn('Task tree view is not supported when using --task-type. Ignoring --task-type option.');
     }
 
     // --table-details not allowed when --output-format is set to tree.
