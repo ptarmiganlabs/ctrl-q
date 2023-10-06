@@ -133,7 +133,12 @@ const getMasterDimension = async (options) => {
         // Find coloring data (if available) for each dimension
         for (const dimension of getMasterItems) {
             // Find per-value colors, if defined
-            if (dimension.qData?.coloring?.hasValueColors === true) {
+            // Such colors are NOT available for drill-down dimensions, which are identified by dimension.qData.dim.qGrouping="H"
+            if (
+                dimension.qData.dim.qGrouping !== 'H' &&
+                dimension.qData?.coloring?.hasValueColors === true &&
+                dimension.qData?.coloring?.colorMapRef !== undefined
+            ) {
                 try {
                     const genericColorMapRefModel = await app.getObject(`ColorMapModel_${dimension.qData.coloring.colorMapRef}`);
                     const colorMapRefLayout = await genericColorMapRefModel.getLayout();
