@@ -509,10 +509,28 @@ const program = new Command();
         .command('task-get')
         .description('get info about one or more tasks')
         .action(async (options) => {
-            await sharedParamAssertOptions(options);
-            getTaskAssertOptions(options);
+            const newOptions = options;
+            // If options.tableDetails is true, it means --table-details was passed as options without any explicit value.
+            // This is allowed, but should be interpreted as "all" table details.
+            // Make options.tableDetails an array with all possible table details.
+            if (options.tableDetails === true) {
+                newOptions.tableDetails = [
+                    'common',
+                    'extprogram',
+                    'lastexecution',
+                    'tag',
+                    'customproperty',
+                    'schematrigger',
+                    'compositetrigger',
+                    'comptimeconstraint',
+                    'comprule',
+                ];
+            }
 
-            getTask(options);
+            await sharedParamAssertOptions(newOptions);
+            getTaskAssertOptions(newOptions);
+
+            getTask(newOptions);
         })
         .addOption(
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
@@ -554,7 +572,10 @@ const program = new Command();
         )
 
         .addOption(
-            new Option('--table-details [detail...]', 'which aspects of tasks should be included in table view')
+            new Option(
+                '--table-details [detail...]',
+                'which aspects of tasks should be included in table view. Not choosing any details will show all'
+            )
                 .choices([
                     'common',
                     'extprogram',

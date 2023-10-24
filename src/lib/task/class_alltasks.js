@@ -919,7 +919,16 @@ class QlikSenseTasks {
                                 // const { taskType } = this.taskNetwork.nodes.find((node) => node.id === id).completeTaskObject;
                             } else if (b.upstreamTaskExistence === 'exists-in-sense') {
                                 // eslint-disable-next-line no-await-in-loop
-                                const task = this.compositeEventUpstreamTask.find((item4) => item4.id === id);
+                                const task = this.compositeEventUpstreamTask.find((item4) => item4.id === b.task.id);
+
+                                // Ensure we got a task back
+                                if (!task) {
+                                    logger.error(
+                                        `PREPARING COMPOSITE EVENT: Invalid upstream task ID "${b.task.id}" in rule for composite event "${a.compositeEvent.name}". This is an error - that task ID should exist. Existing.`
+                                    );
+                                    process.exit(1);
+                                }
+
                                 taskType = task.taskType;
                             }
 
