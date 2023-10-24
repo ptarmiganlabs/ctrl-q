@@ -58,70 +58,32 @@
       // ------------------------------------
       // Import tasks from Excel file
       // ------------------------------------
-      "args": [
-        "task-import",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        "--auth-cert-file",
-        "./cert/client.pem",
-        "--auth-cert-key-file",
-        "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-
-        "--file-type",
-        "excel",
-
-        "--file-name",
-        "testdata/tasks.xlsx",
-        "--sheet-name",
-        "4"
-
-        // "--import-app",
-        // "--import-app-sheet-name",
-        // "App import",
-
-        // "--qvf-overwrite",
-        // "no",
-
-        // "--limit-import-count",
-        // "2",
-
-        // "--sleep-app-upload",
-        // "500",
-
-        // "--dry-run"
-      ]
-
-      // ------------------------------------
-      // Import tasks from CSV file
-      // ------------------------------------
       // "args": [
       //   "task-import",
       //   "--auth-type",
       //   "cert",
       //   "--host",
       //   "192.168.100.109",
-      //   // "--auth-cert-file",
-      //   // "./cert/client.pem",
-      //   // "--auth-cert-key-file",
-      //   // "./cert/client_key.pem",
+      //   "--auth-cert-file",
+      //   "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "./cert/client_key.pem",
       //   "--auth-user-dir",
       //   "LAB",
       //   "--auth-user-id",
       //   "goran",
 
       //   "--file-type",
-      //   "csv",
+      //   "excel",
 
       //   "--file-name",
-      //   // "tasks2source.csv",
-      //   // "task-chain.csv",
-      //   "reload-tasks.csv",
+      //   "testdata/tasks.xlsx",
+      //   "--sheet-name",
+      //   "4"
+
+      //   // "--import-app",
+      //   // "--import-app-sheet-name",
+      //   // "App import",
 
       //   // "--qvf-overwrite",
       //   // "no",
@@ -129,8 +91,46 @@
       //   // "--limit-import-count",
       //   // "2",
 
+      //   // "--sleep-app-upload",
+      //   // "500",
+
       //   // "--dry-run"
       // ]
+
+      // ------------------------------------
+      // Import tasks from CSV file
+      // ------------------------------------
+      "args": [
+        "task-import",
+        "--auth-type",
+        "cert",
+        "--host",
+        "192.168.100.109",
+        // "--auth-cert-file",
+        // "./cert/client.pem",
+        // "--auth-cert-key-file",
+        // "./cert/client_key.pem",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+
+        "--file-type",
+        "csv",
+
+        "--file-name",
+        // "tasks2source.csv",
+        // "task-chain.csv",
+        "testdata/reload-tasks.csv",
+
+        // "--qvf-overwrite",
+        // "no",
+
+        // "--limit-import-count",
+        // "2",
+
+        // "--dry-run"
+      ]
 
       // ------------------------------------
       // Export apps to QVF files

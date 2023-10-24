@@ -1,8 +1,10 @@
-// import { csvParse } from 'csv-parse';
-
 const xlsx = require('node-xlsx').default;
 const { parse } = require('csv-parse');
+// const { parse } = require('csv-parse/lib/sync');
 const fs = require('fs');
+// const fsp = require('fs').promises;
+
+const { finished } = require('stream/promises');
 
 const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } = require('../../globals');
 const { QlikSenseTasks } = require('../task/class_alltasks');
@@ -11,27 +13,70 @@ const { getTaskColumnPosFromHeaderRow } = require('../util/lookups');
 const { getTagsFromQseow } = require('../util/tag');
 const { getCustomPropertiesFromQseow } = require('../util/customproperties');
 
-const processCsvFile = async (options) => {
-    // First get header row
-    let parser = fs.createReadStream(options.fileName).pipe(
+const getHeaders = async (options) => {
+    const records = [];
+    const parser = fs.createReadStream(options.fileName).pipe(
         parse({
             info: true,
             to_line: 1,
         })
     );
+    parser.on('readable', () => {
+        let record;
+        while ((record = parser.read()) !== null) {
+            // Work with each record
+            records.push(record);
+        }
+    });
+    await finished(parser);
+    return records;
+};
+
+const processCsvFile = async (options) => {
+    // First get header row
+
+    // const parser = parse({
+    //     delimiter: ',',
+    //     info: true,
+    //     // to_line: 1,
+    // });
+
+    // const parser = fs.createReadStream(options.fileName).pipe(
+    //     parse({
+    //         info: true,
+    //         to_line: 1,
+    //     }).pipe(process.stdout)
+    // );
+
+    const headers = await getHeaders(options);
+
+    // const headers = fs.createReadStream(options.fileName).pipe(parser).pipe(process.stdout);
+
+    // const content = await fsp.readFile(options.fileName);
+
+    // Parse the CSV content
+    // const headers = parse(content, { bom: true, to_line: 1 });
 
     const headerRow = [];
+
+    // Push all column headers to array
     // eslint-disable-next-line no-restricted-syntax
-    for await (const record of parser) {
+    for (const record of headers) {
         // Get each column header text
         headerRow.push(record.record);
     }
+    // // eslint-disable-next-line no-restricted-syntax
+    // for await (const record of headers) {
+    //     // for await (const record of parser) {
+    //     // Get each column header text
+    //     headerRow.push(record.record);
+    // }
 
     // Get positions of column headers
     const colHeaders = getTaskColumnPosFromHeaderRow(headerRow[0]);
 
     const records = [];
-    parser = fs.createReadStream(options.fileName).pipe(
+    const parser = fs.createReadStream(options.fileName).pipe(
         parse({
             info: true,
             skip_empty_lines: true,
@@ -302,7 +347,7 @@ const importTaskFromFile = async (options) => {
         // Get all custom properties
         const cpExisting = await getCustomPropertiesFromQseow(options);
 
-        // Verify file exists
+        // Verify task definitions file exists
         const taskFileExists = await verifyFileExists(options.fileName);
         if (taskFileExists === false) {
             logger.error(`Missing task file "${options.fileName}". Aborting`);
