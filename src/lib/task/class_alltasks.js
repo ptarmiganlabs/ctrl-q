@@ -33,6 +33,7 @@ class QlikSenseTasks {
             this.importedApps = importedApps;
 
             this.taskList = [];
+            this.compositeEventUpstreamTask = [];
 
             // Map that will map fake task IDs (used in source file) with real task IDs after tasks have been created in Sense
             this.taskIdMap = new Map();
@@ -63,6 +64,7 @@ class QlikSenseTasks {
 
     clear() {
         this.taskList = [];
+        this.compositeEventUpstreamTask = [];
     }
 
     // Add new task
@@ -72,11 +74,580 @@ class QlikSenseTasks {
         this.taskList.push(newTask);
     }
 
+    // Function to parse the rows associated with a specific reload task in the source file
+    // Properties in the param object:
+    // - taskRows: Array of rows associated with the task. All rows associated with the task are passed to this function
+    // - taskFileColumnHeaders: Object containing info about which column contains what data
+    // - taskCounter: Counter for the current task
+    // - tagsExisting: Array of existing tags in QSEoW
+    // - cpExisting: Array of existing custom properties in QSEoW
+    // - fakeTaskId: Fake task ID used to associate task with schema/composite events
+    // - nodesWithEvents: Set of nodes that have associated events
+    //
+    // Returns:
+    // Object with two properties:
+    // - currentTask: Object containing task data
+    // - taskCreationOption: Task creation option. Possible values: "if-exists-add-another", "if-exists-update-existing"
+    async parseReloadTask(param) {
+        let currentTask = null;
+        let taskCreationOption;
+
+        // Create task object using same structure as results from QRS API
+
+        // Determine if the task is associated with an app that existed before Ctrl-Q was started, or
+        // an app that's been imported as part of this Ctrl-Q execution.
+        // Possible values for the app ID column:
+        // - newapp-<app counter> (app has been imported as part of this Ctrl-Q execution)
+        // - <app ID> A real, existing app ID. I.e. the app existed before Ctrl-Q was started.
+        const appIdRaw = param.taskRows[0][param.taskFileColumnHeaders.appId.pos].trim();
+        let appId;
+
+        if (appIdRaw.substring(0, 7).toLowerCase() === 'newapp-') {
+            // App ID starts with "newapp-". This means the app been imported as part of this Ctrl-Q session
+            // No guarantee that it is the case though. Maybe no apps were imported, or maybe the app specified for this very task was not imported
+
+            // Have ANY apps been imported?
+            if (!this.importedApps) {
+                logger.error(
+                    `(${param.taskCounter}) PARSE TASKS FROM FILE: No apps have been imported, but app "${param.taskRows[0][
+                        param.taskFileColumnHeaders.appId.pos
+                    ].trim()}" has been specified in the task definition file. Exiting.`
+                );
+                process.exit(1);
+            }
+
+            // Has this specific app been imported?
+            if (!this.importedApps.appIdMap.has(appIdRaw.toLowerCase())) {
+                logger.error(
+                    `(${param.taskCounter}) PARSE TASKS FROM FILE: App "${param.taskRows[0][
+                        param.taskFileColumnHeaders.appId.pos
+                    ].trim()}" has not been imported, but has been specified in the task definition file. Exiting.`
+                );
+                process.exit(1);
+            }
+
+            appId = this.importedApps.appIdMap.get(appIdRaw.toLowerCase());
+
+            // Ensure the app exists
+            // Reasons for the app not existing could be:
+            // - The app was imported but has since been deleted or replaced. This could happen if the app-import step has several
+            //   apps that are published-replaced or deleted-published to the same stream. In that case only the last published app will be present
+
+            if (appId === undefined) {
+                logger.error(
+                    `(${param.taskCounter}) PARSE TASKS FROM FILE: Cannot figure out which Sense app "${param.taskRows[0][
+                        param.taskFileColumnHeaders.appId.pos
+                    ].trim()}" belongs to. App with ID "${appIdRaw}" not found.`
+                );
+
+                logger.error(
+                    `(${param.taskCounter}) PARSE TASKS FROM FILE: This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
+                );
+
+                process.exit(1);
+            }
+
+            // eslint-disable-next-line no-await-in-loop
+            const app = await getAppById(appId);
+
+            if (!app) {
+                logger.error(
+                    `(${param.taskCounter}) PARSE TASKS FROM FILE: App with ID "${appId}" not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
+                );
+                process.exit(1);
+            }
+        } else if (validate(appIdRaw)) {
+            // App ID is a proper UUID. We don't know if the app actually exists though.
+
+            // eslint-disable-next-line no-await-in-loop
+            const app = await getAppById(appIdRaw);
+
+            if (!app) {
+                logger.error(
+                    `(${param.taskCounter}) PARSE TASKS FROM FILE: App with ID "${appIdRaw}" not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
+                );
+                process.exit(1);
+            }
+
+            appId = appIdRaw;
+        } else {
+            logger.error(`(${param.taskCounter}) PARSE TASKS FROM FILE: Incorrect app ID "${appIdRaw}". Exiting.`);
+            process.exit(1);
+        }
+
+        if (param.taskFileColumnHeaders.importOptions.pos === 999) {
+            // No task creation options column in the file
+            // Use the default task creation option
+            taskCreationOption = 'if-exists-update-existing';
+        } else {
+            // Task creation options column exists in the file
+            // Use the value from the file
+            taskCreationOption = param.taskRows[0][param.taskFileColumnHeaders.importOptions.pos];
+        }
+
+        // Ensure task creation option is valid. Allow empty option
+        if (
+            taskCreationOption &&
+            taskCreationOption.trim() !== '' &&
+            !['if-exists-add-another', 'if-exists-update-existing'].includes(taskCreationOption)
+        ) {
+            logger.error(`(${param.taskCounter}) PARSE TASKS FROM FILE: Incorrect task creation option "${taskCreationOption}". Exiting.`);
+            process.exit(1);
+        }
+
+        currentTask = {
+            id: param.taskRows[0][param.taskFileColumnHeaders.taskId.pos],
+            name: param.taskRows[0][param.taskFileColumnHeaders.taskName.pos],
+            taskType: mapTaskType.get(param.taskRows[0][param.taskFileColumnHeaders.taskType.pos]),
+            enabled: param.taskRows[0][param.taskFileColumnHeaders.taskEnabled.pos],
+            taskSessionTimeout: param.taskRows[0][param.taskFileColumnHeaders.taskSessionTimeout.pos],
+            maxRetries: param.taskRows[0][param.taskFileColumnHeaders.taskMaxRetries.pos],
+            isManuallyTriggered: param.taskRows[0][param.taskFileColumnHeaders.isManuallyTriggered.pos],
+            isPartialReload: param.taskRows[0][param.taskFileColumnHeaders.isPartialReload.pos],
+            app: {
+                id: appId,
+                // name: taskData[0][taskFileColumnHeaders.appName.pos],
+            },
+            tags: [],
+            customProperties: [],
+            schemaPath: 'ReloadTask',
+            schemaEvents: [],
+            compositeEvents: [],
+            prelCompositeEvents: [],
+        };
+
+        // Add tags to task object
+        if (param.taskRows[0][param.taskFileColumnHeaders.taskTags.pos]) {
+            const tmpTags = param.taskRows[0][param.taskFileColumnHeaders.taskTags.pos]
+                .split('/')
+                .filter((item) => item.trim().length !== 0)
+                .map((item) => item.trim());
+
+            // eslint-disable-next-line no-restricted-syntax
+            for (const item of tmpTags) {
+                // eslint-disable-next-line no-await-in-loop
+                const tagId = await getTagIdByName(item, param.tagsExisting);
+                currentTask.tags.push({
+                    id: tagId,
+                    name: item,
+                });
+            }
+        }
+
+        // Add custom properties to task object
+        if (param.taskRows[0][param.taskFileColumnHeaders.taskCustomProperties.pos]) {
+            const tmpCustomProperties = param.taskRows[0][param.taskFileColumnHeaders.taskCustomProperties.pos]
+                .split('/')
+                .filter((item) => item.trim().length !== 0)
+                .map((cp) => cp.trim());
+
+            // eslint-disable-next-line no-restricted-syntax
+            for (const item of tmpCustomProperties) {
+                const tmpCustomProperty = item
+                    .split('=')
+                    .filter((item2) => item2.trim().length !== 0)
+                    .map((cp) => cp.trim());
+
+                if (tmpCustomProperty?.length === 2) {
+                    // eslint-disable-next-line no-await-in-loop
+                    const customPropertyId = await getCustomPropertyIdByName('ReloadTask', tmpCustomProperty[0], param.cpExisting);
+
+                    currentTask.customProperties.push({
+                        definition: {
+                            id: customPropertyId,
+                            name: tmpCustomProperty[0].trim(),
+                        },
+                        value: tmpCustomProperty[1].trim(),
+                    });
+                }
+            }
+        }
+
+        // Get schema events for this task, storing the info using the same structure as returned from QRS API
+        currentTask.schemaEvents = this.parseSchemaEvents({
+            taskRows: param.taskRows,
+            taskFileColumnHeaders: param.taskFileColumnHeaders,
+            taskCounter: param.taskCounter,
+            currentTask,
+            fakeTaskId: param.fakeTaskId,
+            nodesWithEvents: param.nodesWithEvents,
+        });
+
+        // Get composite events for this task
+        currentTask.prelCompositeEvents = await this.parseCompositeEvents({
+            taskType: 'reload',
+            taskRows: param.taskRows,
+            taskFileColumnHeaders: param.taskFileColumnHeaders,
+            taskCounter: param.taskCounter,
+            currentTask,
+            fakeTaskId: param.fakeTaskId,
+            nodesWithEvents: param.nodesWithEvents,
+        });
+
+        return { currentTask, taskCreationOption };
+    }
+
+    // Function to get schema events for a specific task
+    // Parameters:
+    // - taskRows: Array of rows associated with the task. All rows associated with the task are passed to this function
+    // - taskFileColumnHeaders: Object containing info about which column contains what data
+    // - taskCounter: Counter for the current task
+    // - currentTask: Object containing task data
+    // - fakeTaskId: Fake task ID used to associate task with schema/composite events
+    // - nodesWithEvents: Set of nodes that have associated events
+    parseSchemaEvents(param) {
+        // Get schema events for this task, storing the info using the same structure as returned from QRS API
+        const prelAchemaEvents = [];
+
+        const schemaEventRows = param.taskRows.filter(
+            (item) =>
+                item[param.taskFileColumnHeaders.eventType.pos] &&
+                item[param.taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'schema'
+        );
+        if (!schemaEventRows || schemaEventRows?.length === 0) {
+            logger.verbose(`(${param.taskCounter}) PARSE TASKS FROM FILE: No schema events for task "${param.currentTask.name}"`);
+        } else {
+            logger.verbose(
+                `(${param.taskCounter}) PARSE TASKS FROM FILE: ${schemaEventRows.length} schema event(s) for task "${param.currentTask.name}"`
+            );
+
+            // Add schema edges and start/trigger nodes
+            // eslint-disable-next-line no-restricted-syntax
+            for (const schemaEventRow of schemaEventRows) {
+                // Create object using same format that Sense uses for schema events
+                const schemaEvent = {
+                    enabled: schemaEventRow[param.taskFileColumnHeaders.eventEnabled.pos],
+                    eventType: mapEventType.get(schemaEventRow[param.taskFileColumnHeaders.eventType.pos]),
+                    name: schemaEventRow[param.taskFileColumnHeaders.eventName.pos],
+                    daylightSavingTime: mapDaylightSavingTime.get(schemaEventRow[param.taskFileColumnHeaders.daylightSavingsTime.pos]),
+                    timeZone: schemaEventRow[param.taskFileColumnHeaders.schemaTimeZone.pos],
+                    startDate: schemaEventRow[param.taskFileColumnHeaders.schemaStart.pos],
+                    expirationDate: schemaEventRow[param.taskFileColumnHeaders.scheamExpiration.pos],
+                    schemaFilterDescription: [schemaEventRow[param.taskFileColumnHeaders.schemaFilterDescription.pos]],
+                    incrementDescription: schemaEventRow[param.taskFileColumnHeaders.schemaIncrementDescription.pos],
+                    incrementOption: mapIncrementOption.get(schemaEventRow[param.taskFileColumnHeaders.schemaIncrementOption.pos]),
+                    reloadTask: {
+                        id: param.fakeTaskId,
+                    },
+                    schemaPath: 'SchemaEvent',
+                };
+
+                this.qlikSenseSchemaEvents.addSchemaEvent(schemaEvent);
+
+                // Add schema event to network representation of tasks
+                // Create an id for this node
+                const nodeId = `schema-event-${uuidv4()}`;
+
+                // Add schema trigger nodes. These represent the implicit starting nodes that a schema event really are
+                this.taskNetwork.nodes.push({
+                    id: nodeId,
+                    metaNodeType: 'schedule', // Meta nodes are not Sense tasks, but rather nodes representing task-like properties (e.g. a starting point for a reload chain)
+                    metaNode: true,
+                    isTopLevelNode: true,
+                    label: schemaEvent.name,
+                    enabled: schemaEvent.enabled,
+
+                    completeSchemaEvent: schemaEvent,
+                });
+
+                this.taskNetwork.edges.push({
+                    from: nodeId,
+                    to: schemaEvent.reloadTask.id,
+                });
+
+                // Keep a note that this node has associated events
+                param.nodesWithEvents.add(schemaEvent.reloadTask.id);
+
+                // Add this schema event to the current task
+                // Remove reference to task ID first though
+                delete schemaEvent.reloadTask.id;
+                delete schemaEvent.reloadTask;
+
+                prelAchemaEvents.push(schemaEvent);
+            }
+        }
+
+        return prelAchemaEvents;
+    }
+
+    // Function to get composite events for a specific task
+    // Function is async as it may need to check if the upstream task pointed to by the composite event exists in Sense
+
+    // Parameters (all properties in the param object):
+    // - taskType: Type of task. Possible values: "reload", "external program"
+    // - taskRows: Array of rows associated with the task. All rows associated with the task are passed to this function
+    // - taskFileColumnHeaders: Object containing info about which column contains what data
+    // - taskCounter: Counter for the current task
+    // - currentTask: Object containing task data
+    // - fakeTaskId: Fake task ID used to associate task with schema/composite events
+    // - nodesWithEvents: Set of nodes that have associated events
+    async parseCompositeEvents(param) {
+        // Get all composite events for this task
+        //
+        // Composite events
+        // - Consists of one main row defining the event, followed by one or more rows defining the composite event rules.
+        // - The main row is followed by one or more rows defining the composite event rules
+        // - All rows associated with a composite event share the same value in the "Event counter" column
+        // - Each composite event rule row has a unique value in the "Rule counter" column
+        const prelCompositeEvents = [];
+
+        // Get all "main rows" of all composite events in this task
+        const compositeEventRows = param.taskRows.filter(
+            (item) =>
+                item[param.taskFileColumnHeaders.eventType.pos] &&
+                item[param.taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'composite'
+        );
+        if (!compositeEventRows || compositeEventRows?.length === 0) {
+            logger.verbose(`(${param.taskCounter}) PARSE TASKS FROM FILE: No composite events for task "${param.currentTask.name}"`);
+        } else {
+            logger.verbose(
+                `(${param.taskCounter}) PARSE TASKS FROM FILE: ${compositeEventRows.length} composite event(s) for task "${param.currentTask.name}"`
+            );
+
+            // Loop over all composite events, adding them and their event rules
+            // eslint-disable-next-line no-restricted-syntax
+            for (const compositeEventRow of compositeEventRows) {
+                // Get value in "Event counter" column for this composite event, then get array of all associated event rules
+                const compositeEventCounter = compositeEventRow[param.taskFileColumnHeaders.eventCounter.pos];
+                const compositeEventRules = param.taskRows.filter(
+                    (item) =>
+                        item[param.taskFileColumnHeaders.eventCounter.pos] === compositeEventCounter &&
+                        item[param.taskFileColumnHeaders.ruleCounter.pos] > 0
+                );
+
+                // Create an object using same format that the Sense API uses for composite events
+                // Add task type specific properties in later step
+                const compositeEvent = {
+                    timeConstraint: {
+                        days: compositeEventRow[param.taskFileColumnHeaders.timeConstraintDays.pos],
+                        hours: compositeEventRow[param.taskFileColumnHeaders.timeConstraintHours.pos],
+                        minutes: compositeEventRow[param.taskFileColumnHeaders.timeConstraintMinutes.pos],
+                        seconds: compositeEventRow[param.taskFileColumnHeaders.timeConstraintSeconds.pos],
+                    },
+                    compositeRules: [],
+                    name: compositeEventRow[param.taskFileColumnHeaders.eventName.pos],
+                    enabled: compositeEventRow[param.taskFileColumnHeaders.eventEnabled.pos],
+                    eventType: mapEventType.get(compositeEventRow[param.taskFileColumnHeaders.eventType.pos]),
+                    schemaPath: 'CompositeEvent',
+                };
+
+                if (param.taskType === 'reload') {
+                    compositeEvent.reloadTask = {
+                        id: param.fakeTaskId,
+                    };
+                } else if (param.taskType === 'external program') {
+                    compositeEvent.externalProgramTask = {
+                        id: param.fakeTaskId,
+                    };
+                } else {
+                    logger.error(`(${param.taskCounter}) PARSE TASKS FROM FILE: Incorrect task type "${param.taskType}". Exiting.`);
+                    process.exit(1);
+                }
+
+                // Add rules
+                // eslint-disable-next-line no-restricted-syntax
+                for (const rule of compositeEventRules) {
+                    // Does the upstream task pointed to by the composite rule exist?
+                    // If it *does* exist it means it's a real, existing task in QSEoW that should be used.
+                    // If it is not a valid guid or does not exist, it's (best case) a referefence to some other task in the task definitions file.
+                    // If the task pointed to by the rule doesn't exist in Sense and doesn't point to some other task in the file, an error should be shown.
+                    if (validate(rule[param.taskFileColumnHeaders.ruleTaskId.pos])) {
+                        // The rule points to an valid UUID. It should exist, otherwise it's an error
+
+                        // eslint-disable-next-line no-await-in-loop
+                        const taskExists = await taskExistById(rule[param.taskFileColumnHeaders.ruleTaskId.pos], this.options);
+
+                        if (taskExists) {
+                            // Add task ID to mapping table that will be used later when building the composite event data structures
+                            // In this case we're adding a task ID that maps to itself, indicating that it's a task that already exists in QSEoW.
+                            this.taskIdMap.set(
+                                rule[param.taskFileColumnHeaders.ruleTaskId.pos],
+                                rule[param.taskFileColumnHeaders.ruleTaskId.pos]
+                            );
+                        } else {
+                            // The task pointed to by the composite event rule does not exist
+                            logger.error(
+                                `(${param.taskCounter}) PARSE TASKS FROM FILE: Task "${
+                                    rule[param.taskFileColumnHeaders.ruleTaskId.pos]
+                                }" does not exist. Exiting.`
+                            );
+                            process.exit(1);
+                        }
+                    } else {
+                        logger.verbose(
+                            `(${param.taskCounter}) ANALYZE COMPOSITE EVENT: "${
+                                rule[param.taskFileColumnHeaders.ruleTaskId.pos]
+                            }" is not a valid UUID`
+                        );
+                    }
+
+                    // Save composite event rule.
+                    // Also add the upstream task id to the correct property in the rule object, depending on task type
+
+                    let upstreamTask;
+                    let upstreamTaskExistence;
+                    // First get upstream task type
+                    // Two options:
+                    // 1. The rule's task ID is a valid GUID. Get the associated task's metadata from Sense, if the task exists
+                    // 2. The rule's task ID is not a valid GUID. It's a reference to a task that is created during this execution of Ctrl-Q.
+                    if (!validate(rule[param.taskFileColumnHeaders.ruleTaskId.pos])) {
+                        // The rule's task ID is not a valid GUID. It's a reference to a task that is created during this execution of Ctrl-Q.
+                        // Add the task ID to the mapping table, indicating that it's a task that is created during this execution of Ctrl-Q.
+
+                        // // Check if the task ID already exists in the mapping table
+                        // if (this.taskIdMap.has(rule[param.taskFileColumnHeaders.ruleTaskId.pos])) {
+                        //     // The task ID already exists in the mapping table. This means that the task has already been created during this execution of Ctrl-Q.
+                        //     // This is not allowed. The task ID must be unique.
+                        //     logger.error(
+                        //         `(${param.taskCounter}) PARSE TASKS FROM FILE: Task ID "${
+                        //             rule[param.taskFileColumnHeaders.ruleTaskId.pos]
+                        //         }" already exists in mapping table. This is not allowed. Exiting.`
+                        //     );
+                        //     process.exit(1);
+                        // }
+
+                        // // Add task ID to mapping table
+                        // this.taskIdMap.set(rule[param.taskFileColumnHeaders.ruleTaskId.pos], `fake-task-${uuidv4()}`);
+
+                        upstreamTaskExistence = 'exists-in-source-file';
+                    } else {
+                        // eslint-disable-next-line no-await-in-loop
+                        upstreamTask = await getTaskById(rule[param.taskFileColumnHeaders.ruleTaskId.pos]);
+
+                        // Save upstream task in shared task list
+                        this.compositeEventUpstreamTask.push(upstreamTask);
+
+                        upstreamTaskExistence = 'exists-in-sense';
+                    }
+
+                    if (upstreamTaskExistence === 'exists-in-source-file') {
+                        // Upstream task is a task that is created during this execution of Ctrl-Q
+                        // We don't yet know what task ID it will get in Sense, so we'll have to find this when creating composite events later
+                        compositeEvent.compositeRules.push({
+                            upstreamTaskExistence,
+                            ruleState: mapRuleState.get(rule[param.taskFileColumnHeaders.ruleState.pos]),
+                            task: {
+                                id: rule[param.taskFileColumnHeaders.ruleTaskId.pos],
+                            },
+                        });
+                    } else if (mapTaskType.get(upstreamTask.taskType).toLowerCase() === 'reload') {
+                        // Upstream task is a reload task
+                        compositeEvent.compositeRules.push({
+                            upstreamTaskExistence,
+                            ruleState: mapRuleState.get(rule[param.taskFileColumnHeaders.ruleState.pos]),
+                            task: {
+                                id: rule[param.taskFileColumnHeaders.ruleTaskId.pos],
+                            },
+                            reloadTask: {
+                                id: rule[param.taskFileColumnHeaders.ruleTaskId.pos],
+                            },
+                        });
+                    } else if (mapTaskType.get(upstreamTask.taskType).toLowerCase() === 'externalprogram') {
+                        // Upstream task is an external program task
+                        compositeEvent.compositeRules.push({
+                            upstreamTaskExistence,
+                            ruleState: mapRuleState.get(rule[param.taskFileColumnHeaders.ruleState.pos]),
+                            task: {
+                                id: rule[param.taskFileColumnHeaders.ruleTaskId.pos],
+                            },
+                            externalProgramTask: {
+                                id: rule[param.taskFileColumnHeaders.ruleTaskId.pos],
+                            },
+                        });
+                    }
+                }
+
+                this.qlikSenseCompositeEvents.addCompositeEvent(compositeEvent);
+
+                // Add composite event to network representation of tasks
+                if (compositeEvent.compositeRules.length === 1) {
+                    // This trigger has exactly ONE upstream task
+                    // For triggers with >1 upstream task we want an extra meta node to represent the waiting of all upstream tasks to finish
+
+                    if (param.taskType === 'reload') {
+                        // Add edge from upstream task to current task, taking into account task type
+                        this.taskNetwork.edges.push({
+                            from: compositeEvent.compositeRules[0].task.id,
+                            to: compositeEvent.reloadTask.id,
+
+                            completeCompositeEvent: compositeEvent,
+                            rule: compositeEvent.compositeRules,
+                            // color: compositeEvent.enabled ? '#9FC2F7' : '#949298',
+                            // color: edgeColor,
+                            // dashes: compositeEvent.enabled ? false : [15, 15],
+                            // title: compositeEvent.name + '<br>' + 'asdasd',
+                            // label: compositeEvent.name,
+                        });
+
+                        // Keep a note that this node has associated events
+                        param.nodesWithEvents.add(compositeEvent.compositeRules[0].task.id);
+                        param.nodesWithEvents.add(compositeEvent.reloadTask.id);
+                    } else if (param.taskType === 'external program') {
+                        // Add edge from upstream task to current task, taking into account task type
+                        this.taskNetwork.edges.push({
+                            from: compositeEvent.compositeRules[0].task.id,
+                            to: compositeEvent.externalProgramTask.id,
+
+                            completeCompositeEvent: compositeEvent,
+                            rule: compositeEvent.compositeRules,
+                        });
+                        // Keep a note that this node has associated events
+                        param.nodesWithEvents.add(compositeEvent.compositeRules[0].task.id);
+                        param.nodesWithEvents.add(compositeEvent.externalProgramTask.id);
+                    }
+                } else {
+                    // There are more than one task involved in triggering a downstream task.
+                    // Insert a proxy node that represents a Qlik Sense composite event
+
+                    const nodeId = `composite-event-${uuidv4()}`;
+                    this.taskNetwork.nodes.push({
+                        id: nodeId,
+                        label: '',
+                        enabled: true,
+                        metaNodeType: 'composite',
+                        metaNode: true,
+                    });
+                    param.nodesWithEvents.add(nodeId);
+
+                    // Add edges from upstream tasks to the new meta node
+                    // eslint-disable-next-line no-restricted-syntax
+                    for (const rule of compositeEvent.compositeRules) {
+                        this.taskNetwork.edges.push({
+                            from: rule.task.id,
+                            to: nodeId,
+
+                            completeCompositeEvent: compositeEvent,
+                            rule,
+                        });
+                    }
+
+                    // Add edge from new meta node to current node, taking into account task type
+                    if (param.taskType === 'reload') {
+                        this.taskNetwork.edges.push({
+                            from: nodeId,
+                            to: compositeEvent.reloadTask.id,
+                        });
+                    } else if (param.taskType === 'external program') {
+                        this.taskNetwork.edges.push({
+                            from: nodeId,
+                            to: compositeEvent.externalProgramTask.id,
+                        });
+                    }
+                }
+
+                // Add this composite event to the current task
+                prelCompositeEvents.push(compositeEvent);
+            }
+        }
+
+        return prelCompositeEvents;
+    }
+
     // Function to read task definitions from disk file (CSV or Excel)
     // Parameters:
     // - tasksFromFile: Object containing data read from file
     // - tagsExisting: Array of existing tags in QSEoW
-    // - cpExisting: Array of existing custom properties in QSEoW 
+    // - cpExisting: Array of existing custom properties in QSEoW
     async getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting) {
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
@@ -144,519 +715,222 @@ class QlikSenseTasks {
                         )}`
                     );
 
-                    // Create a fake ID for this task. Used to associate task with schema/composite events
-                    const fakeTaskId = `reload-task-${uuidv4()}`;
-
-                    let currentTask = null;
-                    let taskCreationOption;
-
-                    // Get task specific data for the current task
-                    // The row containing task data will have "Reload" in the task type column
-                    const taskData = taskRows.filter(
-                        (item) =>
-                            item[taskFileColumnHeaders.taskType.pos] &&
-                            item[taskFileColumnHeaders.taskType.pos].trim().toLowerCase() === 'reload'
-                    );
-                    if (taskData?.length !== 1) {
-                        logger.error(`(${taskCounter}) PARSE TASKS FROM FILE: Incorrect task input data:\n${JSON.stringify(taskRows)}`);
+                    // Verify that first row contains task data. Following rows should contain event data associated with the task.
+                    // Valid task types are:
+                    // - Reload
+                    // - External program
+                    if (
+                        !taskRows[0][taskFileColumnHeaders.taskType.pos] ||
+                        !['reload', 'external program'].includes(taskRows[0][taskFileColumnHeaders.taskType.pos].trim().toLowerCase())
+                    ) {
+                        logger.error(
+                            `(${taskCounter}) PARSE TASKS FROM FILE: Incorrect task type "${
+                                taskRows[0][taskFileColumnHeaders.taskType.pos]
+                            }". Exiting.`
+                        );
                         process.exit(1);
-                    } else {
-                        // Create task object using same structure as results from QRS API
-
-                        // Determine if the task is associated with an app that existed before Ctrl-Q was started, or
-                        // an app that's been imported as part of this Ctrl-Q execution.
-                        // Possible values for the app ID column:
-                        // - newapp-<app counter> (app has been imported as part of this Ctrl-Q execution)
-                        // - <app ID> A real, existing app ID. I.e. the app existed before Ctrl-Q was started.
-                        let appId;
-                        if (taskData[0][taskFileColumnHeaders.appId.pos].trim().substring(0, 7).toLowerCase() === 'newapp-') {
-                            appId = this.importedApps.appIdMap.get(taskData[0][taskFileColumnHeaders.appId.pos].trim().toLowerCase());
-
-                            // Ensure the app exists
-                            // Reasons for the app not existing could be:
-                            // - The app was imported but has since been deleted or replaced. This could happen if the app-import step has several
-                            //   apps that are published-replaced or deleted-published to the same stream. In that case only the last published app will be present
-
-                            if (appId === undefined) {
-                                logger.error(
-                                    `(${taskCounter}) PARSE TASKS FROM FILE: Cannot figure out which Sense app "${taskData[0][
-                                        taskFileColumnHeaders.appId.pos
-                                    ].trim()}" belongs to. App with ID "${taskData[0][taskFileColumnHeaders.appId.pos]}" not found.`
-                                );
-
-                                logger.error(
-                                    `(${taskCounter}) PARSE TASKS FROM FILE: This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
-                                );
-
-                                process.exit(1);
-                            }
-
-                            // eslint-disable-next-line no-await-in-loop
-                            const app = await getAppById(appId);
-
-                            if (!app) {
-                                logger.error(
-                                    `(${taskCounter}) PARSE TASKS FROM FILE: App with ID "${appId}" not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
-                                );
-                                process.exit(1);
-                            }
-                        } else if (validate(taskData[0][taskFileColumnHeaders.appId.pos])) {
-                            // App ID is a proper UUID. We don't know if the app actually exists though.
-
-                            // eslint-disable-next-line no-await-in-loop
-                            const app = await getAppById(taskData[0][taskFileColumnHeaders.appId.pos]);
-
-                            if (!app) {
-                                logger.error(
-                                    `(${taskCounter}) PARSE TASKS FROM FILE: App with ID "${
-                                        taskData[0][taskFileColumnHeaders.appId.pos]
-                                    }" not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
-                                );
-                                process.exit(1);
-                            }
-
-                            appId = taskData[0][taskFileColumnHeaders.appId.pos];
-                        } else {
-                            logger.error(
-                                `(${taskCounter}) PARSE TASKS FROM FILE: Incorrect app ID "${
-                                    taskData[0][taskFileColumnHeaders.appId.pos]
-                                }". Exiting.`
-                            );
-                            process.exit(1);
-                        }
-
-                        if (taskFileColumnHeaders.importOptions.pos === 999) {
-                            // No task creation options column in the file
-                            // Use the default task creation option
-                            taskCreationOption = 'if-exists-update-existing';
-                        } else {
-                            // Task creation options column exists in the file
-                            // Use the value from the file
-                            taskCreationOption = taskData[0][taskFileColumnHeaders.importOptions.pos];
-                        }
-
-                        // Ensure task creation option is valid. Allow empty option
-                        if (
-                            taskCreationOption &&
-                            taskCreationOption.trim() !== '' &&
-                            !['if-exists-add-another', 'if-exists-update-existing'].includes(taskCreationOption)
-                        ) {
-                            logger.error(
-                                `(${taskCounter}) PARSE TASKS FROM FILE: Incorrect task creation option "${taskCreationOption}". Exiting.`
-                            );
-                            process.exit(1);
-                        }
-
-                        currentTask = {
-                            id: taskData[0][taskFileColumnHeaders.taskId.pos],
-                            name: taskData[0][taskFileColumnHeaders.taskName.pos],
-                            taskType: mapTaskType.get(taskData[0][taskFileColumnHeaders.taskType.pos]),
-                            enabled: taskData[0][taskFileColumnHeaders.taskEnabled.pos],
-                            taskSessionTimeout: taskData[0][taskFileColumnHeaders.taskSessionTimeout.pos],
-                            maxRetries: taskData[0][taskFileColumnHeaders.taskMaxRetries.pos],
-                            isManuallyTriggered: taskData[0][taskFileColumnHeaders.isManuallyTriggered.pos],
-                            isPartialReload: taskData[0][taskFileColumnHeaders.isPartialReload.pos],
-                            app: {
-                                id: appId,
-                                // name: taskData[0][taskFileColumnHeaders.appName.pos],
-                            },
-                            tags: [],
-                            customProperties: [],
-                            schemaPath: 'ReloadTask',
-                            schemaEvents: [],
-                            compositeEvents: [],
-                            prelCompositeEvents: [],
-                        };
-
-                        // Add tags to task object
-                        if (taskData[0][taskFileColumnHeaders.taskTags.pos]) {
-                            const tmpTags = taskData[0][taskFileColumnHeaders.taskTags.pos]
-                                .split('/')
-                                .filter((item) => item.trim().length !== 0)
-                                .map((item) => item.trim());
-
-                            // eslint-disable-next-line no-restricted-syntax
-                            for (const item of tmpTags) {
-                                // eslint-disable-next-line no-await-in-loop
-                                const tagId = await getTagIdByName(item, tagsExisting);
-                                currentTask.tags.push({
-                                    id: tagId,
-                                    name: item,
-                                });
-                            }
-                        }
-
-                        // Add custom properties to task object
-                        if (taskData[0][taskFileColumnHeaders.taskCustomProperties.pos]) {
-                            const tmpCustomProperties = taskData[0][taskFileColumnHeaders.taskCustomProperties.pos]
-                                .split('/')
-                                .filter((item) => item.trim().length !== 0)
-                                .map((cp) => cp.trim());
-
-                            // eslint-disable-next-line no-restricted-syntax
-                            for (const item of tmpCustomProperties) {
-                                const tmpCustomProperty = item
-                                    .split('=')
-                                    .filter((item2) => item2.trim().length !== 0)
-                                    .map((cp) => cp.trim());
-
-                                if (tmpCustomProperty?.length === 2) {
-                                    // eslint-disable-next-line no-await-in-loop
-                                    const customPropertyId = await getCustomPropertyIdByName(
-                                        'ReloadTask',
-                                        tmpCustomProperty[0],
-                                        cpExisting
-                                    );
-
-                                    currentTask.customProperties.push({
-                                        definition: {
-                                            id: customPropertyId,
-                                            name: tmpCustomProperty[0].trim(),
-                                        },
-                                        value: tmpCustomProperty[1].trim(),
-                                    });
-                                }
-                            }
-                        }
                     }
 
-                    // Get schema events for this task, storing the info using the same structure as returned from QRS API
-                    const schemaEventRows = taskRows.filter(
-                        (item) =>
-                            item[taskFileColumnHeaders.eventType.pos] &&
-                            item[taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'schema'
-                    );
-                    if (!schemaEventRows || schemaEventRows?.length === 0) {
-                        logger.verbose(`(${taskCounter}) PARSE TASKS FROM FILE: No schema events for task "${currentTask.name}"`);
-                    } else {
-                        logger.verbose(
-                            `(${taskCounter}) PARSE TASKS FROM FILE: ${schemaEventRows.length} schema event(s) for task "${currentTask.name}"`
-                        );
+                    // Handle each task type separately
+                    // Get task type (lower case) from first row
+                    const taskType = taskRows[0][taskFileColumnHeaders.taskType.pos].trim().toLowerCase();
 
-                        // Add schema edges and start/trigger nodes
+                    // Reload task
+                    if (taskType === 'reload') {
+                        // Create a fake ID for this task. Used to associate task with schema/composite events
+                        const fakeTaskId = `reload-task-${uuidv4()}`;
+
+                        // eslint-disable-next-line no-await-in-loop
+                        const res = await this.parseReloadTask({
+                            taskRows,
+                            taskFileColumnHeaders,
+                            taskCounter,
+                            tagsExisting,
+                            cpExisting,
+                            fakeTaskId,
+                            nodesWithEvents,
+                        });
+
+                        // Add reload task as node in task network
+                        // NB: A top level node is defined as:
+                        // 1. A task whose taskID does not show up in the "to" field of any edge.
+
                         // eslint-disable-next-line no-restricted-syntax
-                        for (const schemaEventRow of schemaEventRows) {
-                            // Create object using same format that Sense uses for schema events
-                            const schemaEvent = {
-                                enabled: schemaEventRow[taskFileColumnHeaders.eventEnabled.pos],
-                                eventType: mapEventType.get(schemaEventRow[taskFileColumnHeaders.eventType.pos]),
-                                name: schemaEventRow[taskFileColumnHeaders.eventName.pos],
-                                daylightSavingTime: mapDaylightSavingTime.get(
-                                    schemaEventRow[taskFileColumnHeaders.daylightSavingsTime.pos]
-                                ),
-                                timeZone: schemaEventRow[taskFileColumnHeaders.schemaTimeZone.pos],
-                                startDate: schemaEventRow[taskFileColumnHeaders.schemaStart.pos],
-                                expirationDate: schemaEventRow[taskFileColumnHeaders.scheamExpiration.pos],
-                                schemaFilterDescription: [schemaEventRow[taskFileColumnHeaders.schemaFilterDescription.pos]],
-                                incrementDescription: schemaEventRow[taskFileColumnHeaders.schemaIncrementDescription.pos],
-                                incrementOption: mapIncrementOption.get(schemaEventRow[taskFileColumnHeaders.schemaIncrementOption.pos]),
-                                reloadTask: {
-                                    id: fakeTaskId,
-                                },
-                                schemaPath: 'SchemaEvent',
-                            };
+                        this.taskNetwork.nodes.push({
+                            id: res.currentTask.id,
+                            metaNode: false,
+                            isTopLevelNode: !this.taskNetwork.edges.find((edge) => edge.to === res.currentTask.taskId),
+                            label: res.currentTask.name,
+                            enabled: res.currentTask.enabled,
 
-                            this.qlikSenseSchemaEvents.addSchemaEvent(schemaEvent);
+                            completeTaskObject: res.currentTask,
 
-                            // Add schema event to network representation of tasks
-                            // Create an id for this node
-                            const nodeId = `schema-event-${uuidv4()}`;
+                            // Tabulator columns
+                            taskId: res.currentTask.id,
+                            taskName: res.currentTask.name,
+                            taskEnabled: res.currentTask.enabled,
+                            appId: res.currentTask.app.id,
+                            appName: 'N/A',
+                            appPublished: 'N/A',
+                            appStream: 'N/A',
+                            taskMaxRetries: res.currentTask.maxRetries,
+                            taskLastExecutionStartTimestamp: 'N/A',
+                            taskLastExecutionStopTimestamp: 'N/A',
+                            taskLastExecutionDuration: 'N/A',
+                            taskLastExecutionExecutingNodeName: 'N/A',
+                            taskNextExecutionTimestamp: 'N/A',
+                            taskLastStatus: 'N/A',
+                            taskTags: res.currentTask.tags.map((tag) => tag.name),
+                            taskCustomProperties: res.currentTask.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`),
+                        });
 
-                            // Add schema trigger nodes. These represent the implicit starting nodes that a schema event really are
-                            this.taskNetwork.nodes.push({
-                                id: nodeId,
-                                metaNodeType: 'schedule', // Meta nodes are not Sense tasks, but rather nodes representing task-like properties (e.g. a starting point for a reload chain)
-                                metaNode: true,
-                                isTopLevelNode: true,
-                                label: schemaEvent.name,
-                                enabled: schemaEvent.enabled,
+                        // We now have a basic task object including tags and custom properties.
+                        // Schema events are included but composite events are only partially there, as they may need
+                        // IDs of tasks that have not yet been created.
+                        // Still, store all info for composite evets and then do another loop where those events are created for
+                        // tasks for which they are defined.
+                        //
+                        // The strategey is to first create all tasks, then add composite events.
+                        // Only then can we be sure all composite events refer to existing tasks.
 
-                                completeSchemaEvent: schemaEvent,
-                            });
-
-                            this.taskNetwork.edges.push({
-                                from: nodeId,
-                                to: schemaEvent.reloadTask.id,
-                            });
-
-                            // Keep a note that this node has associated events
-                            nodesWithEvents.add(schemaEvent.reloadTask.id);
-
-                            // Add this schema event to the current task
-                            // Remove reference to task ID first though
-                            delete schemaEvent.reloadTask.id;
-                            delete schemaEvent.reloadTask;
-                            currentTask.schemaEvents.push(schemaEvent);
-                        }
-                    }
-
-                    // Get composite events for this task
-                    // NB: This will only get the main row for each composite event.
-                    // Each such main row is followed by one or more event rule rows, that each share the same value in the "Event counter" column
-                    const compositeEventRows = taskRows.filter(
-                        (item) =>
-                            item[taskFileColumnHeaders.eventType.pos] &&
-                            item[taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'composite'
-                    );
-                    if (!compositeEventRows || compositeEventRows?.length === 0) {
-                        logger.verbose(`(${taskCounter}) PARSE TASKS FROM FILE: No composite events for task "${currentTask.name}"`);
-                    } else {
-                        logger.verbose(
-                            `(${taskCounter}) PARSE TASKS FROM FILE: ${compositeEventRows.length} composite event(s) for task "${currentTask.name}"`
-                        );
-
-                        // Loop over all composite events, adding them and their event rules
-                        // eslint-disable-next-line no-restricted-syntax
-                        for (const compositeEventRow of compositeEventRows) {
-                            // Get value in "Event counter" column for this composite event, then get array of all associated event rules
-                            const compositeEventCounter = compositeEventRow[taskFileColumnHeaders.eventCounter.pos];
-                            const compositeEventRules = taskRows.filter(
-                                (item) =>
-                                    item[taskFileColumnHeaders.eventCounter.pos] === compositeEventCounter &&
-                                    item[taskFileColumnHeaders.ruleCounter.pos] > 0
-                            );
-
-                            // Create an object using same format that the Sense API uses for composite events
-                            const compositeEvent = {
-                                timeConstraint: {
-                                    days: compositeEventRow[taskFileColumnHeaders.timeConstraintDays.pos],
-                                    hours: compositeEventRow[taskFileColumnHeaders.timeConstraintHours.pos],
-                                    minutes: compositeEventRow[taskFileColumnHeaders.timeConstraintMinutes.pos],
-                                    seconds: compositeEventRow[taskFileColumnHeaders.timeConstraintSeconds.pos],
-                                },
-                                compositeRules: [],
-                                name: compositeEventRow[taskFileColumnHeaders.eventName.pos],
-                                enabled: compositeEventRow[taskFileColumnHeaders.eventEnabled.pos],
-                                eventType: mapEventType.get(compositeEventRow[taskFileColumnHeaders.eventType.pos]),
-                                reloadTask: {
-                                    id: fakeTaskId,
-                                },
-                                schemaPath: 'CompositeEvent',
-                            };
-
-                            // Add rules
-                            // eslint-disable-next-line no-restricted-syntax
-                            for (const rule of compositeEventRules) {
-                                // Does the upstream task pointed to by the composite rule exist?
-                                // If it *does* exist it means it's a real, existing task in QSEoW that should be used.
-                                // If it is not a valid guid or does not exist, it's (best case) a referefence to some other task in the task definitions file.
-                                // If the task pointed to by the rule doesn't exist in Sense and doesn't point to some other task in the file, an error should be shown.
-                                if (validate(rule[taskFileColumnHeaders.ruleTaskId.pos])) {
-                                    // eslint-disable-next-line no-await-in-loop
-                                    const taskExists = await taskExistById(rule[taskFileColumnHeaders.ruleTaskId.pos], this.options);
-
-                                    if (taskExists) {
-                                        // Add task ID to mapping table that will be used later when building the composite event data structures
-                                        // In this case we're adding a task ID that maps to itself, indicating that it's a task that already exists in QSEoW.
-                                        this.taskIdMap.set(
-                                            rule[taskFileColumnHeaders.ruleTaskId.pos],
-                                            rule[taskFileColumnHeaders.ruleTaskId.pos]
-                                        );
-                                    }
-                                } else {
-                                    logger.verbose(
-                                        `(${taskCounter}) ANALYZE COMPOSITE EVENT: "${
-                                            rule[taskFileColumnHeaders.ruleTaskId.pos]
-                                        }" is not a valid UUID`
-                                    );
-                                }
-
-                                compositeEvent.compositeRules.push({
-                                    // id: ,
-                                    ruleState: mapRuleState.get(rule[taskFileColumnHeaders.ruleState.pos]),
-                                    reloadTask: {
-                                        id: rule[taskFileColumnHeaders.ruleTaskId.pos],
-                                    },
-                                });
-                            }
-
-                            this.qlikSenseCompositeEvents.addCompositeEvent(compositeEvent);
-
-                            // Add schema event to network representation of tasks
-                            if (compositeEvent.compositeRules.length === 1) {
-                                // This trigger has exactly ONE upstream task
-                                // For triggers with >1 upstream task we want an extra meta node to represent the waiting of all upstream tasks to finish
-
-                                this.taskNetwork.edges.push({
-                                    from: compositeEvent.compositeRules[0].reloadTask.id,
-                                    to: compositeEvent.reloadTask.id,
-
-                                    completeCompositeEvent: compositeEvent,
-                                    rule: compositeEvent.compositeRules,
-                                    // color: compositeEvent.enabled ? '#9FC2F7' : '#949298',
-                                    // color: edgeColor,
-                                    // dashes: compositeEvent.enabled ? false : [15, 15],
-                                    // title: compositeEvent.name + '<br>' + 'asdasd',
-                                    // label: compositeEvent.name,
-                                });
-
-                                // Keep a note that this node has associated events
-                                nodesWithEvents.add(compositeEvent.compositeRules[0].reloadTask.id);
-                                nodesWithEvents.add(compositeEvent.reloadTask.id);
-                            } else {
-                                // There are more than one task involved in triggering a downstream task.
-                                // Insert a proxy node that represents a Qlik Sense composite event
-
-                                const nodeId = `composite-event-${uuidv4()}`;
-                                this.taskNetwork.nodes.push({
-                                    id: nodeId,
-                                    label: '',
-                                    enabled: true,
-                                    metaNodeType: 'composite',
-                                    metaNode: true,
-                                });
-                                nodesWithEvents.add(nodeId);
-
-                                // Add edges from upstream tasks to the new meta node
-                                // eslint-disable-next-line no-restricted-syntax
-                                for (const rule of compositeEvent.compositeRules) {
-                                    this.taskNetwork.edges.push({
-                                        from: rule.reloadTask.id,
-                                        to: nodeId,
-
-                                        completeCompositeEvent: compositeEvent,
-                                        rule,
-                                    });
-                                }
-
-                                // Add edge from new meta node to current node
-                                this.taskNetwork.edges.push({
-                                    from: nodeId,
-                                    to: compositeEvent.reloadTask.id,
-                                });
-                            }
-
-                            // Add this composite event to the current task
-                            currentTask.prelCompositeEvents.push(compositeEvent);
-                        }
-                    }
-
-                    // Add task as node in task network
-                    // NB: A top level node is defined as:
-                    // 1. A task whose taskID does not show up in the "to" field of any edge.
-
-                    // eslint-disable-next-line no-restricted-syntax
-                    this.taskNetwork.nodes.push({
-                        id: currentTask.id,
-                        metaNode: false,
-                        isTopLevelNode: !this.taskNetwork.edges.find((edge) => edge.to === currentTask.taskId),
-                        label: currentTask.name,
-                        enabled: currentTask.enabled,
-
-                        completeTaskObject: currentTask,
-
-                        // Tabulator columns
-                        taskId: currentTask.id,
-                        taskName: currentTask.name,
-                        taskEnabled: currentTask.enabled,
-                        appId: currentTask.app.id,
-                        appName: 'N/A',
-                        appPublished: 'N/A',
-                        appStream: 'N/A',
-                        taskMaxRetries: currentTask.maxRetries,
-                        taskLastExecutionStartTimestamp: 'N/A',
-                        taskLastExecutionStopTimestamp: 'N/A',
-                        taskLastExecutionDuration: 'N/A',
-                        taskLastExecutionExecutingNodeName: 'N/A',
-                        taskNextExecutionTimestamp: 'N/A',
-                        taskLastStatus: 'N/A',
-                        taskTags: currentTask.tags.map((tag) => tag.name),
-                        taskCustomProperties: currentTask.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`),
-                    });
-
-                    // We now have a basic task object including tags and custom properties.
-                    // Schema events are included but composite events are only partially there, as they may need
-                    // IDs of tasks that have not yet been created.
-                    // Still, store all info for composite evets and then do another loop where those events are created for
-                    // tasks for which they are defined.
-                    //
-                    // The strategey is to first create all tasks, then add composite events.
-                    // Only then can we be sure all composite events refer to existing tasks.
-
-                    // Create new or update existing reload task in QSEoW
-                    if (this.options.dryRun === false || this.options.dryRun === undefined) {
+                        // Create new or update existing reload task in QSEoW
                         // Should we create a new task?
-                        // We do this if either the following is true:
-                        // 1. taskCreationOption equals "if-exists-add-another"
-                        if (taskCreationOption === 'if-exists-add-another') {
+                        // Controlled by option --update-mode
+                        if (this.options.updateMode === 'create') {
                             // Create new task
-                            // eslint-disable-next-line no-await-in-loop
-                            const newTaskId = await this.createReloadTaskInQseow(currentTask, taskCounter);
-                            logger.info(`(${taskCounter}) Created new task "${currentTask.name}", new task id: ${newTaskId}.`);
-
-                            // Add mapping between fake task ID used when creating task network and actual, newly created task ID
-                            this.taskIdMap.set(fakeTaskId, newTaskId);
-
-                            // Add mapping between fake task ID specified in source file and actual, newly created task ID
-                            if (currentTask.id) {
-                                this.taskIdMap.set(currentTask.id, newTaskId);
-                            }
-
-                            currentTask.idRef = currentTask.id;
-                            currentTask.id = newTaskId;
-
-                            // eslint-disable-next-line no-await-in-loop
-                            await this.addTask('from_file', currentTask, false);
-                        } else if (taskCreationOption === 'if-exists-update-existing') {
-                            // Update existing task
-
-                            // Verify task ID is a valid UUID
-                            // If it's not a valid UUID, the ID specified in the source file will be treated as a task name
-                            if (!validate(currentTask.id)) {
+                            if (this.options.dryRun === false || this.options.dryRun === undefined) {
                                 // eslint-disable-next-line no-await-in-loop
-                                const task = await getTaskByName(currentTask.id);
-                                if (task) {
-                                    // eslint-disable-next-line no-await-in-loop
-                                    await this.updateReloadTaskInQseow(currentTask, taskCounter);
-                                } else {
-                                    throw new Error(
-                                        `Task "${currentTask.id}" does not exist in QSEoW and cannot be updated. ` +
-                                            'Please specify a valid task ID or task name in the source file.'
-                                    );
+                                const newTaskId = await this.createReloadTaskInQseow(res.currentTask, taskCounter);
+                                logger.info(`(${taskCounter}) Created new task "${res.currentTask.name}", new task id: ${newTaskId}.`);
+
+                                // Add mapping between fake task ID used when creating task network and actual, newly created task ID
+                                this.taskIdMap.set(fakeTaskId, newTaskId);
+
+                                // Add mapping between fake task ID specified in source file and actual, newly created task ID
+                                if (res.currentTask.id) {
+                                    this.taskIdMap.set(res.currentTask.id, newTaskId);
                                 }
+
+                                res.currentTask.idRef = res.currentTask.id;
+                                res.currentTask.id = newTaskId;
+
+                                // eslint-disable-next-line no-await-in-loop
+                                await this.addTask('from_file', res.currentTask, false);
                             } else {
-                                // Verify task ID exists in QSEoW
-                                // eslint-disable-next-line no-await-in-loop
-                                const taskExists = await getTaskById(currentTask.id);
-                                if (!taskExists) {
-                                    throw new Error(
-                                        `Task "${currentTask.id}" does not exist in QSEoW and cannot be updated. ` +
-                                            'Please specify a valid task ID or task name in the source file.'
-                                    );
-                                } else {
-                                    // eslint-disable-next-line no-await-in-loop
-                                    await this.updateReloadTaskInQseow(currentTask, taskCounter);
-                                    logger.info(
-                                        `(${taskCounter}) Updated existing task "${currentTask.name}", task id: ${currentTask.id}.`
-                                    );
-                                }
+                                logger.info(`(${taskCounter}) DRY RUN: Creating reload task in QSEoW "${res.currentTask.name}"`);
                             }
-
-                            // eslint-disable-next-line no-await-in-loop
-                            await this.updateReloadTaskInQseow(currentTask, taskCounter);
-                            logger.info(`(${taskCounter}) Updated existing task "${currentTask.name}", task id: ${currentTask.id}.`);
+                        } else if (this.options.updateMode === 'update-if-exists') {
+                            // Update existing task
+                            // TODO
+                            // // Verify task ID is a valid UUID
+                            // // If it's not a valid UUID, the ID specified in the source file will be treated as a task name
+                            // if (!validate(res.currentTask.id)) {
+                            //     // eslint-disable-next-line no-await-in-loop
+                            //     const task = await getTaskByName(res.currentTask.id);
+                            //     if (task) {
+                            //         // eslint-disable-next-line no-await-in-loop
+                            //         await this.updateReloadTaskInQseow(res.currentTask, taskCounter);
+                            //     } else {
+                            //         throw new Error(
+                            //             `Task "${res.currentTask.id}" does not exist in QSEoW and cannot be updated. ` +
+                            //                 'Please specify a valid task ID or task name in the source file.'
+                            //         );
+                            //     }
+                            // } else {
+                            //     // Verify task ID exists in QSEoW
+                            //     // eslint-disable-next-line no-await-in-loop
+                            //     const taskExists = await getTaskById(res.currentTask.id);
+                            //     if (!taskExists) {
+                            //         throw new Error(
+                            //             `Task "${res.currentTask.id}" does not exist in QSEoW and cannot be updated. ` +
+                            //                 'Please specify a valid task ID or task name in the source file.'
+                            //         );
+                            //     } else {
+                            //         // eslint-disable-next-line no-await-in-loop
+                            //         await this.updateReloadTaskInQseow(res.currentTask, taskCounter);
+                            //         logger.info(
+                            //             `(${taskCounter}) Updated existing task "${res.currentTask.name}", task id: ${res.currentTask.id}.`
+                            //         );
+                            //     }
+                            // }
+                            // logger.info(
+                            //     `(${taskCounter}) Updated existing task "${res.currentTask.name}", task id: ${res.currentTask.id}.`
+                            // );
                         } else {
                             // Invalid combination of import options
                             throw new Error(
-                                `Invalid combination of task import options for task "${currentTask.name}". ` +
-                                    'You must specify either "if-exists-add-another" or "if-exists-update-existing", but not both.'
+                                `Invalid task update mode. Valid values are "create" and "update-if-exists". You specified "${this.options.updateMode}".`
                             );
                         }
-                    } else {
-                        logger.info(`(${taskCounter}) DRY RUN: Creating reload task in QSEoW "${currentTask.name}"`);
+                    } else if (taskType === 'external program') {
+                        logger.info(`(${taskCounter}) PARSE TASKS FROM FILE: External program task. Not yet implemented.`);
+                        // External program task
+                        // eslint-disable-next-line no-await-in-loop
+                        // await this.parseExternalProgramTask(
+                        //     taskRows,
+                        //     taskFileColumnHeaders,
+                        //     taskCounter,
+                        //     tagsExisting,
+                        //     cpExisting,
+                        //     nodesWithEvents
+                        // );
                     }
                 }
 
-                // Get task IDs for upstream tasks that composite task events are connected to
+                // At this point all tasks have been created or updated in Sense.
+                // The tasks' associated composite events have been parsed and are stored in the qlikSenseCompositeEvents object.
+                // Time now to create the composite events in Sense.
+
+                // Make sure all composite tasks contain real, valid task UUIDs pointing to previously existing or newly created tasks.
+                // Get task IDs for upstream tasks that composite events are connected to via their respective rules.
+                // Some rules will point to upstream tasks that are created during this execution of Ctrl-Q, other upstream tasks existed before this execution of Ctrl-Q.
+                // Use the task ID map to get the correct task ID for each upstream task.
                 this.qlikSenseCompositeEvents.compositeEventList.map((item) => {
                     const a = item;
-                    a.compositeEvent.reloadTask.id = this.taskIdMap.get(item.compositeEvent.reloadTask.id);
 
+                    // Set task ID for the composite event itself, i.e. which task is the event associated with (i.e. the downstream task)
+                    // Handle different task types differently
+                    if (item.compositeEvent.reloadTask.id) {
+                        // Reload task
+                        a.compositeEvent.reloadTask.id = this.taskIdMap.get(item.compositeEvent.reloadTask.id);
+                    } else if (item.compositeEvent.externalProgramTask.id) {
+                        // External program task
+                        a.compositeEvent.externalProgramTask.id = this.taskIdMap.get(item.compositeEvent.externalProgramTask.id);
+                    }
+
+                    // For this composite event, set the correct task id for each each rule.
+                    // Different properties are used for reload tasks, external program tasks etc.
+                    // Some rules may be pointing to newly created tasks. These can be looked up in the taskIdMap.
                     a.compositeEvent.compositeRules.map((item2) => {
                         const b = item2;
-                        const id = this.taskIdMap.get(item2.reloadTask.id);
+
+                        // Get triggering/upstream task id
+                        const id = this.taskIdMap.get(b.task.id);
                         if (id !== undefined && validate(id) === true) {
-                            b.reloadTask.id = id;
+                            // Determine what kind of task this is. Options are:
+                            // - reload
+                            // - external program
+                            //
+                            // Also need to know if the task is a new task created during this execution of Ctrl-Q or if it's an existing task in Sense.
+                            let taskType;
+                            if (b.upstreamTaskExistence === 'exists-in-source-file') {
+                                const task = this.taskList.find((item3) => item3.taskId === id);
+                                taskType = task.taskType;
+                                // const { taskType } = this.taskNetwork.nodes.find((node) => node.id === id).completeTaskObject;
+                            } else if (b.upstreamTaskExistence === 'exists-in-sense') {
+                                // eslint-disable-next-line no-await-in-loop
+                                const task = this.compositeEventUpstreamTask.find((item4) => item4.id === id);
+                                taskType = task.taskType;
+                            }
+
+                            // Use mapTaskType to get the string variant of the task type. Convert to lower case.
+                            const taskTypeString = mapTaskType.get(taskType).trim().toLowerCase();
+
+                            if (taskTypeString === 'reload') {
+                                b.reloadTask = { id };
+                            } else if (taskTypeString === 'externalprogram') {
+                                b.externalProgramTask = { id };
+                            }
                         } else if (this.options.dryRun === false || this.options.dryRun === undefined) {
                             logger.error(
                                 `PREPARING COMPOSITE EVENT: Invalid upstream task ID "${b.reloadTask.id}" in rule for composite event "${a.compositeEvent.name}" `
@@ -886,7 +1160,6 @@ class QlikSenseTasks {
 
             // Don't add task id and tag filtering if the output is a task tree
             if (this.options.outputFormat !== 'tree') {
-
                 // Add task id(s) to query string
                 if (this.options.taskId && this.options?.taskId.length >= 1) {
                     // At least one task ID specified
