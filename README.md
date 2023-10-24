@@ -13,7 +13,7 @@ It is open source with a permissive MIT license.<br>
 </h2>
 <p align="center">
 <a href="https://github.com/ptarmiganlabs/ctrl-q"><img src="https://img.shields.io/badge/Source---" alt="Source"></a>
-<a href="https://github.com/ptarmiganlabs/ctrl-q/actions/workflows/release-please.yml"><img src="https://github.com/ptarmiganlabs/ctrl-q/actions/workflows/release-please.yml/badge.svg" alt="Continuous Integration"></a>
+<a href="https://github.com/ptarmiganlabs/ctrl-q/actions/workflows/ci.yaml"><img src="https://github.com/ptarmiganlabs/ctrl-q/actions/workflows/ci.yaml/badge.svg" alt="Continuous Integration"></a>
 <a href="https://www.repostatus.org/#active"><img src="https://www.repostatus.org/badges/latest/active.svg" alt="Project Status: Active – The project has reached a stable, usable state and is being actively developed." /></a>
 <a href="https://github.com/ptarmiganlabs/ctrl-q/releases"><img src="https://img.shields.io/github/downloads/ptarmiganlabs/ctrl-q/total.svg?label=downloads" /></a>
 <img src="https://hits.dwyl.com/ptarmiganlabs/ctrl-q.svg" />
@@ -350,7 +350,7 @@ Adapt as needed for macOS, Linux and NodeJS.
 
 ### List bookmarks
 
-```
+```powershell
 .\ctrl-q.exe bookmark-get `
 --host 192.168.100.109 `
 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 `
@@ -360,22 +360,22 @@ Adapt as needed for macOS, Linux and NodeJS.
 ```
 
 ```
-2023-05-09T20:09:01.861Z info: -----------------------------------------------------------
-2023-05-09T20:09:01.861Z info: | Ctrl-Q
-2023-05-09T20:09:01.861Z info: |
-2023-05-09T20:09:01.861Z info: | Version      : 3.9.0
-2023-05-09T20:09:01.861Z info: | Log level    : info
-2023-05-09T20:09:01.861Z info: |
-2023-05-09T20:09:01.861Z info: | Command      : bookmark-get
-2023-05-09T20:09:01.861Z info: |              : get info about one or more bookmarks
-2023-05-09T20:09:01.861Z info: |
-2023-05-09T20:09:01.877Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T20:09:01.877Z info: |
-2023-05-09T20:09:01.877Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T20:09:01.877Z info: ----------------------------------------------------------
-2023-05-09T20:09:01.877Z info:
-2023-05-09T20:09:01.877Z info: Get bookmarks
-2023-05-09T20:09:02.392Z info: Bookmarks
+2023-09-27T04:19:19.960Z info: -----------------------------------------------------------
+2023-09-27T04:19:19.960Z info: | Ctrl-Q
+2023-09-27T04:19:19.960Z info: |
+2023-09-27T04:19:19.960Z info: | Version      : 3.13.1
+2023-09-27T04:19:19.960Z info: | Log level    : info
+2023-09-27T04:19:19.960Z info: |
+2023-09-27T04:19:19.960Z info: | Command      : bookmark-get
+2023-09-27T04:19:19.960Z info: |              : get info about one or more bookmarks
+2023-09-27T04:19:19.960Z info: |
+2023-09-27T04:19:19.960Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:19:19.960Z info: |
+2023-09-27T04:19:19.960Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:19:19.976Z info: ----------------------------------------------------------
+2023-09-27T04:19:19.976Z info:
+2023-09-27T04:19:20.027Z info: Get bookmarks
+2023-09-27T04:19:20.449Z info: Bookmarks
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Bookmarks (1 bookmark(s) found in the app)                                                                                                                                                                                                                                                               │
 ├──────────────────────────────────────┬──────────┬───────────┬─────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬───────────┤
@@ -392,7 +392,7 @@ Adapt as needed for macOS, Linux and NodeJS.
 
 ### List measures
 
-```
+```powershell
 .\ctrl-q.exe master-item-measure-get `
 --host 192.168.100.109 `
 --auth-user-dir LAB `
@@ -402,31 +402,35 @@ Adapt as needed for macOS, Linux and NodeJS.
 ```
 
 ```
-2023-05-09T18:40:23.517Z info: -----------------------------------------------------------
-2023-05-09T18:40:23.517Z info: | Ctrl-Q
-2023-05-09T18:40:23.517Z info: |
-2023-05-09T18:40:23.517Z info: | Version      : 3.9.0
-2023-05-09T18:40:23.517Z info: | Log level    : info
-2023-05-09T18:40:23.517Z info: |
-2023-05-09T18:40:23.517Z info: | Command      : master-item-measure-get
-2023-05-09T18:40:23.517Z info: |              : get info about one or more master measures
-2023-05-09T18:40:23.517Z info: |
-2023-05-09T18:40:23.517Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T18:40:23.517Z info: |
-2023-05-09T18:40:23.517Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T18:40:23.517Z info: ----------------------------------------------------------
-2023-05-09T18:40:23.517Z info:
-2023-05-09T18:40:23.532Z info: Get master measures
-2023-05-09T18:40:23.923Z info:
+2023-09-27T04:20:35.083Z info: -----------------------------------------------------------
+2023-09-27T04:20:35.083Z info: | Ctrl-Q
+2023-09-27T04:20:35.099Z info: |
+2023-09-27T04:20:35.099Z info: | Version      : 3.13.1
+2023-09-27T04:20:35.099Z info: | Log level    : info
+2023-09-27T04:20:35.099Z info: |
+2023-09-27T04:20:35.099Z info: | Command      : master-item-measure-get
+2023-09-27T04:20:35.099Z info: |              : get info about one or more master measures
+2023-09-27T04:20:35.099Z info: |
+2023-09-27T04:20:35.099Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:20:35.099Z info: |
+2023-09-27T04:20:35.099Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:20:35.099Z info: ----------------------------------------------------------
+2023-09-27T04:20:35.099Z info:
+2023-09-27T04:20:35.099Z info: Get master measures
+2023-09-27T04:20:35.568Z info:
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ Measures (6 measure(s) found in the app)                                                                                                                                                                                                                                                                                                                                                                                                                                           │
 ├──────────────────────────────────────┬─────────┬────────────────────────┬───────────────────────────────────────────────────┬──────────────────┬──────────────────┬──────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────┬───────────────────────────────────────┬──────────┬──────────┬───────────┬──────────────────────────┬──────────────────────────┬──────────────────────────┬───────────┬───────────┤
 │ Id                                   │ Type    │ Title                  │ Description                                       │ Label            │ Label expression │ Definition           │ Coloring                                                                                             │ Number format                         │ Grouping │ Approved │ Published │ Publish time             │ Created date             │ Modified date            │ Owner     │ Tags      │
 ├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
-│ 22ad7b77-21ad-4e0a-bc1a-dd8e3bd9a68f │ measure │ Revenue EUR            │ Revenue during selected time period.              │ ='Revenue'       │ ='Revenue'       │ Sum(Revenue)         │ Segment colors:                                                                                      │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-05-09T15:18:20.753Z │ 2023-05-09T15:44:15.756Z │ LAB\goran │ Sales     │
+│ 0a4151cf-0b3d-423d-84d7-eb18ff4ce07a │ measure │ Profit EUR             │ Profit during selected time period.               │ ='Profit'        │ ='Profit'        │ Sum(Profit)          │                                                                                                      │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-05-09T18:48:43.431Z │ 2023-06-05T18:39:32.990Z │ LAB\goran │ Sales     │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
+│ 21064835-d013-4559-9e59-9a88059ca5a6 │ measure │ Revenue EUR            │ Revenue during selected time period.              │ ='Revenue'       │ ='Revenue'       │ Sum(Revenue)         │ Segment colors:                                                                                      │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-06-06T06:03:11.288Z │ 2023-06-06T06:03:11.288Z │ LAB\goran │ Sales     │
 │                                      │         │                        │                                                   │                  │                  │                      │ {"colors":[{"color":"#006580","index":6},{"color":"#ac4d58","index":10},{"color":"#4477aa","index":- │                                       │          │          │           │                          │                          │                          │           │           │
 │                                      │         │                        │                                                   │                  │                  │                      │ 1},{"color":"#7db8da","index":-1}],"breakTypes":[true,true,false],"limits":[0.223,0.491,0.728],"limi │                                       │          │          │           │                          │                          │                          │           │           │
 │                                      │         │                        │                                                   │                  │                  │                      │ tType":"percent"}                                                                                    │                                       │          │          │           │                          │                          │                          │           │           │
+├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
+│ f5149553-a100-4f53-8f46-4c866d2220ba │ measure │ Profit EUR (LY)        │ Profit during last year                           │ ='Profit LY'     │ ='Profit LY'     │ Sum(Profit_LY)       │                                                                                                      │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-06-06T06:03:11.288Z │ 2023-06-06T06:03:11.288Z │ LAB\goran │ Sales, LY │
 ├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
 │ 9d563fc2-ad00-41db-ad15-0f80c522686d │ measure │ Revenue EUR (LY)       │ Revenue during last year.                         │ ='Revenue LY'    │ ='Revenue LY'    │ Sum(Revenue_LY)      │                                                                                                      │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-05-09T15:18:20.753Z │ 2023-05-09T15:40:12.804Z │ LAB\goran │ Sales, LY │
 ├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
@@ -435,23 +439,19 @@ Adapt as needed for macOS, Linux and NodeJS.
 │                                      │         │                        │                                                   │                  │                  │                      │                                                                                                      │                                       │          │          │           │                          │                          │                          │           │           │
 │                                      │         │                        │                                                   │                  │                  │                      │                                                                                                      │                                       │          │          │           │                          │                          │                          │           │           │
 ├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
-│ ba4f1f0b-f2c9-48e2-ab62-d91329ad1b16 │ measure │ Profit EUR             │ Profit during selected time period.               │ ='Profit'        │ ='Profit'        │ Sum(Profit)          │                                                                                                      │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-05-09T15:18:20.753Z │ 2023-05-09T15:50:33.680Z │ LAB\goran │ Sales     │
-├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
-│ c46a32a0-f41e-40c5-ae5b-4f40d5a7681c │ measure │ No. of sold units      │ Number of units sold during selected time period. │ ='Sold units'    │ ='Sold units'    │ =Sum(UnitsInOrder)   │ Measure color:                                                                                       │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-05-09T15:18:20.753Z │ 2023-05-09T15:40:12.804Z │ LAB\goran │ Sales     │
+│ 94631826-88b0-4e84-bf71-9667972e8f15 │ measure │ No. of sold units      │ Number of units sold during selected time period. │ ='Sold units'    │ ='Sold units'    │ =Sum(UnitsInOrder)   │ Measure color:                                                                                       │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-05-09T18:48:43.431Z │ 2023-06-05T18:39:32.990Z │ LAB\goran │ Sales     │
 │                                      │         │                        │                                                   │                  │                  │                      │ {"color":"#8a85c6","index":8}                                                                        │                                       │          │          │           │                          │                          │                          │           │           │
 │                                      │         │                        │                                                   │                  │                  │                      │                                                                                                      │                                       │          │          │           │                          │                          │                          │           │           │
 │                                      │         │                        │                                                   │                  │                  │                      │ Segment colors:                                                                                      │                                       │          │          │           │                          │                          │                          │           │           │
 │                                      │         │                        │                                                   │                  │                  │                      │ {"colors":[{"color":"#006580","index":6},{"color":"#ac4d58","index":10},{"color":"#4477aa","index":- │                                       │          │          │           │                          │                          │                          │           │           │
 │                                      │         │                        │                                                   │                  │                  │                      │ 1},{"color":"#7db8da","index":-1}],"breakTypes":[true,true,false],"limits":[0.223,0.491,0.728],"limi │                                       │          │          │           │                          │                          │                          │           │           │
 │                                      │         │                        │                                                   │                  │                  │                      │ tType":"percent"}                                                                                    │                                       │          │          │           │                          │                          │                          │           │           │
-├──────────────────────────────────────┼─────────┼────────────────────────┼───────────────────────────────────────────────────┼──────────────────┼──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────┼───────────────────────────────────────┼──────────┼──────────┼───────────┼──────────────────────────┼──────────────────────────┼──────────────────────────┼───────────┼───────────┤
-│ ddbfc44a-a537-4ea6-8d25-7597c3ec1179 │ measure │ Profit EUR (LY)        │ Profit during last year                           │ ='Profit LY'     │ ='Profit LY'     │ Sum(Profit_LY)       │                                                                                                      │ {"qType":"U","qnDec":10,"qUseThou":0} │ N        │ false    │ false     │ 1753-01-01T00:00:00.000Z │ 2023-05-09T15:18:20.753Z │ 2023-05-09T15:40:12.804Z │ LAB\goran │ Sales, LY │
 └──────────────────────────────────────┴─────────┴────────────────────────┴───────────────────────────────────────────────────┴──────────────────┴──────────────────┴──────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────┴──────────┴──────────┴───────────┴──────────────────────────┴──────────────────────────┴──────────────────────────┴───────────┴───────────┘
 ```
 
 ### Delete measures
 
-```
+```powershell
 .\ctrl-q.exe master-item-measure-delete `
 --host 192.168.100.109 `
 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 `
@@ -462,30 +462,30 @@ Adapt as needed for macOS, Linux and NodeJS.
 ```
 
 ```
-2023-06-06T00:51:51.425Z info: -----------------------------------------------------------
-2023-06-06T00:51:51.425Z info: | Ctrl-Q
-2023-06-06T00:51:51.425Z info: |
-2023-06-06T00:51:51.425Z info: | Version      : 3.11.0
-2023-06-06T00:51:51.425Z info: | Log level    : info
-2023-06-06T00:51:51.425Z info: |
-2023-06-06T00:51:51.425Z info: | Command      : master-item-measure-delete
-2023-06-06T00:51:51.425Z info: |              : delete master measure(s)
-2023-06-06T00:51:51.425Z info: |
-2023-06-06T00:51:51.425Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-06-06T00:51:51.425Z info: |
-2023-06-06T00:51:51.425Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-06-06T00:51:51.425Z info: ----------------------------------------------------------
-2023-06-06T00:51:51.425Z info:
-2023-06-06T00:51:51.441Z info: Delete master measures
-2023-06-06T00:51:51.878Z info: (1/2) Deleted master item measure "Revenue EUR", id=d0973ebb-0d36-461d-aedd-9c1da07af5f8 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
-2023-06-06T00:51:51.878Z info: (2/2) Deleted master item measure "Profit EUR (LY)", id=d57c692d-3789-422e-9951-f6a21eb5f896 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+2023-09-27T04:21:43.480Z info: -----------------------------------------------------------
+2023-09-27T04:21:43.496Z info: | Ctrl-Q
+2023-09-27T04:21:43.496Z info: |
+2023-09-27T04:21:43.496Z info: | Version      : 3.13.1
+2023-09-27T04:21:43.512Z info: | Log level    : info
+2023-09-27T04:21:43.545Z info: |
+2023-09-27T04:21:43.552Z info: | Command      : master-item-measure-delete
+2023-09-27T04:21:43.559Z info: |              : delete master measure(s)
+2023-09-27T04:21:43.559Z info: |
+2023-09-27T04:21:43.559Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:21:43.574Z info: |
+2023-09-27T04:21:43.574Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:21:43.574Z info: ----------------------------------------------------------
+2023-09-27T04:21:43.574Z info:
+2023-09-27T04:21:43.590Z info: Delete master measures
+2023-09-27T04:21:44.058Z info: (1/2) Deleted master item measure "Revenue EUR", id=21064835-d013-4559-9e59-9a88059ca5a6 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+2023-09-27T04:21:44.058Z info: (2/2) Deleted master item measure "Profit EUR (LY)", id=f5149553-a100-4f53-8f46-4c866d2220ba in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
 ```
 
 ## Dimensions
 
 ### List dimensions
 
-```
+```powershell
 .\ctrl-q.exe master-item-dim-get `
 --host 192.168.100.109 `
 --auth-user-dir LAB `
@@ -558,23 +558,23 @@ Adapt as needed for macOS, Linux and NodeJS.
 ```
 
 ```
-2023-06-05T14:57:36.042Z info: -----------------------------------------------------------
-2023-06-05T14:57:36.042Z info: | Ctrl-Q
-2023-06-05T14:57:36.042Z info: |
-2023-06-05T14:57:36.042Z info: | Version      : 3.11.0
-2023-06-05T14:57:36.042Z info: | Log level    : info
-2023-06-05T14:57:36.042Z info: |
-2023-06-05T14:57:36.042Z info: | Command      : master-item-dim-delete
-2023-06-05T14:57:36.058Z info: |              : delete master dimension(s)
-2023-06-05T14:57:36.058Z info: |
-2023-06-05T14:57:36.058Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-06-05T14:57:36.058Z info: |
-2023-06-05T14:57:36.058Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-06-05T14:57:36.058Z info: ----------------------------------------------------------
-2023-06-05T14:57:36.058Z info:
-2023-06-05T14:57:36.058Z info: Delete master dimensions
-2023-06-05T14:57:36.574Z info: (1/2) Deleted master item dimension "Country", id=66abfa88-9393-4524-a4b6-55b0904326d2 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
-2023-06-05T14:57:36.574Z info: (2/2) Deleted master item dimension "Sales month", id=be3e3125-69f8-4c84-afac-ecd815adf537 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+2023-09-27T04:25:46.852Z info: -----------------------------------------------------------
+2023-09-27T04:25:46.852Z info: | Ctrl-Q
+2023-09-27T04:25:46.866Z info: |
+2023-09-27T04:25:46.866Z info: | Version      : 3.13.1
+2023-09-27T04:25:46.866Z info: | Log level    : info
+2023-09-27T04:25:46.866Z info: |
+2023-09-27T04:25:46.866Z info: | Command      : master-item-dim-delete
+2023-09-27T04:25:46.866Z info: |              : delete master dimension(s)
+2023-09-27T04:25:46.866Z info: |
+2023-09-27T04:25:46.866Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:25:46.866Z info: |
+2023-09-27T04:25:46.866Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:25:46.866Z info: ----------------------------------------------------------
+2023-09-27T04:25:46.866Z info:
+2023-09-27T04:25:46.881Z info: Delete master dimensions
+2023-09-27T04:25:47.291Z info: (1/2) Deleted master item dimension "Country", id=455b434d-6b4f-437f-846e-f72b13426bab in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
+2023-09-27T04:25:47.291Z info: (2/2) Deleted master item dimension "Sales month", id=98c4424e-3434-4d02-b5be-e163fb554731 in app "a3e0f5d2-000a-464f-998d-33d333b175d7"
 ```
 
 ## Variables
@@ -587,7 +587,7 @@ If the `--variable` option is not included all variables will be included in the
 
 Use `--output-format json` to get the results as JSON.
 
-```
+```powershell
 .\ctrl-q.exe variable-get `
 --host 192.168.100.109 `
 --qrs-port 4242 `
@@ -601,21 +601,21 @@ Use `--output-format json` to get the results as JSON.
 ```
 
 ```
-2023-05-09T17:58:35.102Z info: -----------------------------------------------------------
-2023-05-09T17:58:35.102Z info: | Ctrl-Q
-2023-05-09T17:58:35.102Z info: |
-2023-05-09T17:58:35.102Z info: | Version      : 3.9.0
-2023-05-09T17:58:35.102Z info: | Log level    : info
-2023-05-09T17:58:35.102Z info: |
-2023-05-09T17:58:35.102Z info: | Command      : variable-get
-2023-05-09T17:58:35.102Z info: |              : get variable definitions in one or more apps
-2023-05-09T17:58:35.102Z info: |
-2023-05-09T17:58:35.102Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T17:58:35.102Z info: |
-2023-05-09T17:58:35.102Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T17:58:35.102Z info: ----------------------------------------------------------
-2023-05-09T17:58:35.117Z info:
-2023-05-09T17:58:37.148Z info:
+2023-09-27T04:27:16.696Z info: -----------------------------------------------------------
+2023-09-27T04:27:16.696Z info: | Ctrl-Q
+2023-09-27T04:27:16.711Z info: |
+2023-09-27T04:27:16.711Z info: | Version      : 3.13.1
+2023-09-27T04:27:16.711Z info: | Log level    : info
+2023-09-27T04:27:16.711Z info: |
+2023-09-27T04:27:16.711Z info: | Command      : variable-get
+2023-09-27T04:27:16.711Z info: |              : get variable definitions in one or more apps
+2023-09-27T04:27:16.711Z info: |
+2023-09-27T04:27:16.711Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:27:16.711Z info: |
+2023-09-27T04:27:16.711Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:27:16.711Z info: ----------------------------------------------------------
+2023-09-27T04:27:16.711Z info:
+2023-09-27T04:27:19.403Z info:
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ In-app variables                                                                                                                                                                                                                                                                                                                                                     │
 ├──────────────────────────────────────┬─────────────────────────────┬──────────────────────────────────────┬─────────────────┬───────────────────┬──────────┬───────────────────────────┬─────────────┬───────────────────┬──────────────────────────┬──────────────────────────┬────────────────────┬──────┬───────┬───────────────────────────────┬─────────────────┤
@@ -625,15 +625,15 @@ Use `--output-format json` to get the results as JSON.
 ├──────────────────────────────────────┼─────────────────────────────┼──────────────────────────────────────┼─────────────────┼───────────────────┼──────────┼───────────────────────────┼─────────────┼───────────────────┼──────────────────────────┼──────────────────────────┼────────────────────┼──────┼───────┼───────────────────────────────┼─────────────────┤
 │ e377d9b5-231a-4795-800f-3649983647dd │ LDAP lab                    │ c1a99293-51d0-426b-bdb7-a43b2d896dc9 │ TimestampFormat │                   │ variable │ M/D/YYYY h:mm:ss[.fff] TT │ true        │ true              │                          │                          │                    │      │       │ read,update,delete            │                 │
 ├──────────────────────────────────────┼─────────────────────────────┼──────────────────────────────────────┼─────────────────┼───────────────────┼──────────┼───────────────────────────┼─────────────┼───────────────────┼──────────────────────────┼──────────────────────────┼────────────────────┼──────┼───────┼───────────────────────────────┼─────────────────┤
-│ a3e0f5d2-000a-464f-998d-33d333b175d7 │ Sheet thumbnails demo app   │ 0155e35e-8054-4896-9dd7-d947405f3a90 │ vVar1           │ vVar1 description │ variable │ ='abc' & '123'            │             │                   │ 2021-06-03T22:04:52.283Z │ 2023-05-09T17:41:35.182Z │                    │ -1   │       │ read,update,delete,exportdata │ varTag1,varTag2 │
+│ a3e0f5d2-000a-464f-998d-33d333b175d7 │ Sheet thumbnails demo app   │ 0155e35e-8054-4896-9dd7-d947405f3a90 │ vVar1           │ vVar1 description │ variable │ ='abc' & '123'            │             │                   │ 2021-06-03T22:04:52.283Z │ 2023-05-09T18:37:05.953Z │                    │ -1   │       │ read,update,delete,exportdata │ varTag1,varTag2 │
 ├──────────────────────────────────────┼─────────────────────────────┼──────────────────────────────────────┼─────────────────┼───────────────────┼──────────┼───────────────────────────┼─────────────┼───────────────────┼──────────────────────────┼──────────────────────────┼────────────────────┼──────┼───────┼───────────────────────────────┼─────────────────┤
 │ a3e0f5d2-000a-464f-998d-33d333b175d7 │ Sheet thumbnails demo app   │ 8b9ed9b7-7db9-420f-8c00-308e19befd54 │ TimestampFormat │                   │ variable │ M/D/YYYY h:mm:ss[.fff] TT │ true        │ true              │                          │                          │                    │      │       │ read,update,delete            │                 │
 ├──────────────────────────────────────┼─────────────────────────────┼──────────────────────────────────────┼─────────────────┼───────────────────┼──────────┼───────────────────────────┼─────────────┼───────────────────┼──────────────────────────┼──────────────────────────┼────────────────────┼──────┼───────┼───────────────────────────────┼─────────────────┤
 │ a3e0f5d2-000a-464f-998d-33d333b175d7 │ Sheet thumbnails demo app   │ 548828d1-4e83-4e57-a0ed-b94119fc46ad │ var1            │                   │ variable │ This is variable 1        │             │ true              │                          │                          │                    │      │       │ read,update,delete            │                 │
 ├──────────────────────────────────────┼─────────────────────────────┼──────────────────────────────────────┼─────────────────┼───────────────────┼──────────┼───────────────────────────┼─────────────┼───────────────────┼──────────────────────────┼──────────────────────────┼────────────────────┼──────┼───────┼───────────────────────────────┼─────────────────┤
-│ c840670c-7178-4a5e-8409-ba2da69127e2 │ Meetup.com                  │ 3773a685-d3ce-453f-9e7a-d88514207dbe │ TimestampFormat │                   │ variable │ M/D/YYYY h:mm:ss[.fff] TT │ true        │ true              │                          │                          │                    │      │       │ read,update,delete            │                 │
-├──────────────────────────────────────┼─────────────────────────────┼──────────────────────────────────────┼─────────────────┼───────────────────┼──────────┼───────────────────────────┼─────────────┼───────────────────┼──────────────────────────┼──────────────────────────┼────────────────────┼──────┼───────┼───────────────────────────────┼─────────────────┤
 │ d1ace221-b80e-4754-98ea-3d0a9ebc9632 │ Residential energy analysis │ 185378fa-4835-47db-b142-ecffb4ffe951 │ TimestampFormat │                   │ variable │ M/D/YYYY h:mm:ss[.fff] TT │ true        │ true              │                          │                          │                    │      │       │ read,update,delete            │                 │
+├──────────────────────────────────────┼─────────────────────────────┼──────────────────────────────────────┼─────────────────┼───────────────────┼──────────┼───────────────────────────┼─────────────┼───────────────────┼──────────────────────────┼──────────────────────────┼────────────────────┼──────┼───────┼───────────────────────────────┼─────────────────┤
+│ c840670c-7178-4a5e-8409-ba2da69127e2 │ Meetup.com                  │ 3773a685-d3ce-453f-9e7a-d88514207dbe │ TimestampFormat │                   │ variable │ M/D/YYYY h:mm:ss[.fff] TT │ true        │ true              │                          │                          │                    │      │       │ read,update,delete            │                 │
 └──────────────────────────────────────┴─────────────────────────────┴──────────────────────────────────────┴─────────────────┴───────────────────┴──────────┴───────────────────────────┴─────────────┴───────────────────┴──────────────────────────┴──────────────────────────┴────────────────────┴──────┴───────┴───────────────────────────────┴─────────────────┘
 ```
 
@@ -657,7 +657,7 @@ The example below deletes certain variables in several apps. The `--dry-run` opt
 If all variables should be deleted the `--delete-all` option can be used.  
 Note that if `--delete-all` is used `--id-type` and `--variable` must **not** be used.
 
-```
+```powershell
 .\ctrl-q.exe  variable-delete `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -671,56 +671,56 @@ Note that if `--delete-all` is used `--id-type` and `--variable` must **not** be
 ```
 
 ```
-2023-05-09T18:37:08.790Z info: -----------------------------------------------------------
-2023-05-09T18:37:08.790Z info: | Ctrl-Q
-2023-05-09T18:37:08.790Z info: |
-2023-05-09T18:37:08.790Z info: | Version      : 3.9.0
-2023-05-09T18:37:08.790Z info: | Log level    : info
-2023-05-09T18:37:08.790Z info: |
-2023-05-09T18:37:08.790Z info: | Command      : variable-delete
-2023-05-09T18:37:08.790Z info: |              : delete one or more variables in one or more apps
-2023-05-09T18:37:08.790Z info: |
-2023-05-09T18:37:08.790Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T18:37:08.790Z info: |
-2023-05-09T18:37:08.790Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T18:37:08.790Z info: ----------------------------------------------------------
-2023-05-09T18:37:08.790Z info:
-2023-05-09T18:37:08.868Z info: ------------------------
-2023-05-09T18:37:08.868Z info: Deleting variables in app 2933711d-6638-41d4-a2d2-6dd2d965208b "Ctrl-Q CLI"
-2023-05-09T18:37:09.196Z warn: Variable "a1" does not exist in app 2933711d-6638-41d4-a2d2-6dd2d965208b "Ctrl-Q CLI"
-2023-05-09T18:37:09.196Z warn: Variable "a2" does not exist in app 2933711d-6638-41d4-a2d2-6dd2d965208b "Ctrl-Q CLI"
-2023-05-09T18:37:09.196Z warn: Variable "a3" does not exist in app 2933711d-6638-41d4-a2d2-6dd2d965208b "Ctrl-Q CLI"
-2023-05-09T18:37:09.196Z warn: Variable "vVar1" does not exist in app 2933711d-6638-41d4-a2d2-6dd2d965208b "Ctrl-Q CLI"
-2023-05-09T18:37:09.196Z info: ------------------------
-2023-05-09T18:37:09.196Z info: Deleting variables in app f16fa63d-54c7-4c8d-81f1-2d084d46bcfe "Minecraft Metrics"
-2023-05-09T18:37:09.525Z warn: Variable "a1" does not exist in app f16fa63d-54c7-4c8d-81f1-2d084d46bcfe "Minecraft Metrics"
-2023-05-09T18:37:09.525Z warn: Variable "a2" does not exist in app f16fa63d-54c7-4c8d-81f1-2d084d46bcfe "Minecraft Metrics"
-2023-05-09T18:37:09.525Z warn: Variable "a3" does not exist in app f16fa63d-54c7-4c8d-81f1-2d084d46bcfe "Minecraft Metrics"
-2023-05-09T18:37:09.525Z warn: Variable "vVar1" does not exist in app f16fa63d-54c7-4c8d-81f1-2d084d46bcfe "Minecraft Metrics"
-2023-05-09T18:37:09.540Z info: ------------------------
-2023-05-09T18:37:09.540Z info: Deleting variables in app e377d9b5-231a-4795-800f-3649983647dd "LDAP lab"
-2023-05-09T18:37:09.822Z warn: Variable "a1" does not exist in app e377d9b5-231a-4795-800f-3649983647dd "LDAP lab"
-2023-05-09T18:37:09.822Z warn: Variable "a2" does not exist in app e377d9b5-231a-4795-800f-3649983647dd "LDAP lab"
-2023-05-09T18:37:09.822Z warn: Variable "a3" does not exist in app e377d9b5-231a-4795-800f-3649983647dd "LDAP lab"
-2023-05-09T18:37:09.822Z warn: Variable "vVar1" does not exist in app e377d9b5-231a-4795-800f-3649983647dd "LDAP lab"
-2023-05-09T18:37:09.822Z info: ------------------------
-2023-05-09T18:37:09.822Z info: Deleting variables in app a3e0f5d2-000a-464f-998d-33d333b175d7 "Sheet thumbnails demo app"
-2023-05-09T18:37:10.399Z info: DRY RUN: Delete of variable "a1" in app a3e0f5d2-000a-464f-998d-33d333b175d7 "Sheet thumbnails demo app" would happen here
-2023-05-09T18:37:10.399Z info: DRY RUN: Delete of variable "a2" in app a3e0f5d2-000a-464f-998d-33d333b175d7 "Sheet thumbnails demo app" would happen here
-2023-05-09T18:37:10.399Z warn: Variable "a3" does not exist in app a3e0f5d2-000a-464f-998d-33d333b175d7 "Sheet thumbnails demo app"
-2023-05-09T18:37:10.399Z info: DRY RUN: Delete of variable "vVar1" in app a3e0f5d2-000a-464f-998d-33d333b175d7 "Sheet thumbnails demo app" would happen here
-2023-05-09T18:37:10.399Z info: ------------------------
-2023-05-09T18:37:10.399Z info: Deleting variables in app c840670c-7178-4a5e-8409-ba2da69127e2 "Meetup.com"
-2023-05-09T18:37:10.759Z warn: Variable "a1" does not exist in app c840670c-7178-4a5e-8409-ba2da69127e2 "Meetup.com"
-2023-05-09T18:37:10.759Z warn: Variable "a2" does not exist in app c840670c-7178-4a5e-8409-ba2da69127e2 "Meetup.com"
-2023-05-09T18:37:10.759Z warn: Variable "a3" does not exist in app c840670c-7178-4a5e-8409-ba2da69127e2 "Meetup.com"
-2023-05-09T18:37:10.774Z warn: Variable "vVar1" does not exist in app c840670c-7178-4a5e-8409-ba2da69127e2 "Meetup.com"
-2023-05-09T18:37:10.774Z info: ------------------------
-2023-05-09T18:37:10.774Z info: Deleting variables in app d1ace221-b80e-4754-98ea-3d0a9ebc9632 "Residential energy analysis"
-2023-05-09T18:37:11.102Z warn: Variable "a1" does not exist in app d1ace221-b80e-4754-98ea-3d0a9ebc9632 "Residential energy analysis"
-2023-05-09T18:37:11.102Z warn: Variable "a2" does not exist in app d1ace221-b80e-4754-98ea-3d0a9ebc9632 "Residential energy analysis"
-2023-05-09T18:37:11.102Z warn: Variable "a3" does not exist in app d1ace221-b80e-4754-98ea-3d0a9ebc9632 "Residential energy analysis"
-2023-05-09T18:37:11.102Z warn: Variable "vVar1" does not exist in app d1ace221-b80e-4754-98ea-3d0a9ebc9632 "Residential energy analysis"
+2023-09-27T04:28:20.183Z info: -----------------------------------------------------------
+2023-09-27T04:28:20.183Z info: | Ctrl-Q
+2023-09-27T04:28:20.198Z info: |
+2023-09-27T04:28:20.198Z info: | Version      : 3.13.1
+2023-09-27T04:28:20.198Z info: | Log level    : info
+2023-09-27T04:28:20.198Z info: |
+2023-09-27T04:28:20.198Z info: | Command      : variable-delete
+2023-09-27T04:28:20.198Z info: |              : delete one or more variables in one or more apps
+2023-09-27T04:28:20.198Z info: |
+2023-09-27T04:28:20.198Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:28:20.198Z info: |
+2023-09-27T04:28:20.198Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:28:20.198Z info: ----------------------------------------------------------
+2023-09-27T04:28:20.198Z info:
+2023-09-27T04:28:20.326Z info: ------------------------
+2023-09-27T04:28:20.326Z info: Deleting variables in app 2933711d-6638-41d4-a2d2-6dd2d965208b "Ctrl-Q CLI"
+2023-09-27T04:28:20.967Z warn: Variable "a1" does not exist in app 2933711d-6638-41d4-a2d2-6dd2d965208b "Ctrl-Q CLI"
+2023-09-27T04:28:20.967Z warn: Variable "a2" does not exist in app 2933711d-6638-41d4-a2d2-6dd2d965208b "Ctrl-Q CLI"
+2023-09-27T04:28:20.967Z warn: Variable "a3" does not exist in app 2933711d-6638-41d4-a2d2-6dd2d965208b "Ctrl-Q CLI"
+2023-09-27T04:28:20.982Z warn: Variable "vVar1" does not exist in app 2933711d-6638-41d4-a2d2-6dd2d965208b "Ctrl-Q CLI"
+2023-09-27T04:28:20.982Z info: ------------------------
+2023-09-27T04:28:20.982Z info: Deleting variables in app f16fa63d-54c7-4c8d-81f1-2d084d46bcfe "Minecraft Metrics"
+2023-09-27T04:28:21.480Z warn: Variable "a1" does not exist in app f16fa63d-54c7-4c8d-81f1-2d084d46bcfe "Minecraft Metrics"
+2023-09-27T04:28:21.480Z warn: Variable "a2" does not exist in app f16fa63d-54c7-4c8d-81f1-2d084d46bcfe "Minecraft Metrics"
+2023-09-27T04:28:21.496Z warn: Variable "a3" does not exist in app f16fa63d-54c7-4c8d-81f1-2d084d46bcfe "Minecraft Metrics"
+2023-09-27T04:28:21.496Z warn: Variable "vVar1" does not exist in app f16fa63d-54c7-4c8d-81f1-2d084d46bcfe "Minecraft Metrics"
+2023-09-27T04:28:21.496Z info: ------------------------
+2023-09-27T04:28:21.496Z info: Deleting variables in app e377d9b5-231a-4795-800f-3649983647dd "LDAP lab"
+2023-09-27T04:28:21.918Z warn: Variable "a1" does not exist in app e377d9b5-231a-4795-800f-3649983647dd "LDAP lab"
+2023-09-27T04:28:21.918Z warn: Variable "a2" does not exist in app e377d9b5-231a-4795-800f-3649983647dd "LDAP lab"
+2023-09-27T04:28:21.933Z warn: Variable "a3" does not exist in app e377d9b5-231a-4795-800f-3649983647dd "LDAP lab"
+2023-09-27T04:28:21.933Z warn: Variable "vVar1" does not exist in app e377d9b5-231a-4795-800f-3649983647dd "LDAP lab"
+2023-09-27T04:28:21.933Z info: ------------------------
+2023-09-27T04:28:21.933Z info: Deleting variables in app a3e0f5d2-000a-464f-998d-33d333b175d7 "Sheet thumbnails demo app"
+2023-09-27T04:28:22.544Z info: DRY RUN: Delete of variable "a1" in app a3e0f5d2-000a-464f-998d-33d333b175d7 "Sheet thumbnails demo app" would happen here
+2023-09-27T04:28:22.544Z info: DRY RUN: Delete of variable "a2" in app a3e0f5d2-000a-464f-998d-33d333b175d7 "Sheet thumbnails demo app" would happen here
+2023-09-27T04:28:22.558Z warn: Variable "a3" does not exist in app a3e0f5d2-000a-464f-998d-33d333b175d7 "Sheet thumbnails demo app"
+2023-09-27T04:28:22.558Z info: DRY RUN: Delete of variable "vVar1" in app a3e0f5d2-000a-464f-998d-33d333b175d7 "Sheet thumbnails demo app" would happen here
+2023-09-27T04:28:22.558Z info: ------------------------
+2023-09-27T04:28:22.558Z info: Deleting variables in app d1ace221-b80e-4754-98ea-3d0a9ebc9632 "Residential energy analysis"
+2023-09-27T04:28:23.090Z warn: Variable "a1" does not exist in app d1ace221-b80e-4754-98ea-3d0a9ebc9632 "Residential energy analysis"
+2023-09-27T04:28:23.090Z warn: Variable "a2" does not exist in app d1ace221-b80e-4754-98ea-3d0a9ebc9632 "Residential energy analysis"
+2023-09-27T04:28:23.105Z warn: Variable "a3" does not exist in app d1ace221-b80e-4754-98ea-3d0a9ebc9632 "Residential energy analysis"
+2023-09-27T04:28:23.105Z warn: Variable "vVar1" does not exist in app d1ace221-b80e-4754-98ea-3d0a9ebc9632 "Residential energy analysis"
+2023-09-27T04:28:23.105Z info: ------------------------
+2023-09-27T04:28:23.121Z info: Deleting variables in app c840670c-7178-4a5e-8409-ba2da69127e2 "Meetup.com"
+2023-09-27T04:28:23.514Z warn: Variable "a1" does not exist in app c840670c-7178-4a5e-8409-ba2da69127e2 "Meetup.com"
+2023-09-27T04:28:23.514Z warn: Variable "a2" does not exist in app c840670c-7178-4a5e-8409-ba2da69127e2 "Meetup.com"
+2023-09-27T04:28:23.529Z warn: Variable "a3" does not exist in app c840670c-7178-4a5e-8409-ba2da69127e2 "Meetup.com"
+2023-09-27T04:28:23.529Z warn: Variable "vVar1" does not exist in app c840670c-7178-4a5e-8409-ba2da69127e2 "Meetup.com"
 ```
 
 ## Tasks
@@ -742,7 +742,7 @@ Let's first take a look at the options for the`task-get` command:
 ```
 
 ```
-Usage: index task-get [options]
+Usage: build task-get [options]
 
 get info about one or more tasks
 
@@ -770,7 +770,8 @@ Options:
   --text-color <show>            use colored text in task views (choices: "yes", "no", default: "yes")
   --tree-icons                   display task status icons in tree view
   --tree-details [detail...]     display details for each task in tree view (choices: "taskid", "laststart", "laststop", "nextstart", "appname", "appstream", default: "")
-  --table-details [detail...]    which aspects of tasks should be included in table view (choices: "common", "extprogram", "lastexecution", "tag", "customproperty", "schematrigger", "compositetrigger", "comptimeconstraint", "comprule", default: "")
+  --table-details [detail...]    which aspects of tasks should be included in table view (choices: "common", "extprogram", "lastexecution", "tag", "customproperty", "schematrigger",
+                                 "compositetrigger", "comptimeconstraint", "comprule", default: "")
   -h, --help                     display help for command
 ```
 
@@ -806,7 +807,7 @@ The allowed values for this option are `taskid`, `laststart`, `laststop`, `nexts
 
 Let's say we want a task tree with the app name and next start time for the task:
 
-```
+```powershell
 .\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -826,7 +827,7 @@ Let's say we want a task tree with the app name and next start time for the task
 Under the hood the task tree is stored as a JSON structure.  
 It's possible to save this JSON to disk:
 
-```
+```powershell
 .\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -840,46 +841,49 @@ It's possible to save this JSON to disk:
 ```
 
 ```
-2023-05-09T23:23:42.780Z info: -----------------------------------------------------------
-2023-05-09T23:23:42.780Z info: | Ctrl-Q
-2023-05-09T23:23:42.780Z info: |
-2023-05-09T23:23:42.780Z info: | Version      : 3.9.0
-2023-05-09T23:23:42.780Z info: | Log level    : info
-2023-05-09T23:23:42.780Z info: |
-2023-05-09T23:23:42.796Z info: | Command      : task-get
-2023-05-09T23:23:42.796Z info: |              : get info about one or more tasks
-2023-05-09T23:23:42.796Z info: |
-2023-05-09T23:23:42.796Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T23:23:42.796Z info: |
-2023-05-09T23:23:42.796Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T23:23:42.796Z info: ----------------------------------------------------------
-2023-05-09T23:23:42.796Z info:
-2023-05-09T23:23:42.858Z info: Successfully retrieved 22 tags from QSEoW
-2023-05-09T23:23:44.045Z info: ✅ Writing task tree to disk file "tasktree.json".
+2023-09-27T04:29:55.997Z info: -----------------------------------------------------------
+2023-09-27T04:29:55.997Z info: | Ctrl-Q
+2023-09-27T04:29:56.013Z info: |
+2023-09-27T04:29:56.013Z info: | Version      : 3.13.1
+2023-09-27T04:29:56.013Z info: | Log level    : info
+2023-09-27T04:29:56.013Z info: |
+2023-09-27T04:29:56.013Z info: | Command      : task-get
+2023-09-27T04:29:56.013Z info: |              : get info about one or more tasks
+2023-09-27T04:29:56.013Z info: |
+2023-09-27T04:29:56.013Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:29:56.013Z info: |
+2023-09-27T04:29:56.013Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:29:56.013Z info: ----------------------------------------------------------
+2023-09-27T04:29:56.013Z info:
+2023-09-27T04:29:56.247Z info: Successfully retrieved 25 tags from QSEoW
+2023-09-27T04:29:57.482Z warn: Downstream task in task tree not found. From: node-16371e9f-7a54-49fc-b979-1a5171ac8199, to: c5cc047d-e520-4ccb-b88f-ac4f9d49d4be
+2023-09-27T04:30:00.544Z info:
+2023-09-27T04:30:00.544Z info: ✅ Writing task tree to disk file "tasktree.json".
 ```
 
 Running the same command again, when the destination file already exists, results in a question to overwrite the file:
 
 ```
-2023-05-09T23:24:24.353Z info: -----------------------------------------------------------
-2023-05-09T23:24:24.353Z info: | Ctrl-Q
-2023-05-09T23:24:24.353Z info: |
-2023-05-09T23:24:24.353Z info: | Version      : 3.9.0
-2023-05-09T23:24:24.353Z info: | Log level    : info
-2023-05-09T23:24:24.353Z info: |
-2023-05-09T23:24:24.369Z info: | Command      : task-get
-2023-05-09T23:24:24.369Z info: |              : get info about one or more tasks
-2023-05-09T23:24:24.369Z info: |
-2023-05-09T23:24:24.369Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T23:24:24.369Z info: |
-2023-05-09T23:24:24.369Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T23:24:24.369Z info: ----------------------------------------------------------
-2023-05-09T23:24:24.369Z info:
-2023-05-09T23:24:24.415Z info: Successfully retrieved 22 tags from QSEoW
-2023-05-09T23:24:25.524Z info:
+2023-09-27T04:31:00.691Z info: -----------------------------------------------------------
+2023-09-27T04:31:00.691Z info: | Ctrl-Q
+2023-09-27T04:31:00.707Z info: |
+2023-09-27T04:31:00.707Z info: | Version      : 3.13.1
+2023-09-27T04:31:00.707Z info: | Log level    : info
+2023-09-27T04:31:00.707Z info: |
+2023-09-27T04:31:00.707Z info: | Command      : task-get
+2023-09-27T04:31:00.707Z info: |              : get info about one or more tasks
+2023-09-27T04:31:00.707Z info: |
+2023-09-27T04:31:00.707Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:31:00.707Z info: |
+2023-09-27T04:31:00.707Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:31:00.707Z info: ----------------------------------------------------------
+2023-09-27T04:31:00.707Z info:
+2023-09-27T04:31:00.816Z info: Successfully retrieved 25 tags from QSEoW
+2023-09-27T04:31:01.800Z warn: Downstream task in task tree not found. From: node-6d2ae9de-0955-42a5-8d7a-28003e0196e7, to: c5cc047d-e520-4ccb-b88f-ac4f9d49d4be
+2023-09-27T04:31:01.800Z info:
                                   Destination file "tasktree.json" exists. Do you want to overwrite it? (y/n) y
-2023-05-09T23:24:27.431Z info:
-2023-05-09T23:24:27.431Z info: ✅ Writing task tree to disk file "tasktree.json".
+2023-09-27T04:31:02.738Z info:
+2023-09-27T04:31:02.738Z info: ✅ Writing task tree to disk file "tasktree.json".
 ```
 
 To forcibly overwrite the destination file the `--output-file-overwrite` option can be specified.
@@ -902,7 +906,7 @@ Note that some options are used when creating task tables, these are not applica
 
 Show a list of tasks on screen, including main task fields as well as any tags defined for the tasks.
 
-```
+```powershell
 .\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -922,51 +926,46 @@ If `--table-details` is not specified all available information will be showed a
 This will result in a _very_ wide table!
 
 ```
-2023-05-25T13:21:12.187Z info: -----------------------------------------------------------
-2023-05-25T13:21:12.187Z info: | Ctrl-Q
-2023-05-25T13:21:12.187Z info: |
-2023-05-25T13:21:12.187Z info: | Version      : 3.10.0
-2023-05-25T13:21:12.187Z info: | Log level    : info
-2023-05-25T13:21:12.187Z info: |
-2023-05-25T13:21:12.187Z info: | Command      : task-get
-2023-05-25T13:21:12.187Z info: |              : get info about one or more tasks
-2023-05-25T13:21:12.187Z info: |
-2023-05-25T13:21:12.187Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-25T13:21:12.187Z info: |
-2023-05-25T13:21:12.187Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-25T13:21:12.187Z info: ----------------------------------------------------------
-2023-05-25T13:21:12.187Z info:
-2023-05-25T13:21:12.249Z info: Successfully retrieved 22 tags from QSEoW
-2023-05-25T13:21:14.046Z info: # rows in table: 57
-2023-05-25T13:21:14.046Z info: # reload tasks in table: 53
-2023-05-25T13:21:14.046Z info: # external program tasks in table: 4
-2023-05-25T13:21:14.124Z info:
+2023-09-27T04:31:54.395Z info: -----------------------------------------------------------
+2023-09-27T04:31:54.395Z info: | Ctrl-Q
+2023-09-27T04:31:54.395Z info: |
+2023-09-27T04:31:54.395Z info: | Version      : 3.13.1
+2023-09-27T04:31:54.395Z info: | Log level    : info
+2023-09-27T04:31:54.395Z info: |
+2023-09-27T04:31:54.411Z info: | Command      : task-get
+2023-09-27T04:31:54.411Z info: |              : get info about one or more tasks
+2023-09-27T04:31:54.411Z info: |
+2023-09-27T04:31:54.411Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:31:54.411Z info: |
+2023-09-27T04:31:54.411Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:31:54.411Z info: ----------------------------------------------------------
+2023-09-27T04:31:54.411Z info:
+2023-09-27T04:31:54.598Z info: Successfully retrieved 25 tags from QSEoW
+2023-09-27T04:31:56.020Z info: # rows in table: 58
+2023-09-27T04:31:56.020Z info: # reload tasks in table: 52
+2023-09-27T04:31:56.020Z info: # external program tasks in table: 6
+2023-09-27T04:31:56.130Z info:
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ # reload tasks: 53, # external program tasks: 4, # rows in table: 57
-                                                                                                                                                                                 │
+│ # reload tasks: 52, # external program tasks: 6, # rows in table: 58                                                                                                                                                                                                                                                                                                                                                                                                             │
 ├──────────────┬──────────────────┬──────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────┬──────────────┬──────────────┬──────────────┬──────────────────────────────────────┬────────────────┬────────────────────┬───────────────────────────────────────────────────────────┬─────────────────────────────────────────────────────────────────────────────┬──────────────────────────────────────────────────────────┤
-│ Task counter │ Task type        │ Task name                                                                │ Task id                              │ Task enabled │ Task timeout │ Task retries │ App id                               │ Partial reload │ Manually triggered │ Path
-                                        │ Parameters                                                                  │ Tags                                                     │
+│ Task counter │ Task type        │ Task name                                                                │ Task id                              │ Task enabled │ Task timeout │ Task retries │ App id                               │ Partial reload │ Manually triggered │ Path                                                      │ Parameters                                                                  │ Tags                                                     │
 ├──────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼───────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤
-│ 1            │ External program │ App snapshots end of September 2022                                      │ c5cc047d-e520-4ccb-b88f-ac4f9d49d4be │ true         │ 60           │ 1            │                                      │                │                    │ powershell.exe                                            │ -File \\server1\c$\tools\script\qs_archive_apps_to_stream_end_of_sept.ps1 │                                                          │
+│ 1            │ External program │ App snapshots end of September 2022                                      │ c5cc047d-e520-4ccb-b88f-ac4f9d49d4be │ true         │ 60           │ 1            │                                      │                │                    │ powershell.exe                                            │ -File \\pro2-win1\c$\tools\script\qs_archive_apps_to_stream_end_of_sept.ps1 │                                                          │
 ├──────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼───────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤
-│ 2            │ External program │ PowerShell export data connections                                       │ e7b8d484-5297-4caf-a727-38200905171e │ true         │ 15           │ 1            │                                      │                │                    │ powershell                                                │ -File \\server11\c$\tools\script\qs_export_data_connections.ps1            │                                                          │
+│ 2            │ External program │ Ext program task chaining 1                                              │ 4ce41cf3-bc6a-4f66-ad00-ffdeb9a7e468 │ true         │ 15           │ 0            │                                      │                │                    │ powershell.exe                                            │ -File \\host1\c$\tools\script\ext_task_1.ps1                            │                                                          │
 ├──────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼───────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤
-│ 3            │ External program │ PowerShell export tags                                                   │ 1d5dc4c1-8bd3-455a-9e6a-873da103a950 │ true         │ 15           │ 0            │                                      │                │                    │ powershell                                                │ -File \\server1\c$\tools\script\qs_export_tags_cps.ps1                    │                                                          │
+│ 3            │ External program │ Node-RED ext program task demo 1                                         │ d6bfc66a-393b-4eea-8ecd-1b1629c91683 │ true         │ 30           │ 0            │                                      │                │                    │ powershell.exe                                            │                                                                             │ Ctrl-Q demo                                              │
 ├──────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼───────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤
-│ 4            │ External program │ Sample external task                                                     │ 7d4617cd-a9d5-433a-8c82-742e58bfb38b │ true         │ 1440         │ 0            │                                      │                │                    │ C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe │ c:\tools\script\ext_task_1.ps1                                              │                                                          │
+│ 4            │ External program │ PowerShell export data connections                                       │ e7b8d484-5297-4caf-a727-38200905171e │ true         │ 15           │ 1            │                                      │                │                    │ powershell                                                │ -File \\host1\c$\tools\script\qs_export_data_connections.ps1            │                                                          │
 ├──────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼───────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤
-│ 5            │ Reload           │ Manually triggered reload of Always failing reload (no delay)            │ 0d815a99-1ca3-4131-a398-6878bd735fd8 │ true         │ 1440         │ 0            │ deba4bcf-47e4-472e-97b2-4fe8d6498e11 │                │ true               │
-                                        │                                                                             │ api2 / 👍😎 updateSheetThumbnail / Tag with spaces in it │
+│ 5            │ External program │ PowerShell export tags (ext pgm task)                                    │ 1d5dc4c1-8bd3-455a-9e6a-873da103a950 │ true         │ 15           │ 0            │                                      │                │                    │ powershell                                                │ -File \\host1\c$\tools\script\qs_export_tags_cps.ps1                    │                                                          │
 ├──────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼───────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤
-│ 6            │ Reload           │ Manually triggered reload of App1 🏆                                     │ b37f8034-faee-4e9b-bbca-5aba0cdf5df2 │ true         │ 1440         │ 0            │ 26634113-9163-44e4-a879-d87817d6e887 │                │ true               │
-                                        │                                                                             │ Butler 5.0 demo                                          │
+│ 6            │ External program │ Sample external task                                                     │ 7d4617cd-a9d5-433a-8c82-742e58bfb38b │ true         │ 1440         │ 0            │                                      │                │                    │ C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe │ c:\tools\script\ext_task_1.ps1                                              │                                                          │
 ├──────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼───────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤
-│ 7            │ Reload           │ Manually triggered reload of Butler 7 Slack debug                        │ 77f11a41-af3a-4bca-bf67-725be92a88f6 │ true         │ 1440         │ 0            │ 628ecfe8-b42a-484d-b06e-c6aae36c9923 │                │ true               │
-                                        │                                                                             │                                                          │
+│ 7            │ Reload           │ Butler test failing reloads 1 task                                       │ eb018d95-8c0c-4613-9081-82b3822ecca2 │ true         │ 1440         │ 0            │ 4788dc51-2bf6-45f0-a4ad-8bd8d40e1d3f │                │ true               │                                                           │                                                                             │ startTask1 / Ctrl-Q demo                                 │
 ├──────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼───────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤
-│ 8            │ Reload           │ Manually triggered reload of ButlerTest 1                                │ 244ca6a8-8c20-488d-aed2-504048dd4516 │ true         │ 1440         │ 0            │ c81a6d9a-f07a-47c4-8dbf-b68653e05354 │                │ true               │
-                                        │                                                                             │                                                          │
+│ 8            │ Reload           │ Manually triggered reload of Always failing reload (no delay)            │ 0d815a99-1ca3-4131-a398-6878bd735fd8 │ true         │ 1440         │ 0            │ deba4bcf-47e4-472e-97b2-4fe8d6498e11 │                │ true               │                                                           │                                                                             │ api2 / 👍😎 updateSheetThumbnail / Tag with spaces in it │
+├──────────────┼──────────────────┼──────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────┼──────────────┼──────────────┼──────────────┼──────────────────────────────────────┼────────────────┼────────────────────┼───────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────┤
 ...
 ...
 ```
@@ -977,7 +976,7 @@ These options can be used both when showing the task table on screen and when st
 
 Example command using these options. Note the double quotes around the task tags:
 
-```
+```powershell
 .\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -995,7 +994,7 @@ Example command using these options. Note the double quotes around the task tags
 Saving a task table to disk file (Excel and CSV file formats supported) is done via the `task-get` command, adding `--output-format table`, `--output-dest file`, `--output-file-format csv` and `--output-file-name <filename>` options.  
 Here the most common task fileds together with task tags are included in the table written to a CSV file:
 
-```
+```powershell
 .\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -1008,31 +1007,32 @@ Here the most common task fileds together with task tags are included in the tab
 --output-file-name tasktable.csv
 ```
 
-```
-2023-05-09T23:26:38.287Z info: -----------------------------------------------------------
-2023-05-09T23:26:38.287Z info: | Ctrl-Q
-2023-05-09T23:26:38.287Z info: |
-2023-05-09T23:26:38.287Z info: | Version      : 3.9.0
-2023-05-09T23:26:38.287Z info: | Log level    : info
-2023-05-09T23:26:38.287Z info: |
-2023-05-09T23:26:38.287Z info: | Command      : task-get
-2023-05-09T23:26:38.287Z info: |              : get info about one or more tasks
-2023-05-09T23:26:38.287Z info: |
-2023-05-09T23:26:38.287Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T23:26:38.287Z info: |
-2023-05-09T23:26:38.287Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T23:26:38.287Z info: ----------------------------------------------------------
-2023-05-09T23:26:38.287Z info:
-2023-05-09T23:26:38.349Z info: Successfully retrieved 22 tags from QSEoW
-2023-05-09T23:26:39.506Z info: ✅ Writing task table to disk file "tasktable.csv".
-```
+````
+2023-09-27T04:36:21.402Z info: -----------------------------------------------------------
+2023-09-27T04:36:21.402Z info: | Ctrl-Q
+2023-09-27T04:36:21.402Z info: |
+2023-09-27T04:36:21.402Z info: | Version      : 3.13.1
+2023-09-27T04:36:21.402Z info: | Log level    : info
+2023-09-27T04:36:21.402Z info: |
+2023-09-27T04:36:21.402Z info: | Command      : task-get
+2023-09-27T04:36:21.402Z info: |              : get info about one or more tasks
+2023-09-27T04:36:21.402Z info: |
+2023-09-27T04:36:21.402Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:36:21.402Z info: |
+2023-09-27T04:36:21.402Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:36:21.402Z info: ----------------------------------------------------------
+2023-09-27T04:36:21.402Z info:
+2023-09-27T04:36:21.512Z info: Successfully retrieved 25 tags from QSEoW
+2023-09-27T04:36:22.497Z info:
+2023-09-27T04:36:25.857Z info: ✅ Writing task table to disk file "tasktable.csv".```
+````
 
 #### Save task to disk file as JSON
 
 If task defintions should be read by some other system the task definitions can be saved as JSON.  
 Here only the most basic task info included via the `--table-details` option.
 
-```
+```powershell
 .\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -1046,22 +1046,23 @@ Here only the most basic task info included via the `--table-details` option.
 ```
 
 ```
-2023-05-09T23:27:09.985Z info: -----------------------------------------------------------
-2023-05-09T23:27:09.985Z info: | Ctrl-Q
-2023-05-09T23:27:09.985Z info: |
-2023-05-09T23:27:09.985Z info: | Version      : 3.9.0
-2023-05-09T23:27:09.985Z info: | Log level    : info
-2023-05-09T23:27:09.985Z info: |
-2023-05-09T23:27:09.985Z info: | Command      : task-get
-2023-05-09T23:27:09.985Z info: |              : get info about one or more tasks
-2023-05-09T23:27:09.985Z info: |
-2023-05-09T23:27:09.985Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T23:27:09.985Z info: |
-2023-05-09T23:27:09.985Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T23:27:09.985Z info: ----------------------------------------------------------
-2023-05-09T23:27:09.985Z info:
-2023-05-09T23:27:10.046Z info: Successfully retrieved 22 tags from QSEoW
-2023-05-09T23:27:11.188Z info: ✅ Writing task table to disk file "tasks.json".
+2023-09-27T04:37:10.344Z info: -----------------------------------------------------------
+2023-09-27T04:37:10.344Z info: | Ctrl-Q
+2023-09-27T04:37:10.344Z info: |
+2023-09-27T04:37:10.344Z info: | Version      : 3.13.1
+2023-09-27T04:37:10.344Z info: | Log level    : info
+2023-09-27T04:37:10.344Z info: |
+2023-09-27T04:37:10.344Z info: | Command      : task-get
+2023-09-27T04:37:10.344Z info: |              : get info about one or more tasks
+2023-09-27T04:37:10.344Z info: |
+2023-09-27T04:37:10.344Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T04:37:10.344Z info: |
+2023-09-27T04:37:10.344Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T04:37:10.344Z info: ----------------------------------------------------------
+2023-09-27T04:37:10.344Z info:
+2023-09-27T04:37:10.438Z info: Successfully retrieved 25 tags from QSEoW
+2023-09-27T04:37:11.422Z info:
+2023-09-27T04:37:13.032Z info: ✅ Writing task table to disk file "tasks.json".
 ```
 
 The resulting JSON file looks like this:
@@ -1133,7 +1134,7 @@ The values "Finance" and "Sales" will be added to the custom property "Departmen
 Existing custom property values are preserved (i.e. the new values are appended to any already existing values) by appending new values rather than replacing (`--update-mode append` option).  
 If a task already has values for this custom property new values will be added without asking first (`--overwrite` option)
 
-```
+```powershell
 .\ctrl-q.exe task-custom-property-set `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -1150,46 +1151,46 @@ If a task already has values for this custom property new values will be added w
 ```
 
 ```
-2023-05-09T23:27:38.750Z info: -----------------------------------------------------------
-2023-05-09T23:27:38.765Z info: | Ctrl-Q
-2023-05-09T23:27:38.765Z info: |
-2023-05-09T23:27:38.765Z info: | Version      : 3.9.0
-2023-05-09T23:27:38.765Z info: | Log level    : info
-2023-05-09T23:27:38.765Z info: |
-2023-05-09T23:27:38.765Z info: | Command      : task-custom-property-set
-2023-05-09T23:27:38.765Z info: |              : update a custom property of one or more tasks
-2023-05-09T23:27:38.765Z info: |
-2023-05-09T23:27:38.765Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T23:27:38.765Z info: |
-2023-05-09T23:27:38.765Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T23:27:38.765Z info: ----------------------------------------------------------
-2023-05-09T23:27:38.765Z info:
-2023-05-09T23:27:38.922Z info: Number of tasks that will be updated: 5
-2023-05-09T23:27:38.922Z info:
-2023-05-09T23:27:38.922Z info: -----------------------------------------------------------
-2023-05-09T23:27:38.922Z info: Processing task "Reload Operations Monitor" with ID=fbf645f0-0c92-40a4-af9a-6e3eb1d3c35c
-2023-05-09T23:27:38.922Z info: Starting updating custom property "Department" of task "Reload Operations Monitor" with ID=fbf645f0-0c92-40a4-af9a-6e3eb1d3c35c
-2023-05-09T23:27:53.958Z info:    ...Custom property "Department" on task "Reload Operations Monitor" successfully updated.
-2023-05-09T23:27:53.958Z info:
-2023-05-09T23:27:53.958Z info: -----------------------------------------------------------
-2023-05-09T23:27:53.958Z info: Processing task "Reload of Test data - Seattle library checkouts & collection inventory" with ID=5520e710-91ad-41d2-aeb6-434cafbf366b
-2023-05-09T23:27:53.958Z info: Starting updating custom property "Department" of task "Reload of Test data - Seattle library checkouts & collection inventory" with ID=5520e710-91ad-41d2-aeb6-434cafbf366b
-2023-05-09T23:27:54.927Z info:    ...Custom property "Department" on task "Reload of Test data - Seattle library checkouts & collection inventory" successfully updated.
-2023-05-09T23:27:54.927Z info:
-2023-05-09T23:27:54.927Z info: -----------------------------------------------------------
-2023-05-09T23:27:54.927Z info: Processing task "Reload task of App ageing" with ID=5217e6b2-65ce-4535-ad2a-37b62e66d12c
-2023-05-09T23:27:54.927Z info: Starting updating custom property "Department" of task "Reload task of App ageing" with ID=5217e6b2-65ce-4535-ad2a-37b62e66d12c
-2023-05-09T23:27:55.832Z info:    ...Custom property "Department" on task "Reload task of App ageing" successfully updated.
-2023-05-09T23:27:55.832Z info:
-2023-05-09T23:27:55.832Z info: -----------------------------------------------------------
-2023-05-09T23:27:55.832Z info: Processing task "Reload task of Lab 1_1" with ID=5748afa9-3abe-43ab-bb1f-127c48ced075
-2023-05-09T23:27:55.832Z info: Starting updating custom property "Department" of task "Reload task of Lab 1_1" with ID=5748afa9-3abe-43ab-bb1f-127c48ced075
-2023-05-09T23:27:56.708Z info:    ...Custom property "Department" on task "Reload task of Lab 1_1" successfully updated.
-2023-05-09T23:27:56.708Z info:
-2023-05-09T23:27:56.708Z info: -----------------------------------------------------------
-2023-05-09T23:27:56.708Z info: Processing task "Reload of Test data - Seattle checkouts by title3" with ID=82bc3e66-c899-4e44-b52f-552145da5ee0
-2023-05-09T23:27:56.708Z info: Starting updating custom property "Department" of task "Reload of Test data - Seattle checkouts by title3" with ID=82bc3e66-c899-4e44-b52f-552145da5ee0
-2023-05-09T23:27:57.582Z info:    ...Custom property "Department" on task "Reload of Test data - Seattle checkouts by title3" successfully updated.
+2023-09-27T05:38:11.695Z info: -----------------------------------------------------------
+2023-09-27T05:38:11.710Z info: | Ctrl-Q
+2023-09-27T05:38:11.710Z info: |
+2023-09-27T05:38:11.710Z info: | Version      : 3.13.1
+2023-09-27T05:38:11.710Z info: | Log level    : info
+2023-09-27T05:38:11.710Z info: |
+2023-09-27T05:38:11.710Z info: | Command      : task-custom-property-set
+2023-09-27T05:38:11.710Z info: |              : update a custom property of one or more tasks
+2023-09-27T05:38:11.710Z info: |
+2023-09-27T05:38:11.710Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T05:38:11.710Z info: |
+2023-09-27T05:38:11.710Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T05:38:11.725Z info: ----------------------------------------------------------
+2023-09-27T05:38:11.725Z info:
+2023-09-27T05:38:11.929Z info: Number of tasks that will be updated: 5
+2023-09-27T05:38:11.929Z info:
+2023-09-27T05:38:11.944Z info: -----------------------------------------------------------
+2023-09-27T05:38:11.944Z info: Processing task "Reload Operations Monitor" with ID=fbf645f0-0c92-40a4-af9a-6e3eb1d3c35c
+2023-09-27T05:38:11.944Z info: Starting updating custom property "Department" of task "Reload Operations Monitor" with ID=fbf645f0-0c92-40a4-af9a-6e3eb1d3c35c
+2023-09-27T05:38:12.054Z info:    ...Custom property "Department" on task "Reload Operations Monitor" successfully updated.
+2023-09-27T05:38:12.054Z info:
+2023-09-27T05:38:12.054Z info: -----------------------------------------------------------
+2023-09-27T05:38:12.054Z info: Processing task "Reload of Test data - Seattle library checkouts & collection inventory" with ID=5520e710-91ad-41d2-aeb6-434cafbf366b
+2023-09-27T05:38:12.054Z info: Starting updating custom property "Department" of task "Reload of Test data - Seattle library checkouts & collection inventory" with ID=5520e710-91ad-41d2-aeb6-434cafbf366b
+2023-09-27T05:38:12.147Z info:    ...Custom property "Department" on task "Reload of Test data - Seattle library checkouts & collection inventory" successfully updated.
+2023-09-27T05:38:12.147Z info:
+2023-09-27T05:38:12.163Z info: -----------------------------------------------------------
+2023-09-27T05:38:12.163Z info: Processing task "Reload task of App ageing" with ID=5217e6b2-65ce-4535-ad2a-37b62e66d12c
+2023-09-27T05:38:12.163Z info: Starting updating custom property "Department" of task "Reload task of App ageing" with ID=5217e6b2-65ce-4535-ad2a-37b62e66d12c
+2023-09-27T05:38:12.288Z info:    ...Custom property "Department" on task "Reload task of App ageing" successfully updated.
+2023-09-27T05:38:12.288Z info:
+2023-09-27T05:38:12.304Z info: -----------------------------------------------------------
+2023-09-27T05:38:12.304Z info: Processing task "Reload of Test data - Seattle checkouts by title3" with ID=82bc3e66-c899-4e44-b52f-552145da5ee0
+2023-09-27T05:38:12.304Z info: Starting updating custom property "Department" of task "Reload of Test data - Seattle checkouts by title3" with ID=82bc3e66-c899-4e44-b52f-552145da5ee0
+2023-09-27T05:38:12.413Z info:    ...Custom property "Department" on task "Reload of Test data - Seattle checkouts by title3" successfully updated.
+2023-09-27T05:38:12.413Z info:
+2023-09-27T05:38:12.413Z info: -----------------------------------------------------------
+2023-09-27T05:38:12.413Z info: Processing task "Reload task of Lab 1_1" with ID=5748afa9-3abe-43ab-bb1f-127c48ced075
+2023-09-27T05:38:12.413Z info: Starting updating custom property "Department" of task "Reload task of Lab 1_1" with ID=5748afa9-3abe-43ab-bb1f-127c48ced075
+2023-09-27T05:38:12.504Z info:    ...Custom property "Department" on task "Reload task of Lab 1_1" successfully updated.
 ```
 
 ## Export
@@ -1203,12 +1204,12 @@ It is thus possible to first export apps and get a metadata Excel file, then imp
 
 The command options are
 
-```
+```powershell
 .\ctrl-q.exe app-export --help
 ```
 
 ```
-Usage: index app-export [options]
+Usage: build app-export [options]
 
 export Qlik Sense apps to QVF files on disk.
 
@@ -1250,7 +1251,7 @@ The next example will
 - QVF files will be stored in a subdirectory `qvf-export`.
 - An Excel file will be created, containing select metadata about the apps.
 
-```
+```powershell
 .\ctrl-q.exe app-export `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -1268,59 +1269,50 @@ The next example will
 ```
 
 ```
-2023-05-09T23:29:21.436Z info: -----------------------------------------------------------
-2023-05-09T23:29:21.436Z info: | Ctrl-Q
-2023-05-09T23:29:21.436Z info: |
-2023-05-09T23:29:21.436Z info: | Version      : 3.9.0
-2023-05-09T23:29:21.436Z info: | Log level    : info
-2023-05-09T23:29:21.436Z info: |
-2023-05-09T23:29:21.436Z info: | Command      : app-export
-2023-05-09T23:29:21.436Z info: |              : export Qlik Sense apps to QVF files on disk.
-2023-05-09T23:29:21.436Z info: |
-2023-05-09T23:29:21.436Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T23:29:21.436Z info: |
-2023-05-09T23:29:21.452Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T23:29:21.452Z info: ----------------------------------------------------------
-2023-05-09T23:29:21.452Z info:
-2023-05-09T23:29:21.452Z info: Export apps to directory "C:/tools/ctrl-q/qvf-export"
-2023-05-09T23:29:21.546Z info: Number of apps to export: 10
-2023-05-09T23:29:22.436Z info: ------------------------------------
-2023-05-09T23:29:22.436Z info: App [eb3ab049-d007-43d3-93da-5962f9208c65] "User retention.qvf", download starting
-2023-05-09T23:29:22.577Z info: ✅ App [eb3ab049-d007-43d3-93da-5962f9208c65] "User retention.qvf", download complete. Size=360448 bytes
-2023-05-09T23:29:24.202Z info: ------------------------------------
-2023-05-09T23:29:24.202Z info: App [2933711d-6638-41d4-a2d2-6dd2d965208b] "Ctrl-Q CLI.qvf", download starting
-2023-05-09T23:29:24.327Z info: ✅ App [2933711d-6638-41d4-a2d2-6dd2d965208b] "Ctrl-Q CLI.qvf", download complete. Size=360448 bytes
-2023-05-09T23:29:25.843Z info: ------------------------------------
-2023-05-09T23:29:25.843Z info: App [e9d2f9b2-b598-480e-b84f-4c5d34467f6f] "Performance review_2022-03-28.qvf", download starting
-2023-05-09T23:29:25.952Z info: ✅ App [e9d2f9b2-b598-480e-b84f-4c5d34467f6f] "Performance review_2022-03-28.qvf", download complete. Size=327680 bytes
-2023-05-09T23:29:27.421Z info: ------------------------------------
-2023-05-09T23:29:27.421Z info: App [deba4bcf-47e4-472e-97b2-4fe8d6498e11] "Always failing reload (no delay).qvf", download starting
-2023-05-09T23:29:27.499Z info: ✅ App [deba4bcf-47e4-472e-97b2-4fe8d6498e11] "Always failing reload (no delay).qvf", download complete. Size=180224 bytes
-2023-05-09T23:29:29.040Z info: ------------------------------------
-2023-05-09T23:29:29.040Z info: App [83116805-c1e4-4716-9453-71a297b17257] "App 1.qvf", download starting
-2023-05-09T23:29:29.164Z info: ✅ App [83116805-c1e4-4716-9453-71a297b17257] "App 1.qvf", download complete. Size=245760 bytes
-2023-05-09T23:29:30.710Z info: ------------------------------------
-2023-05-09T23:29:30.710Z info: App [7e9f6408-e3d5-44c3-808a-632a71fe359f] "App 3.qvf", download starting
-2023-05-09T23:29:30.851Z info: ✅ App [7e9f6408-e3d5-44c3-808a-632a71fe359f] "App 3.qvf", download complete. Size=245760 bytes
-2023-05-09T23:29:32.430Z info: ------------------------------------
-2023-05-09T23:29:32.430Z info: App [22d58242-902d-42e0-afb5-2dd00cb754ec] "App 2.qvf", download starting
-2023-05-09T23:29:32.523Z info: ✅ App [22d58242-902d-42e0-afb5-2dd00cb754ec] "App 2.qvf", download complete. Size=245760 bytes
-2023-05-09T23:29:42.976Z info: ------------------------------------
-2023-05-09T23:29:42.976Z info: App [9829148f-4c0d-4bfc-b519-ceef383424c6] "App 1.qvf", download starting
-2023-05-09T23:29:43.054Z info: ✅ App [9829148f-4c0d-4bfc-b519-ceef383424c6] "App 1.qvf", download complete. Size=245760 bytes
-2023-05-09T23:29:46.555Z info: ------------------------------------
-2023-05-09T23:29:46.555Z info: App [01241bf1-3822-4ef7-9a75-f9e79326b864] "App 2.qvf", download starting
-2023-05-09T23:29:46.648Z info: ✅ App [01241bf1-3822-4ef7-9a75-f9e79326b864] "App 2.qvf", download complete. Size=245760 bytes
-2023-05-09T23:29:54.625Z info: ------------------------------------
-2023-05-09T23:29:54.625Z info: App [d1c3368b-dc0b-4821-8bc0-fa111b57f677] "App 3.qvf", download starting
-2023-05-09T23:29:54.703Z info: ✅ App [d1c3368b-dc0b-4821-8bc0-fa111b57f677] "App 3.qvf", download complete. Size=245760 bytes
-2023-05-09T23:29:55.718Z info: ------------------------------------
-2023-05-09T23:29:56.484Z info: ✅ Done writing app metadata file "app_export.xlsx" to disk
+2023-09-27T05:43:33.995Z info: -----------------------------------------------------------
+2023-09-27T05:43:33.995Z info: | Ctrl-Q
+2023-09-27T05:43:33.995Z info: |
+2023-09-27T05:43:34.010Z info: | Version      : 3.13.1
+2023-09-27T05:43:34.010Z info: | Log level    : info
+2023-09-27T05:43:34.010Z info: |
+2023-09-27T05:43:34.010Z info: | Command      : app-export
+2023-09-27T05:43:34.010Z info: |              : export Qlik Sense apps to QVF files on disk.
+2023-09-27T05:43:34.010Z info: |
+2023-09-27T05:43:34.010Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T05:43:34.010Z info: |
+2023-09-27T05:43:34.010Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T05:43:34.010Z info: ----------------------------------------------------------
+2023-09-27T05:43:34.010Z info:
+2023-09-27T05:43:34.010Z info: Export apps to directory "C:/tools/ctrl-q/qvf-export"
+2023-09-27T05:43:34.150Z info: Number of apps to export: 7
+2023-09-27T05:43:34.713Z info: ------------------------------------
+2023-09-27T05:43:34.713Z info: App [eb3ab049-d007-43d3-93da-5962f9208c65] "User retention.qvf", download starting
+2023-09-27T05:43:34.838Z info: ✅ App [eb3ab049-d007-43d3-93da-5962f9208c65] "User retention.qvf", download complete. Size=360448 bytes
+2023-09-27T05:43:36.433Z info: ------------------------------------
+2023-09-27T05:43:36.433Z info: App [2933711d-6638-41d4-a2d2-6dd2d965208b] "Ctrl-Q CLI.qvf", download starting
+2023-09-27T05:43:36.605Z info: ✅ App [2933711d-6638-41d4-a2d2-6dd2d965208b] "Ctrl-Q CLI.qvf", download complete. Size=491520 bytes
+2023-09-27T05:43:38.229Z info: ------------------------------------
+2023-09-27T05:43:38.229Z info: App [e9d2f9b2-b598-480e-b84f-4c5d34467f6f] "Performance review_2022-03-28.qvf", download starting
+2023-09-27T05:43:38.354Z info: ✅ App [e9d2f9b2-b598-480e-b84f-4c5d34467f6f] "Performance review_2022-03-28.qvf", download complete. Size=327680 bytes
+2023-09-27T05:43:39.807Z info: ------------------------------------
+2023-09-27T05:43:39.807Z info: App [deba4bcf-47e4-472e-97b2-4fe8d6498e11] "Always failing reload (no delay).qvf", download starting
+2023-09-27T05:43:39.901Z info: ✅ App [deba4bcf-47e4-472e-97b2-4fe8d6498e11] "Always failing reload (no delay).qvf", download complete. Size=180224 bytes
+2023-09-27T05:43:41.503Z info: ------------------------------------
+2023-09-27T05:43:41.503Z info: App [60bd8a51-022f-48b9-9039-c59c5078818c] "App 3.qvf", download starting
+2023-09-27T05:43:41.863Z info: ✅ App [60bd8a51-022f-48b9-9039-c59c5078818c] "App 3.qvf", download complete. Size=245760 bytes
+2023-09-27T05:43:43.425Z info: ------------------------------------
+2023-09-27T05:43:43.425Z info: App [0b70aae4-77c5-48b1-9936-906b120986d8] "App 1.qvf", download starting
+2023-09-27T05:43:43.534Z info: ✅ App [0b70aae4-77c5-48b1-9936-906b120986d8] "App 1.qvf", download complete. Size=245760 bytes
+2023-09-27T05:43:45.160Z info: ------------------------------------
+2023-09-27T05:43:45.160Z info: App [f4ea7586-8ab9-41a9-9fe6-6609ad10d249] "App 2.qvf", download starting
+2023-09-27T05:43:45.378Z info: ✅ App [f4ea7586-8ab9-41a9-9fe6-6609ad10d249] "App 2.qvf", download complete. Size=245760 bytes
+2023-09-27T05:43:46.395Z info: ------------------------------------
+2023-09-27T05:43:46.410Z info: ✅ Done writing app metadata file "app_export.xlsx" to disk
 ```
 
 The `qvf-export` directory now contains these files:
 
-```
+```powershell
 dir .\qvf-export\
 ```
 
@@ -1330,17 +1322,14 @@ dir .\qvf-export\
 
 Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
--a----        10/05/2023     01:29         180224 Always failing reload (no delay)_2023-05-09.qvf
--a----        31/03/2023     16:26         180224 App 1_2023-03-31.qvf
--a----        10/05/2023     01:29         245760 App 1_2023-05-09.qvf
--a----        31/03/2023     16:26         180224 App 2_2023-03-31.qvf
--a----        10/05/2023     01:29         245760 App 2_2023-05-09.qvf
--a----        31/03/2023     16:26         180224 App 3_2023-03-31.qvf
--a----        10/05/2023     01:29         245760 App 3_2023-05-09.qvf
--a----        10/05/2023     01:29          19865 app_export.xlsx
--a----        10/05/2023     01:29         360448 Ctrl-Q CLI_2023-05-09.qvf
--a----        10/05/2023     01:29         327680 Performance review_2022-03-28_2023-05-09.qvf
--a----        10/05/2023     01:29         360448 User retention_2023-05-09.qvf
+-a----        27/09/2023     07:43         180224 Always failing reload (no delay)_2023-09-27.qvf
+-a----        27/09/2023     07:43         245760 App 1_2023-09-27.qvf
+-a----        27/09/2023     07:43         245760 App 2_2023-09-27.qvf
+-a----        27/09/2023     07:43         245760 App 3_2023-09-27.qvf
+-a----        27/09/2023     07:43          19682 app_export.xlsx
+-a----        27/09/2023     07:43         491520 Ctrl-Q CLI_2023-09-27.qvf
+-a----        27/09/2023     07:43         327680 Performance review_2022-03-28_2023-09-27.qvf
+-a----        27/09/2023     07:43         360448 User retention_2023-09-27.qvf
 
 ```
 
@@ -1359,12 +1348,12 @@ The same coloring options are available as in the web UI for both dimensions and
 
 First let's take a look at the command options:
 
-```
+```powershell
 .\ctrl-q.exe master-item-import --help
 ```
 
 ```
-Usage: index master-item-import [options]
+Usage: build master-item-import [options]
 
 create master items based on definitions in a file on disk
 
@@ -1385,9 +1374,10 @@ Options:
   -t, --file-type <type>                                       source file type (choices: "excel", default: "excel")
   --file <filename>                                            file containing master item definitions
   --sheet <name>                                               name of Excel sheet where dim/measure flag column is found
-  --col-ref-by <reftype>                                       how to refer to columns in the source file. Options are by name or by position (zero based) (choices: "name", "position", default: "name")
-  --col-item-type <column position or name>                    column where dim/measure flag is found. Use "dim-single" in that column to create dimension, "dim-drilldown" for drill-down dimension, "measure" for
-                                                               measure (default: "Master item type")
+  --col-ref-by <reftype>                                       how to refer to columns in the source file. Options are by name or by position (zero based) (choices: "name", "position",
+                                                               default: "name")
+  --col-item-type <column position or name>                    column where dim/measure flag is found. Use "dim-single" in that column to create dimension, "dim-drilldown" for drill-down
+                                                               dimension, "measure" for measure (default: "Master item type")
   --col-master-item-name <column position or name>             column number (zero based) or name to use as master item name (default: "Master item name")
   --col-master-item-descr <column position or name>            column number (zero based) or name to use as master item description (default: "Description")
   --col-master-item-label <column position or name>            column number (zero based) or name to use as master item label (default: "Label")
@@ -1437,7 +1427,7 @@ Notes on using the `master-item-import` command:
 
 Now let's run the command.
 
-```
+```powershell
 .\ctrl-q.exe master-item-import `
 --host 192.168.100.109 `
 --auth-user-dir LAB `
@@ -1459,34 +1449,34 @@ Now let's run the command.
 ```
 
 ```
-2023-06-06T00:55:26.225Z info: -----------------------------------------------------------
-2023-06-06T00:55:26.225Z info: | Ctrl-Q
-2023-06-06T00:55:26.225Z info: |
-2023-06-06T00:55:26.225Z info: | Version      : 3.11.0
-2023-06-06T00:55:26.225Z info: | Log level    : info
-2023-06-06T00:55:26.225Z info: |
-2023-06-06T00:55:26.225Z info: | Command      : master-item-import
-2023-06-06T00:55:26.225Z info: |              : create master items based on definitions in a file on disk
-2023-06-06T00:55:26.225Z info: |
-2023-06-06T00:55:26.225Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-06-06T00:55:26.225Z info: |
-2023-06-06T00:55:26.240Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-06-06T00:55:26.240Z info: ----------------------------------------------------------
-2023-06-06T00:55:26.240Z info:
-2023-06-06T00:55:26.240Z info: Import master items from definitions in Excel file "./ctrl-q-master-items.xlsx"
-2023-06-06T00:55:27.335Z info: (1/12) Updated existing measure "No. of sold units"
-2023-06-06T00:55:28.366Z info: (2/12) Updated existing measure "No. of sold units (LY)"
-2023-06-06T00:55:29.398Z info: (3/12) Created new measure "Revenue EUR"
-2023-06-06T00:55:30.413Z info: (4/12) Updated existing measure "Revenue EUR (LY)"
-2023-06-06T00:55:31.428Z info: (5/12) Updated existing measure "Profit EUR"
-2023-06-06T00:55:32.443Z warn: (6/12) Found an unknown master item type: "measur". Ignoring this line in the imported file.
-2023-06-06T00:55:33.459Z info: (7/12) Created new measure "Profit EUR (LY)"
-2023-06-06T00:55:34.506Z info: (8/12) Updated existing dimension "Country"
-2023-06-06T00:55:35.522Z info: (9/12) Updated existing dimension "Sales month"
-2023-06-06T00:55:36.553Z info: (10/12) Updated existing dimension "Salesperson"
-2023-06-06T00:55:38.115Z info: (11/12) Updated existing dimension "Color"
-2023-06-06T00:55:39.131Z info: (12/12) Updated existing drill-down dimension "DimDrill"
-2023-06-06T00:55:40.147Z info: Imported 12 master items from Excel file ./ctrl-q-master-items.xlsx
+2023-09-27T05:45:35.046Z info: -----------------------------------------------------------
+2023-09-27T05:45:35.046Z info: | Ctrl-Q
+2023-09-27T05:45:35.046Z info: |
+2023-09-27T05:45:35.046Z info: | Version      : 3.13.1
+2023-09-27T05:45:35.046Z info: | Log level    : info
+2023-09-27T05:45:35.060Z info: |
+2023-09-27T05:45:35.060Z info: | Command      : master-item-import
+2023-09-27T05:45:35.060Z info: |              : create master items based on definitions in a file on disk
+2023-09-27T05:45:35.060Z info: |
+2023-09-27T05:45:35.060Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T05:45:35.060Z info: |
+2023-09-27T05:45:35.060Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T05:45:35.060Z info: ----------------------------------------------------------
+2023-09-27T05:45:35.060Z info:
+2023-09-27T05:45:35.060Z info: Import master items from definitions in Excel file "./ctrl-q-master-items.xlsx"
+2023-09-27T05:45:36.014Z info: (1/12) Updated existing measure "No. of sold units"
+2023-09-27T05:45:37.045Z info: (2/12) Updated existing measure "No. of sold units (LY)"
+2023-09-27T05:45:38.076Z info: (3/12) Created new measure "Revenue EUR"
+2023-09-27T05:45:39.092Z info: (4/12) Updated existing measure "Revenue EUR (LY)"
+2023-09-27T05:45:40.128Z info: (5/12) Updated existing measure "Profit EUR"
+2023-09-27T05:45:41.141Z warn: (6/12) Found an unknown master item type: "measur". Ignoring this line in the imported file.
+2023-09-27T05:45:42.156Z info: (7/12) Created new measure "Profit EUR (LY)"
+2023-09-27T05:45:43.203Z info: (8/12) Created new dimension "Country"
+2023-09-27T05:45:44.220Z info: (9/12) Created new dimension "Sales month"
+2023-09-27T05:45:45.266Z info: (10/12) Updated existing dimension "Salesperson"
+2023-09-27T05:45:46.703Z info: (11/12) Updated existing dimension "Color"
+2023-09-27T05:45:47.735Z info: (12/12) Updated existing drill-down dimension "DimDrill"
+2023-09-27T05:45:48.751Z info: Imported 12 master items from Excel file ./ctrl-q-master-items.xlsx
 ```
 
 > NOTE: A sample defintions Excel file is [available in the GitHub repository](https://github.com/ptarmiganlabs/ctrl-q/blob/main/testdata/ctrl-q-master-items.xlsx?raw=true). That file contains examples of most combinations of master item types and properties.
@@ -1560,23 +1550,32 @@ These JSONs are what would go into the Excel file's `Color` and `Per-value color
       }
     },
     {
-      "value": "Albania","baseColor":{"color":"#aaaaaa","index":-1}},{"value":"Algeria","baseColor":{"color":"#a16090","index":9
-    }
-  }
-],
-"nul": {
-  "color": "#c8c7a9",
-  "index": 16
-},
-"oth": {
-  "color": "#ffec6e",
-  "index": -1
-},
-"pal": null,
-"single":nu
-ll,
-"usePal": true,
-"autoFill": true
+      "value": "Albania",
+      "baseColor":{
+        "color":"#aaaaaa",
+        "index":-1}
+      },
+      {
+        "value":"Algeria",
+        "baseColor":{
+          "color":"#a16090",
+          "index":9
+        }
+      }
+  ],
+  "nul": {
+    "color": "#c8c7a9",
+    "index": 16
+  },
+  "oth": {
+    "color": "#ffec6e",
+    "index": -1
+  },
+  "pal": null,
+  "single":nu
+  ll,
+  "usePal": true,
+  "autoFill": true
 }
 ```
 
@@ -1600,29 +1599,41 @@ Importing apps defined on the `App import` sheet of the `tasks.xlsx` Excel file 
 ```
 
 ```
-2023-05-09T23:34:30.180Z info: -----------------------------------------------------------
-2023-05-09T23:34:30.180Z info: | Ctrl-Q
-2023-05-09T23:34:30.180Z info: |
-2023-05-09T23:34:30.180Z info: | Version      : 3.9.0
-2023-05-09T23:34:30.180Z info: | Log level    : info
-2023-05-09T23:34:30.180Z info: |
-2023-05-09T23:34:30.180Z info: | Command      : app-import
-2023-05-09T23:34:30.180Z info: |              : import apps/upload QVF files on disk to Sense based on definitions in Excel file.
-2023-05-09T23:34:30.180Z info: |
-2023-05-09T23:34:30.180Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T23:34:30.180Z info: |
-2023-05-09T23:34:30.180Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T23:34:30.180Z info: ----------------------------------------------------------
-2023-05-09T23:34:30.180Z info:
-2023-05-09T23:34:30.195Z info: Import apps from definitions in file "tasks.xlsx"
-2023-05-09T23:34:30.242Z info: Successfully retrieved 22 tags from QSEoW
-2023-05-09T23:34:30.273Z info: Successfully retrieved 29 custom properties from QSEoW
-2023-05-09T23:34:30.304Z info: (1) Importing app "App 1" from file "C:/tools/ctrl-q/testdata/App import 1.qvf"
-2023-05-09T23:34:33.914Z info: App "App 1" published to stream "Ctrl-Q demo apps".
-2023-05-09T23:34:33.914Z info: (2) Importing app "App 2" from file "C:/tools/ctrl-q/testdata/App import 2.qvf"
-2023-05-09T23:34:36.321Z warn: Cannot publish app "App 2" to stream "Stream does not exist" as that stream does not exist.
-2023-05-09T23:34:36.321Z info: (3) Importing app "App 3" from file "C:/tools/ctrl-q/testdata/App import 3.qvf"
-2023-05-09T23:34:38.914Z info: App "App 3" published to stream "9143a1bf-abc3-46f4-8dcb-a1a0ea35860a".
+2023-09-27T05:49:33.268Z info: -----------------------------------------------------------
+2023-09-27T05:49:33.268Z info: | Ctrl-Q
+2023-09-27T05:49:33.268Z info: |
+2023-09-27T05:49:33.268Z info: | Version      : 3.13.1
+2023-09-27T05:49:33.268Z info: | Log level    : info
+2023-09-27T05:49:33.268Z info: |
+2023-09-27T05:49:33.268Z info: | Command      : app-import
+2023-09-27T05:49:33.268Z info: |              : import apps/upload QVF files on disk to Sense based on definitions in Excel file.
+2023-09-27T05:49:33.268Z info: |
+2023-09-27T05:49:33.268Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T05:49:33.268Z info: |
+2023-09-27T05:49:33.268Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T05:49:33.268Z info: ----------------------------------------------------------
+2023-09-27T05:49:33.268Z info:
+2023-09-27T05:49:33.283Z info: Import apps from definitions in file "tasks.xlsx"
+2023-09-27T05:49:33.378Z info: Successfully retrieved 25 tags from QSEoW
+2023-09-27T05:49:33.424Z info: Successfully retrieved 29 custom properties from QSEoW
+2023-09-27T05:49:33.455Z info: -------------------------------------------------------------------
+2023-09-27T05:49:33.455Z info: Importing apps...
+2023-09-27T05:49:33.455Z info: (1) Importing app "App 3" from file "C:/tools/ctrl-q/testdata/App import 3.qvf"
+2023-09-27T05:49:37.437Z info: (1, delete-publish) App "App 3" published to stream "Ctrl-Q demo apps", the existing app (if one exists) with the same name in this stream has been deleted. Id of published app: 5d3c8750-f09b-464c-a1ae-849fe8b0deb0
+2023-09-27T05:49:37.437Z info: (2) Importing app "App 3" from file "C:/tools/ctrl-q/testdata/App import 3.qvf"
+2023-09-27T05:49:42.795Z info: (2, publish-replace) App "App 3" published to stream "Ctrl-Q demo apps", replacing the existing app with the same name. Id of published app: 5d3c8750-f09b-464c-a1ae-849fe8b0deb0
+2023-09-27T05:49:42.795Z info: (3) Importing app "App 1" from file "C:/tools/ctrl-q/testdata/App import 1.qvf"
+2023-09-27T05:49:46.530Z info: (3, publish-replace) App "App 1" published to stream "Ctrl-Q demo apps", replacing the existing app with the same name. Id of published app: 88e29ab1-967a-4c03-99d0-b92d631f57aa
+2023-09-27T05:49:46.530Z info: (4) Importing app "App 1" from file "C:/tools/ctrl-q/testdata/App import 1.qvf"
+2023-09-27T05:49:50.514Z info: (4, publish-another) App "App 1" published to stream "Ctrl-Q demo apps". Id of published app: d7dc3005-e9bb-408c-b9d8-47997c720ddf
+2023-09-27T05:49:50.514Z info: (5) Importing app "App 1" from file "C:/tools/ctrl-q/testdata/App import 1.qvf"
+2023-09-27T05:49:54.079Z warn: (5) PUBLISH APP publish-replace: More than one app with the same name "App 1" in the target stream "Ctrl-Q demo apps". Impossible to know which one to replace. Skipping publishing for this app. The uploaded app is still present in the QMC (id=766c96a8-d8ba-47e6-b4a3-e1935bf12d99).
+2023-09-27T05:49:54.079Z error: (5) Failed publishing app "App 1" to stream "Ctrl-Q demo apps"
+2023-09-27T05:49:54.094Z info: (6) Importing app "App 2" from file "C:/tools/ctrl-q/testdata/App import 2.qvf"
+2023-09-27T05:49:57.579Z warn: Stream "Stream does not exist" does not exist.
+2023-09-27T05:49:57.579Z error: (6) Failed publishing app "App 2" to stream "Stream does not exist". The uploaded app is still present in the QMC (id=5733046b-df34-4989-bd33-56cde5ff779d).
+2023-09-27T05:49:57.594Z info: (7) Importing app "App 3" from file "C:/tools/ctrl-q/testdata/App import 3.qvf"
+2023-09-27T05:50:02.563Z info: (7, publish-replace) App "App 3" published to stream "Ctrl-Q demo apps", replacing the existing app with the same name. Id of published app: 5d3c8750-f09b-464c-a1ae-849fe8b0deb0
 ```
 
 > NOTE 1: Qlik Sense implements rate limiting for QVF uploads. This means that if you plan to upload more than 60 QVF files you may be affected by this rate limiting.  
@@ -1650,12 +1661,12 @@ Similarly, if an already existing stream name (or ID of an existing stream) is s
 Task definitions can be read from CSV or Excel files.  
 The options are as follows:
 
-```
+```powershell
 .\ctrl-q.exe task-import --help
 ```
 
 ```
-Usage: index task-import [options]
+Usage: build task-import [options]
 
 create tasks based on definitions in a file on disk, optionally also importing apps from QVF files.
 
@@ -1783,7 +1794,7 @@ That's fine though, during the task import Ctrl-Q will only look at the required
 
 Export tasks to CSV file:
 
-```
+```powershell
 .\ctrl-q.exe task-get `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -1796,27 +1807,27 @@ Export tasks to CSV file:
 ```
 
 ```
-2023-05-09T23:36:10.285Z info: -----------------------------------------------------------
-2023-05-09T23:36:10.285Z info: | Ctrl-Q
-2023-05-09T23:36:10.285Z info: |
-2023-05-09T23:36:10.285Z info: | Version      : 3.9.0
-2023-05-09T23:36:10.285Z info: | Log level    : info
-2023-05-09T23:36:10.285Z info: |
-2023-05-09T23:36:10.285Z info: | Command      : task-get
-2023-05-09T23:36:10.285Z info: |              : get info about one or more tasks
-2023-05-09T23:36:10.285Z info: |
-2023-05-09T23:36:10.285Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T23:36:10.285Z info: |
-2023-05-09T23:36:10.285Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T23:36:10.300Z info: ----------------------------------------------------------
-2023-05-09T23:36:10.300Z info:
-2023-05-09T23:36:10.347Z info: Successfully retrieved 22 tags from QSEoW
-2023-05-09T23:36:11.488Z info: ✅ Writing task table to disk file "tasks.csv".
+2023-10-05T10:02:18.657Z info: -----------------------------------------------------------
+2023-10-05T10:02:18.657Z info: | Ctrl-Q
+2023-10-05T10:02:18.657Z info: |
+2023-10-05T10:02:18.657Z info: | Version      : 3.13.2
+2023-10-05T10:02:18.657Z info: | Log level    : info
+2023-10-05T10:02:18.657Z info: |
+2023-10-05T10:02:18.657Z info: | Command      : task-get
+2023-10-05T10:02:18.657Z info: |              : get info about one or more tasks
+2023-10-05T10:02:18.657Z info: |
+2023-10-05T10:02:18.657Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-10-05T10:02:18.657Z info: |
+2023-10-05T10:02:18.657Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-10-05T10:02:18.657Z info: ----------------------------------------------------------
+2023-10-05T10:02:18.657Z info:
+2023-10-05T10:02:18.861Z info: Successfully retrieved 25 tags from QSEoW
+2023-10-05T10:02:20.720Z info: ✅ Writing task table to disk file "tasks.csv".
 ```
 
 Now let's import tasks from the `tasks.csv` file:
 
-```
+```powershell
 .\ctrl-q.exe task-import `
 --auth-type cert `
 --host 192.168.100.109 `
@@ -1835,7 +1846,7 @@ When that's the case the newly created tasks (based on the info in the CSV file)
 This way a newly created task (based on info in the CSV file) can still be configured to start after some already existing task finish reloading.
 
 Note how Ctrl-Q first creates the reload tasks and any associated schedule triggers in a first step, then add any composite triggers in the second step.  
-This is needed as a composite trigger may refer to an already existing and/or a newly created task (or multiple tasks of course), i.e. all tasks must first be created. Only then is it safe to create composite triggers.
+This is needed as a composite trigger may refer to an already existing and/or a newly created task (or multiple tasks of course), i.e. all tasks must first be created. Only then is it possible to create composite triggers.
 
 ```
 2023-05-09T23:36:39.861Z info: -----------------------------------------------------------
@@ -1968,7 +1979,7 @@ Note:
 - The entire list of field names (the `--fieldname` option) should be surrounded by double quotes.
 - A new app with the scrambled data will be created. Specify its name in the `--newappname` option.
 
-```
+```powershell
 .\ctrl-q.exe field-scramble `
 --host 192.168.100.109 `
 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 `
@@ -1979,32 +1990,32 @@ Note:
 ```
 
 ```
-2023-05-09T23:38:12.439Z info: -----------------------------------------------------------
-2023-05-09T23:38:12.439Z info: | Ctrl-Q
-2023-05-09T23:38:12.439Z info: |
-2023-05-09T23:38:12.439Z info: | Version      : 3.9.0
-2023-05-09T23:38:12.439Z info: | Log level    : info
-2023-05-09T23:38:12.439Z info: |
-2023-05-09T23:38:12.439Z info: | Command      : field-scramble
-2023-05-09T23:38:12.439Z info: |              : scramble one or more fields in an app. A new app with the scrambled data is created.
-2023-05-09T23:38:12.439Z info: |
-2023-05-09T23:38:12.439Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T23:38:12.439Z info: |
-2023-05-09T23:38:12.439Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T23:38:12.439Z info: ----------------------------------------------------------
-2023-05-09T23:38:12.439Z info:
-2023-05-09T23:38:12.454Z info: Scramble field
-2023-05-09T23:38:13.361Z info: Scrambled field "Expression1"
-2023-05-09T23:38:13.376Z info: Scrambled field "Dim1"
-2023-05-09T23:38:13.376Z info: Scrambled field "AsciiAlpha"
-2023-05-09T23:38:14.220Z info: Scrambled data written to new app "__ScrambledTest1" with app ID: 8ba94d5f-80a8-4af0-9d19-d5465a3246cc
+2023-09-27T16:07:40.330Z info: -----------------------------------------------------------
+2023-09-27T16:07:40.330Z info: | Ctrl-Q
+2023-09-27T16:07:40.330Z info: |
+2023-09-27T16:07:40.330Z info: | Version      : 3.13.1
+2023-09-27T16:07:40.330Z info: | Log level    : info
+2023-09-27T16:07:40.330Z info: |
+2023-09-27T16:07:40.330Z info: | Command      : field-scramble
+2023-09-27T16:07:40.330Z info: |              : scramble one or more fields in an app. A new app with the scrambled data is created.
+2023-09-27T16:07:40.330Z info: |
+2023-09-27T16:07:40.345Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T16:07:40.345Z info: |
+2023-09-27T16:07:40.345Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T16:07:40.345Z info: ----------------------------------------------------------
+2023-09-27T16:07:40.345Z info:
+2023-09-27T16:07:40.345Z info: Scramble field
+2023-09-27T16:07:41.236Z info: Scrambled field "Expression1"
+2023-09-27T16:07:41.251Z info: Scrambled field "Dim1"
+2023-09-27T16:07:41.251Z info: Scrambled field "AsciiAlpha"
+2023-09-27T16:07:42.033Z info: Scrambled data written to new app "__ScrambledTest1" with app ID: 892d9ef2-b553-4537-adac-fb9ede3e1813
 ```
 
 ## Get script
 
 Get script and associated metadata for a Sense app.
 
-```
+```powershell
 .\ctrl-q.exe script-get `
 --host 192.168.100.109 `
 --app-id a3e0f5d2-000a-464f-998d-33d333b175d7 `
@@ -2014,25 +2025,26 @@ Get script and associated metadata for a Sense app.
 
 ```
 2023-05-09T23:38:36.545Z info: -----------------------------------------------------------
-2023-05-09T23:38:36.545Z info: | Ctrl-Q
-2023-05-09T23:38:36.545Z info: |
-2023-05-09T23:38:36.545Z info: | Version      : 3.9.0
-2023-05-09T23:38:36.545Z info: | Log level    : info
-2023-05-09T23:38:36.545Z info: |
-2023-05-09T23:38:36.545Z info: | Command      : script-get
-2023-05-09T23:38:36.545Z info: |              : get script from Qlik Sense app
-2023-05-09T23:38:36.545Z info: |
-2023-05-09T23:38:36.545Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
-2023-05-09T23:38:36.545Z info: |
-2023-05-09T23:38:36.545Z info: | https://github.com/ptarmiganlabs/ctrl-q
-2023-05-09T23:38:36.545Z info: ----------------------------------------------------------
-2023-05-09T23:38:36.545Z info:
-2023-05-09T23:38:36.888Z info: ----- Script metadata -----
-2023-05-09T23:38:36.888Z info: App id: a3e0f5d2-000a-464f-998d-33d333b175d7
-2023-05-09T23:38:36.888Z info: Created date: 2021-06-03T22:04:52.283Z
-2023-05-09T23:38:36.888Z info: Modified date: 2023-05-05T06:17:05.456Z
-2023-05-09T23:38:36.888Z info: ----- End script metadata -----
-2023-05-09T23:38:36.888Z info:
+2023-09-27T16:08:26.364Z info: -----------------------------------------------------------
+2023-09-27T16:08:26.364Z info: | Ctrl-Q
+2023-09-27T16:08:26.364Z info: |
+2023-09-27T16:08:26.364Z info: | Version      : 3.13.1
+2023-09-27T16:08:26.364Z info: | Log level    : info
+2023-09-27T16:08:26.364Z info: |
+2023-09-27T16:08:26.364Z info: | Command      : script-get
+2023-09-27T16:08:26.364Z info: |              : get script from Qlik Sense app
+2023-09-27T16:08:26.364Z info: |
+2023-09-27T16:08:26.364Z info: | Run Ctrl-Q with the '--help' option to see a list of all available options for this command.
+2023-09-27T16:08:26.364Z info: |
+2023-09-27T16:08:26.364Z info: | https://github.com/ptarmiganlabs/ctrl-q
+2023-09-27T16:08:26.364Z info: ----------------------------------------------------------
+2023-09-27T16:08:26.364Z info:
+2023-09-27T16:08:26.785Z info: ----- Script metadata -----
+2023-09-27T16:08:26.785Z info: App id: a3e0f5d2-000a-464f-998d-33d333b175d7
+2023-09-27T16:08:26.785Z info: Created date: 2021-06-03T22:04:52.283Z
+2023-09-27T16:08:26.785Z info: Modified date: 2023-05-05T06:17:05.456Z
+2023-09-27T16:08:26.785Z info: ----- End script metadata -----
+2023-09-27T16:08:26.785Z info:
 ///$tab Main
 SET ThousandSep=',';
 SET DecimalSep='.';
@@ -2084,6 +2096,7 @@ Autogenerate 1000
  While Rand()<=0.5 or IterNo()=1;
 
  Comment Field Dim1 With "This is a field comment";
+
 
 
 let var1 = 'This is variable 1';
