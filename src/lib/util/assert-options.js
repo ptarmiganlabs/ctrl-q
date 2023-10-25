@@ -156,9 +156,10 @@ const getTaskAssertOptions = (options) => {
         }
     }
 
-    // Warn if --task-type has been specified when output format is tree
+    // Abort if --task-type has been specified when output format is tree
     if (options.outputFormat === 'tree' && options.taskType) {
-        logger.warn('Task tree view is not supported when using --task-type. Ignoring --task-type option.');
+        logger.error('Task tree view is not supported when using --task-type. Exiting.');
+        process.exit(1);
     }
 
     // --table-details not allowed when --output-format is set to tree.

@@ -249,7 +249,7 @@
         // "taskid",
         // "appname",
         "--task-type",
-        "reload",
+        // "reload",
         "ext-program"
 
         // "--output-dest",
