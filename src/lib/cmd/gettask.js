@@ -145,6 +145,46 @@ const getTask = async (options) => {
                 return false;
             });
 
+            // Sort the array alfabetically, using the task name as the key
+            // Task name is found in either completeSchemaEvent.externalProgramTask.name or completeSchemaEvent.reloadTask.name
+            topLevelTasksWithSchemaTriggersUnique.sort((a, b) => {
+                if (a.completeSchemaEvent.reloadTask) {
+                    if (b.completeSchemaEvent.reloadTask) {
+                        if (a.completeSchemaEvent.reloadTask.name < b.completeSchemaEvent.reloadTask.name) {
+                            return -1;
+                        }
+                        if (a.completeSchemaEvent.reloadTask.name > b.completeSchemaEvent.reloadTask.name) {
+                            return 1;
+                        }
+                    } else if (b.completeSchemaEvent.externalProgramTask) {
+                        if (a.completeSchemaEvent.reloadTask.name < b.completeSchemaEvent.externalProgramTask.name) {
+                            return -1;
+                        }
+                        if (a.completeSchemaEvent.reloadTask.name > b.completeSchemaEvent.externalProgramTask.name) {
+                            return 1;
+                        }
+                    }
+                }
+                if (a.completeSchemaEvent.externalProgramTask) {
+                    if (b.completeSchemaEvent.externalProgramTask) {
+                        if (a.completeSchemaEvent.externalProgramTask.name < b.completeSchemaEvent.externalProgramTask.name) {
+                            return -1;
+                        }
+                        if (a.completeSchemaEvent.externalProgramTask.name > b.completeSchemaEvent.externalProgramTask.name) {
+                            return 1;
+                        }
+                    } else if (b.completeSchemaEvent.reloadTask) {
+                        if (a.completeSchemaEvent.externalProgramTask.name < b.completeSchemaEvent.reloadTask.name) {
+                            return -1;
+                        }
+                        if (a.completeSchemaEvent.externalProgramTask.name > b.completeSchemaEvent.reloadTask.name) {
+                            return 1;
+                        }
+                    }
+                }
+                return 0;
+            });
+
             // eslint-disable-next-line no-restricted-syntax
             for (const task of topLevelTasksWithSchemaTriggersUnique) {
                 // for (const task of taskModel.nodes) {
@@ -176,6 +216,18 @@ const getTask = async (options) => {
                 return false;
             });
 
+            // Sort unscheduled tasks alfabetically
+            // Use taskName as the key
+            unscheduledTasks.sort((a, b) => {
+                if (a.taskName < b.taskName) {
+                    return -1;
+                }
+                if (a.taskName > b.taskName) {
+                    return 1;
+                }
+                return 0;
+            });
+
             // eslint-disable-next-line no-restricted-syntax
             for (const task of unscheduledTasks) {
                 const subTree = qlikSenseTasks.getTaskSubTree(task, 0);
@@ -183,9 +235,6 @@ const getTask = async (options) => {
                 subTree[0].isScheduled = false;
                 taskTree = taskTree.concat(subTree);
             }
-
-            // Sort tree alfabetically
-            taskTree.sort(compareTree);
 
             // Output task tree to correct destination
             if (options.outputDest === 'screen') {

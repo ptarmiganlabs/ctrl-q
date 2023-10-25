@@ -237,7 +237,7 @@
         "LAB",
         "--auth-user-id",
         "goran",
-      //  "--task-id",
+        //  "--task-id",
         // "82bc3e66-c899-4e44-b52f-552145da5ee0",
         // "--task-tag",
         // "Test data",
@@ -250,7 +250,7 @@
         // "appname",
         "--task-type",
         "reload",
-        "ext-program",
+        "ext-program"
 
         // "--output-dest",
         // "screen",
