@@ -20,11 +20,12 @@ const testConnection = async (options) => {
         }
 
         logger.info(`Successfully connected to Qlik Sense server ${options.host} on port ${options.port}`);
-        logger.info(`Qlik Sense build version: ${aboutInfo.buildVersion}`);
-        logger.info(`Qlik Sense build date: ${aboutInfo.buildDate}`);
+        logger.info(`Qlik Sense repository build version: ${aboutInfo.buildVersion}`);
+        logger.info(`Qlik Sense repository build date: ${aboutInfo.buildDate}`);
         return true;
     } catch (err) {
         logger.error(`EXPORT APP: ${err.stack}`);
+        return false;
     }
 };
 
