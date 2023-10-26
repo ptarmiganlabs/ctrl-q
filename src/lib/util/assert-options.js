@@ -156,9 +156,10 @@ const getTaskAssertOptions = (options) => {
         }
     }
 
-    // Warn if --task-type has been specified when output format is tree
+    // Abort if --task-type has been specified when output format is tree
     if (options.outputFormat === 'tree' && options.taskType) {
-        logger.warn('Task tree view is not supported when using --task-type. Ignoring --task-type option.');
+        logger.error('Task tree view is not supported when using --task-type. Exiting.');
+        process.exit(1);
     }
 
     // --table-details not allowed when --output-format is set to tree.
@@ -173,9 +174,16 @@ const getTaskAssertOptions = (options) => {
         process.exit(1);
     }
 
-    // If --table-detail "comptimeconstraint" or "comprule" is set, then --table-detail "compositetrigger" must also be present.
+    // If:
+    // - options.tableDetails is an array
+    // - and --table-detail "comptimeconstraint" or "comprule" are set
+    //
+    // then --table-detail "compositetrigger" must also be present.
+
+    // Ensure options.tableDetails is an array
     if (
         options.tableDetails &&
+        !Array.isArray(options.tableDetails) &&
         (options?.tableDetails?.find((item) => item === 'comptimeconstraint') ||
             options?.tableDetails?.find((item) => item === 'comprule')) &&
         !options?.tableDetails?.find((item) => item === 'compositetrigger')

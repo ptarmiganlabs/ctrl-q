@@ -28,7 +28,7 @@ class QlikSenseCompositeEvents {
         this.compositeEventList = [];
     }
 
-    // Add new schema event
+    // Add new composite event
     addCompositeEvent(compositeEvent) {
         const newCompositeEvent = new QlikSenseCompositeEvent(compositeEvent);
         this.compositeEventList.push(newCompositeEvent);

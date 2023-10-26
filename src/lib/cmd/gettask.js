@@ -115,8 +115,79 @@ const getTask = async (options) => {
 
             // Get all tasks that have a schedule associated with them
             // Schedules are represented by "meta nodes" that are linked to the task node in Ctrl-Q's internal data model
+            // There is one meta-node per schema trigger, meaning that a task with several schema triggers will have several top-level meta nodes.
+            // We only want the task to show up once in the tree, so we have do de-duplicate the top level task nodes.
+            const topLevelTasksWithSchemaTriggers = taskModel.nodes.filter((node) => {
+                if (node.metaNode && node.metaNodeType === 'schedule') {
+                    return true;
+                }
+                // Exclude all non-meta nodes
+                return false;
+            });
+
+            // Remove all duplicates from the topLevelTasksWithSchemaTriggers array.
+            // Use completeSchemaEvent.reloadTask.id as the key to determine if the task is a duplicate or not.
+            const topLevelTasksWithSchemaTriggersUnique = topLevelTasksWithSchemaTriggers.filter((task, index, self) => {
+                // Handle reload tasks, external program tasks
+                if (task.completeSchemaEvent.reloadTask) {
+                    return (
+                        index === self.findIndex((t) => t.completeSchemaEvent?.reloadTask?.id === task.completeSchemaEvent.reloadTask.id)
+                    );
+                }
+                if (task.completeSchemaEvent.externalProgramTask) {
+                    return (
+                        index ===
+                        self.findIndex(
+                            (t) => t.completeSchemaEvent?.externalProgramTask?.id === task.completeSchemaEvent.externalProgramTask.id
+                        )
+                    );
+                }
+                return false;
+            });
+
+            // Sort the array alfabetically, using the task name as the key
+            // Task name is found in either completeSchemaEvent.externalProgramTask.name or completeSchemaEvent.reloadTask.name
+            topLevelTasksWithSchemaTriggersUnique.sort((a, b) => {
+                if (a.completeSchemaEvent.reloadTask) {
+                    if (b.completeSchemaEvent.reloadTask) {
+                        if (a.completeSchemaEvent.reloadTask.name < b.completeSchemaEvent.reloadTask.name) {
+                            return -1;
+                        }
+                        if (a.completeSchemaEvent.reloadTask.name > b.completeSchemaEvent.reloadTask.name) {
+                            return 1;
+                        }
+                    } else if (b.completeSchemaEvent.externalProgramTask) {
+                        if (a.completeSchemaEvent.reloadTask.name < b.completeSchemaEvent.externalProgramTask.name) {
+                            return -1;
+                        }
+                        if (a.completeSchemaEvent.reloadTask.name > b.completeSchemaEvent.externalProgramTask.name) {
+                            return 1;
+                        }
+                    }
+                }
+                if (a.completeSchemaEvent.externalProgramTask) {
+                    if (b.completeSchemaEvent.externalProgramTask) {
+                        if (a.completeSchemaEvent.externalProgramTask.name < b.completeSchemaEvent.externalProgramTask.name) {
+                            return -1;
+                        }
+                        if (a.completeSchemaEvent.externalProgramTask.name > b.completeSchemaEvent.externalProgramTask.name) {
+                            return 1;
+                        }
+                    } else if (b.completeSchemaEvent.reloadTask) {
+                        if (a.completeSchemaEvent.externalProgramTask.name < b.completeSchemaEvent.reloadTask.name) {
+                            return -1;
+                        }
+                        if (a.completeSchemaEvent.externalProgramTask.name > b.completeSchemaEvent.reloadTask.name) {
+                            return 1;
+                        }
+                    }
+                }
+                return 0;
+            });
+
             // eslint-disable-next-line no-restricted-syntax
-            for (const task of taskModel.nodes) {
+            for (const task of topLevelTasksWithSchemaTriggersUnique) {
+                // for (const task of taskModel.nodes) {
                 if (task.metaNode && task.metaNodeType === 'schedule') {
                     const subTree = qlikSenseTasks.getTaskSubTree(task, 0);
                     subTree[0].isTopLevelNode = true;
@@ -145,6 +216,18 @@ const getTask = async (options) => {
                 return false;
             });
 
+            // Sort unscheduled tasks alfabetically
+            // Use taskName as the key
+            unscheduledTasks.sort((a, b) => {
+                if (a.taskName < b.taskName) {
+                    return -1;
+                }
+                if (a.taskName > b.taskName) {
+                    return 1;
+                }
+                return 0;
+            });
+
             // eslint-disable-next-line no-restricted-syntax
             for (const task of unscheduledTasks) {
                 const subTree = qlikSenseTasks.getTaskSubTree(task, 0);
@@ -152,9 +235,6 @@ const getTask = async (options) => {
                 subTree[0].isScheduled = false;
                 taskTree = taskTree.concat(subTree);
             }
-
-            // Sort tree alfabetically
-            taskTree.sort(compareTree);
 
             // Output task tree to correct destination
             if (options.outputDest === 'screen') {

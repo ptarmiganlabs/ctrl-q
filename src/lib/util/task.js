@@ -5,6 +5,8 @@ const { validate } = require('uuid');
 const { logger, execPath, getCliOptions } = require('../../globals');
 const { setupQRSConnection } = require('./qrs');
 
+// Check if a task with a given id exists
+// Look for all kinds of tasks, not just reload tasks
 async function taskExistById(taskId, optionsParam) {
     try {
         logger.debug(`Checking if task with ID ${taskId} exists`);
@@ -129,6 +131,8 @@ async function getTaskByName(taskName, optionsParam) {
     }
 }
 
+// Function to get task metadata, given a task ID
+// If the task ID is a valid GUID it is assumed to be a task ID that exists in Sense. Report an error if not.
 async function getTaskById(taskId, optionsParam) {
     try {
         logger.debug(`Get task with ID ${taskId}`);
@@ -148,6 +152,8 @@ async function getTaskById(taskId, optionsParam) {
 
             return false;
         }
+
+        logger.verbose(`GET TASK BY ID: Task ID ${taskId} is a valid GUID. Get associated task from QSEoW.`);
 
         // Make sure certificates exist
         const fileCert = path.resolve(execPath, options.authCertFile);

@@ -26,6 +26,7 @@ const { setTaskCustomProperty } = require('./lib/cmd/settaskcp');
 const { importTaskFromFile } = require('./lib/cmd/importtask');
 const { importAppFromFile } = require('./lib/cmd/importapp');
 const { exportAppToFile } = require('./lib/cmd/exportapp');
+const { testConnection } = require('./lib/cmd/testconnection');
 
 const {
     sharedParamAssertOptions,
@@ -509,10 +510,28 @@ const program = new Command();
         .command('task-get')
         .description('get info about one or more tasks')
         .action(async (options) => {
-            await sharedParamAssertOptions(options);
-            getTaskAssertOptions(options);
+            const newOptions = options;
+            // If options.tableDetails is true, it means --table-details was passed as options without any explicit value.
+            // This is allowed, but should be interpreted as "all" table details.
+            // Make options.tableDetails an array with all possible table details.
+            if (options.tableDetails === true) {
+                newOptions.tableDetails = [
+                    'common',
+                    'extprogram',
+                    'lastexecution',
+                    'tag',
+                    'customproperty',
+                    'schematrigger',
+                    'compositetrigger',
+                    'comptimeconstraint',
+                    'comprule',
+                ];
+            }
 
-            getTask(options);
+            await sharedParamAssertOptions(newOptions);
+            getTaskAssertOptions(newOptions);
+
+            getTask(newOptions);
         })
         .addOption(
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
@@ -531,7 +550,7 @@ const program = new Command();
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
         .addOption(
-            new Option('--task-type <type...>', 'type of tasks to list')
+            new Option('--task-type <type...>', 'type of tasks to include')
                 .choices(['reload', 'ext-program'])
                 .default(['reload', 'ext-program'])
         )
@@ -554,7 +573,10 @@ const program = new Command();
         )
 
         .addOption(
-            new Option('--table-details [detail...]', 'which aspects of tasks should be included in table view')
+            new Option(
+                '--table-details [detail...]',
+                'which aspects of tasks should be included in table view. Not choosing any details will show all'
+            )
                 .choices([
                     'common',
                     'extprogram',
@@ -766,6 +788,34 @@ const program = new Command();
         .option('--metadata-file-overwrite', 'overwrite app metadata file without asking')
 
         .option('--dry-run', 'do a dry run, i.e. do not export any apps - just show what would be done');
+
+    // Test connection command
+    program
+        .command('connection-test')
+        .description('test connection to Qlik Sense server')
+        .action(async (options) => {
+            try {
+                await sharedParamAssertOptions(options);
+                testConnection(options);
+            } catch (err) {
+                logger.error(`CONNECTION TEST: ${err}`);
+            }
+        })
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem');
 
     // Parse command line params
     await program.parseAsync(process.argv);

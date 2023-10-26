@@ -29,6 +29,10 @@ repos:
     hooks:
       - id: check-case-conflict
       - id: check-json
+        exclude: |
+          (?x)^(
+              .vscode/launch.json
+          )$
       - id: check-xml
       - id: check-yaml
       - id: detect-private-key

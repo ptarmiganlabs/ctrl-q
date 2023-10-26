@@ -2,53 +2,47 @@
 
 ## [3.13.2](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.1...v3.13.2) (2023-10-06)
 
-
 ### Bug Fixes
 
-* Handle relative config file paths ([72285e4](https://github.com/ptarmiganlabs/ctrl-q/commit/72285e4d6130f9ea1bdc96b25ada7491b265788f))
-* **master-item-dim-get:** Get correct colors for drill-down dimensions ([f0fae78](https://github.com/ptarmiganlabs/ctrl-q/commit/f0fae780c4dff16ac993dfe1f41cb49edb4847a5)), closes [#314](https://github.com/ptarmiganlabs/ctrl-q/issues/314)
-* **task-get:** Fix task tree bug when task is triggered by ext program task ([98584b7](https://github.com/ptarmiganlabs/ctrl-q/commit/98584b7e0bad97c73e5aaa1015625e2eae5f1aee))
-* **task-get:** Include all tasks in task trees ([3fbc4d3](https://github.com/ptarmiganlabs/ctrl-q/commit/3fbc4d307179476e89068e5db2030b990e6603da)), closes [#308](https://github.com/ptarmiganlabs/ctrl-q/issues/308)
-* **task-get:** Make "reload" and "ext-program" default for --task-type option ([9b13cce](https://github.com/ptarmiganlabs/ctrl-q/commit/9b13cce142ce07e8e56479f3dfa1b693f55e20da))
-* **task-get:** Warn if --task-type is used in task tree view ([1fe4764](https://github.com/ptarmiganlabs/ctrl-q/commit/1fe47642bc8c1e7ac516110febb925e354f907b2)), closes [#319](https://github.com/ptarmiganlabs/ctrl-q/issues/319)
-
+- Handle relative config file paths ([72285e4](https://github.com/ptarmiganlabs/ctrl-q/commit/72285e4d6130f9ea1bdc96b25ada7491b265788f))
+- **master-item-dim-get:** Get correct colors for drill-down dimensions ([f0fae78](https://github.com/ptarmiganlabs/ctrl-q/commit/f0fae780c4dff16ac993dfe1f41cb49edb4847a5)), closes [#314](https://github.com/ptarmiganlabs/ctrl-q/issues/314)
+- **task-get:** Fix task tree bug when task is triggered by ext program task ([98584b7](https://github.com/ptarmiganlabs/ctrl-q/commit/98584b7e0bad97c73e5aaa1015625e2eae5f1aee))
+- **task-get:** Include all tasks in task trees ([3fbc4d3](https://github.com/ptarmiganlabs/ctrl-q/commit/3fbc4d307179476e89068e5db2030b990e6603da)), closes [#308](https://github.com/ptarmiganlabs/ctrl-q/issues/308)
+- **task-get:** Make "reload" and "ext-program" default for --task-type option ([9b13cce](https://github.com/ptarmiganlabs/ctrl-q/commit/9b13cce142ce07e8e56479f3dfa1b693f55e20da))
+- **task-get:** Warn if --task-type is used in task tree view ([1fe4764](https://github.com/ptarmiganlabs/ctrl-q/commit/1fe47642bc8c1e7ac516110febb925e354f907b2)), closes [#319](https://github.com/ptarmiganlabs/ctrl-q/issues/319)
 
 ### Miscellaneous
 
-* **deps:** Update dependencies to stay safe and secure ([ce0f7b4](https://github.com/ptarmiganlabs/ctrl-q/commit/ce0f7b42fe53b9bbeb7389345d537ffb0e2ef3a2))
+- **deps:** Update dependencies to stay safe and secure ([ce0f7b4](https://github.com/ptarmiganlabs/ctrl-q/commit/ce0f7b42fe53b9bbeb7389345d537ffb0e2ef3a2))
 
 ## [3.13.1](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.1...v3.13.1) (2023-09-27)
 
-
 ### Miscellaneous
 
-* Fix broken build flow post refactoring ([1c91e56](https://github.com/ptarmiganlabs/ctrl-q/commit/1c91e5651c0a408cf2527abae65763a8aa6bf09f))
-* Fix broken Linux build ([7847a6d](https://github.com/ptarmiganlabs/ctrl-q/commit/7847a6def5dafa180361fce48d493d8be68058b7))
-* **main:** release 3.13.1 ([3a42857](https://github.com/ptarmiganlabs/ctrl-q/commit/3a428572fbb2f364ab45fdcb8b26ae33aec84c80))
-* Recover from build refactoring ([bd865b6](https://github.com/ptarmiganlabs/ctrl-q/commit/bd865b67c14787dbc8e1fed562f984d8a6a56e43))
+- Fix broken build flow post refactoring ([1c91e56](https://github.com/ptarmiganlabs/ctrl-q/commit/1c91e5651c0a408cf2527abae65763a8aa6bf09f))
+- Fix broken Linux build ([7847a6d](https://github.com/ptarmiganlabs/ctrl-q/commit/7847a6def5dafa180361fce48d493d8be68058b7))
+- **main:** release 3.13.1 ([3a42857](https://github.com/ptarmiganlabs/ctrl-q/commit/3a428572fbb2f364ab45fdcb8b26ae33aec84c80))
+- Recover from build refactoring ([bd865b6](https://github.com/ptarmiganlabs/ctrl-q/commit/bd865b67c14787dbc8e1fed562f984d8a6a56e43))
 
 ## [3.13.1](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.0...v3.13.1) (2023-09-27)
 
-
 ### Miscellaneous
 
-* Fix broken build flow post refactoring ([1c91e56](https://github.com/ptarmiganlabs/ctrl-q/commit/1c91e5651c0a408cf2527abae65763a8aa6bf09f))
+- Fix broken build flow post refactoring ([1c91e56](https://github.com/ptarmiganlabs/ctrl-q/commit/1c91e5651c0a408cf2527abae65763a8aa6bf09f))
 
 ## [3.13.0](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.12.0...v3.13.0) (2023-09-26)
 
-
 ### Miscellaneous
 
-* Add insiders build step in CI pipeline ([97e933f](https://github.com/ptarmiganlabs/ctrl-q/commit/97e933fb89aed09fbac285a2ba870b3010a02cf2)), closes [#303](https://github.com/ptarmiganlabs/ctrl-q/issues/303)
-* **deps:** update actions/checkout action to v4 ([460fd6b](https://github.com/ptarmiganlabs/ctrl-q/commit/460fd6b00e205835ad26c584c6a786c68dde483f))
-* **deps:** update crazy-max/ghaction-virustotal action to v4 ([49d4c23](https://github.com/ptarmiganlabs/ctrl-q/commit/49d4c23e8e308baf51920dc674b50050c2f38251))
-* Fix version number after build refactoring ([5f4347c](https://github.com/ptarmiganlabs/ctrl-q/commit/5f4347c640c58f9a31d8399350af7cededf8b7da))
-
+- Add insiders build step in CI pipeline ([97e933f](https://github.com/ptarmiganlabs/ctrl-q/commit/97e933fb89aed09fbac285a2ba870b3010a02cf2)), closes [#303](https://github.com/ptarmiganlabs/ctrl-q/issues/303)
+- **deps:** update actions/checkout action to v4 ([460fd6b](https://github.com/ptarmiganlabs/ctrl-q/commit/460fd6b00e205835ad26c584c6a786c68dde483f))
+- **deps:** update crazy-max/ghaction-virustotal action to v4 ([49d4c23](https://github.com/ptarmiganlabs/ctrl-q/commit/49d4c23e8e308baf51920dc674b50050c2f38251))
+- Fix version number after build refactoring ([5f4347c](https://github.com/ptarmiganlabs/ctrl-q/commit/5f4347c640c58f9a31d8399350af7cededf8b7da))
 
 ### Documentation
 
-* **app-import:** Add description of publishing apps after import from QVF files ([072a14f](https://github.com/ptarmiganlabs/ctrl-q/commit/072a14fc36438cfc9d0a85e99bc251cf7fe92dd8)), closes [#302](https://github.com/ptarmiganlabs/ctrl-q/issues/302)
-* **app-import:** Add link to app import Excel file columns ([28cd76a](https://github.com/ptarmiganlabs/ctrl-q/commit/28cd76ae51b5eb4992dfcff3f670655b456e15a5)), closes [#301](https://github.com/ptarmiganlabs/ctrl-q/issues/301)
+- **app-import:** Add description of publishing apps after import from QVF files ([072a14f](https://github.com/ptarmiganlabs/ctrl-q/commit/072a14fc36438cfc9d0a85e99bc251cf7fe92dd8)), closes [#302](https://github.com/ptarmiganlabs/ctrl-q/issues/302)
+- **app-import:** Add link to app import Excel file columns ([28cd76a](https://github.com/ptarmiganlabs/ctrl-q/commit/28cd76ae51b5eb4992dfcff3f670655b456e15a5)), closes [#301](https://github.com/ptarmiganlabs/ctrl-q/issues/301)
 
 ## [3.4.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.4.0...ctrl-q-v3.4.1) (2023-02-08)
 

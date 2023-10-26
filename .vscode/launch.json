@@ -79,7 +79,7 @@
       //   "--file-name",
       //   "testdata/tasks.xlsx",
       //   "--sheet-name",
-      //   "Ctrl-Q task import 1",
+      //   "4"
 
       //   // "--import-app",
       //   // "--import-app-sheet-name",
@@ -91,8 +91,8 @@
       //   // "--limit-import-count",
       //   // "2",
 
-      // // "--sleep-app-upload",
-      // // "500",
+      //   // "--sleep-app-upload",
+      //   // "500",
 
       //   // "--dry-run"
       // ]
@@ -106,10 +106,10 @@
       //   "cert",
       //   "--host",
       //   "192.168.100.109",
-      //   "--auth-cert-file",
-      //   "./cert/client.pem",
-      //   "--auth-cert-key-file",
-      //   "./cert/client_key.pem",
+      //   // "--auth-cert-file",
+      //   // "./cert/client.pem",
+      //   // "--auth-cert-key-file",
+      //   // "./cert/client_key.pem",
       //   "--auth-user-dir",
       //   "LAB",
       //   "--auth-user-id",
@@ -120,7 +120,8 @@
 
       //   "--file-name",
       //   // "tasks2source.csv",
-      //   "task-chain.csv",
+      //   // "task-chain.csv",
+      //   "testdata/reload-tasks.csv",
 
       //   // "--qvf-overwrite",
       //   // "no",
@@ -219,49 +220,49 @@
       //   // "--dry-run"
       // ]
 
-      // ------------------------------------
-      // Get task tree
-      // ------------------------------------
-      "args": [
-        "task-get",
-        // "--auth-type",
-        // "cert",
-        "--host",
-        "192.168.100.109",
-        // "--auth-cert-file",
-        // "./cert/client.pem",
-        // "--auth-cert-key-file",
-        // "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-      //  "--task-id",
-        // "82bc3e66-c899-4e44-b52f-552145da5ee0",
-        // "--task-tag",
-        // "Test data",
-        // "--output-format",
-        // "table",
-        // "tree",
-        // "--tree-icons",
-        // "--tree-details",
-        // "taskid",
-        // "appname",
-      //  "--task-type",
-      //  "reload",
-      //  "ext-program",
+      // // ------------------------------------
+      // // Get task tree
+      // // ------------------------------------
+      // "args": [
+      //   "task-get",
+      //   // "--auth-type",
+      //   // "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   // "--auth-cert-file",
+      //   // "./cert/client.pem",
+      //   // "--auth-cert-key-file",
+      //   // "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+      //   //  "--task-id",
+      //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+      //   // "--task-tag",
+      //   // "Test data",
+      //   "--output-format",
+      //   // "table",
+      //   "tree",
+      //   "--tree-icons",
+      //   "--tree-details",
+      //   // "taskid",
+      //   // "appname",
+      //   "--task-type",
+      //   // "reload",
+      //   "ext-program"
 
-        // "--output-dest",
-        // "screen",
-        // "file",
-        // "--output-file-name",
-        // "tasks.json",
-        // "--output-file-format",
-        // "json",
+      //   // "--output-dest",
+      //   // "screen",
+      //   // "file",
+      //   // "--output-file-name",
+      //   // "tasks.json",
+      //   // "--output-file-format",
+      //   // "json",
 
-        // "--text-color",
-        // "no",
-      ]
+      //   // "--text-color",
+      //   // "no",
+      // ]
 
       // ------------------------------------
       // Get reload tasks as table
@@ -326,10 +327,10 @@
       //   "cert",
       //   "--host",
       //   "192.168.100.109",
-      //   "--auth-cert-file",
-      //   "./cert/client.pem",
-      //   "--auth-cert-key-file",
-      //   "./cert/client_key.pem",
+      //   // "--auth-cert-file",
+      //   // "./cert/client.pem",
+      //   // "--auth-cert-key-file",
+      //   // "./cert/client_key.pem",
       //   "--auth-user-dir",
       //   "LAB",
       //   "--auth-user-id",
@@ -339,34 +340,34 @@
       //   // "82bc3e66-c899-4e44-b52f-552145da5ee1",
       //   // "5748afa9-3abe-43ab-bb1f-127c48ced075",
       //   // "5520e710-91ad-41d2-aeb6-434cafbf366b",
-      //   "--task-tag",
-      //   "Ctrl-Q demo",
+      //   // "--task-tag",
+      //   // "Ctrl-Q demo",
       //   // "Butler 5.0 demo",
 
       //   "--output-format",
       //   "table",
-
       //   "--output-dest",
       //   "file",
       //   "--output-file-name",
-      //   "tasks.xlsx",
-      //   // "tasks.csv",
+      //   // "tasks.xlsx",
+      //   "tasks.csv",
       //   // "tasks2.json",
       //   // "tasks2.xlsx",
       //   "--output-file-format",
-      //   "excel",
+      //   // "excel",
       //   // "json",
-      //   // "csv",
+      //   "csv",
 
       //   "--output-file-name",
-      //   "reload-tasks.xlsx",
+      //   // "reload-tasks.xlsx",
+      //   "reload-tasks.csv",
 
       //   // "--text-color",
       //   // "no",
 
-      //   "--output-file-overwrite",
+      //   // "--output-file-overwrite",
 
-      //   // "--table-details",
+      //   "--table-details",
       //   // "common",
       //   // "lastexecution",
       //   // "tag",
@@ -766,6 +767,22 @@
       //   "--log-level",
       //   "verbose"
       // ]
+
+      // ------------------------------------
+      // Connection test
+      // ------------------------------------
+      "args": [
+        "connection-test",
+        "--host",
+        "192.168.100.109",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+        "--log-level",
+        "info"
+      ]
+
     }
   ]
 }
