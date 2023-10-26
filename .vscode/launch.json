@@ -220,49 +220,49 @@
       //   // "--dry-run"
       // ]
 
-      // ------------------------------------
-      // Get task tree
-      // ------------------------------------
-      "args": [
-        "task-get",
-        // "--auth-type",
-        // "cert",
-        "--host",
-        "192.168.100.109",
-        // "--auth-cert-file",
-        // "./cert/client.pem",
-        // "--auth-cert-key-file",
-        // "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-        //  "--task-id",
-        // "82bc3e66-c899-4e44-b52f-552145da5ee0",
-        // "--task-tag",
-        // "Test data",
-        "--output-format",
-        // "table",
-        "tree",
-        "--tree-icons",
-        "--tree-details",
-        // "taskid",
-        // "appname",
-        "--task-type",
-        // "reload",
-        "ext-program"
+      // // ------------------------------------
+      // // Get task tree
+      // // ------------------------------------
+      // "args": [
+      //   "task-get",
+      //   // "--auth-type",
+      //   // "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   // "--auth-cert-file",
+      //   // "./cert/client.pem",
+      //   // "--auth-cert-key-file",
+      //   // "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+      //   //  "--task-id",
+      //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+      //   // "--task-tag",
+      //   // "Test data",
+      //   "--output-format",
+      //   // "table",
+      //   "tree",
+      //   "--tree-icons",
+      //   "--tree-details",
+      //   // "taskid",
+      //   // "appname",
+      //   "--task-type",
+      //   // "reload",
+      //   "ext-program"
 
-        // "--output-dest",
-        // "screen",
-        // "file",
-        // "--output-file-name",
-        // "tasks.json",
-        // "--output-file-format",
-        // "json",
+      //   // "--output-dest",
+      //   // "screen",
+      //   // "file",
+      //   // "--output-file-name",
+      //   // "tasks.json",
+      //   // "--output-file-format",
+      //   // "json",
 
-        // "--text-color",
-        // "no",
-      ]
+      //   // "--text-color",
+      //   // "no",
+      // ]
 
       // ------------------------------------
       // Get reload tasks as table
@@ -767,6 +767,22 @@
       //   "--log-level",
       //   "verbose"
       // ]
+
+      // ------------------------------------
+      // Connection test
+      // ------------------------------------
+      "args": [
+        "connection-test",
+        "--host",
+        "192.168.100.109",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+        "--log-level",
+        "info"
+      ]
+
     }
   ]
 }
