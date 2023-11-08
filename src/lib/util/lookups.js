@@ -91,17 +91,24 @@ const taskFileColumnHeaders = {
     taskEnabled: { name: 'Task enabled', pos: -1 },
     taskSessionTimeout: { name: 'Task timeout', pos: -1 },
     taskMaxRetries: { name: 'Task retries', pos: -1 },
+
     appId: { name: 'App id', pos: -1 },
     appName: { name: 'App name', pos: -1 },
     isPartialReload: { name: 'Partial reload', pos: -1 },
     isManuallyTriggered: { name: 'Manually triggered', pos: -1 },
+
     taskStatus: { name: 'Task status', pos: -1 },
     taskStarted: { name: 'Task started', pos: -1 },
     taskEnded: { name: 'Task ended', pos: -1 },
     taskDuration: { name: 'Task duration', pos: -1 },
     taskExecutionNode: { name: 'Task executedon node', pos: -1 },
+
+    extPgmPath: { name: 'Ext program path', pos: -1 },
+    extPgmParam: { name: 'Ext program parameters', pos: -1 },
+
     taskTags: { name: 'Tags', pos: -1 },
     taskCustomProperties: { name: 'Custom properties', pos: -1 },
+
     eventCounter: { name: 'Event counter', pos: -1 },
     eventType: { name: 'Event type', pos: -1 },
     eventName: { name: 'Event name', pos: -1 },
@@ -158,6 +165,10 @@ function getTaskColumnPosFromHeaderRow(headerRow) {
     taskFileColumnHeaders.taskEnded.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskEnded.name);
     taskFileColumnHeaders.taskDuration.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskDuration.name);
     taskFileColumnHeaders.taskExecutionNode.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskExecutionNode.name);
+
+    taskFileColumnHeaders.extPgmPath.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.extPgmPath.name);
+    taskFileColumnHeaders.extPgmParam.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.extPgmParam.name);
+
     taskFileColumnHeaders.taskTags.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskTags.name);
     taskFileColumnHeaders.taskCustomProperties.pos = headerRow.findIndex(
         (item) => item === taskFileColumnHeaders.taskCustomProperties.name

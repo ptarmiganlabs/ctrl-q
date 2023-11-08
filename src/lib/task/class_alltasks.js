@@ -191,7 +191,9 @@ class QlikSenseTasks {
             taskCreationOption.trim() !== '' &&
             !['if-exists-add-another', 'if-exists-update-existing'].includes(taskCreationOption)
         ) {
-            logger.error(`(${param.taskCounter}) PARSE TASKS FROM FILE: Incorrect task creation option "${taskCreationOption}". Exiting.`);
+            logger.error(
+                `(${param.taskCounter}) PARSE RELOAD TASK FROM FILE: Incorrect task creation option "${taskCreationOption}". Exiting.`
+            );
             process.exit(1);
         }
 
@@ -248,17 +250,22 @@ class QlikSenseTasks {
                     .filter((item2) => item2.trim().length !== 0)
                     .map((cp) => cp.trim());
 
+                // Do we have two items in the array? First is the custom property name, second is the value
                 if (tmpCustomProperty?.length === 2) {
                     // eslint-disable-next-line no-await-in-loop
                     const customPropertyId = await getCustomPropertyIdByName('ReloadTask', tmpCustomProperty[0], param.cpExisting);
 
-                    currentTask.customProperties.push({
-                        definition: {
-                            id: customPropertyId,
-                            name: tmpCustomProperty[0].trim(),
-                        },
-                        value: tmpCustomProperty[1].trim(),
-                    });
+                    // If previous call returned false, it means the custom property does not exist in Sense
+                    // or cannot be used with this task type. In that case, skip it.
+                    if (customPropertyId) {
+                        currentTask.customProperties.push({
+                            definition: {
+                                id: customPropertyId,
+                                name: tmpCustomProperty[0].trim(),
+                            },
+                            value: tmpCustomProperty[1].trim(),
+                        });
+                    }
                 }
             }
         }
@@ -276,6 +283,145 @@ class QlikSenseTasks {
         // Get composite events for this task
         currentTask.prelCompositeEvents = await this.parseCompositeEvents({
             taskType: 'reload',
+            taskRows: param.taskRows,
+            taskFileColumnHeaders: param.taskFileColumnHeaders,
+            taskCounter: param.taskCounter,
+            currentTask,
+            fakeTaskId: param.fakeTaskId,
+            nodesWithEvents: param.nodesWithEvents,
+        });
+
+        return { currentTask, taskCreationOption };
+    }
+
+    // Function to parse the rows associated with a specific external program task in the source file
+    // Properties in the param object:
+    // - taskRows: Array of rows associated with the task. All rows associated with the task are passed to this function
+    // - taskFileColumnHeaders: Object containing info about which column contains what data
+    // - taskCounter: Counter for the current task
+    // - tagsExisting: Array of existing tags in QSEoW
+    // - cpExisting: Array of existing custom properties in QSEoW
+    // - fakeTaskId: Fake task ID used to associate task with schema/composite events
+    // - nodesWithEvents: Set of nodes that have associated events
+    //
+    // Returns:
+    // Object with two properties:
+    // - currentTask: Object containing task data
+    // - taskCreationOption: Task creation option. Possible values: "if-exists-add-another", "if-exists-update-existing"
+    async parseExternalProgramTask(param) {
+        let currentTask = null;
+        let taskCreationOption;
+
+        // Create task object using same structure as results from QRS API
+
+        // Get task import options
+        if (param.taskFileColumnHeaders.importOptions.pos === 999) {
+            // No task creation options column in the file
+            // Use the default task creation option
+            taskCreationOption = 'if-exists-update-existing';
+        } else {
+            // Task creation options column exists in the file
+            // Use the value from the file
+            taskCreationOption = param.taskRows[0][param.taskFileColumnHeaders.importOptions.pos];
+        }
+
+        // Ensure task creation option is valid. Allow empty option
+        if (
+            taskCreationOption &&
+            taskCreationOption.trim() !== '' &&
+            !['if-exists-add-another', 'if-exists-update-existing'].includes(taskCreationOption)
+        ) {
+            logger.error(
+                `(${param.taskCounter}) PARSE EXTERNAL PROGRAM TASK FROM FILE: Incorrect task creation option "${taskCreationOption}". Exiting.`
+            );
+            process.exit(1);
+        }
+
+        currentTask = {
+            id: param.taskRows[0][param.taskFileColumnHeaders.taskId.pos],
+            name: param.taskRows[0][param.taskFileColumnHeaders.taskName.pos],
+            taskType: mapTaskType.get(param.taskRows[0][param.taskFileColumnHeaders.taskType.pos]),
+            enabled: param.taskRows[0][param.taskFileColumnHeaders.taskEnabled.pos],
+            taskSessionTimeout: param.taskRows[0][param.taskFileColumnHeaders.taskSessionTimeout.pos],
+            maxRetries: param.taskRows[0][param.taskFileColumnHeaders.taskMaxRetries.pos],
+
+            path: param.taskRows[0][param.taskFileColumnHeaders.extPgmPath.pos],
+            parameters: param.taskRows[0][param.taskFileColumnHeaders.extPgmParam.pos],
+
+            tags: [],
+            customProperties: [],
+
+            schemaPath: 'ExternalProgramTask',
+            schemaEvents: [],
+            compositeEvents: [],
+            prelCompositeEvents: [],
+        };
+
+        // Add tags to task object
+        if (param.taskRows[0][param.taskFileColumnHeaders.taskTags.pos]) {
+            const tmpTags = param.taskRows[0][param.taskFileColumnHeaders.taskTags.pos]
+                .split('/')
+                .filter((item) => item.trim().length !== 0)
+                .map((item) => item.trim());
+
+            // eslint-disable-next-line no-restricted-syntax
+            for (const item of tmpTags) {
+                // eslint-disable-next-line no-await-in-loop
+                const tagId = await getTagIdByName(item, param.tagsExisting);
+                currentTask.tags.push({
+                    id: tagId,
+                    name: item,
+                });
+            }
+        }
+
+        // Add custom properties to task object
+        if (param.taskRows[0][param.taskFileColumnHeaders.taskCustomProperties.pos]) {
+            const tmpCustomProperties = param.taskRows[0][param.taskFileColumnHeaders.taskCustomProperties.pos]
+                .split('/')
+                .filter((item) => item.trim().length !== 0)
+                .map((cp) => cp.trim());
+
+            // eslint-disable-next-line no-restricted-syntax
+            for (const item of tmpCustomProperties) {
+                const tmpCustomProperty = item
+                    .split('=')
+                    .filter((item2) => item2.trim().length !== 0)
+                    .map((cp) => cp.trim());
+
+                // Do we have two items in the array? First is the custom property name, second is the value
+                if (tmpCustomProperty?.length === 2) {
+                    // eslint-disable-next-line no-await-in-loop
+                    const customPropertyId = await getCustomPropertyIdByName('ExternalProgramTask', tmpCustomProperty[0], param.cpExisting);
+
+                    // If previous call returned false, it means the custom property does not exist in Sense
+                    // or cannot be used with this task type. In that case, skip it.
+                    if (customPropertyId) {
+                        currentTask.customProperties.push({
+                            definition: {
+                                id: customPropertyId,
+                                name: tmpCustomProperty[0].trim(),
+                            },
+                            value: tmpCustomProperty[1].trim(),
+                        });
+                    }
+                }
+            }
+        }
+
+        // Get schema events for this task, storing the info using the same structure as returned from QRS API
+        currentTask.schemaEvents = this.parseSchemaEvents({
+            taskRows: param.taskRows,
+            taskFileColumnHeaders: param.taskFileColumnHeaders,
+            taskCounter: param.taskCounter,
+            currentTask,
+            fakeTaskId: param.fakeTaskId,
+            nodesWithEvents: param.nodesWithEvents,
+        });
+
+        // Get composite events for this task
+        currentTask.prelCompositeEvents = await this.parseCompositeEvents({
+            taskType: 'external program',
             taskRows: param.taskRows,
             taskFileColumnHeaders: param.taskFileColumnHeaders,
             taskCounter: param.taskCounter,
@@ -759,7 +905,7 @@ class QlikSenseTasks {
                         this.taskNetwork.nodes.push({
                             id: res.currentTask.id,
                             metaNode: false,
-                            isTopLevelNode: !this.taskNetwork.edges.find((edge) => edge.to === res.currentTask.taskId),
+                            isTopLevelNode: !this.taskNetwork.edges.find((edge) => edge.to === res.currentTask.id),
                             label: res.currentTask.name,
                             enabled: res.currentTask.enabled,
 
@@ -787,7 +933,7 @@ class QlikSenseTasks {
                         // We now have a basic task object including tags and custom properties.
                         // Schema events are included but composite events are only partially there, as they may need
                         // IDs of tasks that have not yet been created.
-                        // Still, store all info for composite evets and then do another loop where those events are created for
+                        // Still, store all info for composite events and then do another loop where those events are created for
                         // tasks for which they are defined.
                         //
                         // The strategey is to first create all tasks, then add composite events.
@@ -801,7 +947,9 @@ class QlikSenseTasks {
                             if (this.options.dryRun === false || this.options.dryRun === undefined) {
                                 // eslint-disable-next-line no-await-in-loop
                                 const newTaskId = await this.createReloadTaskInQseow(res.currentTask, taskCounter);
-                                logger.info(`(${taskCounter}) Created new task "${res.currentTask.name}", new task id: ${newTaskId}.`);
+                                logger.info(
+                                    `(${taskCounter}) Created new reload task "${res.currentTask.name}", new task id: ${newTaskId}.`
+                                );
 
                                 // Add mapping between fake task ID used when creating task network and actual, newly created task ID
                                 this.taskIdMap.set(fakeTaskId, newTaskId);
@@ -863,17 +1011,91 @@ class QlikSenseTasks {
                             );
                         }
                     } else if (taskType === 'external program') {
-                        logger.info(`(${taskCounter}) PARSE TASKS FROM FILE: External program task. Not yet implemented.`);
                         // External program task
+
+                        // Create a fake ID for this task. Used to associate task with schema/composite events
+                        const fakeTaskId = `ext-pgm-task-${uuidv4()}`;
+
                         // eslint-disable-next-line no-await-in-loop
-                        // await this.parseExternalProgramTask(
-                        //     taskRows,
-                        //     taskFileColumnHeaders,
-                        //     taskCounter,
-                        //     tagsExisting,
-                        //     cpExisting,
-                        //     nodesWithEvents
-                        // );
+                        const res = await this.parseExternalProgramTask({
+                            taskRows,
+                            taskFileColumnHeaders,
+                            taskCounter,
+                            tagsExisting,
+                            cpExisting,
+                            fakeTaskId,
+                            nodesWithEvents,
+                        });
+
+                        // Add external program task as node in task network
+                        // NB: A top level node is defined as:
+                        // 1. A task whose taskID does not show up in the "to" field of any edge.
+
+                        // eslint-disable-next-line no-restricted-syntax
+                        this.taskNetwork.nodes.push({
+                            id: res.currentTask.id,
+                            metaNode: false,
+                            isTopLevelNode: !this.taskNetwork.edges.find((edge) => edge.to === res.currentTask.id),
+                            label: res.currentTask.name,
+                            enabled: res.currentTask.enabled,
+
+                            completeTaskObject: res.currentTask,
+
+                            taskTags: res.currentTask.tags.map((tag) => tag.name),
+                            taskCustomProperties: res.currentTask.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`),
+                        });
+
+                        // We now have a basic task object including tags and custom properties.
+                        // Schema events are included but composite events are only partially there, as they may need
+                        // IDs of tasks that have not yet been created.
+                        // Still, store all info for composite events and then do another loop where those events are created for
+                        // tasks for which they are defined.
+                        //
+                        // The strategey is to first create all tasks, then add composite events.
+                        // Only then can we be sure all composite events refer to existing tasks.
+
+                        // Create new or update existing external program task in QSEoW
+                        // Should we create a new task?
+                        // Controlled by option --update-mode
+                        if (this.options.updateMode === 'create') {
+                            // Create new task
+                            if (this.options.dryRun === false || this.options.dryRun === undefined) {
+                                // eslint-disable-next-line no-await-in-loop
+                                const newTaskId = await this.createExternalProgramTaskInQseow(res.currentTask, taskCounter);
+                                logger.info(
+                                    `(${taskCounter}) Created new external program task "${res.currentTask.name}", new task id: ${newTaskId}.`
+                                );
+
+                                // Add mapping between fake task ID used when creating task network and actual, newly created task ID
+                                this.taskIdMap.set(fakeTaskId, newTaskId);
+
+                                // Add mapping between fake task ID specified in source file and actual, newly created task ID
+                                if (res.currentTask.id) {
+                                    this.taskIdMap.set(res.currentTask.id, newTaskId);
+                                }
+
+                                res.currentTask.idRef = res.currentTask.id;
+                                res.currentTask.id = newTaskId;
+
+                                // eslint-disable-next-line no-await-in-loop
+                                await this.addTask('from_file', res.currentTask, false);
+                            } else {
+                                logger.info(`(${taskCounter}) DRY RUN: Creating external program task in QSEoW "${res.currentTask.name}"`);
+                            }
+                        } else if (this.options.updateMode === 'update-if-exists') {
+                            // Update existing task
+                            // TODO
+                            // // Verify task ID is a valid UUID
+                            // // If it's not a valid UUID, the ID specified in the source file will be treated as a task name
+                            // if (!validate(res.currentTask.id)) {
+                            //     // eslint-disable-next-line no-await-in-loop
+                            //     const task = await
+                        } else {
+                            // Invalid combination of import options
+                            throw new Error(
+                                `Invalid task update mode. Valid values are "create" and "update-if-exists". You specified "${this.options.updateMode}".`
+                            );
+                        }
                     }
                 }
 
@@ -1029,6 +1251,7 @@ class QlikSenseTasks {
         });
     }
 
+    // Function to create new reload task in QSEoW
     createReloadTaskInQseow(newTask, taskCounter) {
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
@@ -1044,7 +1267,7 @@ class QlikSenseTasks {
                         name: newTask.name,
                         isManuallyTriggered: newTask.isManuallyTriggered,
                         isPartialReload: newTask.isPartialReload,
-                        taskType: newTask.taskType,
+                        taskType: 0,
                         enabled: newTask.enabled,
                         taskSessionTimeout: newTask.taskSessionTimeout,
                         maxRetries: newTask.maxRetries,
@@ -1085,6 +1308,67 @@ class QlikSenseTasks {
                     });
             } catch (err) {
                 logger.error(`CREATE RELOAD TASK IN QSEOW 2: ${err}`);
+                reject(err);
+            }
+        });
+    }
+
+    // Function to create new external program task in QSEoW
+    // Parameters:
+    // - newTask: Object containing task data
+    // - taskCounter: Task counter, unique for each task in the source file
+    createExternalProgramTaskInQseow(newTask, taskCounter) {
+        // eslint-disable-next-line no-async-promise-executor
+        return new Promise(async (resolve, reject) => {
+            try {
+                logger.debug(`(${taskCounter}) CREATE EXTERNAL PROGRAM TASK IN QSEOW: Starting`);
+
+                // Build a body for the API call
+                const body = {
+                    name: newTask.name,
+                    taskType: 1,
+                    enabled: newTask.enabled,
+                    taskSessionTimeout: newTask.taskSessionTimeout,
+                    maxRetries: newTask.maxRetries,
+                    path: newTask.path,
+                    parameters: newTask.parameters,
+                    tags: newTask.tags,
+                    customProperties: newTask.customProperties,
+                    schemaPath: 'ExternalProgramTask',
+                    // schemaPath: 'ExternalProgramTask',
+                };
+                // schemaEvents: newTask.schemaEvents,
+
+                // Save task to QSEoW
+                const axiosConfig = setupQRSConnection(this.options, {
+                    method: 'post',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/externalprogramtask',
+                    body,
+                });
+
+                axios
+                    .request(axiosConfig)
+                    .then((result) => {
+                        const response = JSON.parse(result.data);
+
+                        logger.debug(
+                            `(${taskCounter}) CREATE EXTERNAL PROGRAM TASK IN QSEOW: "${newTask.name}", new task id: ${response.id}. Result: ${result.status}/${result.statusText}.`
+                        );
+
+                        if (result.status === 201) {
+                            resolve(response.id);
+                        } else {
+                            reject();
+                        }
+                    })
+                    .catch((err) => {
+                        logger.error(`CREATE EXTERNAL PROGRAM TASK IN QSEOW 1: ${err}`);
+                        reject(err);
+                    });
+            } catch (err) {
+                logger.error(`CREATE EXTERNAL PROGRAM TASK IN QSEOW 2: ${err}`);
                 reject(err);
             }
         });
