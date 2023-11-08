@@ -300,7 +300,7 @@ class QlikSenseApps {
                                     logger.error(
                                         `IMPORT APP TO QSEOW: Custom property "${tmpCustomProperties[0]}" for app "${
                                             appRow[0][appFileColumnHeaders.appName.pos]
-                                        }" not found or not valid for object type "Reload task". Exiting.`
+                                        }" not found or not valid for task type "Reload task". Exiting.`
                                     );
                                     process.exit(1);
                                 }
