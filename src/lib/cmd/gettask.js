@@ -437,10 +437,25 @@ const getTask = async (options) => {
                     taskTable = taskTable.concat([row]);
 
                     // Find all triggers for this task
-                    const schemaEventsForThisTask = schemaEventList.filter((item) => item.schemaEvent?.reloadTask?.id === task.taskId);
-                    const compositeEventsForThisTask = compositeEventList.filter(
-                        (item) => item.compositeEvent?.reloadTask?.id === task.taskId
-                    );
+                    const schemaEventsForThisTask = schemaEventList.filter((item) => {
+                        if (item.schemaEvent?.reloadTask?.id === task.taskId) {
+                            return true;
+                        }
+                        if (item.schemaEvent?.externalProgramTask?.id === task.taskId) {
+                            return true;
+                        }
+                        return false;
+                    });
+
+                    const compositeEventsForThisTask = compositeEventList.filter((item) => {
+                        if (item.compositeEvent?.reloadTask?.id === task.taskId) {
+                            return true;
+                        }
+                        if (item.compositeEvent?.externalProgramTask?.id === task.taskId) {
+                            return true;
+                        }
+                        return false;
+                    });
 
                     // Write schema events to table
                     if (columnBlockShow.schematrigger) {
@@ -690,7 +705,7 @@ const getTask = async (options) => {
             }
 
             if (columnBlockShow.extprogram) {
-                headerRow = headerRow.concat(['Path', 'Parameters']);
+                headerRow = headerRow.concat(['Ext program path', 'Ext program parameters']);
             }
 
             if (columnBlockShow.lastexecution) {

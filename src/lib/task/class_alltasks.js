@@ -272,6 +272,7 @@ class QlikSenseTasks {
 
         // Get schema events for this task, storing the info using the same structure as returned from QRS API
         currentTask.schemaEvents = this.parseSchemaEvents({
+            taskType: 'reload',
             taskRows: param.taskRows,
             taskFileColumnHeaders: param.taskFileColumnHeaders,
             taskCounter: param.taskCounter,
@@ -411,6 +412,7 @@ class QlikSenseTasks {
 
         // Get schema events for this task, storing the info using the same structure as returned from QRS API
         currentTask.schemaEvents = this.parseSchemaEvents({
+            taskType: 'external program',
             taskRows: param.taskRows,
             taskFileColumnHeaders: param.taskFileColumnHeaders,
             taskCounter: param.taskCounter,
@@ -435,6 +437,7 @@ class QlikSenseTasks {
 
     // Function to get schema events for a specific task
     // Parameters:
+    // - taskType: Type of task. Possible values: "reload", "external program"
     // - taskRows: Array of rows associated with the task. All rows associated with the task are passed to this function
     // - taskFileColumnHeaders: Object containing info about which column contains what data
     // - taskCounter: Counter for the current task
@@ -443,7 +446,7 @@ class QlikSenseTasks {
     // - nodesWithEvents: Set of nodes that have associated events
     parseSchemaEvents(param) {
         // Get schema events for this task, storing the info using the same structure as returned from QRS API
-        const prelAchemaEvents = [];
+        const prelSchemaEvents = [];
 
         const schemaEventRows = param.taskRows.filter(
             (item) =>
@@ -472,11 +475,21 @@ class QlikSenseTasks {
                     schemaFilterDescription: [schemaEventRow[param.taskFileColumnHeaders.schemaFilterDescription.pos]],
                     incrementDescription: schemaEventRow[param.taskFileColumnHeaders.schemaIncrementDescription.pos],
                     incrementOption: mapIncrementOption.get(schemaEventRow[param.taskFileColumnHeaders.schemaIncrementOption.pos]),
-                    reloadTask: {
-                        id: param.fakeTaskId,
-                    },
                     schemaPath: 'SchemaEvent',
                 };
+
+                if (param.taskType === 'reload') {
+                    schemaEvent.reloadTask = {
+                        id: param.fakeTaskId,
+                    };
+                } else if (param.taskType === 'external program') {
+                    schemaEvent.externalProgramTask = {
+                        id: param.fakeTaskId,
+                    };
+                } else {
+                    logger.error(`(${param.taskCounter}) PARSE TASKS FROM FILE: Incorrect task type "${param.taskType}". Exiting.`);
+                    process.exit(1);
+                }
 
                 this.qlikSenseSchemaEvents.addSchemaEvent(schemaEvent);
 
@@ -496,24 +509,39 @@ class QlikSenseTasks {
                     completeSchemaEvent: schemaEvent,
                 });
 
-                this.taskNetwork.edges.push({
-                    from: nodeId,
-                    to: schemaEvent.reloadTask.id,
-                });
+                // Add edge from schema trigger node to current task, taking into account task type
+                if (param.taskType === 'reload') {
+                    this.taskNetwork.edges.push({
+                        from: nodeId,
+                        to: schemaEvent.reloadTask.id,
+                    });
 
-                // Keep a note that this node has associated events
-                param.nodesWithEvents.add(schemaEvent.reloadTask.id);
+                    // Keep a note that this node has associated events
+                    param.nodesWithEvents.add(schemaEvent.reloadTask.id);
+
+                    // Remove reference to task ID
+                    delete schemaEvent.reloadTask.id;
+                    delete schemaEvent.reloadTask;
+                } else if (param.taskType === 'external program') {
+                    this.taskNetwork.edges.push({
+                        from: nodeId,
+                        to: schemaEvent.externalProgramTask.id,
+                    });
+
+                    // Keep a note that this node has associated events
+                    param.nodesWithEvents.add(schemaEvent.externalProgramTask.id);
+
+                    // Remove reference to task ID
+                    delete schemaEvent.externalProgramTask.id;
+                    delete schemaEvent.externalProgramTask;
+                }
 
                 // Add this schema event to the current task
-                // Remove reference to task ID first though
-                delete schemaEvent.reloadTask.id;
-                delete schemaEvent.reloadTask;
-
-                prelAchemaEvents.push(schemaEvent);
+                prelSchemaEvents.push(schemaEvent);
             }
         }
 
-        return prelAchemaEvents;
+        return prelSchemaEvents;
     }
 
     // Function to get composite events for a specific task
@@ -613,7 +641,7 @@ class QlikSenseTasks {
                         } else {
                             // The task pointed to by the composite event rule does not exist
                             logger.error(
-                                `(${param.taskCounter}) PARSE TASKS FROM FILE: Task "${
+                                `(${param.taskCounter}) PARSE COMPOSITE EVENT RULE FROM FILE: Task "${
                                     rule[param.taskFileColumnHeaders.ruleTaskId.pos]
                                 }" does not exist. Exiting.`
                             );
@@ -825,6 +853,12 @@ class QlikSenseTasks {
                     ...tasksFromFile.data.map((item) => {
                         if (item.length === 0) {
                             // Empty row
+                            return -1;
+                        }
+
+                        // Is first column empty?
+                        if (item[taskFileColumnHeaders.taskCounter.pos] === undefined) {
+                            // Empty task counter column
                             return -1;
                         }
 
@@ -1112,10 +1146,10 @@ class QlikSenseTasks {
 
                     // Set task ID for the composite event itself, i.e. which task is the event associated with (i.e. the downstream task)
                     // Handle different task types differently
-                    if (item.compositeEvent.reloadTask.id) {
+                    if (item.compositeEvent?.reloadTask?.id) {
                         // Reload task
                         a.compositeEvent.reloadTask.id = this.taskIdMap.get(item.compositeEvent.reloadTask.id);
-                    } else if (item.compositeEvent.externalProgramTask.id) {
+                    } else if (item.compositeEvent?.externalProgramTask?.id) {
                         // External program task
                         a.compositeEvent.externalProgramTask.id = this.taskIdMap.get(item.compositeEvent.externalProgramTask.id);
                     }
@@ -1128,6 +1162,14 @@ class QlikSenseTasks {
 
                         // Get triggering/upstream task id
                         const id = this.taskIdMap.get(b.task.id);
+
+                        // If id is not found in the mapping table, it means that the task 
+                        // referenced by the rule (i.e. the upstream teask) is neither a task 
+                        // that existed before this execution of Ctrl-Q, nor a task that was
+                        // created during this execution of Ctrl-Q.
+                        // This is an error - the task ID should exist.
+                        // Most likely the error is caused by an invalid value in the "Rule task id" 
+                        // column in the source file.
                         if (id !== undefined && validate(id) === true) {
                             // Determine what kind of task this is. Options are:
                             // - reload
@@ -1157,23 +1199,31 @@ class QlikSenseTasks {
                             // Use mapTaskType to get the string variant of the task type. Convert to lower case.
                             const taskTypeString = mapTaskType.get(taskType).trim().toLowerCase();
 
+                            // Ensure we got a valid task type
+                            if (!['reload', 'externalprogram'].includes(taskTypeString)) {
+                                logger.error(
+                                    `PREPARING COMPOSITE EVENT: Invalid task type "${taskTypeString}" for upstream task ID "${b.task.id}" in rule for composite event "${a.compositeEvent.name}". Exiting.`
+                                );
+                                process.exit(1);
+                            }
+
                             if (taskTypeString === 'reload') {
                                 b.reloadTask = { id };
                             } else if (taskTypeString === 'externalprogram') {
                                 b.externalProgramTask = { id };
                             }
-                        } else if (this.options.dryRun === false || this.options.dryRun === undefined) {
+                        } else if (id === undefined) {
+                        // (this.options.dryRun === false || this.options.dryRun === undefined) {
                             logger.error(
-                                `PREPARING COMPOSITE EVENT: Invalid upstream task ID "${b.reloadTask.id}" in rule for composite event "${a.compositeEvent.name}" `
+                                `PREPARING COMPOSITE EVENT: Invalid upstream task ID "${b.task.id}" in rule for composite event "${a.compositeEvent.name}". Exiting.`
                             );
-                            b.reloadTask.id = null;
+                            process.exit(1);
                         }
                         return b;
                     });
                     return a;
                 });
 
-                // Loop over all composite events in the source file, create missing ones where needed
                 logger.info('-------------------------------------------------------------------');
                 logger.info('Creating composite events for the just created tasks...');
 
@@ -1233,9 +1283,17 @@ class QlikSenseTasks {
                     .then((result) => {
                         if (result.status === 201) {
                             const response = JSON.parse(result.data);
-                            logger.info(
-                                `CREATE COMPOSITE EVENT IN QSEOW: Event name="${newCompositeEvent.name}" for task ID ${response.reloadTask.id}. Result: ${result.status}/${result.statusText}.`
-                            );
+
+                            if (response?.reloadTask) {
+                                logger.info(
+                                    `CREATE COMPOSITE EVENT IN QSEOW: Event name="${newCompositeEvent.name}" for task ID ${response.reloadTask.id}. Result: ${result.status}/${result.statusText}.`
+                                );
+                            } else if (response?.externalProgramTask) {
+                                logger.info(
+                                    `CREATE COMPOSITE EVENT IN QSEOW: Event name="${newCompositeEvent.name}" for task ID ${response.externalProgramTask.id}. Result: ${result.status}/${result.statusText}.`
+                                );
+                            }
+
                             resolve(response.id);
                         } else {
                             reject();
@@ -1325,26 +1383,27 @@ class QlikSenseTasks {
 
                 // Build a body for the API call
                 const body = {
-                    name: newTask.name,
-                    taskType: 1,
-                    enabled: newTask.enabled,
-                    taskSessionTimeout: newTask.taskSessionTimeout,
-                    maxRetries: newTask.maxRetries,
-                    path: newTask.path,
-                    parameters: newTask.parameters,
-                    tags: newTask.tags,
-                    customProperties: newTask.customProperties,
-                    schemaPath: 'ExternalProgramTask',
-                    // schemaPath: 'ExternalProgramTask',
+                    task: {
+                        name: newTask.name,
+                        taskType: 1,
+                        enabled: newTask.enabled,
+                        taskSessionTimeout: newTask.taskSessionTimeout,
+                        maxRetries: newTask.maxRetries,
+                        path: newTask.path,
+                        parameters: newTask.parameters,
+                        tags: newTask.tags,
+                        customProperties: newTask.customProperties,
+                        schemaPath: 'ExternalProgramTask',
+                    },
+                    schemaEvents: newTask.schemaEvents,
                 };
-                // schemaEvents: newTask.schemaEvents,
 
                 // Save task to QSEoW
                 const axiosConfig = setupQRSConnection(this.options, {
                     method: 'post',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
-                    path: '/qrs/externalprogramtask',
+                    path: '/qrs/externalprogramtask/create',
                     body,
                 });
 
@@ -2041,7 +2100,7 @@ class QlikSenseTasks {
                     // Add edges from upstream tasks to the new meta node
                     // eslint-disable-next-line no-restricted-syntax
                     for (const rule of compositeEvent.compositeEvent.compositeRules) {
-                        if (validate(rule.reloadTask.id)) {
+                        if (validate(rule?.reloadTask?.id)) {
                             // Upstream task is a reload task
                             logger.debug(
                                 `Composite event "${compositeEvent.compositeEvent.name}" is triggered by reload task with ID=${rule.reloadTask.id}.`
@@ -2057,14 +2116,14 @@ class QlikSenseTasks {
                                 completeCompositeEvent: compositeEvent.compositeEvent,
                                 rule,
                             });
-                        } else if (validate(rule.externalProgramTask.id)) {
+                        } else if (validate(rule?.externalProgramTask?.id)) {
                             // Upstream task is an external program task
                             logger.debug(
                                 `Composite event "${compositeEvent.compositeEvent.name}" is triggered by external program task with ID=${rule.externalProgramTask.id}.`
                             );
 
                             this.taskNetwork.edges.push({
-                                from: rule.reloadTask.id,
+                                from: rule.externalProgramTask.id,
                                 fromTaskType: 'ExternalProgram',
                                 to: nodeId,
                                 toTaskType: 'Composite',
@@ -2201,7 +2260,7 @@ class QlikSenseTasks {
                             );
 
                             this.taskNetwork.edges.push({
-                                from: rule.reloadTask.id,
+                                from: rule.externalProgramTask.id,
                                 fromTaskType: 'ExternalProgram',
                                 to: nodeId,
                                 toTaskType: 'Composite',
@@ -2222,10 +2281,17 @@ class QlikSenseTasks {
                         `Added edge from new meta composite event node "${nodeId}" to reload task ID=${compositeEvent.compositeEvent?.reloadTask?.id}.`
                     );
 
-                    this.taskNetwork.edges.push({
-                        from: nodeId,
-                        to: compositeEvent.compositeEvent.reloadTask.id,
-                    });
+                    if (compositeEvent.compositeEvent?.reloadTask) {
+                        this.taskNetwork.edges.push({
+                            from: nodeId,
+                            to: compositeEvent.compositeEvent.reloadTask.id,
+                        });
+                    } else if (compositeEvent.compositeEvent?.externalProgramTask) {
+                        this.taskNetwork.edges.push({
+                            from: nodeId,
+                            to: compositeEvent.compositeEvent.externalProgramTask.id,
+                        });
+                    }
                 }
             }
         }

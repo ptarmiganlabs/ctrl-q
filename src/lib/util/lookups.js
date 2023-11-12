@@ -116,6 +116,7 @@ const taskFileColumnHeaders = {
     eventCreatedDate: { name: 'Event created date', pos: -1 },
     eventModifiedDate: { name: 'Event modified date', pos: -1 },
     eventModifiedBy: { name: 'Event modified by', pos: -1 },
+
     schemaIncrementOption: { name: 'Schema increment option', pos: -1 },
     schemaIncrementDescription: { name: 'Schema increment description', pos: -1 },
     daylightSavingsTime: { name: 'Daylight savings time', pos: -1 },
@@ -123,6 +124,7 @@ const taskFileColumnHeaders = {
     scheamExpiration: { name: 'Schema expiration', pos: -1 },
     schemaFilterDescription: { name: 'Schema filter description', pos: -1 },
     schemaTimeZone: { name: 'Schema time zone', pos: -1 },
+
     timeConstraintSeconds: { name: 'Time contstraint seconds', pos: -1 },
     timeConstraintMinutes: { name: 'Time contstraint minutes', pos: -1 },
     timeConstraintHours: { name: 'Time contstraint hours', pos: -1 },
