@@ -645,7 +645,7 @@ const program = new Command();
                 taskImportAssertOptions(options);
                 importTaskFromFile(options);
             } catch (err) {
-                logger.error(`IMPORT TASK: ${err}`);
+                logger.error(`IMPORT TASK 1: ${err}`);
             }
         })
         .addOption(

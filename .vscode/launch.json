@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Launch Program",
       "program": "${workspaceFolder}/src/ctrl-q.js",
-      "runtimeVersion": "19",
+      "runtimeVersion": "20",
       "cwd": "${workspaceFolder}",
 
       // ------------------------------------
@@ -79,7 +79,7 @@
       //   "--file-name",
       //   "testdata/tasks.xlsx",
       //   "--sheet-name",
-      //   "4"
+      //   "7"
 
       //   // "--import-app",
       //   // "--import-app-sheet-name",
@@ -100,37 +100,45 @@
       // ------------------------------------
       // Import tasks from CSV file
       // ------------------------------------
-      // "args": [
-      //   "task-import",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   "192.168.100.109",
-      //   // "--auth-cert-file",
-      //   // "./cert/client.pem",
-      //   // "--auth-cert-key-file",
-      //   // "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
+      "args": [
+        "task-import",
+        "--auth-type",
+        "cert",
+        "--host",
+        // "192.168.100.109",
+        "10.211.55.15",
 
-      //   "--file-type",
-      //   "csv",
+        "--auth-cert-file",
+        "../../code/secret/winsrv.local/client.pem",
+        "--auth-cert-key-file",
+        "../../code/secret/winsrv.local/client_key.pem",        
+        // "--auth-cert-file",
+        // "./cert/client.pem",
+        // "--auth-cert-key-file",
+        // "./cert/client_key.pem",
+        "--auth-user-dir",
+        "winsrv1",
+        // "LAB",
+        "--auth-user-id",
+        "goran",
 
-      //   "--file-name",
-      //   // "tasks2source.csv",
-      //   // "task-chain.csv",
-      //   "testdata/reload-tasks.csv",
+        "--file-type",
+        "csv",
 
-      //   // "--qvf-overwrite",
-      //   // "no",
+        "--file-name",
+        // "tasks2source.csv",
+        // "task-chain.csv",
+        // "testdata/reload-tasks.csv",
+        "./tasks_all.csv",
 
-      //   // "--limit-import-count",
-      //   // "2",
+        // "--qvf-overwrite",
+        // "no",
 
-      //   // "--dry-run"
-      // ]
+        "--limit-import-count",
+        "2",
+
+        // "--dry-run"
+      ]
 
       // ------------------------------------
       // Export apps to QVF files
@@ -350,7 +358,8 @@
       //   "file",
       //   "--output-file-name",
       //   // "tasks.xlsx",
-      //   "tasks.csv",
+      //   // "tasks.csv",
+      //   "tasks_all.csv",
       //   // "tasks2.json",
       //   // "tasks2.xlsx",
       //   "--output-file-format",
@@ -358,28 +367,28 @@
       //   // "json",
       //   "csv",
 
-      //   "--output-file-name",
-      //   // "reload-tasks.xlsx",
-      //   "reload-tasks.csv",
+      // //   "--output-file-name",
+      // //   // "reload-tasks.xlsx",
+      // //   "reload-tasks.csv",
 
-      //   // "--text-color",
-      //   // "no",
+      // //   // "--text-color",
+      // //   // "no",
 
-      //   // "--output-file-overwrite",
+      // //   // "--output-file-overwrite",
 
-      //   "--table-details",
-      //   // "common",
-      //   // "lastexecution",
-      //   // "tag",
-      //   // "customproperty",
-      //   // "schematrigger",
-      //   // "compositetrigger",
-      //   // "comptimeconstraint",
-      //   // "comprule",
+      // //   "--table-details",
+      // //   // "common",
+      // //   // "lastexecution",
+      // //   // "tag",
+      // //   // "customproperty",
+      // //   // "schematrigger",
+      // //   // "compositetrigger",
+      // //   // "comptimeconstraint",
+      // //   // "comprule",
 
-      //   // "--log-level",
-      //   // "debug"
-      // ]
+      // //   // "--log-level",
+      // //   // "debug"
+      // // ]
 
       // ------------------------------------
       // Create custom property with user activity buckets
@@ -771,17 +780,17 @@
       // ------------------------------------
       // Connection test
       // ------------------------------------
-      "args": [
-        "connection-test",
-        "--host",
-        "192.168.100.109",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-        "--log-level",
-        "info"
-      ]
+      // "args": [
+      //   "connection-test",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+      //   "--log-level",
+      //   "info"
+      // ]
 
     }
   ]

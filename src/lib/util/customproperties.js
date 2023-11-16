@@ -47,7 +47,7 @@ function getCustomPropertyIdByName(objectType, customPropertyName, cpExisting) {
             // The custom property exists, but is it enabled for this object type (task, app etc)?
             const correctObjectType = cp[0].objectTypes.find((item) => objectType.toLowerCase() === item.toLowerCase());
             if (!correctObjectType) {
-                logger.warn(`Custom property "${customPropertyName}" is not valid for object type "${objectType}".`);
+                logger.warn(`Custom property "${customPropertyName}" is not valid for task type "${objectType}".`);
                 resolve(false);
             }
 
@@ -82,7 +82,7 @@ function getCustomPropertyIdByName(objectType, customPropertyName, cpExisting) {
 //                 if (result.status === 200 && result.data.length === 1) {
 //                     const correctObjectType = result.data[0].objectTypes.find((item) => objectType.toLowerCase() === item.toLowerCase());
 //                     if (!correctObjectType) {
-//                         logger.warn(`Custom property "${customPropertyName}" is not valid for object type "${objectType}".`);
+//                         logger.warn(`Custom property "${customPropertyName}" is not valid for task type "${objectType}".`);
 //                         resolve(false);
 //                     }
 
@@ -108,7 +108,7 @@ function getCustomPropertyDefinitionByName(objectType, customPropertyName, cpExi
             // The custom property exists, but is it enabled for this object type (task, app etc)?
             const correctObjectType = cp[0].objectTypes.find((item) => objectType.toLowerCase() === item.toLowerCase());
             if (!correctObjectType) {
-                logger.warn(`Custom property "${customPropertyName}" is not valid for object type "${objectType}".`);
+                logger.warn(`Custom property "${customPropertyName}" is not valid for task type "${objectType}".`);
                 resolve(false);
             }
 
@@ -143,7 +143,7 @@ function getCustomPropertyDefinitionByName(objectType, customPropertyName, cpExi
 //                 if (result.status === 200 && result.data.length === 1) {
 //                     const correctObjectType = result.data[0].objectTypes.find((item) => objectType.toLowerCase() === item.toLowerCase());
 //                     if (!correctObjectType) {
-//                         logger.warn(`Custom property "${customPropertyName}" is not valid for object type "${objectType}".`);
+//                         logger.warn(`Custom property "${customPropertyName}" is not valid for task type "${objectType}".`);
 //                         resolve(false);
 //                     }
 
@@ -171,7 +171,7 @@ function doesCustomPropertyValueExist(objectType, customPropertyName, customProp
             // The custom property exists, but is it enabled for this object type (task, app etc)?
             const correctObjectType = cp[0].objectTypes.find((item) => objectType.toLowerCase() === item.toLowerCase());
             if (!correctObjectType) {
-                logger.warn(`Custom property "${customPropertyName}" is not valid for object type "${objectType}".`);
+                logger.warn(`Custom property "${customPropertyName}" is not valid for task type "${objectType}".`);
                 resolve(false);
             }
 
@@ -217,7 +217,7 @@ function doesCustomPropertyValueExist(objectType, customPropertyName, customProp
 //                 if (result.status === 200 && result.data.length === 1) {
 //                     const correctObjectType = result.data[0].objectTypes.find((item) => objectType.toLowerCase() === item.toLowerCase());
 //                     if (!correctObjectType) {
-//                         logger.warn(`Custom property "${customPropertyName}" is not valid for object type "${objectType}".`);
+//                         logger.warn(`Custom property "${customPropertyName}" is not valid for task type "${objectType}".`);
 //                         resolve(false);
 //                     }
 

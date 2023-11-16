@@ -20,15 +20,23 @@ class QlikSenseTask {
             // Data in the "task" parameter was loaded from a Qlik Sense (QSEoW) server
             if (task.schemaPath === 'ReloadTask') {
                 this.sourceType = 'from_qseow';
-                this.taskId = task.id;
+
+                if (task.id) {
+                    this.taskId = task.id;
+                }
 
                 if (anonymizeTaskNames === true) {
                     this.taskName = randomWords({ min: 2, max: 5, join: ' ' });
-                    this.appName = randomWords({ min: 2, max: 5, join: ' ' });
+                    if (task.app.name) {
+                        this.appName = randomWords({ min: 2, max: 5, join: ' ' });
+                    }
                 } else {
                     this.taskName = task.name;
-                    this.appName = task.app.name;
+                    if (task.app.name) {
+                        this.appName = task.app.name;
+                    }
                 }
+
                 this.taskEnabled = task.enabled;
                 this.appId = task.app.id;
                 this.appPublished = task.app.published;
@@ -37,6 +45,7 @@ class QlikSenseTask {
                 this.taskSessionTimeout = task.taskSessionTimeout;
                 this.isPartialReload = task.isPartialReload;
                 this.isManuallyTriggered = task.isManuallyTriggered;
+
                 this.taskLastExecutionStartTimestamp =
                     task.operational.lastExecutionResult.startTime === '1753-01-01T00:00:00.000Z'
                         ? ''
@@ -49,6 +58,7 @@ class QlikSenseTask {
                 this.taskLastExecutionExecutingNodeName = task.operational.lastExecutionResult.executingNodeName;
                 this.taskNextExecutionTimestamp =
                     task.operational.nextExecution === '1753-01-01T00:00:00.000Z' ? '' : task.operational.nextExecution;
+
                 this.taskTags = task.tags;
                 this.taskTagsFriendly = task.tags.map((tag) => tag.name);
                 this.taskCustomProperties = task.customProperties;
@@ -61,6 +71,7 @@ class QlikSenseTask {
                 }
 
                 this.completeTaskObject = task;
+                this.taskType = 0;
                 logger.silly(`Initialised reload task object from QSEoW: ${JSON.stringify(task)}`);
             } else if (task.schemaPath === 'ExternalProgramTask') {
                 this.sourceType = 'from_qseow';
@@ -77,6 +88,7 @@ class QlikSenseTask {
                 this.taskEnabled = task.enabled;
                 this.taskMaxRetries = task.maxRetries;
                 this.taskSessionTimeout = task.taskSessionTimeout;
+
                 this.taskLastExecutionStartTimestamp =
                     task?.operational?.lastExecutionResult?.startTime === '1753-01-01T00:00:00.000Z'
                         ? ''
@@ -89,6 +101,7 @@ class QlikSenseTask {
                 this.taskLastExecutionExecutingNodeName = task?.operational?.lastExecutionResult?.executingNodeName;
                 this.taskNextExecutionTimestamp =
                     task?.operational?.nextExecution === '1753-01-01T00:00:00.000Z' ? '' : task?.operational?.nextExecution;
+
                 this.taskTags = task.tags;
                 this.taskTagsFriendly = task.tags.map((tag) => tag.name);
                 this.taskCustomProperties = task.customProperties;
@@ -101,26 +114,18 @@ class QlikSenseTask {
                 }
 
                 this.completeTaskObject = task;
+                this.taskType = 1;
                 logger.silly(`Initialised external program task object from QSEoW: ${JSON.stringify(task)}`);
             }
         } else if (source.toLowerCase() === 'from_file') {
             // Data in the "task" parameter was loaded from a task definition file on disk
-            this.sourceType = 'from_file';
-            if (task.taskType === 0) {
-                this.taskType = task.taskType;
+            if (task.schemaPath === 'ReloadTask') {
+                this.sourceType = 'from_file';
 
                 if (task.id) {
                     this.taskId = task.id;
                 }
-                this.taskName = task.name;
-                this.taskEnabled = task.enabled;
 
-                this.taskSessionTimeout = task.taskSessionTimeout;
-                this.taskMaxRetries = task.maxRetries;
-                this.isPartialReload = task.isPartialReload;
-                this.isManuallyTriggered = task.isManuallyTriggered;
-
-                this.appId = task.app.id;
                 if (anonymizeTaskNames === true) {
                     this.taskName = randomWords({ min: 2, max: 5, join: ' ' });
                     if (task.app.name) {
@@ -133,6 +138,15 @@ class QlikSenseTask {
                     }
                 }
 
+                this.taskEnabled = task.enabled;
+                this.appId = task.app.id;
+                this.appPublished = task.app.published;
+                this.appStream = task.app.published ? task.app.stream.name : '';
+                this.taskMaxRetries = task.maxRetries;
+                this.taskSessionTimeout = task.taskSessionTimeout;
+                this.isPartialReload = task.isPartialReload;
+                this.isManuallyTriggered = task.isManuallyTriggered;
+
                 this.taskTags = task.tags;
                 this.taskTagsFriendly = task.tags.map((tag) => tag.name);
                 this.taskCustomProperties = task.customProperties;
@@ -142,8 +156,33 @@ class QlikSenseTask {
                 this.compositeEvents = task.compositeEvents;
 
                 this.completeTaskObject = task;
+                this.taskType = 0;
+                logger.silly(`Initialised task object from file: ${JSON.stringify(task)}`);
+            } else if (task.schemaPath === 'ExternalProgramTask') {
+                this.sourceType = 'from_file';
+                this.taskId = task.id;
+
+                this.path = task.path;
+                this.parameters = task.parameters;
+
+                if (anonymizeTaskNames === true) {
+                    this.taskName = randomWords({ min: 2, max: 5, join: ' ' });
+                } else {
+                    this.taskName = task.name;
+                }
+                this.taskEnabled = task.enabled;
+                this.taskMaxRetries = task.maxRetries;
+                this.taskSessionTimeout = task.taskSessionTimeout;
+
+                this.taskTags = task.tags;
+                this.taskTagsFriendly = task.tags.map((tag) => tag.name);
+                this.taskCustomProperties = task.customProperties;
+                this.taskCustomPropertiesFriendly = task.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`);
+
+                this.completeTaskObject = task;
+                this.taskType = 1;
+                logger.silly(`Initialised external program task object from file: ${JSON.stringify(task)}`);
             }
-            logger.silly(`Initialised task object from file: ${JSON.stringify(task)}`);
         }
     }
 }
