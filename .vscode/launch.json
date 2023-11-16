@@ -9,7 +9,7 @@
       "request": "launch",
       "name": "Launch Program",
       "program": "${workspaceFolder}/src/ctrl-q.js",
-      "runtimeVersion": "19",
+      "runtimeVersion": "20",
       "cwd": "${workspaceFolder}",
 
       // ------------------------------------
@@ -100,38 +100,45 @@
       // ------------------------------------
       // Import tasks from CSV file
       // ------------------------------------
-      // "args": [
-      //   "task-import",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   "192.168.100.109",
-      //   // "--auth-cert-file",
-      //   // "./cert/client.pem",
-      //   // "--auth-cert-key-file",
-      //   // "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "LAB",
-      //   "--auth-user-id",
-      //   "goran",
+      "args": [
+        "task-import",
+        "--auth-type",
+        "cert",
+        "--host",
+        // "192.168.100.109",
+        "10.211.55.15",
 
-      //   "--file-type",
-      //   "csv",
+        "--auth-cert-file",
+        "../../code/secret/winsrv.local/client.pem",
+        "--auth-cert-key-file",
+        "../../code/secret/winsrv.local/client_key.pem",        
+        // "--auth-cert-file",
+        // "./cert/client.pem",
+        // "--auth-cert-key-file",
+        // "./cert/client_key.pem",
+        "--auth-user-dir",
+        "winsrv1",
+        // "LAB",
+        "--auth-user-id",
+        "goran",
 
-      //   "--file-name",
-      //   // "tasks2source.csv",
-      //   // "task-chain.csv",
-      //   // "testdata/reload-tasks.csv",
-      //   "./tasks5.csv",
+        "--file-type",
+        "csv",
 
-      //   // "--qvf-overwrite",
-      //   // "no",
+        "--file-name",
+        // "tasks2source.csv",
+        // "task-chain.csv",
+        // "testdata/reload-tasks.csv",
+        "./tasks_all.csv",
 
-      //   // "--limit-import-count",
-      //   // "2",
+        // "--qvf-overwrite",
+        // "no",
 
-      //   // "--dry-run"
-      // ]
+        "--limit-import-count",
+        "2",
+
+        // "--dry-run"
+      ]
 
       // ------------------------------------
       // Export apps to QVF files
@@ -319,69 +326,69 @@
       //   "comprule"
       // ]
 
-      ------------------------------------
-      Get reload tasks as CSV/Excel/JSON file
-      ------------------------------------
-      "args": [
-        "task-get",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        // "--auth-cert-file",
-        // "./cert/client.pem",
-        // "--auth-cert-key-file",
-        // "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
-        // "--task-id",
-        // "82bc3e66-c899-4e44-b52f-552145da5ee0",
-        // "82bc3e66-c899-4e44-b52f-552145da5ee1",
-        // "5748afa9-3abe-43ab-bb1f-127c48ced075",
-        // "5520e710-91ad-41d2-aeb6-434cafbf366b",
-        // "--task-tag",
-        // "Ctrl-Q demo",
-        // "Butler 5.0 demo",
+      // ------------------------------------
+      // Get reload tasks as CSV/Excel/JSON file
+      // ------------------------------------
+      // "args": [
+      //   "task-get",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   // "--auth-cert-file",
+      //   // "./cert/client.pem",
+      //   // "--auth-cert-key-file",
+      //   // "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
+      //   // "--task-id",
+      //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+      //   // "82bc3e66-c899-4e44-b52f-552145da5ee1",
+      //   // "5748afa9-3abe-43ab-bb1f-127c48ced075",
+      //   // "5520e710-91ad-41d2-aeb6-434cafbf366b",
+      //   // "--task-tag",
+      //   // "Ctrl-Q demo",
+      //   // "Butler 5.0 demo",
 
-        "--output-format",
-        "table",
-        "--output-dest",
-        "file",
-        "--output-file-name",
-        // "tasks.xlsx",
-        // "tasks.csv",
-        "tasks_all.csv",
-        // "tasks2.json",
-        // "tasks2.xlsx",
-        "--output-file-format",
-        // "excel",
-        // "json",
-        "csv",
-
+      //   "--output-format",
+      //   "table",
+      //   "--output-dest",
+      //   "file",
       //   "--output-file-name",
-      //   // "reload-tasks.xlsx",
-      //   "reload-tasks.csv",
+      //   // "tasks.xlsx",
+      //   // "tasks.csv",
+      //   "tasks_all.csv",
+      //   // "tasks2.json",
+      //   // "tasks2.xlsx",
+      //   "--output-file-format",
+      //   // "excel",
+      //   // "json",
+      //   "csv",
 
-      //   // "--text-color",
-      //   // "no",
+      // //   "--output-file-name",
+      // //   // "reload-tasks.xlsx",
+      // //   "reload-tasks.csv",
 
-      //   // "--output-file-overwrite",
+      // //   // "--text-color",
+      // //   // "no",
 
-      //   "--table-details",
-      //   // "common",
-      //   // "lastexecution",
-      //   // "tag",
-      //   // "customproperty",
-      //   // "schematrigger",
-      //   // "compositetrigger",
-      //   // "comptimeconstraint",
-      //   // "comprule",
+      // //   // "--output-file-overwrite",
 
-      //   // "--log-level",
-      //   // "debug"
-      // ]
+      // //   "--table-details",
+      // //   // "common",
+      // //   // "lastexecution",
+      // //   // "tag",
+      // //   // "customproperty",
+      // //   // "schematrigger",
+      // //   // "compositetrigger",
+      // //   // "comptimeconstraint",
+      // //   // "comprule",
+
+      // //   // "--log-level",
+      // //   // "debug"
+      // // ]
 
       // ------------------------------------
       // Create custom property with user activity buckets

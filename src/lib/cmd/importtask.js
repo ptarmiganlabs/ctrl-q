@@ -15,65 +15,40 @@ const { getCustomPropertiesFromQseow } = require('../util/customproperties');
 
 const getHeaders = async (options) => {
     const records = [];
+
     const parser = fs.createReadStream(options.fileName).pipe(
         parse({
             info: true,
-            to_line: 1,
+            skip_empty_lines: true,
         })
     );
-    parser.on('readable', () => {
-        let record;
-        while ((record = parser.read()) !== null) {
-            // Work with each record
-            records.push(record);
+
+    // Get the header row
+    // eslint-disable-next-line no-restricted-syntax
+    for await (const record of parser) {
+        if (record.info.lines === 1) {
+            // Header row
+            records.push(record.record);
         }
-    });
-    await finished(parser);
+    }
+
     return records;
 };
 
 const processCsvFile = async (options) => {
-    // First get header row
-
-    // const parser = parse({
-    //     delimiter: ',',
-    //     info: true,
-    //     // to_line: 1,
-    // });
-
-    // const parser = fs.createReadStream(options.fileName).pipe(
-    //     parse({
-    //         info: true,
-    //         to_line: 1,
-    //     }).pipe(process.stdout)
-    // );
-
     const headers = await getHeaders(options);
-
-    // const headers = fs.createReadStream(options.fileName).pipe(parser).pipe(process.stdout);
-
-    // const content = await fsp.readFile(options.fileName);
-
-    // Parse the CSV content
-    // const headers = parse(content, { bom: true, to_line: 1 });
 
     const headerRow = [];
 
     // Push all column headers to array
     // eslint-disable-next-line no-restricted-syntax
-    for (const record of headers) {
+    for (const record of headers[0]) {
         // Get each column header text
-        headerRow.push(record.record);
+        headerRow.push(record);
     }
-    // // eslint-disable-next-line no-restricted-syntax
-    // for await (const record of headers) {
-    //     // for await (const record of parser) {
-    //     // Get each column header text
-    //     headerRow.push(record.record);
-    // }
 
     // Get positions of column headers
-    const colHeaders = getTaskColumnPosFromHeaderRow(headerRow[0]);
+    const colHeaders = getTaskColumnPosFromHeaderRow(headerRow);
 
     const records = [];
     const parser = fs.createReadStream(options.fileName).pipe(
@@ -439,7 +414,7 @@ const importTaskFromFile = async (options) => {
         await qlikSenseTasks.init(options, importedApps);
         const taskList = await qlikSenseTasks.getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting);
     } catch (err) {
-        logger.error(`IMPORT TASK: ${err.stack}`);
+        logger.error(`IMPORT TASK 2: ${err.stack}`);
     }
 };
 
