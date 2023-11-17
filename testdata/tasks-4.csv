@@ -1,0 +1,7 @@
+Task counter,Task type,Task name,Task id,Task enabled,Task timeout,Task retries,App id,Partial reload,Manually triggered,Ext program path,Ext program parameters,Task status,Task started,Task ended,Task duration,Task executedon node,Tags,Custom properties,Event counter,Event type,Event name,Event enabled,Event created date,Event modified date,Event modified by,Schema increment option,Schema increment description,Daylight savings time,Schema start,Schema expiration,Schema filter description,Schema time zone,Time contstraint seconds,Time contstraint minutes,Time contstraint hours,Time contstraint days,Rule counter,Rule state,Rule task name,Rule task id
+1,Reload,New reload task 1,task-1,1,1440,0,4716f284-7790-45c3-a0a5-154c898766a0,0,1,,,❔ ?,,,0:00:00,,Butler 5.0 demo,TaskPriority=High,,,,,,,,,,,,,,,,,,,,,,
+1,,,,,,,,,,,,,,,,,,,1,Schema,Hourly,,,,LAB\goran,hourly,30 0 0 0,ObserveDaylightSavingTime,2021-12-08T14:21:49.000,9999-01-01T00:00:00.000,* * - * * * * *,Europe/Paris,,,,,,,,
+2,Reload,New reload task 2,task-2,1,1440,0,df013a07-d219-46c8-8d32-09b87fd87553,0,1,,,❔ ?,,,0:00:00,,Butler 5.0 demo,TaskPriority=High,,,,,,,,,,,,,,,,,,,,,,
+2,,,,,,,,,,,,,,,,,,,1,Schema,Daily,1,,,LAB\goran,daily,0 0 1 0,ObserveDaylightSavingTime,2022-10-17T11:37:26.000,9999-01-01T00:00:00.000,* * - * * * * *,Europe/Paris,,,,,,,,
+2,,,,,,,,,,,,,,,,,,,1,Composite,When reload task 1 done,1,,,LAB\goran,,,,,,,,0,360,0,0,,,,
+2,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,,task-1
