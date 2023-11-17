@@ -792,7 +792,7 @@ const program = new Command();
     // Test connection command
     program
         .command('connection-test')
-        .description('test connection to Qlik Sense server')
+        .description('test connection to Qlik Sense server.')
         .action(async (options) => {
             try {
                 await sharedParamAssertOptions(options);
