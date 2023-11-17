@@ -1646,12 +1646,17 @@ class QlikSenseTasks {
             let kids = [];
             // eslint-disable-next-line no-restricted-syntax
             for (const downstreamTask of downstreamTasks) {
+                logger.debug(
+                    `GET TASK SUBTREE: Processing downstream task: ${downstreamTask.to}. Current/source task: ${downstreamTask.from}`
+                );
                 if (downstreamTask.to !== undefined) {
                     // Get downstream task object
                     const tmp = self.taskNetwork.nodes.find((el) => el.id === downstreamTask.to);
 
                     if (!tmp) {
-                        logger.warn(`Downstream task in task tree not found. From: ${downstreamTask.from}, to: ${downstreamTask.to} `);
+                        logger.warn(
+                            `Downstream task "${downstreamTask.to}" in task tree not found. Current/source task: ${downstreamTask.from}`
+                        );
                         kids = [
                             {
                                 id: task.id,
