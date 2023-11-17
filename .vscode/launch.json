@@ -292,16 +292,17 @@
         "--auth-user-id",
         "goran",
 
-        "--task-type",
-      //  "reload",
+        // "--task-type",
+        //  "reload",
         "ext-program",
 
-        "--task-id",
-        "afc250bc-28c3-49a2-8d63-80966749abe3",
+        // "--task-id",
+        // "afc250bc-28c3-49a2-8d63-80966749abe3",
         // "5748afa9-3abe-43ab-bb1f-127c48ced075",
         // "5520e710-91ad-41d2-aeb6-434cafbf366b",
         "--output-format",
-        "table",
+        // "table",
+        "tree",
 
         "--output-dest",
         "screen",

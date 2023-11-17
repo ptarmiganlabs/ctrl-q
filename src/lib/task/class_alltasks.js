@@ -1163,12 +1163,12 @@ class QlikSenseTasks {
                         // Get triggering/upstream task id
                         const id = this.taskIdMap.get(b.task.id);
 
-                        // If id is not found in the mapping table, it means that the task 
-                        // referenced by the rule (i.e. the upstream teask) is neither a task 
+                        // If id is not found in the mapping table, it means that the task
+                        // referenced by the rule (i.e. the upstream teask) is neither a task
                         // that existed before this execution of Ctrl-Q, nor a task that was
                         // created during this execution of Ctrl-Q.
                         // This is an error - the task ID should exist.
-                        // Most likely the error is caused by an invalid value in the "Rule task id" 
+                        // Most likely the error is caused by an invalid value in the "Rule task id"
                         // column in the source file.
                         if (id !== undefined && validate(id) === true) {
                             // Determine what kind of task this is. Options are:
@@ -1213,7 +1213,7 @@ class QlikSenseTasks {
                                 b.externalProgramTask = { id };
                             }
                         } else if (id === undefined) {
-                        // (this.options.dryRun === false || this.options.dryRun === undefined) {
+                            // (this.options.dryRun === false || this.options.dryRun === undefined) {
                             logger.error(
                                 `PREPARING COMPOSITE EVENT: Invalid upstream task ID "${b.task.id}" in rule for composite event "${a.compositeEvent.name}". Exiting.`
                             );
@@ -1562,56 +1562,53 @@ class QlikSenseTasks {
             let axiosConfig;
             let tasks = [];
 
-            if (this.options.taskType.find((item) => item === 'reload')) {
-                if (filter === '') {
-                    axiosConfig = setupQRSConnection(this.options, {
-                        method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        path: '/qrs/reloadtask/full',
-                    });
-                } else {
-                    axiosConfig = setupQRSConnection(this.options, {
-                        method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        path: '/qrs/reloadtask/full',
-                        queryParameters: [{ name: 'filter', value: filter }],
-                    });
-                }
-
-                const result = await axios.request(axiosConfig);
-                logger.debug(`GET RELOAD TASK: Result=result.status`);
-
-                tasks = tasks.concat(JSON.parse(result.data));
-                logger.verbose(`GET RELOAD TASK: # tasks: ${tasks.length}`);
+            // Get reload tasks
+            if (filter === '') {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/reloadtask/full',
+                });
+            } else {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/reloadtask/full',
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
             }
+
+            let result = await axios.request(axiosConfig);
+            logger.debug(`GET RELOAD TASK: Result=result.status`);
+
+            tasks = tasks.concat(JSON.parse(result.data));
+            logger.verbose(`GET RELOAD TASK: # tasks: ${tasks.length}`);
 
             // Get external program tasks
-            if (this.options.taskType.find((item) => item === 'ext-program')) {
-                if (filter === '') {
-                    axiosConfig = setupQRSConnection(this.options, {
-                        method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        path: '/qrs/externalprogramtask/full',
-                    });
-                } else {
-                    axiosConfig = setupQRSConnection(this.options, {
-                        method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        path: '/qrs/externalprogramtask/full',
-                        queryParameters: [{ name: 'filter', value: filter }],
-                    });
-                }
-
-                const result = await axios.request(axiosConfig);
-                logger.debug(`GET EXT PROGRAM TASK: Result=result.status`);
-
-                tasks = tasks.concat(JSON.parse(result.data));
-                logger.verbose(`GET EXT PROGRAM TASK: # tasks: ${tasks.length}`);
+            if (filter === '') {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/externalprogramtask/full',
+                });
+            } else {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/externalprogramtask/full',
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
             }
+
+            result = await axios.request(axiosConfig);
+            logger.debug(`GET EXT PROGRAM TASK: Result=result.status`);
+
+            tasks = tasks.concat(JSON.parse(result.data));
+            logger.verbose(`GET EXT PROGRAM TASK: # tasks: ${tasks.length}`);
 
             // TODO
             // Determine whether task name anonymisation should be done
