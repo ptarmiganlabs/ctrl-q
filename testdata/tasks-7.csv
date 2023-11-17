@@ -1,0 +1,59 @@
+Task counter,Task type,Task name,Task id,Task enabled,Task timeout,Task retries,App id,Partial reload,Manually triggered,Ext program path,Ext program parameters,Task status,Task started,Task ended,Task duration,Task executedon node,Tags,Custom properties,Event counter,Event type,Event name,Event enabled,Event created date,Event modified date,Event modified by,Schema increment option,Schema increment description,Daylight savings time,Schema start,Schema expiration,Schema filter description,Schema time zone,Time contstraint seconds,Time contstraint minutes,Time contstraint hours,Time contstraint days,Rule counter,Rule state,Rule task name,Rule task id
+1,External program,New external program task 1,task-1,1,1440,3,,,,C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe,-File \\pro2-win1\c$\tools\script\ext_task_1.ps1,❔ ?,,,0:00:00,,api1,Department=Finance / Department=Sales,,,,,,,,,,,,,,,,,,,,,,
+2,External program,Ext program task chaining 1,task-2,1,15,0,,,,powershell.exe,-File \\pro2-win1\c$\tools\script\ext_task_1.ps1,🛑 Aborted,2023-09-26T05:58:55.590Z,2023-09-26T06:23:38.346Z,0:24:42,pro2-win1.lab.ptarmiganlabs.net,,,,,,,,,,,,,,,,,,,,,,,,
+3,External program,Ext task 1,task-3,1,1440,3,,,,C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe,-File \\pro2-win1\c$\tools\script\ext_task_1.ps1,❔ ?,,,0:00:00,,api1,Department=Finance / Department=Sales,,,,,,,,,,,,,,,,,,,,,,
+3,,,,,,,,,,,,,,,,,,,1,Schema,Weekly,,2023-11-12T16:44:04.330Z,2023-11-12T16:44:04.330Z,LAB\goran,weekly,0 0 1 0,ObserveDaylightSavingTime,2022-10-19T10:19:30.000,9999-01-01T00:00:00.000,* * - 3 1 * * *,Europe/Paris,,,,,,,,
+3,,,,,,,,,,,,,,,,,,,2,Composite,2 Trigger when upstream tasks are done,,2023-11-12T16:44:04.642Z,2023-11-12T16:44:04.642Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+3,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,,,,,,1,TaskSuccessful,Manually triggered reload of Butler 7 Slack debug,77f11a41-af3a-4bca-bf67-725be92a88f6
+3,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,,,,,,2,TaskFail,Manually triggered reload of App1 🏆,bea1f18f-b476-4d8e-b9d4-640fe62fbe8a
+3,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,,,,,,3,TaskSuccessful,Reload task of EV chargers,8b4fe424-d90c-493f-a61d-0ce91cd485c9
+3,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,,,,,,4,TaskSuccessful,Reload task of Residential energy analysis,30f8a2e9-f0d3-482e-af58-aed6b77d3dd5
+3,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,,,,,,5,TaskSuccessful,[ctrl-q task chain 4] Ext program task chaining,special-task-1
+4,External program,Ext task 2,task-4,1,1440,3,,,,C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe,-File \\pro2-win1\c$\tools\script\ext_task_1.ps1,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+4,,,,,,,,,,,,,,,,,,,1,Schema,Weekly,,2023-11-12T16:44:04.377Z,2023-11-12T16:44:04.377Z,LAB\goran,weekly,0 0 1 0,ObserveDaylightSavingTime,2022-10-19T10:19:30.000,9999-01-01T00:00:00.000,* * - 3 1 * * *,Europe/Paris,,,,,,,,
+4,,,,,,,,,,,,,,,,,,,2,Composite,2 Trigger when upstream tasks are done,,2023-11-12T16:44:04.721Z,2023-11-12T16:44:04.721Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+4,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,,,,,,1,TaskSuccessful,Ext task 1,task-3
+5,External program,[ctrl-q task chain 3] Ext program task chaining,task-5,1,1440,0,,,,powershell.exe,-File \\pro2-win1\c$\tools\script\ext_task_1.ps1,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+5,,,,,,,,,,,,,,,,,,,1,Composite,When [ctrl-q 2] done,1,2023-10-06T11:25:12.758Z,2023-10-06T13:03:05.591Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+5,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 2] Reload task of Ctrl-Q reload chain app 2-1,task-9
+6,External program,[ctrl-q task chain 4] Ext program task chaining,special-task-1,1,1440,0,,,,powershell.exe,-File \\pro2-win1\c$\tools\script\ext_task_1.ps1,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+6,,,,,,,,,,,,,,,,,,,1,Composite,When [ctrl-q task chain 3] done,1,2023-10-06T13:02:37.615Z,2023-10-06T13:02:37.615Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+6,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 3] Ext program task chaining,task-5
+7,Reload,Butler test failing reloads 1 task,,1,1440,0,4788dc51-2bf6-45f0-a4ad-8bd8d40e1d3f,,1,,,❌ FinishedFail,2023-11-09T08:43:06.081Z,2023-11-09T08:43:33.079Z,0:00:26,pro2-win1.lab.ptarmiganlabs.net,startTask1 / Ctrl-Q demo,Butler_AbortedAlertEnableEmail=Yes / Butler_FailedAlertEnableEmail=Yes,,,,,,,,,,,,,,,,,,,,,,
+8,Reload,Reload task of Lab 1_1,,1,1440,3,4716f284-7790-45c3-a0a5-154c898766a0,,,,,❔ ?,,,0:00:00,,api1,Department=Finance / Department=Sales,,,,,,,,,,,,,,,,,,,,,,
+8,,,,,,,,,,,,,,,,,,,1,Schema,Daily,1,2023-11-12T16:44:04.049Z,2023-11-12T16:44:04.049Z,LAB\goran,daily,0 0 1 0,ObserveDaylightSavingTime,2022-10-17T11:37:26.000,9999-01-01T00:00:00.000,* * - * * * * *,Europe/Paris,,,,,,,,
+8,,,,,,,,,,,,,,,,,,,2,Schema,Custom cron,,2023-11-12T16:44:04.049Z,2023-11-12T16:44:04.049Z,LAB\goran,custom,1 2 3 4,ObserveDaylightSavingTime,2022-10-17T11:37:29.000,9999-01-01T00:00:00.000,* * - * * * * *,Europe/Paris,,,,,,,,
+8,,,,,,,,,,,,,,,,,,,3,Composite,Trigger when upstream tasks are done,,2023-11-12T16:44:04.486Z,2023-11-12T16:44:04.486Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+8,,,,,,,,,,,,,,,,,,,3,,,,,,,,,,,,,,,,,,1,TaskSuccessful,Manually triggered reload of Butler 7 Slack debug,77f11a41-af3a-4bca-bf67-725be92a88f6
+8,,,,,,,,,,,,,,,,,,,3,,,,,,,,,,,,,,,,,,2,TaskFail,Manually triggered reload of App1 🏆,bea1f18f-b476-4d8e-b9d4-640fe62fbe8a
+8,,,,,,,,,,,,,,,,,,,3,,,,,,,,,,,,,,,,,,3,TaskSuccessful,Reload task of EV chargers,8b4fe424-d90c-493f-a61d-0ce91cd485c9
+8,,,,,,,,,,,,,,,,,,,3,,,,,,,,,,,,,,,,,,4,TaskSuccessful,Reload task of Residential energy analysis,30f8a2e9-f0d3-482e-af58-aed6b77d3dd5
+8,,,,,,,,,,,,,,,,,,,3,,,,,,,,,,,,,,,,,,5,TaskSuccessful,[ctrl-q task chain 4] Ext program task chaining,special-task-1
+9,Reload,[ctrl-q task chain 10.1] Reload task of Ctrl-Q reload chain app 1-1,task-6,1,1440,0,3d711d07-c133-48f7-ab26-8350c5b8fe2e,,,,,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+9,,,,,,,,,,,,,,,,,,,1,Composite,...,1,2023-10-06T14:19:42.549Z,2023-10-06T14:19:42.549Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+9,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 9.1] Reload task of Ctrl-Q reload chain app 1-1,task-15
+10,Reload,[ctrl-q task chain 11.1] Reload task of Ctrl-Q reload chain app 1-1,task-7,1,1440,0,3d711d07-c133-48f7-ab26-8350c5b8fe2e,,,,,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+10,,,,,,,,,,,,,,,,,,,1,Composite,...,1,2023-10-06T14:20:08.984Z,2023-10-06T14:20:08.984Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+10,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 10.1] Reload task of Ctrl-Q reload chain app 1-1,task-6
+11,Reload,[ctrl-q task chain 1] Reload task of Ctrl-Q reload chain app 1-1,task-8,1,1440,0,3d711d07-c133-48f7-ab26-8350c5b8fe2e,,,,,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+12,Reload,[ctrl-q task chain 2] Reload task of Ctrl-Q reload chain app 2-1,task-9,1,1440,0,766c96a8-d8ba-47e6-b4a3-e1935bf12d99,,,,,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+12,,,,,,,,,,,,,,,,,,,1,Composite,When Ctrl-Q [1] done,1,2023-10-06T11:24:07.096Z,2023-10-06T11:24:07.096Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+12,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 1] Reload task of Ctrl-Q reload chain app 1-1,task-8
+13,Reload,[ctrl-q task chain 5.1] Reload task of Ctrl-Q reload chain app 3-1,task-10,1,1440,0,aea0ac54-b377-4325-a1f7-e32a5616ff95,,,,,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+13,,,,,,,,,,,,,,,,,,,1,Composite,When Ctrl-q [4] done,1,2023-10-06T11:27:39.361Z,2023-10-06T13:04:26.193Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+13,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 4] Ext program task chaining,special-task-1
+14,Reload,[ctrl-q task chain 5.2] Reload task of Ctrl-Q reload chain app 3-2,task-11,1,1440,0,972da501-93f7-470d-b8ba-84ef2cfebdc9,,,,,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+14,,,,,,,,,,,,,,,,,,,1,Composite,When Ctrl-q [4] done,1,2023-10-06T11:28:27.595Z,2023-10-06T13:04:10.022Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+14,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 4] Ext program task chaining,special-task-1
+15,Reload,[ctrl-q task chain 6.1] Reload task of Ctrl-Q reload chain app 1-1,task-12,1,1440,0,3d711d07-c133-48f7-ab26-8350c5b8fe2e,,,,,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+15,,,,,,,,,,,,,,,,,,,1,Composite,...,1,2023-10-06T14:17:18.948Z,2023-10-06T14:17:18.948Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+15,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 5.2] Reload task of Ctrl-Q reload chain app 3-2,task-11
+16,Reload,[ctrl-q task chain 7.1] Reload task of Ctrl-Q reload chain app 1-1,task-13,1,1440,0,3d711d07-c133-48f7-ab26-8350c5b8fe2e,,,,,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+16,,,,,,,,,,,,,,,,,,,1,Composite,...,1,2023-10-06T14:17:54.946Z,2023-10-06T14:17:54.946Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+16,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 6.1] Reload task of Ctrl-Q reload chain app 1-1,task-12
+17,Reload,[ctrl-q task chain 8.1] Reload task of Ctrl-Q reload chain app 1-1,task-14,1,1440,0,3d711d07-c133-48f7-ab26-8350c5b8fe2e,,,,,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+17,,,,,,,,,,,,,,,,,,,1,Composite,...,1,2023-10-06T14:18:45.890Z,2023-10-06T14:18:45.890Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+17,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 7.1] Reload task of Ctrl-Q reload chain app 1-1,task-13
+18,Reload,[ctrl-q task chain 9.1] Reload task of Ctrl-Q reload chain app 1-1,task-15,1,1440,0,3d711d07-c133-48f7-ab26-8350c5b8fe2e,,,,,❔ ?,,,0:00:00,,,,,,,,,,,,,,,,,,,,,,,,,
+18,,,,,,,,,,,,,,,,,,,1,Composite,...,1,2023-10-06T14:19:07.492Z,2023-10-06T14:19:07.492Z,LAB\goran,,,,,,,,0,360,0,0,,,,
+18,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,1,TaskSuccessful,[ctrl-q task chain 8.1] Reload task of Ctrl-Q reload chain app 1-1,task-14

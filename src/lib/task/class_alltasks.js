@@ -109,7 +109,7 @@ class QlikSenseTasks {
             // Have ANY apps been imported?
             if (!this.importedApps) {
                 logger.error(
-                    `(${param.taskCounter}) PARSE TASKS FROM FILE: No apps have been imported, but app "${param.taskRows[0][
+                    `(${param.taskCounter}) PARSE RELOAD TASK FROM FILE: No apps have been imported, but app "${param.taskRows[0][
                         param.taskFileColumnHeaders.appId.pos
                     ].trim()}" has been specified in the task definition file. Exiting.`
                 );
@@ -119,7 +119,7 @@ class QlikSenseTasks {
             // Has this specific app been imported?
             if (!this.importedApps.appIdMap.has(appIdRaw.toLowerCase())) {
                 logger.error(
-                    `(${param.taskCounter}) PARSE TASKS FROM FILE: App "${param.taskRows[0][
+                    `(${param.taskCounter}) PARSE RELOAD TASK FROM FILE: App "${param.taskRows[0][
                         param.taskFileColumnHeaders.appId.pos
                     ].trim()}" has not been imported, but has been specified in the task definition file. Exiting.`
                 );
@@ -135,13 +135,13 @@ class QlikSenseTasks {
 
             if (appId === undefined) {
                 logger.error(
-                    `(${param.taskCounter}) PARSE TASKS FROM FILE: Cannot figure out which Sense app "${param.taskRows[0][
+                    `(${param.taskCounter}) PARSE RELOAD TASK FROM FILE: Cannot figure out which Sense app "${param.taskRows[0][
                         param.taskFileColumnHeaders.appId.pos
                     ].trim()}" belongs to. App with ID "${appIdRaw}" not found.`
                 );
 
                 logger.error(
-                    `(${param.taskCounter}) PARSE TASKS FROM FILE: This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
+                    `(${param.taskCounter}) PARSE RELOAD TASK FROM FILE: This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
                 );
 
                 process.exit(1);
@@ -152,7 +152,7 @@ class QlikSenseTasks {
 
             if (!app) {
                 logger.error(
-                    `(${param.taskCounter}) PARSE TASKS FROM FILE: App with ID "${appId}" not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
+                    `(${param.taskCounter}) PARSE RELOAD TASK FROM FILE: App with ID "${appId}" not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
                 );
                 process.exit(1);
             }
@@ -164,14 +164,14 @@ class QlikSenseTasks {
 
             if (!app) {
                 logger.error(
-                    `(${param.taskCounter}) PARSE TASKS FROM FILE: App with ID "${appIdRaw}" not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
+                    `(${param.taskCounter}) PARSE RELOAD TASK FROM FILE: App with ID "${appIdRaw}" not found. This could be because the app was imported but has since been deleted or replaced, for example during app publishing. Don't know how to proceed, exiting.`
                 );
                 process.exit(1);
             }
 
             appId = appIdRaw;
         } else {
-            logger.error(`(${param.taskCounter}) PARSE TASKS FROM FILE: Incorrect app ID "${appIdRaw}". Exiting.`);
+            logger.error(`(${param.taskCounter}) PARSE RELOAD TASK FROM FILE: Incorrect app ID "${appIdRaw}". Exiting.`);
             process.exit(1);
         }
 
@@ -454,10 +454,10 @@ class QlikSenseTasks {
                 item[param.taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'schema'
         );
         if (!schemaEventRows || schemaEventRows?.length === 0) {
-            logger.verbose(`(${param.taskCounter}) PARSE TASKS FROM FILE: No schema events for task "${param.currentTask.name}"`);
+            logger.verbose(`(${param.taskCounter}) PARSE SCHEMA EVENT: No schema events for task "${param.currentTask.name}"`);
         } else {
             logger.verbose(
-                `(${param.taskCounter}) PARSE TASKS FROM FILE: ${schemaEventRows.length} schema event(s) for task "${param.currentTask.name}"`
+                `(${param.taskCounter}) PARSE SCHEMA EVENT: ${schemaEventRows.length} schema event(s) for task "${param.currentTask.name}"`
             );
 
             // Add schema edges and start/trigger nodes
@@ -487,7 +487,7 @@ class QlikSenseTasks {
                         id: param.fakeTaskId,
                     };
                 } else {
-                    logger.error(`(${param.taskCounter}) PARSE TASKS FROM FILE: Incorrect task type "${param.taskType}". Exiting.`);
+                    logger.error(`(${param.taskCounter}) PARSE SCHEMA EVENT: Incorrect task type "${param.taskType}". Exiting.`);
                     process.exit(1);
                 }
 
@@ -572,10 +572,10 @@ class QlikSenseTasks {
                 item[param.taskFileColumnHeaders.eventType.pos].trim().toLowerCase() === 'composite'
         );
         if (!compositeEventRows || compositeEventRows?.length === 0) {
-            logger.verbose(`(${param.taskCounter}) PARSE TASKS FROM FILE: No composite events for task "${param.currentTask.name}"`);
+            logger.verbose(`(${param.taskCounter}) PARSE COMPOSITE EVENT: No composite events for task "${param.currentTask.name}"`);
         } else {
             logger.verbose(
-                `(${param.taskCounter}) PARSE TASKS FROM FILE: ${compositeEventRows.length} composite event(s) for task "${param.currentTask.name}"`
+                `(${param.taskCounter}) PARSE COMPOSITE EVENT: ${compositeEventRows.length} composite event(s) for task "${param.currentTask.name}"`
             );
 
             // Loop over all composite events, adding them and their event rules
@@ -614,7 +614,7 @@ class QlikSenseTasks {
                         id: param.fakeTaskId,
                     };
                 } else {
-                    logger.error(`(${param.taskCounter}) PARSE TASKS FROM FILE: Incorrect task type "${param.taskType}". Exiting.`);
+                    logger.error(`(${param.taskCounter}) PARSE COMPOSITE EVENT: Incorrect task type "${param.taskType}". Exiting.`);
                     process.exit(1);
                 }
 
@@ -641,7 +641,7 @@ class QlikSenseTasks {
                         } else {
                             // The task pointed to by the composite event rule does not exist
                             logger.error(
-                                `(${param.taskCounter}) PARSE COMPOSITE EVENT RULE FROM FILE: Task "${
+                                `(${param.taskCounter}) PARSE COMPOSITE EVENT: Task "${
                                     rule[param.taskFileColumnHeaders.ruleTaskId.pos]
                                 }" does not exist. Exiting.`
                             );
@@ -649,7 +649,7 @@ class QlikSenseTasks {
                         }
                     } else {
                         logger.verbose(
-                            `(${param.taskCounter}) ANALYZE COMPOSITE EVENT: "${
+                            `(${param.taskCounter}) PARSE COMPOSITE EVENT: "${
                                 rule[param.taskFileColumnHeaders.ruleTaskId.pos]
                             }" is not a valid UUID`
                         );
@@ -1163,12 +1163,12 @@ class QlikSenseTasks {
                         // Get triggering/upstream task id
                         const id = this.taskIdMap.get(b.task.id);
 
-                        // If id is not found in the mapping table, it means that the task 
-                        // referenced by the rule (i.e. the upstream teask) is neither a task 
+                        // If id is not found in the mapping table, it means that the task
+                        // referenced by the rule (i.e. the upstream teask) is neither a task
                         // that existed before this execution of Ctrl-Q, nor a task that was
                         // created during this execution of Ctrl-Q.
                         // This is an error - the task ID should exist.
-                        // Most likely the error is caused by an invalid value in the "Rule task id" 
+                        // Most likely the error is caused by an invalid value in the "Rule task id"
                         // column in the source file.
                         if (id !== undefined && validate(id) === true) {
                             // Determine what kind of task this is. Options are:
@@ -1213,7 +1213,7 @@ class QlikSenseTasks {
                                 b.externalProgramTask = { id };
                             }
                         } else if (id === undefined) {
-                        // (this.options.dryRun === false || this.options.dryRun === undefined) {
+                            // (this.options.dryRun === false || this.options.dryRun === undefined) {
                             logger.error(
                                 `PREPARING COMPOSITE EVENT: Invalid upstream task ID "${b.task.id}" in rule for composite event "${a.compositeEvent.name}". Exiting.`
                             );
@@ -1485,7 +1485,7 @@ class QlikSenseTasks {
                                 }
                             });
                         } catch (err) {
-                            logger.error(`SAVE TASK TO QSEOW 2: ${err}`);
+                            logger.error(`SAVE TASK TO QSEOW 1: ${err}`);
                             reject2();
                         }
                     });
@@ -1493,7 +1493,7 @@ class QlikSenseTasks {
                 }
                 resolve();
             } catch (err) {
-                logger.error(`SAVE TASK TO QSEOW 3: ${err}`);
+                logger.error(`SAVE TASK TO QSEOW 2: ${err}`);
                 reject(err);
             }
         });
@@ -1503,7 +1503,7 @@ class QlikSenseTasks {
         // eslint-disable-next-line no-async-promise-executor, no-unused-vars
         return new Promise(async (resolve, reject) => {
             // try {
-            logger.debug('GET TASK: Starting get reload tasks from QSEoW');
+            logger.debug('GET TASKS FROM QSEOW: Starting get reload tasks from QSEoW');
 
             let filter = '';
 
@@ -1529,7 +1529,7 @@ class QlikSenseTasks {
                 if (this.options.taskId && this.options?.taskId.length >= 1) {
                     filter += encodeURIComponent(')');
                 }
-                logger.debug(`GET TASK: QRS query filter (incl ids): ${filter}`);
+                logger.debug(`GET TASKS FROM QSEOW: QRS query filter (incl ids): ${filter}`);
 
                 // Add task tag(s) to query string
                 if (this.options.taskTag && this.options?.taskTag.length >= 1) {
@@ -1557,61 +1557,58 @@ class QlikSenseTasks {
                 }
             }
 
-            logger.debug(`GET TASK: QRS query filter (incl ids, tags): ${filter}`);
+            logger.debug(`GET TASKS FROM QSEOW: QRS query filter (incl ids, tags): ${filter}`);
 
             let axiosConfig;
             let tasks = [];
 
-            if (this.options.taskType.find((item) => item === 'reload')) {
-                if (filter === '') {
-                    axiosConfig = setupQRSConnection(this.options, {
-                        method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        path: '/qrs/reloadtask/full',
-                    });
-                } else {
-                    axiosConfig = setupQRSConnection(this.options, {
-                        method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        path: '/qrs/reloadtask/full',
-                        queryParameters: [{ name: 'filter', value: filter }],
-                    });
-                }
-
-                const result = await axios.request(axiosConfig);
-                logger.debug(`GET RELOAD TASK: Result=result.status`);
-
-                tasks = tasks.concat(JSON.parse(result.data));
-                logger.verbose(`GET RELOAD TASK: # tasks: ${tasks.length}`);
+            // Get reload tasks
+            if (filter === '') {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/reloadtask/full',
+                });
+            } else {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/reloadtask/full',
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
             }
+
+            let result = await axios.request(axiosConfig);
+            logger.debug(`GET RELOAD TASK: Result=result.status`);
+
+            tasks = tasks.concat(JSON.parse(result.data));
+            logger.verbose(`GET RELOAD TASK: # tasks: ${tasks.length}`);
 
             // Get external program tasks
-            if (this.options.taskType.find((item) => item === 'ext-program')) {
-                if (filter === '') {
-                    axiosConfig = setupQRSConnection(this.options, {
-                        method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        path: '/qrs/externalprogramtask/full',
-                    });
-                } else {
-                    axiosConfig = setupQRSConnection(this.options, {
-                        method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        path: '/qrs/externalprogramtask/full',
-                        queryParameters: [{ name: 'filter', value: filter }],
-                    });
-                }
-
-                const result = await axios.request(axiosConfig);
-                logger.debug(`GET EXT PROGRAM TASK: Result=result.status`);
-
-                tasks = tasks.concat(JSON.parse(result.data));
-                logger.verbose(`GET EXT PROGRAM TASK: # tasks: ${tasks.length}`);
+            if (filter === '') {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/externalprogramtask/full',
+                });
+            } else {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: '/qrs/externalprogramtask/full',
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
             }
+
+            result = await axios.request(axiosConfig);
+            logger.debug(`GET EXT PROGRAM TASK: Result=result.status`);
+
+            tasks = tasks.concat(JSON.parse(result.data));
+            logger.verbose(`GET EXT PROGRAM TASK: # tasks: ${tasks.length}`);
 
             // TODO
             // Determine whether task name anonymisation should be done
@@ -1649,12 +1646,17 @@ class QlikSenseTasks {
             let kids = [];
             // eslint-disable-next-line no-restricted-syntax
             for (const downstreamTask of downstreamTasks) {
+                logger.debug(
+                    `GET TASK SUBTREE: Processing downstream task: ${downstreamTask.to}. Current/source task: ${downstreamTask.from}`
+                );
                 if (downstreamTask.to !== undefined) {
                     // Get downstream task object
                     const tmp = self.taskNetwork.nodes.find((el) => el.id === downstreamTask.to);
 
                     if (!tmp) {
-                        logger.warn(`Downstream task in task tree not found. From: ${downstreamTask.from}, to: ${downstreamTask.to} `);
+                        logger.warn(
+                            `Downstream task "${downstreamTask.to}" in task tree not found. Current/source task: ${downstreamTask.from}`
+                        );
                         kids = [
                             {
                                 id: task.id,

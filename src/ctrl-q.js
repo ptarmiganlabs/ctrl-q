@@ -515,21 +515,16 @@ const program = new Command();
             // This is allowed, but should be interpreted as "all" table details.
             // Make options.tableDetails an array with all possible table details.
             if (options.tableDetails === true) {
-                newOptions.tableDetails = [
-                    'common',
-                    'extprogram',
-                    'lastexecution',
-                    'tag',
-                    'customproperty',
-                    'schematrigger',
-                    'compositetrigger',
-                    'comptimeconstraint',
-                    'comprule',
-                ];
+                newOptions.tableDetails = ['common', 'lastexecution', 'tag', 'customproperty', 'schematrigger', 'compositetrigger'];
             }
 
             await sharedParamAssertOptions(newOptions);
             getTaskAssertOptions(newOptions);
+
+            // If --output-format=table and --task-type is not specified, default to ['reload', 'ext-program']
+            if (newOptions.outputFormat === 'table' && !newOptions.taskType) {
+                newOptions.taskType = ['reload', 'ext-program'];
+            }
 
             getTask(newOptions);
         })
@@ -549,11 +544,7 @@ const program = new Command();
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
 
-        .addOption(
-            new Option('--task-type <type...>', 'type of tasks to include')
-                .choices(['reload', 'ext-program'])
-                .default(['reload', 'ext-program'])
-        )
+        .addOption(new Option('--task-type <type...>', 'type of tasks to include').choices(['reload', 'ext-program']))
         .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve. Only allowed when --output-format=table')
         .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve. Only allowed when --output-format=table')
 
@@ -577,17 +568,7 @@ const program = new Command();
                 '--table-details [detail...]',
                 'which aspects of tasks should be included in table view. Not choosing any details will show all'
             )
-                .choices([
-                    'common',
-                    'extprogram',
-                    'lastexecution',
-                    'tag',
-                    'customproperty',
-                    'schematrigger',
-                    'compositetrigger',
-                    'comptimeconstraint',
-                    'comprule',
-                ])
+                .choices(['common', 'lastexecution', 'tag', 'customproperty', 'schematrigger', 'compositetrigger'])
                 .default('')
         );
 
@@ -792,7 +773,7 @@ const program = new Command();
     // Test connection command
     program
         .command('connection-test')
-        .description('test connection to Qlik Sense server')
+        .description('test connection to Qlik Sense server.')
         .action(async (options) => {
             try {
                 await sharedParamAssertOptions(options);
