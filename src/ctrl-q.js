@@ -515,17 +515,7 @@ const program = new Command();
             // This is allowed, but should be interpreted as "all" table details.
             // Make options.tableDetails an array with all possible table details.
             if (options.tableDetails === true) {
-                newOptions.tableDetails = [
-                    'common',
-                    'extprogram',
-                    'lastexecution',
-                    'tag',
-                    'customproperty',
-                    'schematrigger',
-                    'compositetrigger',
-                    'comptimeconstraint',
-                    'comprule',
-                ];
+                newOptions.tableDetails = ['common', 'lastexecution', 'tag', 'customproperty', 'schematrigger', 'compositetrigger'];
             }
 
             await sharedParamAssertOptions(newOptions);
@@ -577,17 +567,7 @@ const program = new Command();
                 '--table-details [detail...]',
                 'which aspects of tasks should be included in table view. Not choosing any details will show all'
             )
-                .choices([
-                    'common',
-                    'extprogram',
-                    'lastexecution',
-                    'tag',
-                    'customproperty',
-                    'schematrigger',
-                    'compositetrigger',
-                    'comptimeconstraint',
-                    'comprule',
-                ])
+                .choices(['common', 'lastexecution', 'tag', 'customproperty', 'schematrigger', 'compositetrigger'])
                 .default('')
         );
 

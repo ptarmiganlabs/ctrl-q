@@ -295,11 +295,6 @@ const getTask = async (options) => {
                     options.tableDetails === '' ||
                     (typeof options.tableDetails === 'object' && options.tableDetails.find((item) => item === 'common'))
                 ),
-                extprogram: !!(
-                    options.tableDetails === true ||
-                    options.tableDetails === '' ||
-                    (typeof options.tableDetails === 'object' && options.tableDetails.find((item) => item === 'extprogram'))
-                ),
                 lastexecution: !!(
                     options.tableDetails === true ||
                     options.tableDetails === '' ||
@@ -324,16 +319,6 @@ const getTask = async (options) => {
                     options.tableDetails === true ||
                     options.tableDetails === '' ||
                     (typeof options.tableDetails === 'object' && options.tableDetails?.find((item) => item === 'compositetrigger'))
-                ),
-                comptimeconstraint: !!(
-                    options.tableDetails === true ||
-                    options.tableDetails === '' ||
-                    (typeof options.tableDetails === 'object' && options.tableDetails?.find((item) => item === 'comptimeconstraint'))
-                ),
-                comprule: !!(
-                    options.tableDetails === true ||
-                    options.tableDetails === '' ||
-                    (typeof options.tableDetails === 'object' && options.tableDetails?.find((item) => item === 'comprule'))
                 ),
             };
 
@@ -382,12 +367,9 @@ const getTask = async (options) => {
                             task.appId ? task.appId : '',
                             task.isPartialReload ? task.isPartialReload : '',
                             task.isManuallyTriggered ? task.isManuallyTriggered : '',
+                            task.path ? task.path : '',
+                            task.parameters ? task.parameters : '',
                         ];
-                        row = row.concat(tmpRow);
-                    }
-
-                    if (columnBlockShow.extprogram) {
-                        tmpRow = [task.path ? task.path : '', task.parameters ? task.parameters : ''];
                         row = row.concat(tmpRow);
                     }
 
@@ -412,31 +394,33 @@ const getTask = async (options) => {
                         row = row.concat(tmpRow[0]);
                     }
 
-                    if (options.tableDetails === true || options.tableDetails === '') {
-                        tmpRow = Array(14).fill('');
-                        row = row.concat(tmpRow);
-                    } else if (columnBlockShow.schematrigger) {
-                        tmpRow = Array(14).fill('');
-                        row = row.concat(tmpRow);
-                    } else if (columnBlockShow.compositetrigger) {
+                    // If complete details are requested, or if schema or composite columns are requested, add empty columns for general event info
+                    if (
+                        options.tableDetails === true ||
+                        options.tableDetails === '' ||
+                        columnBlockShow.schematrigger ||
+                        columnBlockShow.compositetrigger
+                    ) {
                         tmpRow = Array(7).fill('');
                         row = row.concat(tmpRow);
                     }
 
-                    if (columnBlockShow.comptimeconstraint) {
-                        tmpRow = Array(4).fill('');
+                    // If complete details are requested, or if schema columns are requested, add empty columns for schema event info
+                    if (columnBlockShow.schematrigger) {
+                        tmpRow = Array(7).fill('');
                         row = row.concat(tmpRow);
                     }
 
-                    if (columnBlockShow.comprule) {
-                        tmpRow = Array(4).fill('');
+                    // If complete details are requested, or if composite columns are requested, add empty columns for composite event info
+                    if (columnBlockShow.compositetrigger) {
+                        tmpRow = Array(8).fill('');
                         row = row.concat(tmpRow);
                     }
 
                     // Add main task info to  table
                     taskTable = taskTable.concat([row]);
 
-                    // Find all triggers for this task
+                    // Find all schema events for this task
                     const schemaEventsForThisTask = schemaEventList.filter((item) => {
                         if (item.schemaEvent?.reloadTask?.id === task.taskId) {
                             return true;
@@ -447,6 +431,7 @@ const getTask = async (options) => {
                         return false;
                     });
 
+                    // Find all composite events for this task
                     const compositeEventsForThisTask = compositeEventList.filter((item) => {
                         if (item.compositeEvent?.reloadTask?.id === task.taskId) {
                             return true;
@@ -464,83 +449,7 @@ const getTask = async (options) => {
                             row = [taskCount, ''];
 
                             if (columnBlockShow.common) {
-                                tmpRow = [...Array(8).fill('')];
-                                row = row.concat(tmpRow);
-                            }
-
-                            if (columnBlockShow.extprogram) {
-                                tmpRow = [...Array(2).fill('')];
-                                row = row.concat(tmpRow);
-                            }
-
-                            if (columnBlockShow.lastexecution) {
-                                tmpRow = [...Array(5).fill('')];
-                                row = row.concat(tmpRow);
-                            }
-
-                            if (columnBlockShow.tag) {
-                                tmpRow = [...Array(1).fill('')];
-                                row = row.concat(tmpRow);
-                            }
-
-                            if (columnBlockShow.customproperty) {
-                                tmpRow = [...Array(1).fill('')];
-                                row = row.concat(tmpRow);
-                            }
-
-                            if (columnBlockShow.schematrigger || columnBlockShow.compositetrigger) {
-                                // Include general event columns if schema or composite columns should be shown
-                                tmpRow = [eventCount, mapEventType.get(event.schemaEvent.eventType)];
-                                row = row.concat(tmpRow);
-                            }
-
-                            if (columnBlockShow.schematrigger) {
-                                tmpRow = [
-                                    event.schemaEvent.name,
-                                    event.schemaEvent.enabled,
-                                    event.schemaEvent.createdDate,
-                                    event.schemaEvent.modifiedDate,
-                                    event.schemaEvent.modifiedByUserName,
-
-                                    mapIncrementOption.get(event.schemaEvent.incrementOption),
-                                    event.schemaEvent.incrementDescription,
-                                    mapDaylightSavingTime.get(event.schemaEvent.daylightSavingTime),
-                                    event.schemaEvent.startDate,
-                                    event.schemaEvent.expirationDate,
-                                    event.schemaEvent.schemaFilterDescription[0],
-                                    event.schemaEvent.timeZone,
-                                ];
-                                row = row.concat(tmpRow);
-                            }
-
-                            if (columnBlockShow.comptimeconstraint) {
-                                tmpRow = Array(4).fill('');
-                                row = row.concat(tmpRow);
-                            }
-
-                            if (columnBlockShow.comprule) {
-                                tmpRow = Array(4).fill('');
-                                row = row.concat(tmpRow);
-                            }
-
-                            taskTable = taskTable.concat([row]);
-
-                            eventCount += 1;
-                        }
-                    }
-
-                    if (columnBlockShow.compositetrigger || columnBlockShow.comptimeconstraint || columnBlockShow.comprule) {
-                        // eslint-disable-next-line no-restricted-syntax
-                        for (const event of compositeEventsForThisTask) {
-                            row = [taskCount, ''];
-
-                            if (columnBlockShow.common) {
-                                tmpRow = [...Array(8).fill('')];
-                                row = row.concat(tmpRow);
-                            }
-
-                            if (columnBlockShow.extprogram) {
-                                tmpRow = [...Array(2).fill('')];
+                                tmpRow = [...Array(10).fill('')];
                                 row = row.concat(tmpRow);
                             }
 
@@ -560,6 +469,64 @@ const getTask = async (options) => {
                             }
 
                             // Include general event columns if schema or composite columns should be shown
+                            tmpRow = [eventCount, mapEventType.get(event.schemaEvent.eventType)];
+                            row = row.concat(tmpRow);
+
+                            tmpRow = [
+                                event.schemaEvent.name,
+                                event.schemaEvent.enabled,
+                                event.schemaEvent.createdDate,
+                                event.schemaEvent.modifiedDate,
+                                event.schemaEvent.modifiedByUserName,
+
+                                mapIncrementOption.get(event.schemaEvent.incrementOption),
+                                event.schemaEvent.incrementDescription,
+                                mapDaylightSavingTime.get(event.schemaEvent.daylightSavingTime),
+                                event.schemaEvent.startDate,
+                                event.schemaEvent.expirationDate,
+                                event.schemaEvent.schemaFilterDescription[0],
+                                event.schemaEvent.timeZone,
+                            ];
+                            row = row.concat(tmpRow);
+
+                            if (columnBlockShow.compositetrigger) {
+                                tmpRow = Array(8).fill('');
+                                row = row.concat(tmpRow);
+                            }
+
+                            taskTable = taskTable.concat([row]);
+
+                            eventCount += 1;
+                        }
+                    }
+
+                    // Write composite events to table
+                    if (columnBlockShow.compositetrigger) {
+                        // eslint-disable-next-line no-restricted-syntax
+                        for (const event of compositeEventsForThisTask) {
+                            row = [taskCount, ''];
+
+                            if (columnBlockShow.common) {
+                                tmpRow = [...Array(10).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.lastexecution) {
+                                tmpRow = [...Array(5).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.tag) {
+                                tmpRow = [...Array(1).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            if (columnBlockShow.customproperty) {
+                                tmpRow = [...Array(1).fill('')];
+                                row = row.concat(tmpRow);
+                            }
+
+                            // Include general event columns
                             tmpRow = [eventCount, mapEventType.get(event.compositeEvent.eventType)];
                             row = row.concat(tmpRow);
 
@@ -579,19 +546,18 @@ const getTask = async (options) => {
                                 row = row.concat(tmpRow);
                             }
 
-                            if (columnBlockShow.comptimeconstraint) {
+                            if (columnBlockShow.compositetrigger) {
                                 // Composite task time constraints
                                 tmpRow = [
                                     event.compositeEvent.timeConstraint.seconds,
                                     event.compositeEvent.timeConstraint.minutes,
                                     event.compositeEvent.timeConstraint.hours,
                                     event.compositeEvent.timeConstraint.days,
+                                    '',
+                                    '',
+                                    '',
+                                    '',
                                 ];
-                                row = row.concat(tmpRow);
-                            }
-
-                            if (columnBlockShow.comprule) {
-                                tmpRow = Array(4).fill('');
                                 row = row.concat(tmpRow);
                             }
 
@@ -600,82 +566,70 @@ const getTask = async (options) => {
                             // Add all composite rules to table
                             let ruleCount = 1;
 
-                            if (columnBlockShow.comprule) {
-                                // eslint-disable-next-line no-restricted-syntax
-                                for (const rule of event.compositeEvent.compositeRules) {
-                                    row = [taskCount, ''];
+                            // eslint-disable-next-line no-restricted-syntax
+                            for (const rule of event.compositeEvent.compositeRules) {
+                                row = [taskCount, ''];
 
-                                    if (columnBlockShow.common) {
-                                        tmpRow = [...Array(8).fill('')];
-                                        row = row.concat(tmpRow);
-                                    }
-
-                                    if (columnBlockShow.extprogram) {
-                                        tmpRow = [...Array(2).fill('')];
-                                        row = row.concat(tmpRow);
-                                    }
-
-                                    if (columnBlockShow.lastexecution) {
-                                        tmpRow = [...Array(5).fill('')];
-                                        row = row.concat(tmpRow);
-                                    }
-
-                                    if (columnBlockShow.tag) {
-                                        tmpRow = [...Array(1).fill('')];
-                                        row = row.concat(tmpRow);
-                                    }
-
-                                    if (columnBlockShow.customproperty) {
-                                        tmpRow = [...Array(1).fill('')];
-                                        row = row.concat(tmpRow);
-                                    }
-
-                                    // Include general event columns if schema or composite columns should be shown
-                                    // tmpRow = [eventCount, mapEventType.get(event.compositeEvent.eventType)];
-                                    tmpRow = [eventCount, ''];
+                                if (columnBlockShow.common) {
+                                    tmpRow = [...Array(10).fill('')];
                                     row = row.concat(tmpRow);
-
-                                    if (columnBlockShow.schematrigger) {
-                                        tmpRow = [...Array(12).fill('')];
-                                        row = row.concat(tmpRow);
-                                    } else if (columnBlockShow.compositetrigger) {
-                                        tmpRow = [...Array(5).fill('')];
-                                        row = row.concat(tmpRow);
-                                    }
-
-                                    if (columnBlockShow.comptimeconstraint) {
-                                        // Composite task time constraints
-                                        tmpRow = [...Array(4).fill('')];
-                                        row = row.concat(tmpRow);
-                                    }
-
-                                    if (columnBlockShow.comprule) {
-                                        // Composite rules
-
-                                        // Is it a reload task or external program task?
-                                        if (rule.reloadTask) {
-                                            tmpRow = [
-                                                ruleCount,
-                                                mapRuleState.get(rule.ruleState),
-                                                rule.reloadTask.name,
-                                                rule.reloadTask.id,
-                                            ];
-                                        } else if (rule.externalProgramTask) {
-                                            tmpRow = [
-                                                ruleCount,
-                                                mapRuleState.get(rule.ruleState),
-                                                rule.externalProgramTask.name,
-                                                rule.externalProgramTask.id,
-                                            ];
-                                        }
-
-                                        row = row.concat(tmpRow);
-                                    }
-
-                                    taskTable = taskTable.concat([row]);
-
-                                    ruleCount += 1;
                                 }
+
+                                if (columnBlockShow.lastexecution) {
+                                    tmpRow = [...Array(5).fill('')];
+                                    row = row.concat(tmpRow);
+                                }
+
+                                if (columnBlockShow.tag) {
+                                    tmpRow = [...Array(1).fill('')];
+                                    row = row.concat(tmpRow);
+                                }
+
+                                if (columnBlockShow.customproperty) {
+                                    tmpRow = [...Array(1).fill('')];
+                                    row = row.concat(tmpRow);
+                                }
+
+                                // Include general event columns
+                                tmpRow = [eventCount, '', '', '', '', '', ''];
+                                row = row.concat(tmpRow);
+
+                                if (columnBlockShow.schematrigger) {
+                                    // Add empty columns for schema event info
+                                    tmpRow = [...Array(7).fill('')];
+                                    row = row.concat(tmpRow);
+                                }
+
+                                // Is it a reload task or external program task?
+                                if (rule.reloadTask) {
+                                    tmpRow = [
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        ruleCount,
+                                        mapRuleState.get(rule.ruleState),
+                                        rule.reloadTask.name,
+                                        rule.reloadTask.id,
+                                    ];
+                                } else if (rule.externalProgramTask) {
+                                    tmpRow = [
+                                        '',
+                                        '',
+                                        '',
+                                        '',
+                                        ruleCount,
+                                        mapRuleState.get(rule.ruleState),
+                                        rule.externalProgramTask.name,
+                                        rule.externalProgramTask.id,
+                                    ];
+                                }
+
+                                row = row.concat(tmpRow);
+
+                                taskTable = taskTable.concat([row]);
+
+                                ruleCount += 1;
                             }
 
                             eventCount += 1;
@@ -701,11 +655,9 @@ const getTask = async (options) => {
                     'App id',
                     'Partial reload',
                     'Manually triggered',
+                    'Ext program path',
+                    'Ext program parameters',
                 ]);
-            }
-
-            if (columnBlockShow.extprogram) {
-                headerRow = headerRow.concat(['Ext program path', 'Ext program parameters']);
             }
 
             if (columnBlockShow.lastexecution) {
@@ -744,17 +696,17 @@ const getTask = async (options) => {
                 ]);
             }
 
-            if (columnBlockShow.comptimeconstraint) {
+            if (columnBlockShow.compositetrigger) {
                 headerRow = headerRow.concat([
                     'Time contstraint seconds',
                     'Time contstraint minutes',
                     'Time contstraint hours',
                     'Time contstraint days',
+                    'Rule counter',
+                    'Rule state',
+                    'Rule task name',
+                    'Rule task id',
                 ]);
-            }
-
-            if (columnBlockShow.comprule) {
-                headerRow = headerRow.concat(['Rule counter', 'Rule state', 'Rule task name', 'Rule task id']);
             }
 
             consoleTableConfig.header = {
