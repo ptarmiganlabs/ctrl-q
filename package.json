@@ -1,6 +1,6 @@
 {
   "name": "ctrl-q",
-  "version": "3.13.2",
+  "version": "3.14.0",
   "description": "Command line tool for interacting with Qlik Sense Enterprise servers",
   "main": "ctrl-q.js",
   "scripts": {
