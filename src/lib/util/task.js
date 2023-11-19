@@ -1,4 +1,5 @@
 const axios = require('axios');
+const fs = require('fs');
 const path = require('path');
 const { validate } = require('uuid');
 
@@ -75,6 +76,10 @@ async function taskExistById(taskId, optionsParam) {
     }
 }
 
+// Get task metadata, given a task name
+// Returs:
+// - false if task does not exist or if multiple tasks with the same name exist
+// - task metadata if task exists
 async function getTaskByName(taskName, optionsParam) {
     try {
         logger.debug(`Get task with name ${taskName}`);
@@ -200,8 +205,144 @@ async function getTaskById(taskId, optionsParam) {
     }
 }
 
+// Delete a reload task given its ID
+// If the reload task ID is a valid GUID it is assumed to be a reload task ID that exists in Sense. Report an error if not.
+async function deleteReloadTaskById(taskId, optionsParam) {
+    try {
+        logger.debug(`Delete reload task with ID ${taskId}`);
+
+        // Did we get any options as parameter?
+        let options;
+        if (!optionsParam) {
+            // Get CLI options
+            options = getCliOptions();
+        } else {
+            options = optionsParam;
+        }
+
+        // Is the task ID a valid GUID?
+        if (!validate(taskId)) {
+            logger.error(`DELETE RELOAD TASK BY ID: Task ID ${taskId} is not a valid GUID.`);
+
+            return false;
+        }
+
+        logger.verbose(`DELETE RELOAD TASK BY ID: Task ID ${taskId} is a valid GUID. Delete associated task from QSEoW.`);
+
+        // Expand cert file paths
+        const fileCert = path.resolve(execPath, options.authCertFile);
+        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+
+        // Make sure certificate files exist on disk
+        if (!fs.existsSync(fileCert)) {
+            logger.error(`DELETE RELOAD TASK BY ID: Certificate file ${fileCert} does not exist.`);
+            return false;
+        }
+
+        if (!fs.existsSync(fileCertKey)) {
+            logger.error(`DELETE RELOAD TASK BY ID: Certificate key file ${fileCertKey} does not exist.`);
+            return false;
+        }
+
+        const axiosConfig = setupQRSConnection(options, {
+            method: 'delete',
+            fileCert,
+            fileCertKey,
+            path: `/qrs/reloadtask/${taskId}`,
+        });
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`DELETE RELOAD TASK BY ID: Result=${result.status}`);
+
+        if (result.status === 204) {
+            logger.verbose(`Reload task with ID ${taskId} deleted successfully.`);
+            return true;
+        }
+
+        return false;
+    } catch (err) {
+        logger.error(`DEDELETE RELOAD TASK BY ID: ${err}`);
+
+        // Show stack trace if available
+        if (err?.stack) {
+            logger.error(`DELETE RELOAD TASK BY ID:\n  ${err.stack}`);
+        }
+
+        return false;
+    }
+}
+
+// Delete a external program task given its ID
+// If the task ID is a valid GUID it is assumed to be a ext pgm task ID that exists in Sense. Report an error if not.
+async function deleteExternalProgramTaskById(taskId, optionsParam) {
+    try {
+        logger.debug(`Delete external program task with ID ${taskId}`);
+
+        // Did we get any options as parameter?
+        let options;
+        if (!optionsParam) {
+            // Get CLI options
+            options = getCliOptions();
+        } else {
+            options = optionsParam;
+        }
+
+        // Is the task ID a valid GUID?
+        if (!validate(taskId)) {
+            logger.error(`DELETE EXT PGM TASK BY ID: Task ID ${taskId} is not a valid GUID.`);
+
+            return false;
+        }
+
+        logger.verbose(`DELETE EXT PGM TASK BY ID: Task ID ${taskId} is a valid GUID. Delete associated task from QSEoW.`);
+
+        // Expand cert file paths
+        const fileCert = path.resolve(execPath, options.authCertFile);
+        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+
+        // Make sure certificate files exist on disk
+        if (!fs.existsSync(fileCert)) {
+            logger.error(`DELETE EXT PGM TASK BY ID: Certificate file ${fileCert} does not exist.`);
+            return false;
+        }
+
+        if (!fs.existsSync(fileCertKey)) {
+            logger.error(`DELETE EXT PGM TASK BY ID: Certificate key file ${fileCertKey} does not exist.`);
+            return false;
+        }
+
+        const axiosConfig = setupQRSConnection(options, {
+            method: 'delete',
+            fileCert,
+            fileCertKey,
+            path: `/qrs/externalprogramtask/${taskId}`,
+        });
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`DELETE TASK BY ID: Result=${result.status}`);
+
+        if (result.status === 204) {
+            logger.verbose(`External program task with ID ${taskId} deleted successfully.`);
+            return true;
+        }
+
+        return false;
+    } catch (err) {
+        logger.error(`DELETE EXT PGM TASK BY ID: ${err}`);
+
+        // Show stack trace if available
+        if (err?.stack) {
+            logger.error(`DELETE EXT PGM TASK BY ID:\n  ${err.stack}`);
+        }
+
+        return false;
+    }
+}
+
 module.exports = {
     taskExistById,
     getTaskByName,
     getTaskById,
+    deleteReloadTaskById,
+    deleteExternalProgramTaskById,
 };

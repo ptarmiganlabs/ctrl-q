@@ -4,7 +4,7 @@
   "description": "Command line tool for interacting with Qlik Sense Enterprise servers",
   "main": "ctrl-q.js",
   "scripts": {
-    "test": "jest --verbose false --watch",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "lint": "npx eslint ./src/**/*.js",
     "pc": "pre-commit run --all-files"
   },
@@ -57,6 +57,7 @@
     "yesno": "^0.4.0"
   },
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
     "jest": "^29.7.0",
     "prettier": "^3.0.3",
     "snyk": "^1.1237.0"

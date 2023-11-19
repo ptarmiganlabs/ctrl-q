@@ -412,7 +412,12 @@ const importTaskFromFile = async (options) => {
         // Set up new reload task object
         const qlikSenseTasks = new QlikSenseTasks();
         await qlikSenseTasks.init(options, importedApps);
-        const taskList = await qlikSenseTasks.getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting);
+        const taskList = await qlikSenseTasks.getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting, options);
+
+        if (taskList) {
+            return taskList;
+        }
+        return false;
     } catch (err) {
         logger.error(`IMPORT TASK 2: ${err.stack}`);
     }

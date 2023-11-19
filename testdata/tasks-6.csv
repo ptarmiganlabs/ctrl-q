@@ -1,5 +1,5 @@
 Task counter,Task type,Task name,Task id,Task enabled,Task timeout,Task retries,App id,Partial reload,Manually triggered,Ext program path,Ext program parameters,Task status,Task started,Task ended,Task duration,Task executedon node,Tags,Custom properties,Event counter,Event type,Event name,Event enabled,Event created date,Event modified date,Event modified by,Schema increment option,Schema increment description,Daylight savings time,Schema start,Schema expiration,Schema filter description,Schema time zone,Time contstraint seconds,Time contstraint minutes,Time contstraint hours,Time contstraint days,Rule counter,Rule state,Rule task name,Rule task id
 1,External program,New external program task 1,task-1,1,1440,3,,,,C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe,-File \\pro2-win1\c$\tools\script\ext_task_1.ps1,❔ ?,,,0:00:00,,api1,Department=Finance / Department=Sales,,,,,,,,,,,,,,,,,,,,,,
 1,,,,,,,,,,,,,,,,,,,2,Composite,Trigger when upstream tasks are done,,,,LAB\goran,,,,,,,,0,360,0,0,,,,
-1,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,,,,,,1,TaskSuccessful,,9b8bd484-9cd9-4c83-b8e5-019176364b82
-1,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,,,,,,2,TaskFail,,d5f0b635-1feb-465e-a9c8-33f6e74b1248
+1,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,,,,,,1,TaskSuccessful,,e9100e69-4e8e-414b-bf88-10a1110c43a9
+1,,,,,,,,,,,,,,,,,,,2,,,,,,,,,,,,,,,,,,2,TaskFail,,a4b7b603-5d42-4e13-a67b-777d42c0d920
