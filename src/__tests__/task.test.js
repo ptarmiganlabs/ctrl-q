@@ -1,8 +1,7 @@
+/* eslint-disable no-console */
+const { test, expect, describe } = require('@jest/globals');
+
 const { taskExistById, getTaskByName, getTaskById } = require('../lib/util/task');
-
-const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 5 minute default timeout
-
-console.log(`Jest timeout: ${defaultTestTimeout}`);
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
@@ -20,6 +19,8 @@ const options = {
     taskType: process.env.CTRL_Q_TASK_TYPE || 'reload',
 };
 
+const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minute default timeout
+console.log(`Jest timeout: ${defaultTestTimeout}`);
 jest.setTimeout(defaultTestTimeout);
 
 // Mock logger
@@ -30,14 +31,14 @@ global.console = {
 };
 
 // Define existing and non-existing tasks
-const existingTaskId = '58dd8322-e39c-4b71-b74e-13c47a2f6dd4';
-const existingTaskName = 'Reload task of Meetup.com';
-const multipleMatchingTaskNames = 'Manually triggered reload of Butler 7 Slack debug';
+const existingTaskId = 'e9100e69-4e8e-414b-bf88-10a1110c43a9';
+const existingTaskName = '[ctrl-q unit test] app 1, task 1';
+const multipleMatchingTaskNames = '[ctrl-q unit test] app 1, task 2 (duplicates exist)';
 const nonExistingTaskId = '9f0d0e02-cccc-bbbb-aaaa-3e9a4d0c8a3d';
 const nonExistingTaskName = 'Non-existing task 298374293874298734';
 
-// ************************************************************************************************************
-describe('taskExistById', () => {
+// Check if task exists by ID
+describe('taskExistById: Check if task exists by ID', () => {
     test('existing task', async () => {
         const result = await taskExistById(existingTaskId, options);
         expect(result).toBe(true);
@@ -49,8 +50,8 @@ describe('taskExistById', () => {
     });
 });
 
-// ************************************************************************************************************
-describe('getTaskByName', () => {
+// Get task by name
+describe('getTaskByName: Get task by name', () => {
     test('no matching task', async () => {
         const result = await getTaskByName(nonExistingTaskName, options);
         expect(result).toBe(false);
@@ -63,6 +64,8 @@ describe('getTaskByName', () => {
 
     test('multiple matching task names', async () => {
         const result = await getTaskByName(multipleMatchingTaskNames, options);
+
+        // Should return false
         expect(result).toEqual(false);
 
         // Ensure correct substring was written to global console log
@@ -77,8 +80,8 @@ describe('getTaskByName', () => {
     });
 });
 
-// ************************************************************************************************************
-describe('getTaskById', () => {
+// Get task by ID
+describe('getTaskById: Get task by ID', () => {
     test('no matching task', async () => {
         const result = await getTaskById(nonExistingTaskId, options);
         expect(result).toEqual(false);

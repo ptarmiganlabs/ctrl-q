@@ -1,10 +1,7 @@
-const { error } = require('console');
+/* eslint-disable no-console */
+const { test, expect, describe } = require('@jest/globals');
 
 const { getApps, getAppById } = require('../lib/util/app');
-
-const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 5 minute default timeout
-
-console.log(`Jest timeout: ${defaultTestTimeout}`);
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
@@ -22,6 +19,8 @@ const options = {
     taskType: process.env.CTRL_Q_TASK_TYPE || 'reload',
 };
 
+const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 5 minute default timeout
+console.log(`Jest timeout: ${defaultTestTimeout}`);
 jest.setTimeout(defaultTestTimeout);
 
 // Mock logger
@@ -37,7 +36,7 @@ const existingAppId2 = '3a6c9a53-cb8d-42f3-a8ee-c083c1f8ed8e';
 const nonExistingAppId1 = '9f0d0e02-cccc-bbbb-aaaa-3e9a4d0c8a3d';
 const tag1 = 'Test data';
 
-// ************************************************************************************************************
+// Get one app by ID
 describe('getAppById', () => {
     test('existing app ID', async () => {
         const result = await getAppById(existingAppId1, options);
@@ -50,7 +49,7 @@ describe('getAppById', () => {
     });
 });
 
-// ************************************************************************************************************
+// Get one or more apps by ID and/or tag
 describe('getApps', () => {
     test('one app ID, no tags', async () => {
         const result = await getApps(options, [existingAppId1]);

@@ -10,6 +10,10 @@ tasks2.csv
 tasks2.xlsx
 tasks2.json
 
+# Directories used during unit testing
+qvfs_1
+qvfs_2
+qvfs_3
 
 src/node_modules/*
 

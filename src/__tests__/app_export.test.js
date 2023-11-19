@@ -1,17 +1,16 @@
+/* eslint-disable no-console */
+const { test, expect, describe } = require('@jest/globals');
+
 const fs = require('fs');
 const path = require('path');
 
 const { exportAppToFile } = require('../lib/cmd/exportapp');
 
-const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 5 minute default timeout
-
-console.log(`Jest timeout: ${defaultTestTimeout}`);
-
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
     authType: process.env.CTRL_Q_AUTH_TYPE || 'cert',
-    authCertFile: process.env.CTRL_Q_AUTH_CERT_FILE || '',
-    authCertKeyFile: process.env.CTRL_Q_AUTH_CERT_KEY_FILE || '',
+    authCertFile: process.env.CTRL_Q_AUTH_CERT_FILE || './cert/client.pem',
+    authCertKeyFile: process.env.CTRL_Q_AUTH_CERT_KEY_FILE || './cert/client_key.pem',
     host: process.env.CTRL_Q_HOST || '',
     port: process.env.CTRL_Q_PORT || '4242',
     schemaVersion: process.env.CTRL_Q_SCHEMA_VERSION || '12.612.0',
@@ -24,6 +23,8 @@ const options = {
     limitExportCount: process.env.CTRL_Q_LIMIT_EXPORT_COUNT || '0',
 };
 
+const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minute default timeout
+console.log(`Jest timeout: ${defaultTestTimeout}`);
 jest.setTimeout(defaultTestTimeout);
 
 test('get tasks (verify parameters)', async () => {
@@ -44,7 +45,7 @@ test('get tasks (verify parameters)', async () => {
  * --qvf-name-separator _
  * --qvf-overwrite true
  */
-test('export apps, tag "apiCreated",  (should succeed)', async () => {
+test('export apps, tag "apiCreated"', async () => {
     options.outputDir = 'qvfs_1';
     options.appTag = ['apiCreated'];
     options.excludeAppData = 'true';
@@ -54,6 +55,14 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
 
     const result = await exportAppToFile(options);
     expect(result).toBe(true);
+
+    // Verify that output folder contains at least one file
+    const exportDir = path.resolve(options.outputDir);
+    const files = fs.readdirSync(exportDir);
+    expect(files.length).toBeGreaterThan(0);
+
+    // Delete output dir
+    fs.rmSync(exportDir, { recursive: true });
 });
 
 /**
@@ -66,7 +75,7 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
  * --qvf-name-separator _
  * --qvf-overwrite true
  */
-test('export apps, tag "apiCreated",  (should succeed)', async () => {
+test('export apps, tag "apiCreated"', async () => {
     options.outputDir = 'qvfs_2';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.excludeAppData = 'true';
@@ -76,6 +85,14 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
 
     const result = await exportAppToFile(options);
     expect(result).toBe(true);
+
+    // Verify that output folder contains at least one file
+    const exportDir = path.resolve(options.outputDir);
+    const files = fs.readdirSync(exportDir);
+    expect(files.length).toBeGreaterThan(0);
+
+    // Delete output dir
+    fs.rmSync(exportDir, { recursive: true });
 });
 
 /**
@@ -89,7 +106,7 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
  * --qvf-name-separator _
  * --qvf-overwrite true
  */
-test('export apps, tag "apiCreated",  (should succeed)', async () => {
+test('export apps, tag "apiCreated"', async () => {
     options.outputDir = 'qvfs_3';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.appId = ['eb3ab049-d007-43d3-93da-5962f9208c65'];
@@ -100,6 +117,14 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
 
     const result = await exportAppToFile(options);
     expect(result).toBe(true);
+
+    // Verify that output folder contains at least one file
+    const exportDir = path.resolve(options.outputDir);
+    const files = fs.readdirSync(exportDir);
+    expect(files.length).toBeGreaterThan(0);
+
+    // Delete output dir
+    fs.rmSync(exportDir, { recursive: true });
 });
 
 /**
@@ -113,7 +138,7 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
  * --qvf-name-separator _
  * --qvf-overwrite true
  */
-test('export apps, tag "apiCreated",  (should succeed)', async () => {
+test('export apps, tag "apiCreated"', async () => {
     options.outputDir = 'qvfs_4';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.appId = ['eb3ab049-d007-43d3-93da-5962f9208c65', '2933711d-6638-41d4-a2d2-6dd2d965208b'];
@@ -124,6 +149,14 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
 
     const result = await exportAppToFile(options);
     expect(result).toBe(true);
+
+    // Verify that output folder contains at least one file
+    const exportDir = path.resolve(options.outputDir);
+    const files = fs.readdirSync(exportDir);
+    expect(files.length).toBeGreaterThan(0);
+
+    // Delete output dir
+    fs.rmSync(exportDir, { recursive: true });
 });
 
 /**
@@ -137,7 +170,7 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
  * --qvf-name-separator _
  * --qvf-overwrite true
  */
-test('export apps, tag "apiCreated",  (should succeed)', async () => {
+test('export apps, tag "apiCreated"', async () => {
     options.outputDir = 'qvfs_5';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.appId = ['eb3ab049-d007-43d3-93da-5962f9208c65', '2933711d-6638-41d4-a2d2-6dd2d965208b'];
@@ -153,25 +186,24 @@ test('export apps, tag "apiCreated",  (should succeed)', async () => {
 
     const result = await exportAppToFile(options);
     expect(result).toBe(true);
+
+    // Verify that output folder contains at least one file
+    const exportDir = path.resolve(options.outputDir);
+    const files = fs.readdirSync(exportDir);
+    expect(files.length).toBeGreaterThan(0);
+
+    // Verify that output Excel file has been created
+    // Get all files in output folder
+    const files2 = fs.readdirSync(exportDir);
+    // Filter out Excel files
+    const excelFiles = files2.filter((file) => file.endsWith('.xlsx'));
+    expect(excelFiles.length).toBe(1);
+
+    // Size of Exel file should be > 0
+    const excelFile = path.resolve(exportDir, excelFiles[0]);
+    const stats = fs.statSync(excelFile);
+    expect(stats.size).toBeGreaterThan(0);
+
+    // Delete output dir
+    fs.rmSync(exportDir, { recursive: true });
 });
-
-// Delete output dirs
-// let exportDir = path.resolve('qvfs_1');
-// console.log(exportDir);
-// fs.rmdirSync(exportDir, { recursive: true });
-
-// exportDir = path.resolve('qvfs_2');
-// console.log(exportDir);
-// fs.rmdirSync(exportDir, { recursive: true });
-
-// exportDir = path.resolve('qvfs_3');
-// console.log(exportDir);
-// fs.rmdirSync(exportDir, { recursive: true });
-
-// exportDir = path.resolve('qvfs_4');
-// console.log(exportDir);
-// fs.rmdirSync(exportDir, { recursive: true });
-
-// exportDir = path.resolve('qvfs_5');
-// console.log(exportDir);
-// fs.rmdirSync(exportDir, { recursive: true });

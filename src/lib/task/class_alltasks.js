@@ -83,6 +83,7 @@ class QlikSenseTasks {
     // - cpExisting: Array of existing custom properties in QSEoW
     // - fakeTaskId: Fake task ID used to associate task with schema/composite events
     // - nodesWithEvents: Set of nodes that have associated events
+    // - options: CLI options
     //
     // Returns:
     // Object with two properties:
@@ -148,7 +149,7 @@ class QlikSenseTasks {
             }
 
             // eslint-disable-next-line no-await-in-loop
-            const app = await getAppById(appId);
+            const app = await getAppById(appId, param?.options);
 
             if (!app) {
                 logger.error(
@@ -160,7 +161,7 @@ class QlikSenseTasks {
             // App ID is a proper UUID. We don't know if the app actually exists though.
 
             // eslint-disable-next-line no-await-in-loop
-            const app = await getAppById(appIdRaw);
+            const app = await getAppById(appIdRaw, param?.options);
 
             if (!app) {
                 logger.error(
@@ -279,6 +280,7 @@ class QlikSenseTasks {
             currentTask,
             fakeTaskId: param.fakeTaskId,
             nodesWithEvents: param.nodesWithEvents,
+            options: param?.options,
         });
 
         // Get composite events for this task
@@ -290,6 +292,7 @@ class QlikSenseTasks {
             currentTask,
             fakeTaskId: param.fakeTaskId,
             nodesWithEvents: param.nodesWithEvents,
+            options: param?.options,
         });
 
         return { currentTask, taskCreationOption };
@@ -304,6 +307,7 @@ class QlikSenseTasks {
     // - cpExisting: Array of existing custom properties in QSEoW
     // - fakeTaskId: Fake task ID used to associate task with schema/composite events
     // - nodesWithEvents: Set of nodes that have associated events
+    // - options: CLI options
     //
     // Returns:
     // Object with two properties:
@@ -419,6 +423,7 @@ class QlikSenseTasks {
             currentTask,
             fakeTaskId: param.fakeTaskId,
             nodesWithEvents: param.nodesWithEvents,
+            options: param?.options,
         });
 
         // Get composite events for this task
@@ -430,6 +435,7 @@ class QlikSenseTasks {
             currentTask,
             fakeTaskId: param.fakeTaskId,
             nodesWithEvents: param.nodesWithEvents,
+            options: param?.options,
         });
 
         return { currentTask, taskCreationOption };
@@ -444,6 +450,7 @@ class QlikSenseTasks {
     // - currentTask: Object containing task data
     // - fakeTaskId: Fake task ID used to associate task with schema/composite events
     // - nodesWithEvents: Set of nodes that have associated events
+    // - options: CLI options
     parseSchemaEvents(param) {
         // Get schema events for this task, storing the info using the same structure as returned from QRS API
         const prelSchemaEvents = [];
@@ -555,6 +562,7 @@ class QlikSenseTasks {
     // - currentTask: Object containing task data
     // - fakeTaskId: Fake task ID used to associate task with schema/composite events
     // - nodesWithEvents: Set of nodes that have associated events
+    // - options: CLI options
     async parseCompositeEvents(param) {
         // Get all composite events for this task
         //
@@ -686,7 +694,7 @@ class QlikSenseTasks {
                         upstreamTaskExistence = 'exists-in-source-file';
                     } else {
                         // eslint-disable-next-line no-await-in-loop
-                        upstreamTask = await getTaskById(rule[param.taskFileColumnHeaders.ruleTaskId.pos]);
+                        upstreamTask = await getTaskById(rule[param.taskFileColumnHeaders.ruleTaskId.pos], param?.options);
 
                         // Save upstream task in shared task list
                         this.compositeEventUpstreamTask.push(upstreamTask);
@@ -822,7 +830,8 @@ class QlikSenseTasks {
     // - tasksFromFile: Object containing data read from file
     // - tagsExisting: Array of existing tags in QSEoW
     // - cpExisting: Array of existing custom properties in QSEoW
-    async getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting) {
+    // - options: Options object passed on the command line
+    async getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting, options) {
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
@@ -929,6 +938,7 @@ class QlikSenseTasks {
                             cpExisting,
                             fakeTaskId,
                             nodesWithEvents,
+                            options,
                         });
 
                         // Add reload task as node in task network
@@ -1059,6 +1069,7 @@ class QlikSenseTasks {
                             cpExisting,
                             fakeTaskId,
                             nodesWithEvents,
+                            options,
                         });
 
                         // Add external program task as node in task network

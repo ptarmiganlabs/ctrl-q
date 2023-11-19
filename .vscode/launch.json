@@ -100,45 +100,55 @@
       // ------------------------------------
       // Import tasks from CSV file
       // ------------------------------------
-      // "args": [
-      //   "task-import",
-      //   "--auth-type",
-      //   "cert",
-      //   "--host",
-      //   // "192.168.100.109",
-      //   "10.211.55.15",
+      "args": [
+        "task-import",
+        "--auth-type",
+        "cert",
 
-      //   "--auth-cert-file",
-      //   "../../code/secret/winsrv.local/client.pem",
-      //   "--auth-cert-key-file",
-      //   "../../code/secret/winsrv.local/client_key.pem",        
-      //   // "--auth-cert-file",
-      //   // "./cert/client.pem",
-      //   // "--auth-cert-key-file",
-      //   // "./cert/client_key.pem",
-      //   "--auth-user-dir",
-      //   "winsrv1",
-      //   // "LAB",
-      //   "--auth-user-id",
-      //   "goran",
+        // p2w1
+        "--host",
+        "192.168.100.109",
+        "--auth-cert-file",
+        // "./cert/client.pem",
+        "../../code/secret/pro2win1-nopwd/client.pem",
+        "--auth-cert-key-file",
+        "../../code/secret/pro2win1-nopwd/client_key.pem",
+        // "./cert/client_key.pem",
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
 
-      //   "--file-type",
-      //   "csv",
+        // Parallels
+        // "--host",
+        // "10.211.55.15",
+        // "--auth-cert-file",
+        // "../../code/secret/winsrv.local/client.pem",
+        // "--auth-cert-key-file",
+        // "../../code/secret/winsrv.local/client_key.pem",
+        // "--auth-user-dir",
+        // "winsrv1",
+        // "--auth-user-id",
+        // "goran",
 
-      //   "--file-name",
-      //   // "tasks2source.csv",
-      //   // "task-chain.csv",
-      //   // "testdata/reload-tasks.csv",
-      //   "./tasks_all.csv",
+        "--file-type",
+        "csv",
 
-      //   // "--qvf-overwrite",
-      //   // "no",
+        "--file-name",
+        // "tasks2source.csv",
+        // "task-chain.csv",
+        // "testdata/reload-tasks.csv",
+        // "./tasks_all.csv",
+        "./testdata/tasks-1.csv"
 
-      //   "--limit-import-count",
-      //   "2",
+        // "--qvf-overwrite",
+        // "no",
 
-      //   // "--dry-run"
-      // ]
+        // "--limit-import-count",
+        // "2",
+
+        // "--dry-run"
+      ]
 
       // ------------------------------------
       // Export apps to QVF files
@@ -275,56 +285,56 @@
       // ------------------------------------
       // Get reload tasks as table
       // ------------------------------------
-      "args": [
-        "task-get",
-        "--auth-type",
-        "cert",
-        "--host",
-        "192.168.100.109",
-        "--auth-cert-file",
-        "../../code/secret/pro2win1-nopwd/client.pem",
-        // "./cert/client.pem",
-        "--auth-cert-key-file",
-        "../../code/secret/pro2win1-nopwd/client_key.pem",
-        // "./cert/client_key.pem",
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
+      // "args": [
+      //   "task-get",
+      //   "--auth-type",
+      //   "cert",
+      //   "--host",
+      //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "../../code/secret/pro2win1-nopwd/client.pem",
+      //   // "./cert/client.pem",
+      //   "--auth-cert-key-file",
+      //   "../../code/secret/pro2win1-nopwd/client_key.pem",
+      //   // "./cert/client_key.pem",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
 
-        // "--task-type",
-        //  "reload",
-        "ext-program",
+      //   // "--task-type",
+      //   //  "reload",
+      //   "ext-program",
 
-        // "--task-id",
-        // "afc250bc-28c3-49a2-8d63-80966749abe3",
-        // "5748afa9-3abe-43ab-bb1f-127c48ced075",
-        // "5520e710-91ad-41d2-aeb6-434cafbf366b",
-        "--output-format",
-        // "table",
-        "tree",
+      //   // "--task-id",
+      //   // "afc250bc-28c3-49a2-8d63-80966749abe3",
+      //   // "5748afa9-3abe-43ab-bb1f-127c48ced075",
+      //   // "5520e710-91ad-41d2-aeb6-434cafbf366b",
+      //   "--output-format",
+      //   // "table",
+      //   "tree",
 
-        "--output-dest",
-        "screen",
-        // "--output-file-name",
-        // "tasks.csv",
-        // "tasks.json",
-        // "--output-file-format",
-        // "csv",
-        // "json",
-        // "excel",
+      //   "--output-dest",
+      //   "screen",
+      //   // "--output-file-name",
+      //   // "tasks.csv",
+      //   // "tasks.json",
+      //   // "--output-file-format",
+      //   // "csv",
+      //   // "json",
+      //   // "excel",
 
-        // "--text-color",
-        // "no",
+      //   // "--text-color",
+      //   // "no",
 
-        // "--table-details",
-        // "common",
-        // "lastexecution",
-        // "tag",
-        // "customproperty",
-        // "schematrigger",
-        // "compositetrigger",
-      ]
+      //   // "--table-details",
+      //   // "common",
+      //   // "lastexecution",
+      //   // "tag",
+      //   // "customproperty",
+      //   // "schematrigger",
+      //   // "compositetrigger",
+      // ]
 
       // ------------------------------------
       // Get reload tasks as CSV/Excel/JSON file
@@ -791,7 +801,6 @@
       //   "--log-level",
       //   "info"
       // ]
-
     }
   ]
 }

@@ -83,6 +83,8 @@ function compareTable(a, b) {
     return 0;
 }
 
+// get-task command
+// Options are assumed to be verified before calling this function
 const getTask = async (options) => {
     try {
         // Set log level
