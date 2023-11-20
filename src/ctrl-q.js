@@ -633,7 +633,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
@@ -684,7 +684,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
@@ -726,7 +726,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
@@ -786,17 +786,18 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
-        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem');
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server');
 
     // Parse command line params
     await program.parseAsync(process.argv);
