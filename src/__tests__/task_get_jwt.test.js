@@ -8,8 +8,6 @@ const { getTask } = require('../lib/cmd/gettask');
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
     authType: process.env.CTRL_Q_AUTH_TYPE || 'cert',
-    authCertFile: process.env.CTRL_Q_AUTH_CERT_FILE || './cert/client.pem',
-    authCertKeyFile: process.env.CTRL_Q_AUTH_CERT_KEY_FILE || './cert/client_key.pem',
     host: process.env.CTRL_Q_HOST || '',
     port: process.env.CTRL_Q_PORT || '4242',
     schemaVersion: process.env.CTRL_Q_SCHEMA_VERSION || '12.612.0',
@@ -19,22 +17,25 @@ const options = {
     authUserId: process.env.CTRL_Q_AUTH_USER_ID || '',
 
     taskType: process.env.CTRL_Q_TASK_TYPE || ['reload', 'ext-program'],
+    authJwt: process.env.CTRL_Q_AUTH_JWT || '',
+
 };
 
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minute default timeout
-console.log(`Jest timeout: ${defaultTestTimeout}`);
 jest.setTimeout(defaultTestTimeout);
 
+options.authType = 'jwt';
+options.port = '443';
+options.virtualProxy = 'jwt';
+
 test('get tasks (verify parameters)', async () => {
-    expect(options.authCertFile).not.toHaveLength(0);
-    expect(options.authCertKeyFile).not.toHaveLength(0);
     expect(options.host).not.toHaveLength(0);
     expect(options.authUserDir).not.toHaveLength(0);
     expect(options.authUserId).not.toHaveLength(0);
 });
 
 // Test suite for task table
-describe('get tasks as table', () => {
+describe('get tasks as table (jwt auth)', () => {
     test('get reload + ext pgm tasks as table on screen, columns "common"', async () => {
         options.outputFormat = 'table';
         options.outputDest = 'screen';
@@ -63,7 +64,7 @@ describe('get tasks as table', () => {
 });
 
 // Test suite for task tree
-describe('get tasks as tree', () => {
+describe('get tasks as tree (jwt auth)', () => {
     test('get tasks as tree on screen, no detail columns, colored text', async () => {
         options.outputFormat = 'tree';
         options.outputDest = 'screen';
@@ -110,7 +111,7 @@ describe('get tasks as tree', () => {
 });
 
 // Test suite for storing table output to file
-describe('get tasks as table, store to file', () => {
+describe('get tasks as table, store to file (jwt auth)', () => {
     test('get tasks as table, store to CSV, columns "common", "tag"', async () => {
         const outputDir = 'task_export_1';
         const outputFile = `task_get_table_1.csv`;
@@ -284,7 +285,7 @@ describe('get tasks as table, store to file', () => {
 });
 
 // Test suite for storing tree output to file
-describe('get tasks as tree, store to JSON file', () => {
+describe('get tasks as tree, store to JSON file (jwt auth)', () => {
     test('no detail columns or colored text, use icons', async () => {
         const outputDir = 'task_export';
         const outputFile = `task_get_table.json`;
