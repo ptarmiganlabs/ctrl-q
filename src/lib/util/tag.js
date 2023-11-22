@@ -8,20 +8,25 @@ function getTagsFromQseow(options) {
     return new Promise((resolve, reject) => {
         logger.verbose(`Getting tags from QSEoW...`);
 
-        // Make sure certificates exist
-        const fileCert = path.resolve(execPath, options.authCertFile);
-        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+        // Should cerrificates be used for authentication?
+        let axiosConfig;
+        if (options.authType === 'cert') {
+            // Make sure certificates exist
+            const fileCert = path.resolve(execPath, options.authCertFile);
+            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
 
-        const axiosConfig = setupQRSConnection(options, {
-            method: 'get',
-            fileCert,
-            fileCertKey,
-            path: '/qrs/tag/full',
-            // headers: {
-            //     'Accept': 'application/json',
-            //     'Content-Type': 'application/json; charset=utf-8',
-            // },
-        });
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
+                fileCert,
+                fileCertKey,
+                path: '/qrs/tag/full',
+            });
+        } else if (options.authType === 'jwt') {
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
+                path: '/qrs/tag/full',
+            });
+        }
 
         logger.debug(`About to retrieve tags from QRS API.`);
 

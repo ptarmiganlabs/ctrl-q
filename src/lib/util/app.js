@@ -58,20 +58,28 @@ async function getApps(options, idArray, tagArray) {
         }
         logger.debug(`GET APPS: QRS query filter (incl ids, tags): ${filter}`);
 
-        // Make sure certificates exist
-        const fileCert = path.resolve(execPath, options.authCertFile);
-        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-
         let axiosConfig;
         if (filter === '') {
             // No apps matching the provided app IDs and tags. Error!
             logger.error('GET APPS: No apps matching the provided app IDs and and tags. Exiting.');
             process.exit(1);
-        } else {
+        }
+        // Should cerrificates be used for authentication?
+        else if (options.authType === 'cert') {
+            // Make sure certificates exist
+            const fileCert = path.resolve(execPath, options.authCertFile);
+            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+
             axiosConfig = setupQRSConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
+                path: '/qrs/app/full',
+                queryParameters: [{ name: 'filter', value: filter }],
+            });
+        } else if (options.authType === 'jwt') {
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
                 path: '/qrs/app/full',
                 queryParameters: [{ name: 'filter', value: filter }],
             });
@@ -110,16 +118,25 @@ async function getAppById(appId, optionsParam) {
             return false;
         }
 
-        // Make sure certificates exist
-        const fileCert = path.resolve(execPath, options.authCertFile);
-        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+        // Should cerrificates be used for authentication?
+        let axiosConfig;
+        if (options.authType === 'cert') {
+            // Make sure certificates exist
+            const fileCert = path.resolve(execPath, options.authCertFile);
+            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
 
-        const axiosConfig = setupQRSConnection(options, {
-            method: 'get',
-            fileCert,
-            fileCertKey,
-            path: `/qrs/app/${appId}`,
-        });
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
+                fileCert,
+                fileCertKey,
+                path: `/qrs/app/${appId}`,
+            });
+        } else if (options.authType === 'jwt') {
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
+                path: `/qrs/app/${appId}`,
+            });
+        }
 
         const result = await axios.request(axiosConfig);
         logger.debug(`GET APP BY ID: Result=${result.status}`);
@@ -129,11 +146,11 @@ async function getAppById(appId, optionsParam) {
             logger.debug(`GET APP BY ID: App details: ${app}`);
 
             if (app && app?.id) {
-                // Yes, the task exists
+                // Yes, the app exists
                 logger.verbose(`App exists: ID=${app.id}. App name="${app.name}"`);
                 return app;
             }
-            // No, the task does not exist
+            // No, the app does not exist
             logger.verbose(`App does not exist: ID=${appId}`);
         }
 
@@ -151,23 +168,38 @@ async function getAppById(appId, optionsParam) {
 }
 
 // Function to delete app given app ID
-async function deleteAppById(appId) {
+async function deleteAppById(appId, options) {
+    // Ensuire options are specified. Exit if not
+    if (!options) {
+        logger.error(`DELETE APP: No options specified. Exiting.`);
+        process.exit(1);
+    }
+
     try {
         logger.debug(`DELETE APP: Starting delete app from QSEoW for app id ${appId}`);
 
         // Get CLI options
-        const cliOptions = getCliOptions();
+        // const cliOptions = getCliOptions();
 
-        // Make sure certificates exist
-        const fileCert = path.resolve(execPath, cliOptions.authCertFile);
-        const fileCertKey = path.resolve(execPath, cliOptions.authCertKeyFile);
+        // Should cerrificates be used for authentication?
+        let axiosConfig;
+        if (options.authType === 'cert') {
+            // Make sure certificates exist
+            const fileCert = path.resolve(execPath, options.authCertFile);
+            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
 
-        const axiosConfig = setupQRSConnection(cliOptions, {
-            method: 'delete',
-            fileCert,
-            fileCertKey,
-            path: `/qrs/app/${appId}`,
-        });
+            axiosConfig = setupQRSConnection(options, {
+                method: 'delete',
+                fileCert,
+                fileCertKey,
+                path: `/qrs/app/${appId}`,
+            });
+        } else if (options.authType === 'jwt') {
+            axiosConfig = setupQRSConnection(options, {
+                method: 'delete',
+                path: `/qrs/app/${appId}`,
+            });
+        }
 
         const result = await axios.request(axiosConfig);
         logger.debug(`DELETE APP: Result=result.status`);
@@ -190,8 +222,78 @@ async function deleteAppById(appId) {
     }
 }
 
+// Check if an app with a given id exists
+async function appExistById(appId, options) {
+    try {
+        logger.debug(`Checking if app with id ${appId} exists in QSEoW`);
+
+        // Is the app ID a valid GUID?
+        if (!validate(appId)) {
+            logger.error(`APP EXIST BY ID: App ID ${appId} is not a valid GUID.`);
+
+            return false;
+        }
+
+        // Should cerrificates be used for authentication?
+        let axiosConfig;
+        if (options.authType === 'cert') {
+            // Make sure certificates exist
+            const fileCert = path.resolve(execPath, options.authCertFile);
+            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
+                fileCert,
+                fileCertKey,
+                path: '/qrs/app',
+                queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${appId}`) }],
+            });
+        } else if (options.authType === 'jwt') {
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
+                path: '/qrs/app',
+                queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${appId}`) }],
+            });
+        }
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`APP EXIST BY ID: Result=${result.status}`);
+
+        if (result.status === 200) {
+            const apps = JSON.parse(result.data);
+            logger.debug(`APP EXIST BY ID: App details: ${JSON.stringify(apps)}`);
+
+            if (apps.length === 1 && apps[0].id) {
+                // Yes, the app exists
+                logger.verbose(`App exists: ID=${apps[0].id}. App name="${apps[0].name}"`);
+
+                return true;
+            }
+
+            if (apps.length > 1) {
+                logger.error(`More than one app with ID ${appId} found. Should not be possible. Exiting.`);
+                process.exit(1);
+            } else {
+                return false;
+            }
+        }
+
+        return false;
+    } catch (err) {
+        logger.error(`APP EXIST BY ID: ${err}`);
+
+        // Show stack trace if available
+        if (err?.stack) {
+            logger.error(`APP EXIST BY ID:\n  ${err.stack}`);
+        }
+
+        return false;
+    }
+}
+
 module.exports = {
     getApps,
     getAppById,
     deleteAppById,
+    appExistById,
 };

@@ -78,7 +78,9 @@ const importAppFromFile = async (options) => {
             // Import apps specified in Excel file
             const importedApps = await qlikSenseApps.importAppsFromFiles(appsFromFile, tagsExisting, cpExisting);
             logger.debug(`Imported apps:\n${JSON.stringify(importedApps, null, 2)}`);
+            return importedApps;
         }
+        return false;
     } catch (err) {
         logger.error(`IMPORT APP: ${err.stack}`);
     }

@@ -8,16 +8,25 @@ function getCustomPropertiesFromQseow(options) {
     return new Promise((resolve, reject) => {
         logger.verbose(`Getting custom properties from QSEoW...`);
 
-        // Make sure certificates exist
-        const fileCert = path.resolve(execPath, options.authCertFile);
-        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+        // Should cerrificates be used for authentication?
+        let axiosConfig;
+        if (options.authType === 'cert') {
+            // Make sure certificates exist
+            const fileCert = path.resolve(execPath, options.authCertFile);
+            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
 
-        const axiosConfig = setupQRSConnection(options, {
-            method: 'get',
-            fileCert,
-            fileCertKey,
-            path: '/qrs/custompropertydefinition/full',
-        });
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
+                fileCert,
+                fileCertKey,
+                path: '/qrs/custompropertydefinition/full',
+            });
+        } else if (options.authType === 'jwt') {
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
+                path: '/qrs/custompropertydefinition/full',
+            });
+        }
 
         axios
             .request(axiosConfig)

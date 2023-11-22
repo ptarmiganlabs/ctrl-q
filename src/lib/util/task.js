@@ -28,18 +28,28 @@ async function taskExistById(taskId, optionsParam) {
             return false;
         }
 
-        // Make sure certificates exist
-        const fileCert = path.resolve(execPath, options.authCertFile);
-        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+        // Should cerrificates be used for authentication?
+        let axiosConfig;
+        if (options.authType === 'cert') {
+            // Make sure certificates exist
+            const fileCert = path.resolve(execPath, options.authCertFile);
+            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
 
-        // const filter = encodeURI(`name eq '👍😎 updateSheetThumbnail'`);
-        const axiosConfig = setupQRSConnection(options, {
-            method: 'get',
-            fileCert,
-            fileCertKey,
-            path: '/qrs/task',
-            queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
-        });
+            // const filter = encodeURI(`name eq '👍😎 updateSheetThumbnail'`);
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
+                fileCert,
+                fileCertKey,
+                path: '/qrs/task',
+                queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
+            });
+        } else if (options.authType === 'jwt') {
+            axiosConfig = setupQRSConnection(options, {
+                method: 'get',
+                path: '/qrs/task',
+                queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
+            });
+        }
 
         const result = await axios.request(axiosConfig);
         logger.debug(`TASK EXIST BY ID: Result=${result.status}`);

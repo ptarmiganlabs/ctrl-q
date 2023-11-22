@@ -18,24 +18,33 @@ const sharedParamAssertOptions = async (options) => {
     logger.debug(`authCertFile: ${options.authCertFile}`);
     logger.debug(`authCertKeyFile: ${options.authCertKeyFile}`);
 
-    // Verify that certificate files exists (if specified)
-    const fileCert = path.resolve(execPath, options.authCertFile);
-    const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+    // If certificate authentication is used: certs and user dir/id must be present.
+    if (options.authType === 'cert') {
+        // Verify that certificate files exists (if specified)
+        const fileCert = path.resolve(execPath, options.authCertFile);
+        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
 
-    const fileCertExists = await verifyFileExists(fileCert);
-    if (fileCertExists === false) {
-        logger.error(`Missing certificate file ${fileCert}. Aborting`);
-        process.exit(1);
-    } else {
-        logger.verbose(`Certificate file ${fileCert} found`);
-    }
+        const fileCertExists = await verifyFileExists(fileCert);
+        if (fileCertExists === false) {
+            logger.error(`Missing certificate file ${fileCert}. Aborting`);
+            process.exit(1);
+        } else {
+            logger.verbose(`Certificate file ${fileCert} found`);
+        }
 
-    const fileCertKeyExists = await verifyFileExists(fileCertKey);
-    if (fileCertKeyExists === false) {
-        logger.error(`Missing certificate key file ${fileCertKey}. Aborting`);
-        process.exit(1);
-    } else {
-        logger.verbose(`Certificate key file ${fileCertKey} found`);
+        const fileCertKeyExists = await verifyFileExists(fileCertKey);
+        if (fileCertKeyExists === false) {
+            logger.error(`Missing certificate key file ${fileCertKey}. Aborting`);
+            process.exit(1);
+        } else {
+            logger.verbose(`Certificate key file ${fileCertKey} found`);
+        }
+    } else if (options.authType === 'jwt') {
+        // Verify that --auth-jwt parameter is specified
+        if (options.authJwt === undefined || !options.authJwt) {
+            logger.error('Mandatory option --auth-jwt is missing. Use it to specify the JWT token to use for authentication.');
+            process.exit(1);
+        }
     }
 };
 

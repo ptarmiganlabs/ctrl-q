@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 const enigma = require('enigma.js');
 
-const { setupEnigmaConnection } = require('../util/enigma');
+const { setupEnigmaConnection, addTrafficLogging } = require('../util/enigma');
 const { getApps } = require('../util/app');
 const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
 
@@ -22,22 +22,44 @@ const deleteVariable = async (options) => {
         // Get IDs of all apps that should be processed
         const apps = await getApps(options, options.appId, options.appTag);
 
-        // Configure Enigma.js
-        const configEnigma = await setupEnigmaConnection(options);
+        // Session ID to use when connecting to the Qlik Sense server
+        const sessionId = 'ctrlq';
+
+        // Create new session to Sense engine
+        let configEnigma;
+        let session;
+        try {
+            configEnigma = await setupEnigmaConnection(options, sessionId);
+            session = await enigma.create(configEnigma);
+            logger.verbose(`Created session to server ${options.host}.`);
+        } catch (err) {
+            logger.error(`Error creating session to server ${options.host}: ${err}`);
+            process.exit(1);
+        }
+
+        // Set up logging of websocket traffic
+        addTrafficLogging(session, options);
+
+        let global;
+        try {
+            global = await session.open();
+        } catch (err) {
+            logger.error(`Error opening session to server ${options.host}: ${err}`);
+            process.exit(1);
+        }
+
+        let engineVersion;
+        try {
+            engineVersion = await global.engineVersion();
+            logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
+        } catch (err) {
+            logger.error(`Error getting engine version from server ${options.host}: ${err}`);
+            process.exit(1);
+        }
 
         for (const app of apps) {
             logger.info('------------------------');
             logger.info(`Deleting variables in app ${app.id} "${app.name}"`);
-
-            const session = enigma.create(configEnigma);
-            if (options.logLevel === 'silly') {
-                session.on('traffic:sent', (data) => console.log('sent:', data));
-                session.on('traffic:received', (data) => console.log('received:', data));
-            }
-            const global = await session.open();
-
-            const engineVersion = await global.engineVersion();
-            logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
 
             const doc = await global.openDoc(app.id, '', '', '', true);
             logger.verbose(`Opened app ${app.id} "${app.name}".`);
@@ -129,8 +151,12 @@ const deleteVariable = async (options) => {
                     }
                 }
             }
-            // Close app session
-            await doc.session.close();
+        }
+
+        if ((await session.close()) === true) {
+            logger.verbose(`Closed session after getting master item measures in app ${options.appId} on host ${options.host}`);
+        } else {
+            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
         }
     } catch (err) {
         logger.error(`DELETE VARIABLE: ${err.stack}`);

@@ -26,9 +26,12 @@ class QlikSenseApps {
             this.appList = [];
             this.options = options;
 
-            // Make sure certificates exist
-            this.fileCert = path.resolve(execPath, options.authCertFile);
-            this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            // Should cerrificates be used for authentication?
+            if (options.authType === 'cert') {
+                // Make sure certificates exist
+                this.fileCert = path.resolve(execPath, options.authCertFile);
+                this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            }
 
             // Map that will connect app counter from Excel file with ID an app gets after import to QSEoW
             this.appCounterIdMap = new Map();
@@ -107,22 +110,38 @@ class QlikSenseApps {
             }
             logger.debug(`GET APPS FROM QSEOW: QRS query filter (incl ids, tags): ${filter}`);
 
+            // Should cerrificates be used for authentication?
             let axiosConfig;
-            if (filter === '') {
-                axiosConfig = await setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    path: '/qrs/app/full',
-                });
-            } else {
-                axiosConfig = await setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    path: '/qrs/app/full',
-                    queryParameters: [{ name: 'filter', value: filter }],
-                });
+            if (this.options.authType === 'cert') {
+                if (filter === '') {
+                    axiosConfig = await setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        path: '/qrs/app/full',
+                    });
+                } else {
+                    axiosConfig = await setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        path: '/qrs/app/full',
+                        queryParameters: [{ name: 'filter', value: filter }],
+                    });
+                }
+            } else if (this.options.authType === 'jwt') {
+                if (filter === '') {
+                    axiosConfig = await setupQRSConnection(this.options, {
+                        method: 'get',
+                        path: '/qrs/app/full',
+                    });
+                } else {
+                    axiosConfig = await setupQRSConnection(this.options, {
+                        method: 'get',
+                        path: '/qrs/app/full',
+                        queryParameters: [{ name: 'filter', value: filter }],
+                    });
+                }
             }
 
             const result = await axios.request(axiosConfig);
@@ -343,6 +362,9 @@ class QlikSenseApps {
                             process.exit(1);
                         }
 
+                        // Save id of created app
+                        currentApp.createdAppId = uploadedAppId;
+
                         // Update tags, custom properties and owner of uploaded app
                         // eslint-disable-next-line no-await-in-loop
                         const result = await this.updateUploadedApp(currentApp, uploadedAppId);
@@ -353,6 +375,7 @@ class QlikSenseApps {
 
                             // eslint-disable-next-line no-await-in-loop
                             const { streamId, streamName } = await this.getStreamInfo(currentApp);
+                            let tmpAppId;
 
                             // Do we know which stream to publish to? Publish if so!
                             if (streamId) {
@@ -374,19 +397,29 @@ class QlikSenseApps {
                                             }`
                                         );
 
-                                        // Add mapping between app counter and the id of published app
-                                        const tmpAppId = `newapp-${currentApp.appCounter}`;
-                                        this.appCounterIdMap.set(tmpAppId, result2.publishedApp.id);
+                                        // Keep record of published app
+                                        currentApp.publishStatus = 'published';
 
-                                        // eslint-disable-next-line no-await-in-loop
-                                        await this.addApp(currentApp, tmpAppId);
+                                        // Add mapping between app counter and the id of published app
+                                        tmpAppId = `newapp-${currentApp.appCounter}`;
+                                        this.appCounterIdMap.set(tmpAppId, result2.publishedApp.id);
                                     } else {
                                         logger.error(
                                             `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Failed publishing app "${
                                                 currentApp.name
                                             }" to stream "${streamName}"`
                                         );
+
+                                        // Keep record of failed app
+                                        currentApp.publishStatus = 'failed';
+
+                                        // Add mapping between app counter and the id of uploaded, not published app
+                                        tmpAppId = `newapp-${currentApp.appCounter}`;
+                                        this.appCounterIdMap.set(tmpAppId, uploadedAppId);
                                     }
+
+                                    // eslint-disable-next-line no-await-in-loop
+                                    await this.addApp(currentApp, tmpAppId);
                                 } else if (currentApp.appPublishToStreamOption === 'publish-another') {
                                     // eslint-disable-next-line no-await-in-loop
                                     const result2 = await this.streamAppPublishAnother(
@@ -403,19 +436,29 @@ class QlikSenseApps {
                                             }" published to stream "${streamName}". Id of published app: ${result2.publishedApp.id}`
                                         );
 
-                                        // Add mapping between app counter and the id of published app
-                                        const tmpAppId = `newapp-${currentApp.appCounter}`;
-                                        this.appCounterIdMap.set(tmpAppId, result2.publishedApp.id);
+                                        // Keep record of published app
+                                        currentApp.publishStatus = 'published';
 
-                                        // eslint-disable-next-line no-await-in-loop
-                                        await this.addApp(currentApp, tmpAppId);
+                                        // Add mapping between app counter and the id of published app
+                                        tmpAppId = `newapp-${currentApp.appCounter}`;
+                                        this.appCounterIdMap.set(tmpAppId, result2.publishedApp.id);
                                     } else {
                                         logger.error(
                                             `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Failed publishing app "${
                                                 currentApp.name
                                             }" to stream "${streamName}"`
                                         );
+
+                                        // Keep record of failed app
+                                        currentApp.publishStatus = 'failed';
+
+                                        // Add mapping between app counter and the id of uploaded, not published app
+                                        tmpAppId = `newapp-${currentApp.appCounter}`;
+                                        this.appCounterIdMap.set(tmpAppId, uploadedAppId);
                                     }
+
+                                    // eslint-disable-next-line no-await-in-loop
+                                    await this.addApp(currentApp, tmpAppId);
                                 } else if (currentApp.appPublishToStreamOption === 'delete-publish') {
                                     // eslint-disable-next-line no-await-in-loop
                                     const result2 = await this.streamAppDeletePublish(
@@ -435,18 +478,29 @@ class QlikSenseApps {
                                             }`
                                         );
 
-                                        // Add mapping between app counter and the id of published app
-                                        const tmpAppId = `newapp-${currentApp.appCounter}`;
-                                        this.appCounterIdMap.set(tmpAppId, result2.publishedApp.id);
+                                        // Keep record of published app
+                                        currentApp.publishStatus = 'published';
 
-                                        // eslint-disable-next-line no-await-in-loop
-                                        await this.addApp(currentApp, tmpAppId);
-                                    } else
+                                        // Add mapping between app counter and the id of published app
+                                        tmpAppId = `newapp-${currentApp.appCounter}`;
+                                        this.appCounterIdMap.set(tmpAppId, result2.publishedApp.id);
+                                    } else {
                                         logger.error(
                                             `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Failed publishing app "${
                                                 currentApp.name
                                             }" to stream "${streamName}"`
                                         );
+
+                                        // Keep record of failed app
+                                        currentApp.publishStatus = 'failed';
+
+                                        // Add mapping between app counter and the id of uploaded, not published app
+                                        tmpAppId = `newapp-${currentApp.appCounter}`;
+                                        this.appCounterIdMap.set(tmpAppId, uploadedAppId);
+                                    }
+
+                                    // eslint-disable-next-line no-await-in-loop
+                                    await this.addApp(currentApp, tmpAppId);
                                 } else {
                                     logger.error(
                                         `(${appRow[0][appFileColumnHeaders.appCounter.pos]}) Invalid publish option specified for app "${
@@ -462,6 +516,16 @@ class QlikSenseApps {
                                         currentApp.appPublishToStream
                                     }". The uploaded app is still present in the QMC (id=${uploadedAppId}).`
                                 );
+
+                                // Keep record of failed app
+                                currentApp.publishStatus = 'failed';
+
+                                // Add mapping between app counter and the id of uploaded, but not published app
+                                const tmpAppId = `newapp-${currentApp.appCounter}`;
+                                this.appCounterIdMap.set(tmpAppId, uploadedAppId);
+
+                                // eslint-disable-next-line no-await-in-loop
+                                await this.addApp(currentApp, tmpAppId);
                             }
                         } else {
                             // No, do not publish to stream after app upload
@@ -470,6 +534,9 @@ class QlikSenseApps {
                                     currentApp.name
                                 }" uploaded to QSEoW, but not published to any stream.`
                             );
+
+                            // Keep record of publish status
+                            currentApp.publishStatus = 'unpublished';
 
                             // Add mapping between app counter and the new id of imported app
                             const tmpAppId = `newapp-${currentApp.appCounter}`;
@@ -491,13 +558,22 @@ class QlikSenseApps {
     // Function to update tags, custom properties and owner of uploaded app
     async updateUploadedApp(newApp, uploadedAppId) {
         try {
-            // Get info about just uploaded app
-            const axiosConfigUploadedApp = setupQRSConnection(this.options, {
-                method: 'get',
-                fileCert: this.fileCert,
-                fileCertKey: this.fileCertKey,
-                path: `/qrs/app/${uploadedAppId}`,
-            });
+            // Should cerrificates be used for authentication?
+            let axiosConfigUploadedApp;
+            if (this.options.authType === 'cert') {
+                // Get info about just uploaded app
+                axiosConfigUploadedApp = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: `/qrs/app/${uploadedAppId}`,
+                });
+            } else if (this.options.authType === 'jwt') {
+                axiosConfigUploadedApp = setupQRSConnection(this.options, {
+                    method: 'get',
+                    path: `/qrs/app/${uploadedAppId}`,
+                });
+            }
 
             const appUploaded2 = await axios.request(axiosConfigUploadedApp);
             if (appUploaded2.status !== 200) {
@@ -523,13 +599,24 @@ class QlikSenseApps {
                     `userDirectory eq '${newApp.appOwnerUserDirectory}' and userId eq '${newApp.appOwnerUserId}'`
                 );
 
-                const axiosConfigUser = setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    path: '/qrs/user',
-                    queryParameters: [{ name: 'filter', value: filter }],
-                });
+                // Should cerrificates be used for authentication?
+                let axiosConfigUser;
+                if (this.options.authType === 'cert') {
+                    // Get info about just uploaded app
+                    axiosConfigUser = setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        path: '/qrs/user',
+                        queryParameters: [{ name: 'filter', value: filter }],
+                    });
+                } else if (this.options.authType === 'jwt') {
+                    axiosConfigUser = setupQRSConnection(this.options, {
+                        method: 'get',
+                        path: '/qrs/user',
+                        queryParameters: [{ name: 'filter', value: filter }],
+                    });
+                }
 
                 const userResult = await axios.request(axiosConfigUser);
                 const userResponse = JSON.parse(userResult.data);
@@ -559,17 +646,28 @@ class QlikSenseApps {
 
             // Pause for a while to let Sense repository catch up
             await sleep(1000);
-
-            // Uppdate app with tags, custom properties and app owner
-            const axiosConfig2 = setupQRSConnection(this.options, {
-                method: 'put',
-                fileCert: this.fileCert,
-                fileCertKey: this.fileCertKey,
-                path: `/qrs/app/${app.id}`,
-                body: app,
-            });
-
+            // console.log(this.options)
+            // Should cerrificates be used for authentication?
+            let axiosConfig2;
+            if (this.options.authType === 'cert') {
+                // Uppdate app with tags, custom properties and app owner
+                axiosConfig2 = setupQRSConnection(this.options, {
+                    method: 'put',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: `/qrs/app/${app.id}`,
+                    body: app,
+                });
+            } else if (this.options.authType === 'jwt') {
+                axiosConfig2 = setupQRSConnection(this.options, {
+                    method: 'put',
+                    path: `/qrs/app/${app.id}`,
+                    body: app,
+                });
+            }
+            // console.log(axiosConfig2)
             const result2 = await axios.request(axiosConfig2);
+            // console.log('b1')
             if (result2.status === 200) {
                 logger.debug(`Update of imported app wrt tags, custom properties and owner was successful.`);
                 return true;
@@ -600,7 +698,7 @@ class QlikSenseApps {
             logger.debug(`(${appCounter}) PUBLISH APP publish-replace: Starting`);
 
             // Get info about the created app
-            const appInfo = await getAppById(uploadedAppId);
+            const appInfo = await getAppById(uploadedAppId, this.options);
 
             // Check if there is an app with the same name in the target stream
             const matchingAppsInStream = await this.appsInStreamCount(appInfo.name, streamName);
@@ -612,7 +710,7 @@ class QlikSenseApps {
 
                 if (result.res === true) {
                     // Get info about the published app
-                    result.publishedApp = await getAppById(uploadedAppId);
+                    result.publishedApp = await getAppById(uploadedAppId, this.options);
                 } else {
                     result.publishedApp = null;
                 }
@@ -644,10 +742,10 @@ class QlikSenseApps {
                     //     );
 
                     // Delete the uploaded app
-                    await deleteAppById(uploadedAppId);
+                    await deleteAppById(uploadedAppId, this.options);
                     // }
 
-                    const publishedApp = await getAppById(appInStream.id);
+                    const publishedApp = await getAppById(appInStream.id, this.options);
                     result = { res: true, publishedApp };
                 } else {
                     // Something went wrong
@@ -692,7 +790,7 @@ class QlikSenseApps {
 
             if (result.res === true) {
                 // Get info about the published app
-                result.publishedApp = await getAppById(uploadedAppId);
+                result.publishedApp = await getAppById(uploadedAppId, this.options);
             } else {
                 result.publishedApp = null;
             }
@@ -727,7 +825,7 @@ class QlikSenseApps {
 
                 if (result.res === true) {
                     // Get info about the published app
-                    result.publishedApp = await getAppById(uploadedAppId);
+                    result.publishedApp = await getAppById(uploadedAppId, this.options);
                 } else {
                     result.publishedApp = null;
                 }
@@ -747,14 +845,14 @@ class QlikSenseApps {
                 const appInStream = await this.getAppInStream(streamName, appName);
 
                 // Delete the app in the target stream
-                await deleteAppById(appInStream.id);
+                await deleteAppById(appInStream.id, this.options);
 
                 // Do the normal publish
                 result.res = await this.appPublishNormal(streamId, uploadedAppId, appName);
 
                 if (result.res === true) {
                     // Get info about the published app
-                    result.publishedApp = await getAppById(uploadedAppId);
+                    result.publishedApp = await getAppById(uploadedAppId, this.options);
                 } else {
                     result.publishedApp = null;
                 }
@@ -790,14 +888,24 @@ class QlikSenseApps {
                 { name: 'name', value: appName },
             ];
 
-            // Build QRS query
-            const axiosConfig = setupQRSConnection(this.options, {
-                method: 'put',
-                fileCert: this.fileCert,
-                fileCertKey: this.fileCertKey,
-                path: `/qrs/app/${appId}/publish`,
-                queryParameters,
-            });
+            // Should cerrificates be used for authentication?
+            let axiosConfig;
+            if (this.options.authType === 'cert') {
+                // Build QRS query
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'put',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: `/qrs/app/${appId}/publish`,
+                    queryParameters,
+                });
+            } else if (this.options.authType === 'jwt') {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'put',
+                    path: `/qrs/app/${appId}/publish`,
+                    queryParameters,
+                });
+            }
 
             // Execute QRS query
             const result = await axios.request(axiosConfig);
@@ -830,14 +938,24 @@ class QlikSenseApps {
             // Define query parameters
             const queryParameters = [{ name: 'app', value: targetAppId }];
 
-            // Build QRS query
-            const axiosConfig = setupQRSConnection(this.options, {
-                method: 'put',
-                fileCert: this.fileCert,
-                fileCertKey: this.fileCertKey,
-                path: `/qrs/app/${sourceAppId}/replace`,
-                queryParameters,
-            });
+            // Should cerrificates be used for authentication?
+            let axiosConfig;
+            if (this.options.authType === 'cert') {
+                // Build QRS query
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'put',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: `/qrs/app/${sourceAppId}/replace`,
+                    queryParameters,
+                });
+            } else if (this.options.authType === 'jwt') {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'put',
+                    path: `/qrs/app/${sourceAppId}/replace`,
+                    queryParameters,
+                });
+            }
 
             // Execute QRS query
             const result = await axios.request(axiosConfig);
@@ -885,13 +1003,24 @@ class QlikSenseApps {
                 filter = encodeURIComponent(`stream.name eq '${streamName}' and name eq '${appName}'`);
             }
 
-            const axiosConfig = setupQRSConnection(this.options, {
-                method: 'get',
-                fileCert: this.fileCert,
-                fileCertKey: this.fileCertKey,
-                path: `/qrs/app`,
-                queryParameters: [{ name: 'filter', value: filter }],
-            });
+            // Should cerrificates be used for authentication?
+            let axiosConfig;
+            if (this.options.authType === 'cert') {
+                // Build QRS query
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: `/qrs/app`,
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
+            } else if (this.options.authType === 'jwt') {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    path: `/qrs/app`,
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
+            }
 
             // Execute QRS query
             const result = await axios.request(axiosConfig);
@@ -925,13 +1054,24 @@ class QlikSenseApps {
             // Build QRS query
             const filter = encodeURIComponent(`stream.name eq '${streamName}' and name eq '${appName}'`);
 
-            const axiosConfig = setupQRSConnection(this.options, {
-                method: 'get',
-                fileCert: this.fileCert,
-                fileCertKey: this.fileCertKey,
-                path: `/qrs/app`,
-                queryParameters: [{ name: 'filter', value: filter }],
-            });
+            // Should cerrificates be used for authentication?
+            let axiosConfig;
+            if (this.options.authType === 'cert') {
+                // Build QRS query
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: `/qrs/app`,
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
+            } else if (this.options.authType === 'jwt') {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'get',
+                    path: `/qrs/app`,
+                    queryParameters: [{ name: 'filter', value: filter }],
+                });
+            }
 
             // Execute QRS query
             const result = await axios.request(axiosConfig);
@@ -981,12 +1121,22 @@ class QlikSenseApps {
             // If so check if the GUID represents a stream
             if (validate(uploadedAppInfo.appPublishToStream)) {
                 // It's a valid GUID
-                axiosConfigPublish = setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    path: `/qrs/stream/${uploadedAppInfo.appPublishToStream}`,
-                });
+
+                // Should cerrificates be used for authentication?
+                if (this.options.authType === 'cert') {
+                    // Build QRS query
+                    axiosConfigPublish = setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        path: `/qrs/stream/${uploadedAppInfo.appPublishToStream}`,
+                    });
+                } else if (this.options.authType === 'jwt') {
+                    axiosConfigPublish = setupQRSConnection(this.options, {
+                        method: 'get',
+                        path: `/qrs/stream/${uploadedAppInfo.appPublishToStream}`,
+                    });
+                }
 
                 resultPublish = await axios.request(axiosConfigPublish);
                 if (resultPublish.status === 200) {
@@ -1000,13 +1150,23 @@ class QlikSenseApps {
                 // Provided stream name is not a GUID, make sure only one stream exists with this name, then get its GUID
                 const filter = encodeURIComponent(`name eq '${uploadedAppInfo.appPublishToStream}'`);
 
-                axiosConfigPublish = setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    path: '/qrs/stream',
-                    queryParameters: [{ name: 'filter', value: filter }],
-                });
+                // Should cerrificates be used for authentication?
+                if (this.options.authType === 'cert') {
+                    // Build QRS query
+                    axiosConfigPublish = setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        path: '/qrs/stream',
+                        queryParameters: [{ name: 'filter', value: filter }],
+                    });
+                } else if (this.options.authType === 'jwt') {
+                    axiosConfigPublish = setupQRSConnection(this.options, {
+                        method: 'get',
+                        path: '/qrs/stream',
+                        queryParameters: [{ name: 'filter', value: filter }],
+                    });
+                }
 
                 resultPublish = await axios.request(axiosConfigPublish);
                 if (resultPublish.status === 200) {
@@ -1159,13 +1319,24 @@ class QlikSenseApps {
             const exportToken = uuidv4();
             const excludeData = this.options.excludeAppData === 'true' ? 'true' : 'false';
 
-            const axiosConfig = setupQRSConnection(this.options, {
-                method: 'post',
-                fileCert: this.fileCert,
-                fileCertKey: this.fileCertKey,
-                path: `/qrs/app/${app.id}/export/${exportToken}`,
-                queryParameters: [{ name: 'skipData', value: excludeData }],
-            });
+            // Should cerrificates be used for authentication?
+            let axiosConfig;
+            if (this.options.authType === 'cert') {
+                // Build QRS query
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'post',
+                    fileCert: this.fileCert,
+                    fileCertKey: this.fileCertKey,
+                    path: `/qrs/app/${app.id}/export/${exportToken}`,
+                    queryParameters: [{ name: 'skipData', value: excludeData }],
+                });
+            } else if (this.options.authType === 'jwt') {
+                axiosConfig = setupQRSConnection(this.options, {
+                    method: 'post',
+                    path: `/qrs/app/${app.id}/export/${exportToken}`,
+                    queryParameters: [{ name: 'skipData', value: excludeData }],
+                });
+            }
 
             const result = await axios.request(axiosConfig);
             logger.verbose(`Export app step 1 result: [${result.status}] ${result.statusText}`);
@@ -1264,13 +1435,24 @@ class QlikSenseApps {
             } else {
                 writer = fs2.createWriteStream(fileName);
 
-                const axiosConfig = setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    path: urlPath,
-                    queryParameters: [{ name: paramName, value: paramValue }],
-                });
+                // Should cerrificates be used for authentication?
+                let axiosConfig;
+                if (this.options.authType === 'cert') {
+                    // Build QRS query
+                    axiosConfig = setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        path: urlPath,
+                        queryParameters: [{ name: paramName, value: paramValue }],
+                    });
+                } else if (this.options.authType === 'jwt') {
+                    axiosConfig = setupQRSConnection(this.options, {
+                        method: 'get',
+                        path: urlPath,
+                        queryParameters: [{ name: paramName, value: paramValue }],
+                    });
+                }
 
                 axiosConfig.responseType = 'stream';
 

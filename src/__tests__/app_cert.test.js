@@ -37,7 +37,7 @@ const nonExistingAppId1 = '9f0d0e02-cccc-bbbb-aaaa-3e9a4d0c8a3d';
 const tag1 = 'Test data';
 
 // Get one app by ID
-describe('getAppById', () => {
+describe('getAppById (cert auth)', () => {
     test('existing app ID', async () => {
         const result = await getAppById(existingAppId1, options);
         expect(result.id).toBe(existingAppId1);
@@ -50,7 +50,7 @@ describe('getAppById', () => {
 });
 
 // Get one or more apps by ID and/or tag
-describe('getApps', () => {
+describe('getApps (cert auth)', () => {
     test('one app ID, no tags', async () => {
         const result = await getApps(options, [existingAppId1]);
         // error(`Result: ${JSON.stringify(result)}`);

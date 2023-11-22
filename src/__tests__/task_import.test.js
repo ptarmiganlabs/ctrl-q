@@ -3,8 +3,8 @@
 const { test, expect, describe } = require('@jest/globals');
 
 const { importTaskFromFile } = require('../lib/cmd/importtask');
-const { getTaskById, deleteExternalProgramTaskById, deleteReloadTaskById, } = require('../lib/util/task');
-const { mapTaskType, } = require('../lib/util/lookups');
+const { getTaskById, deleteExternalProgramTaskById, deleteReloadTaskById } = require('../lib/util/task');
+const { mapTaskType } = require('../lib/util/lookups');
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
@@ -96,7 +96,7 @@ describe('import task', () => {
         for (let i = 0; i < result.length; i += 1) {
             const task = result[i];
             const { taskId } = task;
-            
+
             await deleteReloadTaskById(taskId, options);
         }
     });
