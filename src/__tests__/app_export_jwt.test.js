@@ -21,48 +21,56 @@ const options = {
 
     sleepAppExport: process.env.CTRL_Q_SLEEP_APP_EXPORT || '500',
     limitExportCount: process.env.CTRL_Q_LIMIT_EXPORT_COUNT || '0',
+
+    authJwt: process.env.CTRL_Q_AUTH_JWT || '',
 };
 
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minute default timeout
-console.log(`Jest timeout: ${defaultTestTimeout}`);
 jest.setTimeout(defaultTestTimeout);
 
 test('get tasks (verify parameters)', async () => {
-    expect(options.authCertFile).not.toHaveLength(0);
-    expect(options.authCertKeyFile).not.toHaveLength(0);
     expect(options.host).not.toHaveLength(0);
     expect(options.authUserDir).not.toHaveLength(0);
     expect(options.authUserId).not.toHaveLength(0);
 });
 
-/**
- * One tag, overwrite
- *
- * --output-dir qvfs
- * --app-tag apiCreated
- * --exclude-app-data true
- * --qvf-name-format app-name export-date
- * --qvf-name-separator _
- * --qvf-overwrite true
- */
-test('export apps, tag "apiCreated"', async () => {
-    options.outputDir = 'qvfs_1';
-    options.appTag = ['apiCreated'];
-    options.excludeAppData = 'true';
-    options.qvfNameFormat = ['app-name', 'export-date'];
-    options.qvfNameSeparator = '_';
-    options.qvfOverwrite = true;
+// Test suite for app export
+describe('export apps to QVF files(JWT auth)', () => {
+    /**
+     * One tag, overwrite
+     *
+     * --output-dir qvfs
+     * --app-tag apiCreated
+     * --exclude-app-data true
+     * --qvf-name-format app-name export-date
+     * --qvf-name-separator _
+     * --qvf-overwrite true
+     * --auth-type jwt
+     * --port 443
+     * --virtual-proxy jwt
+     */
+    test('export apps, one tag', async () => {
+        options.outputDir = 'qvfs_tmp';
+        options.appTag = ['apiCreated'];
+        options.excludeAppData = 'true';
+        options.qvfNameFormat = ['app-name', 'export-date'];
+        options.qvfNameSeparator = '_';
+        options.qvfOverwrite = true;
+        options.authType = 'jwt';
+        options.port = '443';
+        options.virtualProxy = 'jwt';
 
-    const result = await exportAppToFile(options);
-    expect(result).toBe(true);
+        const result = await exportAppToFile(options);
+        expect(result).toBe(true);
 
-    // Verify that output folder contains at least one file
-    const exportDir = path.resolve(options.outputDir);
-    const files = fs.readdirSync(exportDir);
-    expect(files.length).toBeGreaterThan(0);
+        // Verify that output folder contains at least one file
+        const exportDir = path.resolve(options.outputDir);
+        const files = fs.readdirSync(exportDir);
+        expect(files.length).toBeGreaterThan(0);
 
-    // Delete output dir
-    fs.rmSync(exportDir, { recursive: true });
+        // Delete output dir
+        fs.rmSync(exportDir, { recursive: true });
+    });
 });
 
 /**
@@ -74,9 +82,12 @@ test('export apps, tag "apiCreated"', async () => {
  * --qvf-name-format app-id app-name export-date export-time
  * --qvf-name-separator _
  * --qvf-overwrite true
+ * --auth-type jwt
+ * --port 443
+ * --virtual-proxy jwt
  */
-test('export apps, tag "apiCreated"', async () => {
-    options.outputDir = 'qvfs_2';
+test('export apps, two tags', async () => {
+    options.outputDir = 'qvfs_tmp';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.excludeAppData = 'true';
     options.qvfNameFormat = ['app-id', 'app-name', 'export-date', 'export-time'];
@@ -105,9 +116,12 @@ test('export apps, tag "apiCreated"', async () => {
  * --qvf-name-format app-id app-name export-date export-time
  * --qvf-name-separator _
  * --qvf-overwrite true
+ * --auth-type jwt
+ * --port 443
+ * --virtual-proxy jwt
  */
-test('export apps, tag "apiCreated"', async () => {
-    options.outputDir = 'qvfs_3';
+test('export apps, two tags, one id', async () => {
+    options.outputDir = 'qvfs_tmp';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.appId = ['eb3ab049-d007-43d3-93da-5962f9208c65'];
     options.excludeAppData = 'true';
@@ -137,9 +151,12 @@ test('export apps, tag "apiCreated"', async () => {
  * --qvf-name-format app-id app-name export-date export-time
  * --qvf-name-separator _
  * --qvf-overwrite true
+ * --auth-type jwt
+ * --port 443
+ * --virtual-proxy jwt
  */
-test('export apps, tag "apiCreated"', async () => {
-    options.outputDir = 'qvfs_4';
+test('export apps, two tags, two ids', async () => {
+    options.outputDir = 'qvfs_tmp';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.appId = ['eb3ab049-d007-43d3-93da-5962f9208c65', '2933711d-6638-41d4-a2d2-6dd2d965208b'];
     options.excludeAppData = 'true';
@@ -169,9 +186,12 @@ test('export apps, tag "apiCreated"', async () => {
  * --qvf-name-format app-id app-name export-date export-time
  * --qvf-name-separator _
  * --qvf-overwrite true
+ * --auth-type jwt
+ * --port 443
+ * --virtual-proxy jwt
  */
-test('export apps, tag "apiCreated"', async () => {
-    options.outputDir = 'qvfs_5';
+test('export apps, two tags, two ids, export metadata', async () => {
+    options.outputDir = 'qvfs_tmp';
     options.appTag = ['apiCreated', 'Ctrl-Q import'];
     options.appId = ['eb3ab049-d007-43d3-93da-5962f9208c65', '2933711d-6638-41d4-a2d2-6dd2d965208b'];
     options.excludeAppData = 'true';
@@ -195,6 +215,7 @@ test('export apps, tag "apiCreated"', async () => {
     // Verify that output Excel file has been created
     // Get all files in output folder
     const files2 = fs.readdirSync(exportDir);
+
     // Filter out Excel files
     const excelFiles = files2.filter((file) => file.endsWith('.xlsx'));
     expect(excelFiles.length).toBe(1);
