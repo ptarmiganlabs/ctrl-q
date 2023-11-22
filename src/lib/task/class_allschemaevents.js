@@ -16,9 +16,11 @@ class QlikSenseSchemaEvents {
             this.schemaEventList = [];
             this.options = options;
 
-            // Make sure certificates exist
-            this.fileCert = path.resolve(execPath, options.authCertFile);
-            this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            if (this.options.authType === 'cert') {
+                // Make sure certificates exist
+                this.fileCert = path.resolve(execPath, options.authCertFile);
+                this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            }
         } catch (err) {
             logger.error(`GET SCHEMA EVENT: ${err}`);
         }

@@ -38,9 +38,11 @@ class QlikSenseTasks {
             // Map that will map fake task IDs (used in source file) with real task IDs after tasks have been created in Sense
             this.taskIdMap = new Map();
 
-            // Make sure certificates exist
-            this.fileCert = path.resolve(execPath, options.authCertFile);
-            this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            if (options.authType === 'cert') {
+                // Make sure certificates exist
+                this.fileCert = path.resolve(execPath, options.authCertFile);
+                this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            }
 
             this.qlikSenseSchemaEvents = new QlikSenseSchemaEvents();
             await this.qlikSenseSchemaEvents.init(options);
