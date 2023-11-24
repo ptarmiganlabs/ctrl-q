@@ -24,7 +24,6 @@ const options = {
 };
 
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minute default timeout
-console.log(`Jest timeout: ${defaultTestTimeout}`);
 jest.setTimeout(defaultTestTimeout);
 
 // Test suite for app export

@@ -646,7 +646,7 @@ class QlikSenseApps {
 
             // Pause for a while to let Sense repository catch up
             await sleep(1000);
-            // console.log(this.options)
+
             // Should cerrificates be used for authentication?
             let axiosConfig2;
             if (this.options.authType === 'cert') {
@@ -665,9 +665,8 @@ class QlikSenseApps {
                     body: app,
                 });
             }
-            // console.log(axiosConfig2)
             const result2 = await axios.request(axiosConfig2);
-            // console.log('b1')
+
             if (result2.status === 200) {
                 logger.debug(`Update of imported app wrt tags, custom properties and owner was successful.`);
                 return true;

@@ -83,6 +83,7 @@ const importAppFromFile = async (options) => {
         return false;
     } catch (err) {
         logger.error(`IMPORT APP: ${err.stack}`);
+        return false;
     }
 };
 
