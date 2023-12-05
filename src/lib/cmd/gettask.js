@@ -189,9 +189,8 @@ const getTask = async (options) => {
 
             // eslint-disable-next-line no-restricted-syntax
             for (const task of topLevelTasksWithSchemaTriggersUnique) {
-                // for (const task of taskModel.nodes) {
                 if (task.metaNode && task.metaNodeType === 'schedule') {
-                    const subTree = qlikSenseTasks.getTaskSubTree(task, 0);
+                    const subTree = qlikSenseTasks.getTaskSubTree(task, 0, null);
                     subTree[0].isTopLevelNode = true;
                     subTree[0].isScheduled = true;
                     taskTree = taskTree.concat(subTree);
@@ -232,7 +231,7 @@ const getTask = async (options) => {
 
             // eslint-disable-next-line no-restricted-syntax
             for (const task of unscheduledTasks) {
-                const subTree = qlikSenseTasks.getTaskSubTree(task, 0);
+                const subTree = qlikSenseTasks.getTaskSubTree(task, 0, null);
                 subTree[0].isTopLevelNode = true;
                 subTree[0].isScheduled = false;
                 taskTree = taskTree.concat(subTree);
