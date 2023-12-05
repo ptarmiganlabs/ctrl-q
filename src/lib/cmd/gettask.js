@@ -239,7 +239,7 @@ const getTask = async (options) => {
 
             // Output task tree to correct destination
             if (options.outputDest === 'screen') {
-                logger.info(`# rows in tree: ${taskTree.length}`);
+                logger.info(`# top-level rows in tree: ${taskTree.length}`);
                 logger.info(`\n${tree(taskTree)}`);
                 returnValue = true;
             } else if (options.outputDest === 'file') {
