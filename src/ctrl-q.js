@@ -814,6 +814,18 @@ const program = new Command();
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
         .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server');
 
+    // Show version command
+    program
+        .command('version')
+        .description('show version info')
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .action(async (options) => {
+            logger.verbose(`Version: ${appVersion}`);
+        })
+;
+
     // Parse command line params
     await program.parseAsync(process.argv);
 })();
