@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const handlebars = require('handlebars');
 const { Readable } = require('stream');
-const { appVersion, logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
+const { appVersion, logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../../globals');
 const { QlikSenseTasks } = require('../task/class_alltasks');
 
 // js: 'application/javascript',
@@ -18,7 +18,8 @@ const MIME_TYPES = {
     svg: 'image/svg+xml',
 };
 
-const STATIC_PATH = path.join(process.cwd(), './src/static');
+const STATIC_PATH = `${execPath}/src/static`;
+// const STATIC_PATH = path.join(process.cwd(), './src/static');
 
 const toBool = [() => true, () => false];
 
@@ -303,6 +304,21 @@ const visTask = async (options) => {
 
     logger.verbose('Visulise tasks');
     logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+
+    logger.verbose(`Path to html files: ${STATIC_PATH}`);
+
+    // Verify files used by http server exist
+    let fileExists = await verifyFileExists(`${STATIC_PATH}/index.html`);
+    if (!fileExists) {
+        logger.error(`File ${STATIC_PATH}/index.html does not exist`);
+        return false;
+    }
+
+    fileExists = await verifyFileExists(`${STATIC_PATH}/404.html`);
+    if (!fileExists) {
+        logger.error(`File ${STATIC_PATH}/404.html does not exist`);
+        return false;
+    }
 
     // Get all tasks from QSEoW
     const optionsNew = { ...options };
