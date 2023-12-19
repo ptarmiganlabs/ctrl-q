@@ -71,7 +71,7 @@ const updateTask = async (options, customPropertyDef, task) =>
             let updateResult = false;
 
             // Update task
-            if (!options.qvfOverwrite) {
+            if (!options.overwrite) {
                 let ok;
                 logger.info();
                 if (options.updateMode === 'replace') {
@@ -159,7 +159,7 @@ const setTaskCustomProperty = async (options) => {
         // - Loop over all tasks
         //   - Does the task already have values in the specified CP?
         //     - No: Build new payload and write to QRS API. Take --update-mode into account (can be append or replace)
-        //     - Yes: Is --qvf-overwrite specified?
+        //     - Yes: Is --overwrite specified?
         //       - No: Skip update and log warning
         //       - Yes: Build new payload and write to QRS API.
 
@@ -211,9 +211,11 @@ const setTaskCustomProperty = async (options) => {
 
             // await Promise.all(updateTasks);
             // logger.debug('Update task custom property: All promises resolved');
+            return true;
         }
     } catch (err) {
         logger.error(`SET RELOAD TASK CP: ${err}`);
+        return false;
     }
 };
 
