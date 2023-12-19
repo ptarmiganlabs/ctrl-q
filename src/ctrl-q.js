@@ -27,6 +27,7 @@ const { importTaskFromFile } = require('./lib/cmd/importtask');
 const { importAppFromFile } = require('./lib/cmd/importapp');
 const { exportAppToFile } = require('./lib/cmd/exportapp');
 const { testConnection } = require('./lib/cmd/testconnection');
+const { visTask } = require('./lib/cmd/vistask');
 
 const {
     sharedParamAssertOptions,
@@ -57,7 +58,7 @@ const program = new Command();
     program
         .version(appVersion)
         .description(
-            'Ctrl-Q is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.\nAmong other things the tool does bulk import of apps and tasks, manipulates master items and scrambles in-app data.'
+            `Ctrl-Q is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.\nAmong other things the tool does bulk import of apps and tasks, manipulates master items and scrambles in-app data.\n\nVersion: ${appVersion}`
         )
         .hook('preAction', (thisCommand, actionCommand) => {
             const options = actionCommand.opts();
@@ -141,7 +142,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4747')
+        .option('--port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
@@ -149,10 +150,11 @@ const program = new Command();
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(new Option('-t, --file-type <type>', 'source file type').choices(['excel']).default('excel'))
         .requiredOption('--file <filename>', 'file containing master item definitions')
@@ -228,7 +230,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4747')
+        .option('--port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
@@ -236,10 +238,11 @@ const program = new Command();
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(
             new Option('--id-type <type>', 'type of identifier passed in the --master-item option').choices(['id', 'name']).default('name')
@@ -261,7 +264,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4747')
+        .option('--port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
@@ -269,10 +272,11 @@ const program = new Command();
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(new Option('--id-type <type>', 'type of identifier passed in the --master-item option').choices(['id', 'name']))
         .option('--master-item <ids...>', 'names or IDs of master measures to be deleted. Multiple IDs should be space separated')
@@ -292,7 +296,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4747')
+        .option('--port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
@@ -300,10 +304,11 @@ const program = new Command();
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .requiredOption('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .requiredOption('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .requiredOption('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(
             new Option('--id-type <type>', 'type of identifier passed in the --master-item option').choices(['id', 'name']).default('name')
@@ -325,7 +330,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4747')
+        .option('--port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
@@ -333,10 +338,11 @@ const program = new Command();
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(new Option('--id-type <type>', 'type of identifier passed in the --master-item option').choices(['id', 'name']))
         .option('--master-item <ids...>', 'names or IDs of master dimensions to be deleted. Multiple IDs should be space separated')
@@ -357,8 +363,8 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--engine-port <port>', 'Qlik Sense server engine port', '4747')
-        .option('--qrs-port <port>', 'Qlik Sense repository service (QRS) port', '4242')
+        .option('--engine-port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
+        .option('--qrs-port <port>', 'Qlik Sense repository service (QRS) port (usually 4747 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .option('--app-id <id...>', 'Qlik Sense app ID(s) to get variables from')
         .option('--app-tag <tag...>', 'Qlik Sense app tag(s) to get variables')
@@ -367,10 +373,11 @@ const program = new Command();
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(
             new Option('--id-type <type>', 'type of identifier passed in the --variable option').choices(['id', 'name']).default('name')
@@ -392,8 +399,8 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--engine-port <port>', 'Qlik Sense server engine port', '4747')
-        .option('--qrs-port <port>', 'Qlik Sense repository service (QRS) port', '4242')
+        .option('--engine-port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
+        .option('--qrs-port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .option('--app-id <id...>', 'Qlik Sense app ID(s) to get variables from')
         .option('--app-tag <tag...>', 'Qlik Sense app tag(s) to get variables')
@@ -402,10 +409,11 @@ const program = new Command();
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(
             new Option('--id-type <type>', 'type of identifier passed in the --variable option').choices(['id', 'name']).default('name')
@@ -427,7 +435,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4747')
+        .option('--port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
@@ -435,10 +443,11 @@ const program = new Command();
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .requiredOption('--field-name <names...>', 'name of field(s) to be scrambled')
         .requiredOption('--new-app-name <name>', 'name of new app that will contain scrambled data');
@@ -457,7 +466,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4747')
+        .option('--port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
@@ -465,10 +474,11 @@ const program = new Command();
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
-        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem');
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server');
 
     // Get bookmark command
     program
@@ -484,7 +494,7 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4747')
+        .option('--port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
@@ -492,10 +502,11 @@ const program = new Command();
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(
             new Option('--id-type <type>', 'type of bookmark identifier passed in the --bookmark option')
@@ -532,17 +543,18 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense repository service (QRS) port', '4242')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(new Option('--task-type <type...>', 'type of tasks to include').choices(['reload', 'ext-program']))
         .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve. Only allowed when --output-format=table')
@@ -586,17 +598,18 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense repository service (QRS) port', '4242')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(
             new Option('--task-type <type...>', 'type of tasks to list').choices(['reload']).default(['reload'])
@@ -633,17 +646,18 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(new Option('-t, --file-type <type>', 'source file type').choices(['excel', 'csv']).default('excel'))
         .requiredOption('--file-name <filename>', 'file containing task definitions')
@@ -684,17 +698,18 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .addOption(new Option('-t, --file-type <type>', 'source file type').choices(['excel']).default('excel'))
         .requiredOption('--file-name <filename>', 'file containing app definitions')
@@ -726,17 +741,18 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
         .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .option('--app-id <ids...>', 'use app IDs to select which apps to export')
         .option('--app-tag <tags...>', 'use app tags to select which apps to export')
@@ -786,17 +802,59 @@ const program = new Command();
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port', '4242')
+        .option('--port <port>', 'Qlik Sense proxy service port', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert']).default('cert'))
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
         .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
-        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem');
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server');
+
+    // Show version command
+    program
+        .command('version')
+        .description('show version info')
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .action(async (options) => {
+            logger.verbose(`Version: ${appVersion}`);
+        });
+
+    // Visualise task network
+    program
+        .command('task-vis')
+        .description('visualise task network')
+        .action(async (options) => {
+            await sharedParamAssertOptions(options);
+
+            await visTask(options);
+        })
+        .addOption(
+            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+        )
+        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
+        .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
+        // .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
+        // .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
+        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
+        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
+        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
+        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
+
+        // Options for visualisation host
+        .option('--vis-host <host>', 'host for visualisation server', 'localhost')
+        .option('--vis-port <port>', 'port for visualisation server', '3000');
 
     // Parse command line params
     await program.parseAsync(process.argv);

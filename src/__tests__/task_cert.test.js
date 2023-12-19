@@ -20,7 +20,6 @@ const options = {
 };
 
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minute default timeout
-console.log(`Jest timeout: ${defaultTestTimeout}`);
 jest.setTimeout(defaultTestTimeout);
 
 // Mock logger
@@ -38,7 +37,7 @@ const nonExistingTaskId = '9f0d0e02-cccc-bbbb-aaaa-3e9a4d0c8a3d';
 const nonExistingTaskName = 'Non-existing task 298374293874298734';
 
 // Check if task exists by ID
-describe('taskExistById: Check if task exists by ID', () => {
+describe('taskExistById: Check if task exists by ID (cert auth)', () => {
     test('existing task', async () => {
         const result = await taskExistById(existingTaskId, options);
         expect(result).toBe(true);
@@ -51,7 +50,7 @@ describe('taskExistById: Check if task exists by ID', () => {
 });
 
 // Get task by name
-describe('getTaskByName: Get task by name', () => {
+describe('getTaskByName: Get task by name (cert auth)', () => {
     test('no matching task', async () => {
         const result = await getTaskByName(nonExistingTaskName, options);
         expect(result).toBe(false);
@@ -81,7 +80,7 @@ describe('getTaskByName: Get task by name', () => {
 });
 
 // Get task by ID
-describe('getTaskById: Get task by ID', () => {
+describe('getTaskById: Get task by ID (cert auth)', () => {
     test('no matching task', async () => {
         const result = await getTaskById(nonExistingTaskId, options);
         expect(result).toEqual(false);

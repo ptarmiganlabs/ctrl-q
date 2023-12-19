@@ -9,8 +9,11 @@ tasks_.json
 tasks2.csv
 tasks2.xlsx
 tasks2.json
+tasks_all.csv
+tasks_all.xlsx
 
 # Directories used during unit testing
+qvfs
 qvfs_1
 qvfs_2
 qvfs_3

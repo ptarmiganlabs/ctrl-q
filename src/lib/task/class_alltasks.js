@@ -38,9 +38,14 @@ class QlikSenseTasks {
             // Map that will map fake task IDs (used in source file) with real task IDs after tasks have been created in Sense
             this.taskIdMap = new Map();
 
-            // Make sure certificates exist
-            this.fileCert = path.resolve(execPath, options.authCertFile);
-            this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            // Data structure to keep track of which up-tree nodes a node is connected to in a task tree
+            this.taskTreeCyclicVisited = new Set();
+
+            if (options.authType === 'cert') {
+                // Make sure certificates exist
+                this.fileCert = path.resolve(execPath, options.authCertFile);
+                this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            }
 
             this.qlikSenseSchemaEvents = new QlikSenseSchemaEvents();
             await this.qlikSenseSchemaEvents.init(options);
@@ -50,6 +55,17 @@ class QlikSenseTasks {
         } catch (err) {
             logger.error(`QS TASK: ${err}`);
         }
+    }
+
+    // Function to determine if a task tree is cyclic
+    isTaskTreeCyclic(task) {
+        if (this.taskTreeCyclicVisited.has(task)) {
+            return true;
+        }
+
+        this.taskTreeCyclicVisited.add(task);
+
+        return false;
     }
 
     getTask(taskId) {
@@ -1518,11 +1534,16 @@ class QlikSenseTasks {
 
             let filter = '';
 
-            // Are there any task filters specified?
-            // If so, build a query string
+            // Should we get all tasks?
+            if (this.options.getAllTasks === true) {
+                // No task filters specified
+                filter = '';
+            } else if (this.options.outputFormat !== 'tree') {
+                // Are there any task filters specified?
+                // If so, build a query string
 
-            // Don't add task id and tag filtering if the output is a task tree
-            if (this.options.outputFormat !== 'tree') {
+                // Don't add task id and tag filtering if the output is a task tree
+
                 // Add task id(s) to query string
                 if (this.options.taskId && this.options?.taskId.length >= 1) {
                     // At least one task ID specified
@@ -1635,12 +1656,18 @@ class QlikSenseTasks {
         });
     }
 
-    getTaskSubTree(task, parentTreeLevel) {
+    getTaskSubTree(task, parentTreeLevel, parentTask) {
         try {
             const self = this;
 
             if (!task || !task?.id) {
                 logger.debug('Task parameter empty or does not include a task ID');
+            }
+
+            // Were we called from top-level?
+            if (parentTreeLevel === 0) {
+                // Set up new data structure for detecting cicrular task trees
+                this.taskTreeCyclicVisited = new Set();
             }
 
             const newTreeLevel = parentTreeLevel + 1;
@@ -1674,8 +1701,28 @@ class QlikSenseTasks {
                             },
                         ];
                     } else {
-                        const tmp3 = self.getTaskSubTree(tmp, newTreeLevel);
-                        kids = kids.concat(tmp3);
+                        // Check for cyclic task tree
+                        // eslint-disable-next-line no-lonely-if
+                        if (this.isTaskTreeCyclic(tmp)) {
+                            if (parentTask) {
+                                logger.warn(
+                                    `Cyclic dependency detected in task tree, from task "${parentTask.taskName}" to "${task.taskName}". Won't go deeper.`
+                                );
+
+                                // Add node indicating cyclic dependency
+                                kids = kids.concat([
+                                    {
+                                        id: task.id,
+                                        text: ` ==> !!! Cyclic dependency detected from task "${task.taskName}" to "${tmp.taskName}"`,
+                                    },
+                                ]);
+                            } else {
+                                logger.warn(`Cyclic dependency detected in task tree. Can't find task names. Won't go deeper.`);
+                            }
+                        } else {
+                            const tmp3 = self.getTaskSubTree(tmp, newTreeLevel, task);
+                            kids = kids.concat(tmp3);
+                        }
                     }
                 }
             }
@@ -2103,7 +2150,7 @@ class QlikSenseTasks {
                     const nodeId = `node-${uuidv4()}`;
                     this.taskNetwork.nodes.push({
                         id: nodeId,
-                        label: '',
+                        label: compositeEvent.compositeEvent.name,
                         enabled: true,
                         metaNodeType: 'composite',
                         metaNode: true,
@@ -2240,7 +2287,7 @@ class QlikSenseTasks {
                     const nodeId = `node-${uuidv4()}`;
                     this.taskNetwork.nodes.push({
                         id: nodeId,
-                        label: '',
+                        label: compositeEvent.compositeEvent.name,
                         enabled: true,
                         metaNodeType: 'composite',
                         metaNode: true,

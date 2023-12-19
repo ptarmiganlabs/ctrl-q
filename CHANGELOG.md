@@ -2,38 +2,34 @@
 
 ## [3.14.0](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.2...v3.14.0) (2023-11-19)
 
-
 ### Features
 
-* **connection-test:** Add command to test connection to Sense server ([328886e](https://github.com/ptarmiganlabs/ctrl-q/commit/328886e9ec92a553a732ed6f7f0d17bacfd9b2dc)), closes [#328](https://github.com/ptarmiganlabs/ctrl-q/issues/328)
-* **docs:** Move all documentation to ctrl-q.ptarmiganlabs.com ([e60dc31](https://github.com/ptarmiganlabs/ctrl-q/commit/e60dc31c27c889524e0e634ac03c6517285783d6))
-* **task-get:** Simplify --table-details option ([2cbd470](https://github.com/ptarmiganlabs/ctrl-q/commit/2cbd4704213ba4a043662b462e980f7a47152553)), closes [#345](https://github.com/ptarmiganlabs/ctrl-q/issues/345)
-* **task-get:** Sort tasks in task tree alphabetically using task name ([ca96d4c](https://github.com/ptarmiganlabs/ctrl-q/commit/ca96d4cb0648b71f437bfe457855e9adbc2f0a9d))
-* **task-import:** Support external program tasks when importing tasks ([8060a1b](https://github.com/ptarmiganlabs/ctrl-q/commit/8060a1bda84a685ef150c8e46d8adb0d13cd3f46))
-
+- **connection-test:** Add command to test connection to Sense server ([328886e](https://github.com/ptarmiganlabs/ctrl-q/commit/328886e9ec92a553a732ed6f7f0d17bacfd9b2dc)), closes [#328](https://github.com/ptarmiganlabs/ctrl-q/issues/328)
+- **docs:** Move all documentation to ctrl-q.ptarmiganlabs.com ([e60dc31](https://github.com/ptarmiganlabs/ctrl-q/commit/e60dc31c27c889524e0e634ac03c6517285783d6))
+- **task-get:** Simplify --table-details option ([2cbd470](https://github.com/ptarmiganlabs/ctrl-q/commit/2cbd4704213ba4a043662b462e980f7a47152553)), closes [#345](https://github.com/ptarmiganlabs/ctrl-q/issues/345)
+- **task-get:** Sort tasks in task tree alphabetically using task name ([ca96d4c](https://github.com/ptarmiganlabs/ctrl-q/commit/ca96d4cb0648b71f437bfe457855e9adbc2f0a9d))
+- **task-import:** Support external program tasks when importing tasks ([8060a1b](https://github.com/ptarmiganlabs/ctrl-q/commit/8060a1bda84a685ef150c8e46d8adb0d13cd3f46))
 
 ### Bug Fixes
 
-* Fix broken CI badge in readme file ([57cfae9](https://github.com/ptarmiganlabs/ctrl-q/commit/57cfae9933fdc71f24172d488aae10a0ba6e924a))
-* **task-get:** --table-details wo parameters now return all task details in table ([1a9a587](https://github.com/ptarmiganlabs/ctrl-q/commit/1a9a587a641eac2aa7328f39421218b3973c8f83)), closes [#332](https://github.com/ptarmiganlabs/ctrl-q/issues/332)
-* **task-get:** --task-type option is now invalid for task trees ([1bddb6a](https://github.com/ptarmiganlabs/ctrl-q/commit/1bddb6a1dc685e50f6636a6192d49b59a8ed7837))
-* **task-get:** Add better debug logging when showing task trees ([c66ab77](https://github.com/ptarmiganlabs/ctrl-q/commit/c66ab77fd88cfa2c3a336f10a040dc18a94c49c4))
-* **task-get:** No more duplicate, top-level schema tasks in task tree, for a specfic task. ([d3fe908](https://github.com/ptarmiganlabs/ctrl-q/commit/d3fe9087758ed0476552f2bf2ef86bf77693d0b8)), closes [#333](https://github.com/ptarmiganlabs/ctrl-q/issues/333)
-* **task-import:** Correctly handle upstream ext pgm tasks in reload task composite events ([53e076b](https://github.com/ptarmiganlabs/ctrl-q/commit/53e076b5742a2412cffb9176431b2476af996b75)), closes [#331](https://github.com/ptarmiganlabs/ctrl-q/issues/331)
-* **task-import:** Importing tasks from CSV file no longer gives "premature close" ([e06f1a9](https://github.com/ptarmiganlabs/ctrl-q/commit/e06f1a9dc6499d93ddc192e720c46c1e3af2da7c)), closes [#323](https://github.com/ptarmiganlabs/ctrl-q/issues/323)
-
+- Fix broken CI badge in readme file ([57cfae9](https://github.com/ptarmiganlabs/ctrl-q/commit/57cfae9933fdc71f24172d488aae10a0ba6e924a))
+- **task-get:** --table-details wo parameters now return all task details in table ([1a9a587](https://github.com/ptarmiganlabs/ctrl-q/commit/1a9a587a641eac2aa7328f39421218b3973c8f83)), closes [#332](https://github.com/ptarmiganlabs/ctrl-q/issues/332)
+- **task-get:** --task-type option is now invalid for task trees ([1bddb6a](https://github.com/ptarmiganlabs/ctrl-q/commit/1bddb6a1dc685e50f6636a6192d49b59a8ed7837))
+- **task-get:** Add better debug logging when showing task trees ([c66ab77](https://github.com/ptarmiganlabs/ctrl-q/commit/c66ab77fd88cfa2c3a336f10a040dc18a94c49c4))
+- **task-get:** No more duplicate, top-level schema tasks in task tree, for a specfic task. ([d3fe908](https://github.com/ptarmiganlabs/ctrl-q/commit/d3fe9087758ed0476552f2bf2ef86bf77693d0b8)), closes [#333](https://github.com/ptarmiganlabs/ctrl-q/issues/333)
+- **task-import:** Correctly handle upstream ext pgm tasks in reload task composite events ([53e076b](https://github.com/ptarmiganlabs/ctrl-q/commit/53e076b5742a2412cffb9176431b2476af996b75)), closes [#331](https://github.com/ptarmiganlabs/ctrl-q/issues/331)
+- **task-import:** Importing tasks from CSV file no longer gives "premature close" ([e06f1a9](https://github.com/ptarmiganlabs/ctrl-q/commit/e06f1a9dc6499d93ddc192e720c46c1e3af2da7c)), closes [#323](https://github.com/ptarmiganlabs/ctrl-q/issues/323)
 
 ### Miscellaneous
 
-* Add unit tests ([50bbae1](https://github.com/ptarmiganlabs/ctrl-q/commit/50bbae1548d59f27cc51f6bafff16483a8ee2c0c))
-* **deps:** update actions/setup-node action to v4 ([aea1d71](https://github.com/ptarmiganlabs/ctrl-q/commit/aea1d713f2ed36ece503d1e3a11282d9bc269d17))
-* **deps:** Update dependencies ([5351e29](https://github.com/ptarmiganlabs/ctrl-q/commit/5351e296bd373f43d7b58ccd6e430a199721398b))
-* **deps:** Update dependencies to stay safe and secure ([568a25f](https://github.com/ptarmiganlabs/ctrl-q/commit/568a25fa6c7b34bdf430dc080e776fed2e261a74))
-
+- Add unit tests ([50bbae1](https://github.com/ptarmiganlabs/ctrl-q/commit/50bbae1548d59f27cc51f6bafff16483a8ee2c0c))
+- **deps:** update actions/setup-node action to v4 ([aea1d71](https://github.com/ptarmiganlabs/ctrl-q/commit/aea1d713f2ed36ece503d1e3a11282d9bc269d17))
+- **deps:** Update dependencies ([5351e29](https://github.com/ptarmiganlabs/ctrl-q/commit/5351e296bd373f43d7b58ccd6e430a199721398b))
+- **deps:** Update dependencies to stay safe and secure ([568a25f](https://github.com/ptarmiganlabs/ctrl-q/commit/568a25fa6c7b34bdf430dc080e776fed2e261a74))
 
 ### Documentation
 
-* Add more task import examples ([0ca7363](https://github.com/ptarmiganlabs/ctrl-q/commit/0ca7363038f635a0361cee95c1a8a1145e62be1a))
+- Add more task import examples ([0ca7363](https://github.com/ptarmiganlabs/ctrl-q/commit/0ca7363038f635a0361cee95c1a8a1145e62be1a))
 
 ## [3.13.2](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.1...v3.13.2) (2023-10-06)
 

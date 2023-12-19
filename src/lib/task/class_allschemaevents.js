@@ -16,9 +16,11 @@ class QlikSenseSchemaEvents {
             this.schemaEventList = [];
             this.options = options;
 
-            // Make sure certificates exist
-            this.fileCert = path.resolve(execPath, options.authCertFile);
-            this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            if (this.options.authType === 'cert') {
+                // Make sure certificates exist
+                this.fileCert = path.resolve(execPath, options.authCertFile);
+                this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            }
         } catch (err) {
             logger.error(`GET SCHEMA EVENT: ${err}`);
         }
@@ -67,7 +69,6 @@ class QlikSenseSchemaEvents {
                     .request(axiosConfig)
                     .then((result) => {
                         logger.debug(`GET SCHEMA EVENT: Result=${result.status}`);
-                        // const schemaEvents = JSON.parse(result.data);
                         const schemaEvents = JSON.parse(result.data);
                         logger.verbose(`GET SCHEMA EVENT: Total number of schema events: ${schemaEvents.length}`);
 

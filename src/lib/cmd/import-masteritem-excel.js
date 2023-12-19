@@ -4,7 +4,7 @@ const enigma = require('enigma.js');
 const xlsx = require('node-xlsx').default;
 const uuidCreate = require('uuid').v4;
 
-const { setupEnigmaConnection } = require('../util/enigma');
+const { setupEnigmaConnection, addTrafficLogging } = require('../util/enigma');
 const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, sleep } = require('../../globals');
 
 let importCount = 0;
@@ -76,46 +76,6 @@ const createColorMap = async (app, colorMapId, newPerValueColorMap) => {
     logger.silly(`newColorMapLayout: ${JSON.stringify(newColorMapLayout, null, 2)}`);
 
     return colorMapId;
-};
-
-// Function to add logging of session's websocket traffic
-const addTrafficLogging = (session, options) => {
-    if (options.logLevel === 'silly') {
-        session.on('traffic:sent', (data) => console.log('sent:', data));
-
-        session.on('traffic:received', (data) => {
-            console.log('received:', data);
-            if (data?.result?.qReturn) {
-                console.log(`qReturn: ${JSON.stringify(data.result.qReturn, null, 2)}`);
-            }
-
-            if (data?.result?.qInfo) {
-                console.log(`qInfo: ${JSON.stringify(data.result.qInfo, null, 2)}`);
-            }
-
-            if (data?.change?.length > 1) {
-                console.log(`change length > 1: ${JSON.stringify(data.change, null, 2)}`);
-
-                console.log('received:', data);
-                if (data?.result?.qReturn) {
-                    console.log(`qReturn: ${JSON.stringify(data.result.qReturn, null, 2)}`);
-                }
-
-                if (data?.result?.qInfo) {
-                    console.log(`qInfo: ${JSON.stringify(data.result.qInfo, null, 2)}`);
-                }
-            }
-        });
-
-        session.on('notification:*', (eventName, data) => {
-            console.log(`SESSION EVENT=${eventName}: `, data);
-        });
-
-        session.on('closed', (code, message) => {
-            console.log(`SESSION CLOSED, code=${code}, message="${message}"`);
-            process.exit(1);
-        });
-    }
 };
 
 // Create master dimension using Enigma.js
@@ -582,7 +542,6 @@ const updateMeasure = async (options, existingMeasure, app, measureDefRow, colPo
         delete measureData.qMeasure.coloring.gradient;
     }
 
-    logger.verbose(`Updating existing measure "${measureData.qMetaDef.title}"`);
     logger.debug(`Measure data: ${JSON.stringify(measureData, null, 2)}`);
 
     // Update existing measure with new data
@@ -716,7 +675,7 @@ const validateMasterMeasureFields = (masterItemDefRow, colPos) => {
 
 // Take 10 items at a time from defintions array and creates master items for them.
 // Repeat until all definitions have been processed.
-const createMasterItems = async (masterItemDefs, options, colPos, existingMeasures, existingDimensions) => {
+const createMasterItems = async (masterItemDefs, options, colPos, existingMeasures, existingDimensions, session) => {
     const masterItemDefinitions = masterItemDefs.slice();
 
     // Remove header row
@@ -744,13 +703,29 @@ const createMasterItems = async (masterItemDefs, options, colPos, existingMeasur
         const masterItemBatch = masterItemDefinitions.splice(0, 10);
 
         // Create new session to Sense engine
-        const configEnigma = await setupEnigmaConnection(options);
-        const session = await enigma.create(configEnigma);
+        //         let configEnigma;
+        //         let session;
+        //         try {
+        // console.log('A1');
+        //             configEnigma = await setupEnigmaConnection(options, sessionId);
+        // console.log('A2');
+        //             session = await enigma.create(configEnigma);
+        // console.log('A3');
+        //         } catch (err) {
+        //             logger.error(`Error creating session to server ${options.host}: ${err}`);
+        //             process.exit(1);
+        //         }
 
-        // Set up logging of websocket traffic
-        addTrafficLogging(session, options);
+        //         // Set up logging of websocket traffic
+        //         addTrafficLogging(session, options);
 
-        const global = await session.open();
+        let global;
+        try {
+            global = await session.open();
+        } catch (err) {
+            logger.error(`Error opening session to server ${options.host}: ${err}`);
+            process.exit(1);
+        }
 
         const engineVersion = await global.engineVersion();
         logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
@@ -963,11 +938,17 @@ const createMasterItems = async (masterItemDefs, options, colPos, existingMeasur
             }
         }
 
-        if ((await session.close()) === true) {
-            logger.verbose(`Closed session after adding/updating master items in app ${options.appId} on host ${options.host}`);
-        } else {
-            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
-        }
+        // console.log('session.close 1');
+        // if ((await session.close()) === true) {
+        //     logger.verbose(`Closed session after adding/updating 10 master items in app ${options.appId} on host ${options.host}`);
+
+        //     // Wait 2 sec before creating a new session
+        //     // This will help avoiding the 5 concurrent session limit
+        //     logger.debug(`Sleeping for 2 s`);
+        //     await sleep(2000);
+        // } else {
+        //     logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+        // }
     }
 };
 
@@ -1030,22 +1011,45 @@ const importMasterItemFromExcel = async (options) => {
         // --col-master-item-color
         const colPosMasterItemPerValueColor = getColumnPos(options, options.colMasterItemPerValueColor, sheet.data[0]);
 
-        // Configure Enigma.js
-        const configEnigma = await setupEnigmaConnection(options);
+        // Session ID to use when connecting to the Qlik Sense server
+        const sessionId = 'ctrlq';
 
-        const session = enigma.create(configEnigma);
+        // Create new session to Sense engine
+        let configEnigma;
+        let session;
+        try {
+            configEnigma = await setupEnigmaConnection(options, sessionId);
+            session = await enigma.create(configEnigma);
+            logger.verbose(`Created session to server ${options.host}.`);
+        } catch (err) {
+            logger.error(`Error creating session to server ${options.host}: ${err}`);
+            process.exit(1);
+        }
 
         // Set up logging of websocket traffic
         addTrafficLogging(session, options);
 
-        const global = await session.open();
+        let global;
+        try {
+            global = await session.open();
+        } catch (err) {
+            logger.error(`Error opening session to server ${options.host}: ${err}`);
+            process.exit(1);
+        }
 
-        const engineVersion = await global.engineVersion();
-        logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
+        let engineVersion;
+        try {
+            engineVersion = await global.engineVersion();
+            logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
+        } catch (err) {
+            logger.error(`Error getting engine version from server ${options.host}: ${err}`);
+            process.exit(1);
+        }
 
+        // console.log('B6');
         const app = await global.openDoc(options.appId, '', '', '', false);
         logger.verbose(`Opened app ${options.appId}.`);
-
+        // console.log('B7');
         // Get list of all existing master dimensions and measures
         // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/definitions-NxLibraryDimensionDef.html
         const dimensionCall = {
@@ -1088,13 +1092,19 @@ const importMasterItemFromExcel = async (options) => {
         const measuresLayout = await measuresModel.getLayout();
 
         // Close session
-        if ((await session.close()) === true) {
-            logger.verbose(
-                `Closed session after reading list of existing master measure & dimensions in app ${options.appId} on host ${options.host}`
-            );
-        } else {
-            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
-        }
+        // console.log('session.close 2');
+        // if ((await session.close()) === true) {
+        //     logger.verbose(
+        //         `Closed session after reading list of existing master measure & dimensions in app ${options.appId} on host ${options.host}`
+        //     );
+
+        //     // Wait 2 sec before continuing
+        //     // This will help avoiding the 5 concurrent session limit
+        //     logger.debug(`Sleeping for 2 s`);
+        //     await sleep(2000);
+        // } else {
+        //     logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+        // }
 
         // Loop through rows in Excel file, extracting data for rows flagged as master items
         // let importCount = 0;
@@ -1113,28 +1123,29 @@ const importMasterItemFromExcel = async (options) => {
                     colPosMasterItemPerValueColor,
                 },
                 measuresLayout.qMeasureList.qItems,
-                dimsLayout.qDimensionList.qItems
+                dimsLayout.qDimensionList.qItems,
+                session
             );
         }
 
         logger.info(`Imported ${importCount} master items from Excel file ${options.file}`);
 
         // const resSave = await app.doSave();
-
-        // if ((await session.close()) === true) {
-        //     logger.verbose(`Closed session after adding/updating master items in app ${options.appId} on host ${options.host}`);
-        // } else {
-        //     logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
-        // }
+        // console.log('session.close 1');
+        if ((await session.close()) === true) {
+            logger.verbose(`Closed session after adding/updating master items in app ${options.appId} on host ${options.host}`);
+        } else {
+            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+        }
     } catch (err) {
         logger.error(err.stack);
     }
 };
 
-const importMasterItemFromFile = (options) => {
+const importMasterItemFromFile = async (options) => {
     if (options.fileType === 'excel') {
         // Source file type is Excel
-        importMasterItemFromExcel(options);
+        await importMasterItemFromExcel(options);
     }
 };
 
