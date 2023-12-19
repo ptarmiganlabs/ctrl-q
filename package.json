@@ -67,9 +67,8 @@
     "assets": [
       "node_modules/axios/**/*",
       "node_modules/fsevents/fsevents.node",
-      "node_modules/fsevents/fsevents.node",
       "node_modules/csv-stringify/dist/cjs",
-      "src/static/**/*"
+      "src/static"
     ],
     "scripts": [
       "node_modules/enigma.js/**/*.json",
