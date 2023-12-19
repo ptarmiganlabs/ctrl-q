@@ -22,7 +22,7 @@ const MIME_TYPES = {
 let STATIC_PATH = '';
 if (isPkg) {
     // Running as standalone app
-    STATIC_PATH = path.join(__dirnamn, './src/static');
+    STATIC_PATH = path.join(__dirname, './src/static');
 } else {
     // Running packaged app
     STATIC_PATH = path.join(execPath, './src/static');
