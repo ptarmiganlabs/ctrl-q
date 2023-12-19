@@ -5,6 +5,7 @@ const handlebars = require('handlebars');
 const { Readable } = require('stream');
 const { appVersion, logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../../globals');
 const { QlikSenseTasks } = require('../task/class_alltasks');
+const { log } = require('console');
 
 // js: 'application/javascript',
 const MIME_TYPES = {
@@ -22,7 +23,8 @@ const MIME_TYPES = {
 let STATIC_PATH = '';
 if (isPkg) {
     // Running as standalone app
-    STATIC_PATH = path.join(__dirname, './src/static');
+    STATIC_PATH = path.join(__dirname, 'src/static');
+    // STATIC_PATH = path.resolve(`${__dirname}/../../static`);
 } else {
     // Running packaged app
     STATIC_PATH = path.join(execPath, './src/static');
@@ -155,11 +157,31 @@ const prepareFile = async (url) => {
     if (url.endsWith('/')) paths.push('index.html');
 
     const filePath = path.join(...paths);
+    logger.verbose(`Serving file ${filePath}`);
+
     const pathTraversal = !filePath.startsWith(STATIC_PATH);
-    const exists = await fs.promises.access(filePath).then(...toBool);
+    logger.verbose(`Path traversal: ${pathTraversal}`);
+
+    // Verify file filePath exists. Do not use fs.access() as it does not work with pkg.
+    // let exists = false;
+    // try {
+    //     await fs.promises.stat(filePath);
+    //     exists = true;
+    // } catch (error) {
+    //     logger.verbose(`File does not exist: ${filePath}`);
+    // }
+    // const exists = await fs.promises.access(filePath).then(...toBool);
+    const exists = await verifyFileExists(filePath);
+    logger.verbose(`File exists: ${exists}`);
+
     const found = !pathTraversal && exists;
+    logger.verbose(`File found: ${found}`);
+
     const streamPath = found ? filePath : `${STATIC_PATH}/404.html`;
+    logger.verbose(`Stream path: ${streamPath}`);
+
     const ext = path.extname(streamPath).substring(1).toLowerCase();
+    logger.verbose(`File extension: ${ext}`);
 
     let stream;
     if (ext === 'html') {
@@ -312,7 +334,22 @@ const visTask = async (options) => {
     logger.verbose('Visulise tasks');
     logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
+    // List all files in __dirname directory if log level is debug
     logger.verbose(`Path to html files: ${STATIC_PATH}`);
+    fs.readdir(STATIC_PATH, (err, files) => {
+        if (err) {
+            return logger.error(`Unable to scan html directory: ${err}`);
+        }
+        files.forEach((file) => {
+            logger.debug(file);
+            const stats = fs.statSync(`${STATIC_PATH}/${file}`);
+            const fileSizeInBytes = stats.size;
+            logger.debug(`File size: ${fileSizeInBytes}`);
+            logger.debug('-------------------');
+        });
+
+        return true;
+    });
 
     // Verify files used by http server exist
     let fileExists = await verifyFileExists(`${STATIC_PATH}/index.html`);

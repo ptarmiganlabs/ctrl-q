@@ -47,23 +47,17 @@ const setLoggingLevel = (newLevel) => {
     logTransports.find((transport) => transport.name === 'console').level = newLevel;
 };
 
-const verifyFileExists = async (file) =>
-    // eslint-disable-next-line no-async-promise-executor, no-unused-vars
-    new Promise(async (resolve, reject) => {
-        try {
-            logger.debug(`Checking if file ${file} exists`);
+const verifyFileExists = async (file) => {
+    let exists = false;
+    try {
+        await Fs.stat(file);
+        exists = true;
+    } catch (err) {
+        logger.error(`Error while checking if file ${file} exists: ${JSON.stringify(err, null, 2)}`);
+    }
 
-            try {
-                await Fs.access(file);
-                resolve(true);
-            } catch {
-                resolve(false);
-            }
-        } catch (err) {
-            logger.error(`Error while checking if file ${file} exists: ${JSON.stringify(err, null, 2)}`);
-            resolve(false);
-        }
-    });
+    return exists;
+};
 
 const mergeDirFilePath = (pathElements) => {
     let fullPath = '';
