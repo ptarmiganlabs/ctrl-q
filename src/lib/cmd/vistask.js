@@ -287,6 +287,8 @@ const startHttpServer = async (options) => {
     const server = http.createServer(requestHandler);
 
     server.listen(options.visPort, options.visHost, () => {
+        logger.info('Using vis.js to visualize tasks, more info at https://github.com/visjs/vis-network');
+        logger.info('');
         logger.info(`Task visualization server listening on http://${options.visHost}:${options.visPort}`);
         logger.info('Press Ctrl-C to quit.');
     });
