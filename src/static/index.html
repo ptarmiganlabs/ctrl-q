@@ -1,0 +1,475 @@
+<html>
+    <head>
+        <title>Ctrl-Q</title>
+        <script
+            type="text/javascript"
+            src="http://{{visTaskHost}}:{{visTaskPort}}/vis-network.min.js"
+        ></script>
+        <style type="text/css">
+            #header {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+                height: 90px;
+                background-color: lightgray;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            /* #logo {
+                Style for logo and version number
+            } */
+            #info {
+                flex-grow: 1;
+                margin-left: 20px;  /* Space from the logo */
+                margin-right: 20px; /* Space from the customize div */
+            }
+            /* #info, #info div {
+                text-align: left;
+            } */
+            #networkConfig {
+                position: absolute;
+                top: 10% - 10px; /* Align with the bottom of the header */
+                left: 0;
+                background: white;
+                padding: 10px;
+                border: 1px solid black;
+                z-index: 1000;
+                width: 550px;
+                height: 90%; /* Adjust the height to fill the rest of the page */
+                display: none;
+            }
+            #network {
+                width: 100%;
+                height: 90%;
+                border: 2px solid darkgray;
+                float: right;
+            }
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 14px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            h2 {
+                font-size: 18px;
+            }
+            h3 {
+                font-size: 16px;
+            }
+            h4 {
+                font-size: 14px;
+            }
+            h5 {
+                font-size: 12px;
+            }
+            h6 {
+                font-size: 10px;
+            }
+            table {
+                border-collapse: collapse;
+            }
+            table, th, td {
+                border: 1px solid black;
+            }
+            th, td {
+                padding: 5px;
+            }
+            th {
+                text-align: left;
+            }
+            td {
+                text-align: left;
+            }
+
+            #customize {
+               text-align: right;
+            }
+
+            #clusterOutlier, #unclusterAll, #clusterByHubSize, #toggleLegend, #toggleNetworkConfig, #refreshNetwork  {
+                background-color: #4CAF50; /* Green */
+                border: none;
+                color: white;
+                padding: 15px 32px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                cursor: pointer;
+                border-radius: 4px;
+                transition: 0.3s;
+            }
+
+            #clusterOutlier:active,  #unclusterAll:active, #clusterByHubSize:active, #toggleLegend:active, #toggleNetworkConfig:active, #refreshNetwork:active {
+                box-shadow: 0 5px #666;
+                transform: translateY(4px);
+            }
+
+            #loadingBar {
+                position: absolute;
+                top: 0px;
+                left: 0px;
+                width: 100%;
+                height: 902px;
+                background-color: rgba(200, 200, 200, 0.8);
+                -webkit-transition: all 0.5s ease;
+                -moz-transition: all 0.5s ease;
+                -ms-transition: all 0.5s ease;
+                -o-transition: all 0.5s ease;
+                transition: all 0.5s ease;
+                opacity: 1;
+            }
+
+            #text {
+                position: absolute;
+                top: 8px;
+                left: 530px;
+                width: 30px;
+                height: 50px;
+                margin: auto auto auto auto;
+                font-size: 22px;
+                color: #000000;
+            }
+
+            div.outerBorder {
+                position: relative;
+                top: 400px;
+                width: 600px;
+                height: 44px;
+                margin: auto auto auto auto;
+                border: 8px solid rgba(0, 0, 0, 0.1);
+                background: rgb(252, 252, 252); /* Old browsers */
+                background: -moz-linear-gradient(
+                    top,
+                    rgba(252, 252, 252, 1) 0%,
+                    rgba(237, 237, 237, 1) 100%
+                ); /* FF3.6+ */
+                background: -webkit-gradient(
+                    linear,
+                    left top,
+                    left bottom,
+                    color-stop(0%, rgba(252, 252, 252, 1)),
+                    color-stop(100%, rgba(237, 237, 237, 1))
+                ); /* Chrome,Safari4+ */
+                background: -webkit-linear-gradient(
+                    top,
+                    rgba(252, 252, 252, 1) 0%,
+                    rgba(237, 237, 237, 1) 100%
+                ); /* Chrome10+,Safari5.1+ */
+                background: -o-linear-gradient(
+                    top,
+                    rgba(252, 252, 252, 1) 0%,
+                    rgba(237, 237, 237, 1) 100%
+                ); /* Opera 11.10+ */
+                background: -ms-linear-gradient(
+                    top,
+                    rgba(252, 252, 252, 1) 0%,
+                    rgba(237, 237, 237, 1) 100%
+                ); /* IE10+ */
+                background: linear-gradient(
+                    to bottom,
+                    rgba(252, 252, 252, 1) 0%,
+                    rgba(237, 237, 237, 1) 100%
+                ); /* W3C */
+                filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+                border-radius: 72px;
+                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            #border {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                width: 500px;
+                height: 23px;
+                margin: auto auto auto auto;
+                box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.2);
+                border-radius: 10px;
+            }
+
+            #bar {
+                position: absolute;
+                top: 0px;
+                left: 0px;
+                width: 20px;
+                height: 20px;
+                margin: auto auto auto auto;
+                border-radius: 11px;
+                border: 2px solid rgba(30, 30, 30, 0.05);
+                background: rgb(0, 173, 246); /* Old browsers */
+                box-shadow: 2px 0px 4px rgba(0, 0, 0, 0.4);
+            }
+
+            #nodeLegend {
+                /* ... existing styles ... */
+                top: 100px
+                width: 450px;
+            }
+            
+            .dot {
+                height: 20px;
+                width: 42px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="https://ctrl-q.ptarmiganlabs.com" target="_blank">
+                    <img src="http://{{visTaskHost}}:{{visTaskPort}}/ctrl-q_2.png" alt="Ctrl-Q logo" height="75px">
+                </a>
+            </div>
+            <div id="info">
+                <!-- Insert info about the data currently shown in the network diagram here -->
+                <div><span id="reloadTasksCount">Reload tasks: {{reloadTaskCount}}</span></div>
+                <div><span id="externalProgramTasksCount">External program tasks: {{externalProgramTaskCount}}</span></div>
+                <div><span id="schemaTriggerCount">Schema triggers: {{schemaTriggerCount}}</span></div>
+                <div><span id="compositeTriggerCount">Composite triggers: {{compositeTaskCount}}</span></div>            
+            </div>
+            <div id="customize">
+                <button id="refreshNetwork">Refresh</button>
+                <button id="clusterByHubSize">Cluster by hub size</button>
+                <button id="clusterOutlier">Cluster leaves</button>
+                <button id="unclusterAll">Uncluster All</button>
+                <button id="toggleNetworkConfig">Network config</button>
+                <button id="toggleLegend">Legend</button>
+            </div>
+        </div>
+        <div>
+            <div id="networkConfig">
+                <!-- Insert network configuration options here -->
+            </div>
+
+            <div id="network">
+                <!-- Insert network content here -->
+            </div>
+        </div>
+
+        <div id="loadingBar">
+            <div class="outerBorder">
+                <div id="text">0%</div>
+                <div id="border">
+                    <div id="bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="nodeLegend" style="position: absolute; top: 10px; right: 10px; background: white; padding: 10px; border: 1px solid black; z-index: 1000; cursor: move; width: 250px; top: 100px">
+            <div id="legendTitle" style="background-color: #ddd; padding: 3px; left: 10px; cursor: move; width: 245px">
+                <h3>Node Legend</h3>
+            </div>
+            <p><span class="dot"  style="background-color: green;"></span> Successful task</p>
+            <p><span class="dot"  style="background-color: red;"></span> Failed task</p>
+            <p><span class="dot"  style="background-color: rgb(80, 114, 225);"></span> Never executed task</p>
+            <p><span class="dot"  style="background-color: lightgray;"></span> Disabled</p>
+            <!-- Add more node types as needed -->
+            <!-- <hr>
+            Rectangle: Reload task<br>
+            Elipse: External program task or task cluser (if text within elipse is "cluster")<br>
+            Triangle: Schedule trigger<br>
+            <hr> -->
+            <!-- Add about info -->
+            <p>Ctrl-Q {{appVersion}}<br>
+            More info at <a target="_blank" href="https://ctrl-q.ptarmiganlabs.com">ctrl-q.ptarmiganlabs.com</a><br>
+            Report bugs <a target="_blank" href="https://github.com/ptarmiganlabs/ctrl-q/issues/new/choose">here</a></p>
+            Share ideas <a target="_blank" href="https://github.com/ptarmiganlabs/ctrl-q/discussions/categories/ideas">here</a></p>
+        </div>
+
+        <script type="text/javascript">
+
+            // Code to make the floating window movable
+            var nodeLegend = document.getElementById('nodeLegend');
+            var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            nodeLegend.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e = e || window.event;
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                nodeLegend.style.top = (nodeLegend.offsetTop - pos2) + "px";
+                nodeLegend.style.left = (nodeLegend.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+
+            // Code to toggle the visibility of the floating window
+            document.getElementById('toggleLegend').addEventListener('click', function() {
+                var display = nodeLegend.style.display;
+                nodeLegend.style.display = display === 'none' ? 'block' : 'none';
+            });
+
+            function clusterByHubSize() {
+                var clusterOptionsByData = {
+                    processProperties: function (clusterOptions, childNodes) {
+                    clusterOptions.label = '[' + childNodes.length + ']'
+                    return clusterOptions
+                    },
+                    clusterNodeProperties: {
+                    borderWidth: 3,
+                    shape: 'box',
+                    font: { size: 30 }
+                    }
+                }
+                window._vis_network.clusterByHubsize(undefined, clusterOptionsByData)
+            };
+
+            function uncluster() {
+                let clusterFound = false
+                for (const nodeId of window._vis_network.body.nodeIndices) {
+                    if (window._vis_network.isCluster(nodeId)) {
+                    clusterFound = true
+                    window._vis_network.openCluster(nodeId)
+                    }
+                }
+                return clusterFound
+            };
+
+            function unclusterAll() {
+                let clusterFound = true
+                do {
+                    clusterFound = uncluster()
+                } while (clusterFound)
+            };
+
+            document.getElementById('clusterByHubSize').addEventListener('click', function() {
+                clusterByHubSize();
+            });
+
+            document.getElementById('clusterOutlier').addEventListener('click', function() {
+                window._vis_network.clusterOutliers();
+            });
+
+            document.getElementById('unclusterAll').addEventListener('click', function() {
+                unclusterAll();
+            });
+
+            // Code to refresh the network when the refresh button is clicked
+            document.getElementById('refreshNetwork').addEventListener('click', function() {
+                // window._vis_network.redraw();
+                draw();
+            });
+
+            // Code to toggle the visibility of the network configuration panel
+            document.getElementById('toggleNetworkConfig').addEventListener('click', function() {
+                var networkConfig = document.getElementById('networkConfig');
+                var network = document.getElementById('network');
+                var display = networkConfig.style.display;
+                if (display === 'none') {
+                    networkConfig.style.display = 'block';
+                    network.style.width = 'calc(100% - 200px)'; // Subtract the width of the networkConfig div
+                } else {
+                    networkConfig.style.display = 'none';
+                    network.style.width = '100%'; // Reset the width of the network div
+                }
+            });
+
+            function setTitles(nodes) {
+                for (const node of nodes) {
+                    node.title = htmlTitle(node.title)
+                }
+                return nodes
+            }
+
+            function htmlTitle(html) {
+                const container = window.document.createElement('div')
+                container.innerHTML = html
+                return container
+            }
+
+
+            function draw() {
+                // clean up old network
+                if (network != null) {
+                    network.destroy();
+                    network = null;
+                }                
+                var nodes = new vis.DataSet([]);
+                nodes.add(setTitles({{nodes}}));
+        
+                var edges = new vis.DataSet([]);
+                edges.add({{edges}});
+        
+                // create a network
+                var container = document.getElementById("network");
+                var data = {
+                    nodes: nodes,
+                    edges: edges,
+                };
+
+                // Initialise options first time
+                var options;
+                if (options === undefined) {
+                    var options = {{visOptions}};
+                }
+                var network = new vis.Network(container, data, options);
+                window._vis_network = network;
+
+
+                // network.setOptions({ configure: { enabled: true } })
+
+                network.on("stabilizationProgress", function (params) {
+                    var maxWidth = 496;
+                    var minWidth = 20;
+                    var widthFactor = params.iterations / params.total;
+                    var width = Math.max(minWidth, maxWidth * widthFactor);
+
+                    document.getElementById("bar").style.width = width + "px";
+                    document.getElementById("text").innerText =
+                    Math.round(widthFactor * 100) + "%";
+                });
+                network.once("stabilizationIterationsDone", function () {
+                    document.getElementById("text").innerText = "100%";
+                    document.getElementById("bar").style.width = "496px";
+                    document.getElementById("loadingBar").style.opacity = 0;
+                    // really clean the dom element
+                    setTimeout(function () {
+                    document.getElementById("loadingBar").style.display = "none";
+                    }, 500);
+                });
+
+                network.on("click", function(params) {
+                    if (params.nodes.length > 0) {
+                        var nodeId = params.nodes[0]; // Get the ID of the clicked node
+                        if (window._vis_network.isCluster(nodeId)) {
+                            window._vis_network.openCluster(nodeId);
+                        }
+                    }
+                });
+
+                var configContainer = document.getElementById('networkConfig');
+                // window._vis_network.setOptions({ configure: { enabled: true } })
+                network.setOptions({ configure: { enabled: true, container: configContainer } })
+
+
+                // Hide condfiguration panel by default
+                var networkConfig = document.getElementById('networkConfig');
+                networkConfig.style.display = 'none';
+            }
+
+
+            window.addEventListener("load", () => {
+                draw();
+            });
+
+        </script>
+    </body>
+</html>

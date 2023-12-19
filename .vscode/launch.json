@@ -245,48 +245,48 @@
       // ------------------------------------
       // Import apps from Excel file
       // ------------------------------------
-      "args": [
-        "app-import",
-        "--host",
-        "192.168.100.109",
+      // "args": [
+      //   "app-import",
+      //   "--host",
+      //   "192.168.100.109",
 
-        "--port",
-        // "4747",
-        "443",
+      //   "--port",
+      //   // "4747",
+      //   "443",
 
-        "--virtual-proxy",
-        "jwt",
-        "--auth-type",
-        "jwt",
-        "--auth-jwt",
-        "",
+      //   "--virtual-proxy",
+      //   "jwt",
+      //   "--auth-type",
+      //   "jwt",
+      //   "--auth-jwt",
+      //   "",
 
-        // "--auth-cert-file",
-        // "./cert/client.pem",
-        // "--auth-cert-key-file",
-        // "./cert/client_key.pem",
+      //   // "--auth-cert-file",
+      //   // "./cert/client.pem",
+      //   // "--auth-cert-key-file",
+      //   // "./cert/client_key.pem",
 
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
 
-        // "--file-type",
-        // "excel",
+      //   // "--file-type",
+      //   // "excel",
 
-        "--file-name",
-        "testdata/tasks.xlsx",
-        "--sheet-name",
-        "App import",
+      //   "--file-name",
+      //   "testdata/tasks.xlsx",
+      //   "--sheet-name",
+      //   "App import",
 
-        // "--limit-import-count",
-        //  "2",
+      //   // "--limit-import-count",
+      //   //  "2",
 
-        "--sleep-app-upload",
-        "500"
+      //   "--sleep-app-upload",
+      //   "500"
 
-        // "--dry-run"
-      ]
+      //   // "--dry-run"
+      // ]
 
       // ------------------------------------
       // Get task tree
@@ -297,10 +297,13 @@
       //   // "cert",
       //   "--host",
       //   "192.168.100.109",
+      //   // "192.168.100.116",
+
       //   // "--auth-cert-file",
-      //   // "./cert/client.pem",
+      //   // "./cert/pve-winsrv19-1/192.168.100.116/client.pem",
       //   // "--auth-cert-key-file",
-      //   // "./cert/client_key.pem",
+      //   // "./cert/pve-winsrv19-1/192.168.100.116/client_key.pem",
+
       //   "--auth-user-dir",
       //   "LAB",
       //   "--auth-user-id",
@@ -312,13 +315,16 @@
       //   "--output-format",
       //   // "table",
       //   "tree",
-      //   "--tree-icons",
-      //   "--tree-details",
+
+      //   "--tree-icons"
+
+      //   // "--tree-details",
       //   // "taskid",
       //   // "appname",
-      //   "--task-type",
+
+      //   // "--task-type",
       //   // "reload",
-      //   "ext-program"
+      //   // "ext-program"
 
       //   // "--output-dest",
       //   // "screen",
@@ -1024,6 +1030,47 @@
       //   // "--log-level",
       //   // "info"
       // ]
+
+      // ------------------------------------
+      // Connection test
+      // ------------------------------------
+      "args": [
+        "task-vis",
+        "--host",
+        "192.168.100.109",
+        // "--port",
+        // "443",
+
+        "--vis-host",
+        "192.168.100.143",
+        "--vis-port",
+        "3000",
+
+        // "--virtual-proxy",
+        // "/jwt",
+
+        "--auth-type",
+        // "jwt",
+        "cert",
+        //   "--host",
+        //   "192.168.100.109",
+        "--auth-cert-file",
+        "../../code/secret/pro2win1-nopwd/client.pem",
+        "--auth-cert-key-file",
+        "../../code/secret/pro2win1-nopwd/client_key.pem",
+        // "./cert/client.pem",
+        // "./cert/client_key.pem",
+        // "--auth-jwt",
+        // "....",
+
+        "--auth-user-dir",
+        "LAB",
+        "--auth-user-id",
+        "goran",
+
+        "--log-level",
+        "verbose"
+      ]
     }
   ]
 }

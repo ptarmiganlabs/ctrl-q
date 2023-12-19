@@ -1534,11 +1534,16 @@ class QlikSenseTasks {
 
             let filter = '';
 
-            // Are there any task filters specified?
-            // If so, build a query string
+            // Should we get all tasks?
+            if (this.options.getAllTasks === true) {
+                // No task filters specified
+                filter = '';
+            } else if (this.options.outputFormat !== 'tree') {
+                // Are there any task filters specified?
+                // If so, build a query string
 
-            // Don't add task id and tag filtering if the output is a task tree
-            if (this.options.outputFormat !== 'tree') {
+                // Don't add task id and tag filtering if the output is a task tree
+
                 // Add task id(s) to query string
                 if (this.options.taskId && this.options?.taskId.length >= 1) {
                     // At least one task ID specified
@@ -2145,7 +2150,7 @@ class QlikSenseTasks {
                     const nodeId = `node-${uuidv4()}`;
                     this.taskNetwork.nodes.push({
                         id: nodeId,
-                        label: '',
+                        label: compositeEvent.compositeEvent.name,
                         enabled: true,
                         metaNodeType: 'composite',
                         metaNode: true,
@@ -2282,7 +2287,7 @@ class QlikSenseTasks {
                     const nodeId = `node-${uuidv4()}`;
                     this.taskNetwork.nodes.push({
                         id: nodeId,
-                        label: '',
+                        label: compositeEvent.compositeEvent.name,
                         enabled: true,
                         metaNodeType: 'composite',
                         metaNode: true,
