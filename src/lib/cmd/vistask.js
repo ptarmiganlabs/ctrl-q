@@ -18,8 +18,15 @@ const MIME_TYPES = {
     svg: 'image/svg+xml',
 };
 
-const STATIC_PATH = `${execPath}/src/static`;
-// const STATIC_PATH = path.join(process.cwd(), './src/static');
+// Get path to static html files
+let STATIC_PATH = '';
+if (isPkg) {
+    // Running as standalone app
+    STATIC_PATH = path.join(__dirnamn, './src/static');
+} else {
+    // Running packaged app
+    STATIC_PATH = path.join(execPath, './src/static');
+}
 
 const toBool = [() => true, () => false];
 
