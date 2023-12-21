@@ -2,6 +2,7 @@
 const { test, expect, describe } = require('@jest/globals');
 
 const { importAppFromFile } = require('../lib/cmd/importapp');
+const { appExistById, deleteAppById } = require('../lib/util/app');
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
@@ -33,7 +34,7 @@ options.port = '443';
 options.virtualProxy = 'jwt';
 
 // Test suite for app export
-describe('impor apps from QVF files (cert auth)', () => {
+describe('import apps from QVF files (cert auth)', () => {
     test('get tasks (verify parameters)', async () => {
         expect(options.host).not.toHaveLength(0);
         expect(options.authUserDir).not.toHaveLength(0);
