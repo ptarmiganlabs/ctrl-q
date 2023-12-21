@@ -38,6 +38,8 @@ const consoleTableConfig = {
  * @param {*} options
  */
 const getBookmark = async (options) => {
+    let session;
+
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -53,7 +55,6 @@ const getBookmark = async (options) => {
 
         // Create new session to Sense engine
         let configEnigma;
-        let session;
         try {
             configEnigma = await setupEnigmaConnection(options, sessionId);
             session = await enigma.create(configEnigma);
@@ -195,14 +196,26 @@ const getBookmark = async (options) => {
 
             if ((await session.close()) === true) {
                 logger.verbose(`Closed session after managing bookmarks in app ${options.appId} on host ${options.host}`);
-            } else {
-                logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+                return getBookmarks;
             }
-        } else {
-            logger.error(`Error destroying session object for bookmarks`);
+            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+            return false;
         }
+        logger.error(`Error destroying session object for bookmarks`);
+        return false;
     } catch (err) {
         logger.error(err.stack);
+
+        // Is there an active session? Close it if so.
+        if (session !== undefined) {
+            if ((await session.close()) === true) {
+                logger.verbose(`Closed session after error getting bookmarks in app ${options.appId} on host ${options.host}`);
+                return false;
+            }
+            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+            return false;
+        }
+        return false;
     }
 };
 
