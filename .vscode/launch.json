@@ -809,38 +809,40 @@
       // ------------------------------------
       //   Get all bookmarks
       // ------------------------------------
-      //   "args": [
-      //     "bookmark-get",
-      //     "--host",
-      //     "192.168.100.109",
+        "args": [
+          "bookmark-get",
+          "--host",
+          "192.168.100.109",
 
-      //     "--port",
-      //     // "4747",
-      //     "443",
+          "--port",
+          "4747",
+          // "443",
 
-      //     "--virtual-proxy",
-      //     "jwt",
-      //     "--auth-type",
-      //     "jwt",
-      //     "--auth-jwt",
-      //     "<jwt>",
+          // "--virtual-proxy",
+          // "jwt",
+          // "--auth-type",
+          // "jwt",
+          // "--auth-jwt",
+          // "<jwt>",
 
-      //     "--app-id",
-      //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
+          "--app-id",
+          // "2933711d-6638-41d4-a2d2-6dd2d965208b",
+          // "449f2186-0e86-4e19-b46f-c4c23212d730",   // No bookmarks app
+          "e5d051f0-34c6-4f47-9bc8-7dfabf784f18",   // Has 2 bookmarks
 
-      //     "--auth-user-dir",
-      //     "LAB",
-      //     "--auth-user-id",
-      //     "goran",
+          "--auth-user-dir",
+          "LAB",
+          "--auth-user-id",
+          "goran",
 
-      //     "--id-type",
-      //     "id",
-      //     // "--bookmark",
-      //     // "Bookmark 1",
-      //     // "Bookmark 3",
-      //     "--output-format",
-      //     "table"
-      // ]
+          "--id-type",
+          "id",
+          // "--bookmark",
+          // "Bookmark 1",
+          // "Bookmark 3",
+          "--output-format",
+          "table"
+      ]
 
       // ------------------------------------
       //   Get measure by id
@@ -1003,16 +1005,15 @@
       //   "connection-test",
       //   "--host",
       //   "192.168.100.109",
-      //   // "--port",
-      //   // "443",
+      //   "--port",
+      //   "443",
 
-      //   // "--virtual-proxy",
-      //   // "/jwt",
-      //   // "/jwt",
+      //   "--virtual-proxy",
+      //   "/jwt",
 
-      //   // "--auth-type",
-      //   // "jwt",
-      //   //   "cert",
+      //   "--auth-type",
+      //   "jwt",
+      //     // "cert",
       //   //   "--host",
       //   //   "192.168.100.109",
       //   //   "--auth-cert-file",
@@ -1032,45 +1033,45 @@
       // ]
 
       // ------------------------------------
-      // Connection test
+      // Network chart visualization
       // ------------------------------------
-      "args": [
-        "task-vis",
-        "--host",
-        "192.168.100.109",
-        // "--port",
-        // "443",
+      // "args": [
+      //   "task-vis",
+      //   "--host",
+      //   "192.168.100.109",
+      //   // "--port",
+      //   // "443",
 
-        "--vis-host",
-        "192.168.100.143",
-        "--vis-port",
-        "3000",
+      //   "--vis-host",
+      //   "192.168.100.143",
+      //   "--vis-port",
+      //   "3000",
 
-        // "--virtual-proxy",
-        // "/jwt",
+      //   // "--virtual-proxy",
+      //   // "/jwt",
 
-        "--auth-type",
-        // "jwt",
-        "cert",
-        //   "--host",
-        //   "192.168.100.109",
-        "--auth-cert-file",
-        "../../code/secret/pro2win1-nopwd/client.pem",
-        "--auth-cert-key-file",
-        "../../code/secret/pro2win1-nopwd/client_key.pem",
-        // "./cert/client.pem",
-        // "./cert/client_key.pem",
-        // "--auth-jwt",
-        // "....",
+      //   "--auth-type",
+      //   // "jwt",
+      //   "cert",
+      //   //   "--host",
+      //   //   "192.168.100.109",
+      //   "--auth-cert-file",
+      //   "../../code/secret/pro2win1-nopwd/client.pem",
+      //   "--auth-cert-key-file",
+      //   "../../code/secret/pro2win1-nopwd/client_key.pem",
+      //   // "./cert/client.pem",
+      //   // "./cert/client_key.pem",
+      //   // "--auth-jwt",
+      //   // "....",
 
-        "--auth-user-dir",
-        "LAB",
-        "--auth-user-id",
-        "goran",
+      //   "--auth-user-dir",
+      //   "LAB",
+      //   "--auth-user-id",
+      //   "goran",
 
-        "--log-level",
-        "verbose"
-      ]
+      //   "--log-level",
+      //   "verbose"
+      // ]
     }
   ]
 }

@@ -30,7 +30,7 @@ options.sheetName = 'App import';
 options.port = '4242';
 
 // Test suite for app export
-describe('impor apps from QVF files (cert auth)', () => {
+describe('import apps from QVF files (cert auth)', () => {
     test('get tasks (verify parameters)', async () => {
         expect(options.authCertFile).not.toHaveLength(0);
         expect(options.authCertKeyFile).not.toHaveLength(0);

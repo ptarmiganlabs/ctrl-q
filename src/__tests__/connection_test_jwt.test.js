@@ -14,6 +14,7 @@ const options = {
     secure: process.env.CTRL_Q_SECURE || true,
     authUserDir: process.env.CTRL_Q_AUTH_USER_DIR || '',
     authUserId: process.env.CTRL_Q_AUTH_USER_ID || '',
+
     authJwt: process.env.CTRL_Q_AUTH_JWT || '',
 };
 

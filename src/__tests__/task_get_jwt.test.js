@@ -18,7 +18,6 @@ const options = {
 
     taskType: process.env.CTRL_Q_TASK_TYPE || ['reload', 'ext-program'],
     authJwt: process.env.CTRL_Q_AUTH_JWT || '',
-
 };
 
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minute default timeout
