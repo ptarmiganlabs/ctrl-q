@@ -1,5 +1,35 @@
 # Changelog
 
+## [3.15.0](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.14.0...v3.15.0) (2023-12-25)
+
+
+### Features
+
+* Add JWT auth option for all Ctrl-Q commands ([e1e9f3d](https://github.com/ptarmiganlabs/ctrl-q/commit/e1e9f3d5d0aa03d4c5fd137597c214f58204a1d9)), closes [#155](https://github.com/ptarmiganlabs/ctrl-q/issues/155)
+* **help:** Add app version as part of help message ([443bf3f](https://github.com/ptarmiganlabs/ctrl-q/commit/443bf3fa78c902be2210f14d3f688d929bbc5ee7))
+* **task-vis:** Visualise tasks in network view ([8c01cd3](https://github.com/ptarmiganlabs/ctrl-q/commit/8c01cd3733513982b07b9172c58c3c2c2de6eb5e)), closes [#366](https://github.com/ptarmiganlabs/ctrl-q/issues/366)
+* **version:** New version command ([aa02c0e](https://github.com/ptarmiganlabs/ctrl-q/commit/aa02c0ebf16df55b5a69c8ef0004bb7143e60463))
+
+
+### Bug Fixes
+
+* **get-task:** Fix cyclic dependency issue in task trees ([8af8e94](https://github.com/ptarmiganlabs/ctrl-q/commit/8af8e94591cdc66150a3f3cb21398cc92934bc33)), closes [#291](https://github.com/ptarmiganlabs/ctrl-q/issues/291)
+* Incorrect description of --port option ([a6bee97](https://github.com/ptarmiganlabs/ctrl-q/commit/a6bee9763756dc8003cb8d3b4f0e0d4a72c52fe7))
+* **set-task-cp:** Respect --overwrite option when setting CPs for reload tasks ([95eabab](https://github.com/ptarmiganlabs/ctrl-q/commit/95eabab88b6f933ad5b8a6d4eb2b705f7bb173eb)), closes [#356](https://github.com/ptarmiganlabs/ctrl-q/issues/356)
+* **task-vis:** Add favicons for task network view ([5cfb204](https://github.com/ptarmiganlabs/ctrl-q/commit/5cfb204d62fcad60eaed891f03d72f95dd0a5118))
+
+
+### Miscellaneous
+
+* Add unit tests for app-export command ([014096e](https://github.com/ptarmiganlabs/ctrl-q/commit/014096eb3e3d15905ae6b9b1063db3c4b519a1ae))
+* Add unit tests for app-import command ([9b79bf1](https://github.com/ptarmiganlabs/ctrl-q/commit/9b79bf1b24139a402202e9e5ffb23eb4e59eaf37))
+* Add unit tests for bookmark-get command ([4085282](https://github.com/ptarmiganlabs/ctrl-q/commit/4085282e2948da82188b73a82438f0cde16f554f))
+* Add unit tests for script-get command ([855b714](https://github.com/ptarmiganlabs/ctrl-q/commit/855b714022ca56027f704f3007f3f3b3e5e5d86b))
+* Add unit tests for task-custom-property-set command ([cacdbf4](https://github.com/ptarmiganlabs/ctrl-q/commit/cacdbf404d271008a3159794467bce6282f8bff3))
+* Add unit tests for task-get command ([42fd155](https://github.com/ptarmiganlabs/ctrl-q/commit/42fd155a5a8eb6182c96d53bbb2b5308860719db))
+* Add unit tests for task-import command ([be0ca72](https://github.com/ptarmiganlabs/ctrl-q/commit/be0ca72457848da861adf043fe55a12ad828d1dd))
+* **deps:** Update dependencies ([f3e9be4](https://github.com/ptarmiganlabs/ctrl-q/commit/f3e9be46ad7d6d28bc4401bd613efb297a9379b5))
+
 ## [3.14.0](https://github.com/ptarmiganlabs/ctrl-q/compare/v3.13.2...v3.14.0) (2023-11-19)
 
 ### Features
