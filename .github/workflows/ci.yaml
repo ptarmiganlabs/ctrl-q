@@ -21,23 +21,17 @@ jobs:
       - name: Show github.ref
         run: echo "$GITHUB_REF"
         
-      - uses: google-github-actions/release-please-action@v3
+      - uses: google-github-actions/release-please-action@v4
         id: release
         if: |
           github.repository_owner == 'ptarmiganlabs' 
         with:
-          # command: manifest
-          # bootstrap-sha: e0fd792f506ad88db030972c1baa201907844d6a
-          # last-release-sha: 707267ad0bda7a666f3823b6c202e6c4fdc417fd
-          # release-as: 3.13.1
-          release-type: node
-          package-name: ctrl-q
-          default-branch: main
-          prerelease: false
-          release-search-depth: 5
-          commit-search-depth: 200
-          draft: true
-          changelog-types: '[{"type": "feat","section": "Features","hidden": false},{"type": "fix","section": "Bug Fixes","hidden": false},{"type": "chore","section": "Miscellaneous","hidden": false},{"type": "refactor","section": "Refactoring","hidden": false},{"type": "docs","section": "Documentation","hidden": false},{"type": "build","section": "Miscellaneous","hidden": false}]'
+          token: ${{ secrets.RELEASE_PLEASE_PAT }}
+          # optional. customize path to release-please-config.json
+          config-file: release-please-config.json
+          # optional. customize path to .release-please-manifest.json
+          manifest-file: .release-please-manifest.json
+          target-branch: main
 
       - name: Show output from Release-Please
         if: always()
@@ -71,7 +65,7 @@ jobs:
       - sp53
       # timeout-minutes: 15
       
-    if: ${{ needs.release-please.outputs.releases_created }} 
+    if: needs.release-please.outputs.releases_created == 'true'
     env:
       DIST_FILE_NAME: ctrl-q
       GITHUB_TOKEN: ${{ secrets.PAT }}
@@ -104,7 +98,7 @@ jobs:
       - name: Install dependencies
         run: |
           pwd 
-          npm ci
+          npm ci --include=prod
           
       - name: Build binaries
         run: |
@@ -181,14 +175,16 @@ jobs:
       - x64
       - windows
       - sp53
+      - win-code-sign
     # timeout-minutes: 15
-    if: ${{ needs.release-please.outputs.releases_created }} 
+    if: needs.release-please.outputs.releases_created == 'true'
     env:
       DIST_FILE_NAME: ctrl-q
       GITHUB_TOKEN: ${{ secrets.PAT }}
-      CODESIGN_PWD: ${{ secrets.WIN_CODESIGN_PWD}}
-      CODESIGN_INTERMEDIATE_BASE64: ${{ secrets.WIN_CODESIGN_INTERMEDIATE_BASE64 }}
-      CODESIGN_BASE64: ${{ secrets.WIN_CODESIGN_BASE64}}
+      # CODESIGN_PWD: ${{ secrets.WIN_CODESIGN_PWD}}
+      # CODESIGN_INTERMEDIATE_BASE64: ${{ secrets.WIN_CODESIGN_INTERMEDIATE_BASE64 }}
+      # CODESIGN_BASE64: ${{ secrets.WIN_CODESIGN_BASE64}}
+      CODESIGN_WIN_THUMBPRINT: ${{ secrets.WIN_CODESIGN_THUMBPRINT}}
     steps:
       - name: Release tag and upload url from previous job
         run: |
@@ -210,7 +206,7 @@ jobs:
       - name: Install dependencies
         run: |
           pwd 
-          npm ci
+          npm ci --include=prod
 
       - name: Build binaries
         run: |
@@ -218,22 +214,25 @@ jobs:
           pkg --output "./${env:DIST_FILE_NAME}.exe" -t node18-win-x64 ./build.cjs --config package.json --compress GZip
 
           # Sign the executable
-          New-Item -ItemType directory -Path certificate
-          Set-Content -Path certificate\certificate.txt -Value $env:CODESIGN_BASE64
-          certutil -decode certificate\certificate.txt certificate\certificate.pfx
-          Set-Content -Path certificate\intermediate.txt -Value $env:CODESIGN_INTERMEDIATE_BASE64
-          certutil -decode certificate\intermediate.txt certificate\intermediate.crt
-
-          $processOptions = @{
+          # 1st signing
+          $processOptions1 = @{
             FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
             Wait = $true
-            ArgumentList = "sign", "/fd", "SHA256", "/p", "$env:CODESIGN_PWD", "/ac", "certificate\intermediate.crt", "/f", "certificate\certificate.pfx", "/tr", "http://timestamp.sectigo.com/rfc3161", "/td", "sha256", "./${env:DIST_FILE_NAME}.exe"
+            ArgumentList = "sign", "/sha1", "$env:CODESIGN_WIN_THUMBPRINT", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha1", "/v", "./${env:DIST_FILE_NAME}.exe"
             WorkingDirectory = "."
             NoNewWindow = $true
           }
-          Start-Process @processOptions
+          Start-Process @processOptions1
 
-          Remove-Item -Recurse -Force certificate
+          # 2nd signing
+          $processOptions2 = @{
+            FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
+            Wait = $true
+            ArgumentList = "sign", "/sha1", "$env:CODESIGN_WIN_THUMBPRINT", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha256", "/v", "./${env:DIST_FILE_NAME}.exe"
+            WorkingDirectory = "."
+            NoNewWindow = $true
+          }
+          Start-Process @processOptions2
 
           # Create release binary zip
           $compress = @{
@@ -269,7 +268,7 @@ jobs:
     runs-on: ubuntu-latest
     # timeout-minutes: 15
 
-    if: ${{ needs.release-please.outputs.releases_created }} 
+    if: needs.release-please.outputs.releases_created == 'true'
     env:
       DIST_FILE_NAME: ctrl-q
       GITHUB_TOKEN: ${{ secrets.PAT }}
@@ -336,344 +335,3 @@ jobs:
           rm build.cjs
           rm "./${DIST_FILE_NAME}"
           rm "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_tag_name }}-linux.zip"
-
-
-
-
-
-
-
-
-#####################
-#####################
-#####################
-#####################
-#####################
-#####################
-
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-
-  #     - name: Install dependencies
-  #       run: |
-  #         pwd
-  #         cd src
-  #         npm install
-
-  #     - name: Run Snyk to check for vulnerabilities
-  #       uses: snyk/actions/node@master
-  #       continue-on-error: true
-  #       env:
-  #         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-  #       with:
-  #         args: --file=./src/package.json --sarif-file-output=./snyk.sarif
-  #         # command: test
-          
-  #     - name: Upload Snyk result to GitHub Code Scanning
-  #       uses: github/codeql-action/upload-sarif@v2
-  #       with:
-  #         sarif_file: ./snyk.sarif
-
-  #     - name: Install tools for creating stand-alone executables
-  #       if: ${{ steps.release.outputs.src--release_created }}
-  #       run: |
-  #         npm install -g pkg
-  #         npm i -g @vercel/ncc
-
-  #     - name: Package stand-alone binaries
-  #       if: ${{ steps.release.outputs.src--release_created }}
-  #       run: |
-  #         pwd
-  #         ls -la
-  #         cd src
-  #         mkdir build
-  #         mkdir build/macos
-  #         mkdir build/win
-  #         mkdir build/linux
-  #         ncc build -o build/lib -e enigma.js ./ctrl-q.js
-  #         pkg --output build/macos/${DIST_FILE_NAME} --target node16-macos-x64 --compress GZip ./build/lib/index.js
-  #         pkg --output build/win/${DIST_FILE_NAME}.exe --target node16-win-x64 --compress GZip ./build/lib/index.js
-  #         pkg --output build/linux/${DIST_FILE_NAME} --target node16-linux-x64 --compress GZip ./build/lib/index.js
-
-  #     - name: Debug
-  #       if: ${{ steps.release.outputs.src--release_created }}
-  #       run: |
-  #         ls -la
-  #         ls -la src/build
-  #         ls -la src/build/macos
-  #         ls -la src/build/win
-  #         ls -la src/build/linux
-  #         mkdir ghaction-virustotal
-
-  #     - name: VirusTotal Scan
-  #       if: ${{ steps.release.outputs.src--release_created }}
-  #       uses: crazy-max/ghaction-virustotal@v3
-  #       with:
-  #         vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
-  #         request_rate: 4
-  #         files: |
-  #           ./src/build/macos/*
-  #           ./src/build/win/*
-  #           ./src/build/linux/*
-
-  #     - name: Debug
-  #       if: ${{ steps.release.outputs.src--release_created }}
-  #       run: |
-  #         ls -la ghaction-virustotal
-
-  #     - name: Upload macOS build artifacts
-  #       if: ${{ steps.release.outputs.src--release_created }}
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: binaries-macos
-  #         path: src/build/macos/*
-
-  #     - name: Upload Linux build artifacts
-  #       if: ${{ steps.release.outputs.src--release_created }}
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: binaries-linux
-  #         path: src/build/linux/*
-
-  #     - name: Upload Windows build artifacts
-  #       if: ${{ steps.release.outputs.src--release_created }}
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: binaries-win
-  #         path: src/build/win/*
-
-  # release-macos:
-  #   needs: release-please
-  #   runs-on:
-  #     - self-hosted
-  #     - x64
-  #     - macos
-  #     - sp53
-  #   # timeout-minutes: 15
-
-  #   if: ${{ needs.release-please.outputs.release_created }} 
-  #   env:
-  #     DIST_FILE_NAME: ctrl-q
-  #   steps:
-  #     - name: Release tag and upload url from previous job
-  #       run: |
-  #         echo "tag_name   : ${{ needs.release-please.outputs.release_tag_name }}"
-  #         echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
-
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-
-  #     - name: Setup node
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: lts/*
-
-  #     - name: Download-Binaries
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: binaries-macos
-  #         path: release-macos/
-
-  #     - name: Make binary executable
-  #       run: |
-  #         chmod +x release-macos/${DIST_FILE_NAME}
-
-  #     # Needed for GitHub hosted runner
-  #     # For self-hosted runner the cert must either be installed manually, or the code below run once and then disabled.
-  #     # - name: Import Code-Signing Certificates
-  #     #   uses: Apple-Actions/import-codesign-certs@v1
-  #     #   with:
-  #     #     # The certificates in a PKCS12 file encoded as a base64 string
-  #     #     p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
-  #     #     # The password used to import the PKCS12 file.
-  #     #     p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
-
-  #     # - name: Install gon via HomeBrew for code signing and app notarization
-  #     #   run: |
-  #     #     brew tap mitchellh/gon
-  #     #     brew install mitchellh/gon/gon
-
-  #     - name: Debug
-  #       run: |
-  #         ls -la
-  #         ls -la ./release-macos
-
-  #     - name: Sign the mac binaries with Gon
-  #       env:
-  #         AC_USERNAME: ${{ secrets.AC_USERNAME }}
-  #         AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-  #       run: |
-  #         pwd
-  #         ls -la
-  #         gon ./release-config/gon.json
-
-  #     - name: Change name of zip file
-  #       run: |
-  #         pwd
-  #         ls -la
-  #         ls -la ./release-macos
-  #         mv ./${{ env.DIST_FILE_NAME }}-macos.zip ./${{ needs.release-please.outputs.release_tag_name }}-macos.zip
-
-  #     - name: Debug
-  #       run: |
-  #         ls -la 
-  #         ls -la ./release-macos
-
-  #     - name: Upload to existing release
-  #       uses: ncipollo/release-action@v1
-  #       with:
-  #         allowUpdates: true
-  #         omitBodyDuringUpdate: true
-  #         omitNameDuringUpdate: true
-  #         artifactContentType: raw
-  #         # artifactContentType: application/zip
-  #         draft: true
-  #         tag: ${{ needs.release-please.outputs.release_tag_name }}
-  #         artifacts: ./${{ needs.release-please.outputs.release_tag_name }}-macos.zip
-  #         token: ${{ github.token }}
-
-  #     - name: Tidy up before existing
-  #       run: |
-  #         rm -r release-macos
-
-  # release-linux:
-  #   needs: release-please
-  #   runs-on: ubuntu-latest
-  #   # timeout-minutes: 15
-
-  #   if: ${{ needs.release-please.outputs.release_created }} 
-  #   env:
-  #     DIST_FILE_NAME: ctrl-q
-  #   steps:
-  #     - name: Release tag and upload url from previous job
-  #       run: |
-  #         echo "tag_name   : ${{ needs.release-please.outputs.release_tag_name }}"
-  #         echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
-
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-
-  #     - name: Setup node
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: lts/*
-
-  #     - name: Download-Binaries
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: binaries-linux
-  #         path: release-linux/
-
-  #     - name: Make binary executable
-  #       run: |
-  #         chmod +x release-linux/${DIST_FILE_NAME}
-
-  #     - name: Compress into zip
-  #       run: |
-  #         ls -la
-  #         ls -la ./release-linux
-  #         zip -9 -r ./${{ needs.release-please.outputs.release_tag_name }}-linux.zip release-linux/
-
-  #     - name: Debug
-  #       run: |
-  #         ls -la
-  #         ls -la ./release-linux
-
-  #     - name: Upload to existing release
-  #       uses: ncipollo/release-action@v1
-  #       with:
-  #         allowUpdates: true
-  #         omitBodyDuringUpdate: true
-  #         omitNameDuringUpdate: true
-  #         artifactContentType: raw
-  #         # artifactContentType: application/zip
-  #         draft: true
-  #         tag: ${{ needs.release-please.outputs.release_tag_name }}
-  #         artifacts: ./${{ needs.release-please.outputs.release_tag_name }}-linux.zip
-  #         token: ${{ github.token }}
-
-  #     - name: Tidy up before existing
-  #       run: |
-  #         rm -r release-linux
-
-  # release-win64:
-  #   needs: release-please
-  #   runs-on:
-  #     - self-hosted
-  #     - x64
-  #     - windows
-  #     - sp53
-  #   # timeout-minutes: 15
-  #   if: ${{ needs.release-please.outputs.release_created }} 
-  #   env:
-  #     DIST_FILE_NAME: ctrl-q
-  #   steps:
-  #     - name: Release tag and upload url from previous job
-  #       run: |
-  #         Write-Output 'tag_name        : ${{ needs.release-please.outputs.release_tag_name }}'
-  #         Write-Output 'upload_url      : ${{ needs.release-please.outputs.release_upload_url }}'
-
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-
-  #     - name: Setup node
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: lts/*
-
-  #     - name: Download-Binaries
-  #       uses: actions/download-artifact@v3
-  #       with:
-  #         name: binaries-win
-  #         path: release-win/
-
-  #     - name: Sign the executable
-  #       env:
-  #         CODESIGN_PWD: ${{ secrets.WIN_CODESIGN_PWD}}
-  #         CODESIGN_INTERMEDIATE_BASE64: ${{ secrets.WIN_CODESIGN_INTERMEDIATE_BASE64 }}
-  #         CODESIGN_BASE64: ${{ secrets.WIN_CODESIGN_BASE64}}
-  #       run: |
-  #         New-Item -ItemType directory -Path certificate
-  #         Set-Content -Path certificate\certificate.txt -Value $env:CODESIGN_BASE64
-  #         certutil -decode certificate\certificate.txt certificate\certificate.pfx
-  #         Set-Content -Path certificate\intermediate.txt -Value $env:CODESIGN_INTERMEDIATE_BASE64
-  #         certutil -decode certificate\intermediate.txt certificate\intermediate.crt
-
-  #         & 'C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe' sign /fd SHA256 /p $env:CODESIGN_PWD /ac certificate\intermediate.crt /f certificate\certificate.pfx /tr "http://timestamp.sectigo.com/rfc3161" /td sha256 release-win/ctrl-q.exe
-          
-  #         Remove-Item -Recurse -Force certificate
-
-  #     - name: Install dependencies and zip into release asset
-  #       run: |
-  #         cd release-win
-  #         dir
-  #         $compress = @{
-  #           Path = "."
-  #           CompressionLevel = "Fastest"
-  #           DestinationPath = "${{ needs.release-please.outputs.release_tag_name }}-win.zip"
-  #         }
-  #         Compress-Archive @compress
-
-  #     - name: Debug
-  #       run: |
-  #         dir
-  #         dir ./release-win
-
-  #     - name: Upload to existing release
-  #       uses: ncipollo/release-action@v1
-  #       with:
-  #         allowUpdates: true
-  #         omitBodyDuringUpdate: true
-  #         omitNameDuringUpdate: true
-  #         artifactContentType: raw
-  #         # artifactContentType: application/zip
-  #         draft: true
-  #         tag: ${{ needs.release-please.outputs.release_tag_name }}
-  #         artifacts: release-win/${{ needs.release-please.outputs.release_tag_name }}-win.zip
-  #         token: ${{ github.token }}
-
-  #     - name: Tidy up before existing
-  #       run: |
-  #         dir
-  #         Remove-Item -path ./release-win -recurse 
-

@@ -1,6 +1,11 @@
 {
+  "bootstrap-sha": "dc19fc88a0cd7679363747a7d1648307d4d1cd01",
+  "release-as": "3.15.1",
   "release-type": "node",
+  "prerelease": false,
   "draft": true,
+  "release-search-depth": 10,
+  "commit-search-depth": 200,
   "changelog-sections": [
     {
       "type": "feat",

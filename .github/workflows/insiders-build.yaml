@@ -8,9 +8,9 @@ jobs:
   insiders-build:
     strategy:
       matrix:
-        os: [winsrv-2016, mac-build1, ubuntu-latest]
+        os: [win-code-sign, mac-build1, ubuntu-latest]
         include:
-          - os: winsrv-2016
+          - os: win-code-sign
             build: |
               ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --external:axios --external:xdg-open --external:enigma.js --outfile=build.cjs --format=cjs --platform=node --target=node18 --minify
               pkg --output "./${env:DIST_FILE_NAME}.exe" -t node18-win-x64 ./build.cjs --config package.json --compress GZip
@@ -18,29 +18,25 @@ jobs:
               dir
 
               # Sign the executable
-              New-Item -ItemType directory -Path certificate
-              Set-Content -Path certificate\certificate.txt -Value $env:CODESIGN_BASE64
-              certutil -decode certificate\certificate.txt certificate\certificate.pfx
-              Set-Content -Path certificate\intermediate.txt -Value $env:CODESIGN_INTERMEDIATE_BASE64
-              certutil -decode certificate\intermediate.txt certificate\intermediate.crt
-
-              $processOptions = @{
+              # 1st signing
+              $processOptions1 = @{
                 FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
                 Wait = $true
-                ArgumentList = "sign", "/fd", "SHA256", "/p", "$env:CODESIGN_PWD", "/ac", "certificate\intermediate.crt", "/f", "certificate\certificate.pfx", "/tr", "http://timestamp.sectigo.com/rfc3161", "/td", "sha256", "./${env:DIST_FILE_NAME}.exe"
+                ArgumentList = "sign", "/sha1", "$env:CODESIGN_WIN_THUMBPRINT", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha1", "/v", "./${env:DIST_FILE_NAME}.exe"
                 WorkingDirectory = "."
                 NoNewWindow = $true
               }
-              Start-Process @processOptions
+              Start-Process @processOptions1
 
-              Remove-Item -Recurse -Force certificate
-
-              # # Create release binary
-              # mkdir release-binaries-win
-              # Copy-Item -Path ".\${env:DIST_FILE_NAME}.exe" -Destination "release-binaries-win\"
-
-              # dir
-              # dir release-binaries-win
+              # 2nd signing
+              $processOptions2 = @{
+                FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
+                Wait = $true
+                ArgumentList = "sign", "/sha1", "$env:CODESIGN_WIN_THUMBPRINT", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha256", "/v", "./${env:DIST_FILE_NAME}.exe"
+                WorkingDirectory = "."
+                NoNewWindow = $true
+              }
+              Start-Process @processOptions2
 
               # Create insider's build zip
               $compress = @{
@@ -48,10 +44,9 @@ jobs:
                 CompressionLevel = "Fastest"
                 DestinationPath = "${env:DIST_FILE_NAME}--win-x64--${{ github.sha }}.zip"
               }
+
               Compress-Archive @compress
-              # dir
-            # artifact_release_name: release-binaries-win
-            # artifact_release_path: release-binaries-win/*
+              
             artifact_insider: ctrl-q--win-x64--${{ github.sha }}.zip
           - os: mac-build1
             build: |
@@ -106,9 +101,8 @@ jobs:
 
               # Delete build keychain
               security delete-keychain build.keychain
-            # artifact_release_name: release-binaries-macos
-            # artifact_release_path: release-binaries-macos/*
             artifact_insider: ctrl-q--macos-x64--${{ github.sha }}.zip
+
           - os: ubuntu-latest
             build: |
               ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --external:axios --external:xdg-open --external:enigma.js --outfile=build.cjs --format=cjs --platform=node --target=node18 --minify
@@ -119,9 +113,6 @@ jobs:
               # Compress insider's build
               tar -czf "${DIST_FILE_NAME}--linux-x64--${{ github.sha }}.tgz" "${DIST_FILE_NAME}"
               ls -la
-
-            # artifact_release_name: release-binaries-linux
-            # artifact_release_path: release-binaries-linux/*
             artifact_insider: ctrl-q--linux-x64--${{ github.sha }}.tgz
     runs-on: ${{ matrix.os }}
     steps:
@@ -141,25 +132,25 @@ jobs:
       - name: Install dependencies
         run: |
           pwd 
-          npm ci
+          npm ci --include=prod
 
       - name: Run Snyk to check for vulnerabilities
         if: |
           github.repository_owner == 'ptarmiganlabs' &&
           matrix.os == 'ubuntu-latest'
-        uses: snyk/actions/node@master
         continue-on-error: true
+        uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --file=./package.json --sarif-file-output=snyk.sarif
-          # command: test
           
       - name: Upload Snyk result to GitHub Code Scanning
         if: |
           github.repository_owner == 'ptarmiganlabs' &&
           matrix.os == 'ubuntu-latest'
-        uses: github/codeql-action/upload-sarif@v2
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: snyk.sarif
 
@@ -174,21 +165,13 @@ jobs:
           PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
           PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
           PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
-          CODESIGN_PWD: ${{ secrets.WIN_CODESIGN_PWD}}
-          CODESIGN_INTERMEDIATE_BASE64: ${{ secrets.WIN_CODESIGN_INTERMEDIATE_BASE64 }}
-          CODESIGN_BASE64: ${{ secrets.WIN_CODESIGN_BASE64}}
+          CODESIGN_WIN_THUMBPRINT: ${{ secrets.WIN_CODESIGN_THUMBPRINT}}
         run: |
           pwd
           ${{ matrix.build }}
 
-      # - name: Upload release artifacts to GitHub
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: ${{ matrix.artifact_release_name }}
-      #     path: ${{ matrix.artifact_release_path }}
-
       - name: Upload insider build artifacts to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_insider }}
           path: ${{ matrix.artifact_insider }}
