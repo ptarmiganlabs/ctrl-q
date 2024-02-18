@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.15.1 (2024-02-18)
+
+
+### Miscellaneous
+
+* **deps:** Update app dependencies ([d66d7e6](https://github.com/ptarmiganlabs/ctrl-q/commit/d66d7e6875b566572b5710e3b2c916195396f28c))
+* **deps:** Update build pipeline dependencies ([d66d7e6](https://github.com/ptarmiganlabs/ctrl-q/commit/d66d7e6875b566572b5710e3b2c916195396f28c))
+* release-please debugging ([34eba8f](https://github.com/ptarmiganlabs/ctrl-q/commit/34eba8fa27ea4372e8d6d3ffcd3b11fa13d81982))
+* **win:** Switch to new signing solution for Windows binaries ([d66d7e6](https://github.com/ptarmiganlabs/ctrl-q/commit/d66d7e6875b566572b5710e3b2c916195396f28c))
+
 ## [3.12.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.11.0...ctrl-q-v3.12.0) (2023-08-22)
 
 
