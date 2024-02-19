@@ -1,4 +1,4 @@
-const { logger } = require('../../globals');
+import { logger } from '../../globals.js';
 
 class QlikSenseCompositeEvent {
     constructor(compositeEvent) {
@@ -10,6 +10,4 @@ class QlikSenseCompositeEvent {
     // Other methods
 }
 
-module.exports = {
-    QlikSenseCompositeEvent,
-};
+export default QlikSenseCompositeEvent;

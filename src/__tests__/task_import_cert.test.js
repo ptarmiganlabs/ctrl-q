@@ -1,10 +1,10 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-console */
-const { test, expect, describe } = require('@jest/globals');
+import { jest, test, expect, describe } from '@jest/globals';
 
-const { importTaskFromFile } = require('../lib/cmd/importtask');
-const { getTaskById, deleteExternalProgramTaskById, deleteReloadTaskById } = require('../lib/util/task');
-const { mapTaskType } = require('../lib/util/lookups');
+import importTaskFromFile from '../lib/cmd/importtask.js';
+import { getTaskById, deleteExternalProgramTaskById, deleteReloadTaskById } from '../lib/util/task.js';
+import { mapTaskType } from '../lib/util/lookups.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

@@ -1,4 +1,4 @@
-const { logger, appVersion, isPkg, execPath } = require('../../globals');
+import { logger, appVersion, isPkg, execPath } from '../../globals.js';
 
 const logStartupInfo = (options, cmd, cmdDesc) => {
     logger.info('-----------------------------------------------------------');
@@ -21,6 +21,4 @@ const logStartupInfo = (options, cmd, cmdDesc) => {
     logger.verbose(``);
 };
 
-module.exports = {
-    logStartupInfo,
-};
+export default logStartupInfo;

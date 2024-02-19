@@ -1,14 +1,13 @@
-const tree = require('text-treeview');
-const { table } = require('table');
-const { promises: Fs } = require('fs');
-const xlsx = require('node-xlsx').default;
-const { stringify } = require('csv-stringify');
-const yesno = require('yesno');
-
-const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../../globals');
-const { QlikSenseTasks } = require('../task/class_alltasks');
-const { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } = require('../util/lookups');
-const { getTagsFromQseow } = require('../util/tag');
+import tree from 'text-treeview';
+import { table } from 'table';
+import { promises as Fs } from 'fs';
+import xlsx from 'node-xlsx';
+import { stringify } from 'csv-stringify';
+import yesno from 'yesno';
+import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } from '../../globals.js';
+import QlikSenseTasks from '../task/class_alltasks.js';
+import { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } from '../util/lookups.js';
+import { getTagsFromQseow } from '../util/tag.js';
 
 const consoleTableConfig = {
     border: {
@@ -775,6 +774,4 @@ const getTask = async (options) => {
     }
 };
 
-module.exports = {
-    getTask,
-};
+export default getTask;

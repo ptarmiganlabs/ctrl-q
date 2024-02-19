@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
-const { test, expect, describe } = require('@jest/globals');
+import { jest, test, expect, describe } from '@jest/globals';
 
-const { getApps, getAppById } = require('../lib/util/app');
+import { getApps, getAppById } from '../lib/util/app.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
@@ -24,11 +24,11 @@ console.log(`Jest timeout: ${defaultTestTimeout}`);
 jest.setTimeout(defaultTestTimeout);
 
 // Mock logger
-global.console = {
-    log: jest.fn(),
-    info: jest.fn(),
-    error: jest.fn(),
-};
+// global.console = {
+//     log: jest.fn(),
+//     info: jest.fn(),
+//     error: jest.fn(),
+// };
 
 // Define existing and non-existing tasks
 const existingAppId1 = 'c840670c-7178-4a5e-8409-ba2da69127e2';

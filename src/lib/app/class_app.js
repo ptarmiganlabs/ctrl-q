@@ -35,6 +35,4 @@ class QlikSenseApp {
     }
 }
 
-module.exports = {
-    QlikSenseApp,
-};
+export default QlikSenseApp;

@@ -1,12 +1,12 @@
 // import { csvParse } from 'csv-parse';
 
-const xlsx = require('node-xlsx').default;
+import xlsx from 'node-xlsx';
 
-const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } = require('../../globals');
-const { QlikSenseApps } = require('../app/class_allapps');
-const { getAppColumnPosFromHeaderRow } = require('../util/lookups');
-const { getTagsFromQseow } = require('../util/tag');
-const { getCustomPropertiesFromQseow } = require('../util/customproperties');
+import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } from '../../globals.js';
+import QlikSenseApps from '../app/class_allapps.js';
+import { getAppColumnPosFromHeaderRow } from '../util/lookups.js';
+import { getTagsFromQseow } from '../util/tag.js';
+import { getCustomPropertiesFromQseow } from '../util/customproperties.js';
 
 const importAppFromFile = async (options) => {
     try {
@@ -87,6 +87,4 @@ const importAppFromFile = async (options) => {
     }
 };
 
-module.exports = {
-    importAppFromFile,
-};
+export default importAppFromFile;

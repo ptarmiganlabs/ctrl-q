@@ -1,14 +1,13 @@
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
-const { validate } = require('uuid');
-
-const { logger, execPath, getCliOptions } = require('../../globals');
-const { setupQRSConnection } = require('./qrs');
+import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
+import { validate } from 'uuid';
+import { logger, execPath, getCliOptions } from '../../globals.js';
+import setupQRSConnection from './qrs.js';
 
 // Check if a task with a given id exists
 // Look for all kinds of tasks, not just reload tasks
-async function taskExistById(taskId, optionsParam) {
+export async function taskExistById(taskId, optionsParam) {
     try {
         logger.debug(`Checking if task with ID ${taskId} exists`);
 
@@ -90,7 +89,7 @@ async function taskExistById(taskId, optionsParam) {
 // Returs:
 // - false if task does not exist or if multiple tasks with the same name exist
 // - task metadata if task exists
-async function getTaskByName(taskName, optionsParam) {
+export async function getTaskByName(taskName, optionsParam) {
     try {
         logger.debug(`Get task with name ${taskName}`);
 
@@ -157,7 +156,7 @@ async function getTaskByName(taskName, optionsParam) {
 
 // Function to get task metadata, given a task ID
 // If the task ID is a valid GUID it is assumed to be a task ID that exists in Sense. Report an error if not.
-async function getTaskById(taskId, optionsParam) {
+export async function getTaskById(taskId, optionsParam) {
     try {
         logger.debug(`Get task with ID ${taskId}`);
 
@@ -235,7 +234,7 @@ async function getTaskById(taskId, optionsParam) {
 
 // Delete a reload task given its ID
 // If the reload task ID is a valid GUID it is assumed to be a reload task ID that exists in Sense. Report an error if not.
-async function deleteReloadTaskById(taskId, optionsParam) {
+export async function deleteReloadTaskById(taskId, optionsParam) {
     try {
         logger.debug(`Delete reload task with ID ${taskId}`);
 
@@ -311,7 +310,7 @@ async function deleteReloadTaskById(taskId, optionsParam) {
 
 // Delete a external program task given its ID
 // If the task ID is a valid GUID it is assumed to be a ext pgm task ID that exists in Sense. Report an error if not.
-async function deleteExternalProgramTaskById(taskId, optionsParam) {
+export async function deleteExternalProgramTaskById(taskId, optionsParam) {
     try {
         logger.debug(`Delete external program task with ID ${taskId}`);
 
@@ -384,11 +383,3 @@ async function deleteExternalProgramTaskById(taskId, optionsParam) {
         return false;
     }
 }
-
-module.exports = {
-    taskExistById,
-    getTaskByName,
-    getTaskById,
-    deleteReloadTaskById,
-    deleteExternalProgramTaskById,
-};

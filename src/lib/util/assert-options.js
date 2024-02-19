@@ -1,9 +1,8 @@
-const path = require('path');
-const uuidVersion = require('uuid').version;
-const uuidValidate = require('uuid').validate;
-const fs = require('fs');
-
-const { logger, execPath, mergeDirFilePath, verifyFileExists } = require('../../globals');
+import path from 'path';
+import { version as uuidVersion } from 'uuid';
+import { validate as uuidValidate } from 'uuid';
+import fs from 'fs';
+import { logger, execPath, mergeDirFilePath, verifyFileExists } from '../../globals.js';
 
 const sharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
@@ -296,7 +295,7 @@ const variableDeleteAssertOptions = (options) => {
     }
 };
 
-module.exports = {
+export default {
     sharedParamAssertOptions,
     userActivityCustomPropertyAssertOptions,
     masterItemImportAssertOptions,

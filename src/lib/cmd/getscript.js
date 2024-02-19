@@ -1,7 +1,6 @@
-const enigma = require('enigma.js');
-
-const { setupEnigmaConnection, addTrafficLogging } = require('../util/enigma');
-const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
+import enigma from 'enigma.js';
+import { setupEnigmaConnection, addTrafficLogging } from '../util/enigma.js';
+import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
 
 /**
  *
@@ -87,6 +86,4 @@ const getScript = async (options) => {
     }
 };
 
-module.exports = {
-    getScript,
-};
+export default getScript;

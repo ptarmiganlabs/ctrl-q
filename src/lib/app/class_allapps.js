@@ -1,19 +1,18 @@
-const rax = require('retry-axios');
-const axios = require('axios');
-const path = require('path');
-const FormData = require('form-data');
-const fs = require('fs/promises');
-const fs2 = require('fs');
-const { v4: uuidv4, validate } = require('uuid');
-const yesno = require('yesno');
-
-const { logger, execPath, mergeDirFilePath, verifyFileExists, sleep } = require('../../globals');
-const { setupQRSConnection } = require('../util/qrs');
-const { getAppColumnPosFromHeaderRow } = require('../util/lookups');
-const { QlikSenseApp } = require('./class_app');
-const { getTagIdByName } = require('../util/tag');
-const { getAppById, deleteAppById } = require('../util/app');
-const { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } = require('../util/customproperties');
+import rax from 'retry-axios';
+import axios from 'axios';
+import path from 'path';
+import FormData from 'form-data';
+import fs from 'fs/promises';
+import fs2 from 'fs';
+import { v4 as uuidv4, validate } from 'uuid';
+import yesno from 'yesno';
+import { logger, execPath, mergeDirFilePath, verifyFileExists, sleep } from '../../globals.js';
+import setupQRSConnection from '../util/qrs.js';
+import { getAppColumnPosFromHeaderRow } from '../util/lookups.js';
+import QlikSenseApp from './class_app.js';
+import { getTagIdByName } from '../util/tag.js';
+import { getAppById, deleteAppById } from '../util/app.js';
+import { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } from '../util/customproperties.js';
 
 class QlikSenseApps {
     // eslint-disable-next-line no-useless-constructor
@@ -1486,6 +1485,4 @@ class QlikSenseApps {
     }
 }
 
-module.exports = {
-    QlikSenseApps,
-};
+export default QlikSenseApps;

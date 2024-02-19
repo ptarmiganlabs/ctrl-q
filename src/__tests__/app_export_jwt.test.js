@@ -1,10 +1,9 @@
 /* eslint-disable no-console */
-const { test, expect, describe } = require('@jest/globals');
+import { jest, test, expect, describe } from '@jest/globals';
 
-const fs = require('fs');
-const path = require('path');
-
-const { exportAppToFile } = require('../lib/cmd/exportapp');
+import fs from 'fs';
+import path from 'path';
+import exportAppToFile from '../lib/cmd/exportapp.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

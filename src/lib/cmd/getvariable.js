@@ -1,11 +1,11 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-await-in-loop */
-const enigma = require('enigma.js');
-const { table } = require('table');
+import enigma from 'enigma.js';
 
-const { setupEnigmaConnection, addTrafficLogging } = require('../util/enigma');
-const { getApps } = require('../util/app');
-const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
+import { table } from 'table';
+import { setupEnigmaConnection, addTrafficLogging } from '../util/enigma.js';
+import { getApps } from '../util/app.js';
+import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
 
 const consoleTableConfig = {
     border: {
@@ -251,6 +251,4 @@ const getVariable = async (options) => {
     }
 };
 
-module.exports = {
-    getVariable,
-};
+export default getVariable;

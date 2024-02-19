@@ -1,17 +1,19 @@
-const xlsx = require('node-xlsx').default;
-const { parse } = require('csv-parse');
+import xlsx from 'node-xlsx';
+import { parse } from 'csv-parse';
+
 // const { parse } = require('csv-parse/lib/sync');
-const fs = require('fs');
+import fs from 'fs';
+
 // const fsp = require('fs').promises;
 
-const { finished } = require('stream/promises');
+import { finished } from 'stream/promises';
 
-const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } = require('../../globals');
-const { QlikSenseTasks } = require('../task/class_alltasks');
-const { QlikSenseApps } = require('../app/class_allapps');
-const { getTaskColumnPosFromHeaderRow } = require('../util/lookups');
-const { getTagsFromQseow } = require('../util/tag');
-const { getCustomPropertiesFromQseow } = require('../util/customproperties');
+import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } from '../../globals.js';
+import QlikSenseTasks from '../task/class_alltasks.js';
+import QlikSenseApps from '../app/class_allapps.js';
+import { getTaskColumnPosFromHeaderRow } from '../util/lookups.js';
+import { getTagsFromQseow } from '../util/tag.js';
+import { getCustomPropertiesFromQseow } from '../util/customproperties.js';
 
 const getHeaders = async (options) => {
     const records = [];
@@ -423,6 +425,4 @@ const importTaskFromFile = async (options) => {
     }
 };
 
-module.exports = {
-    importTaskFromFile,
-};
+export default importTaskFromFile;

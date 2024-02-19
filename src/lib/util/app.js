@@ -1,12 +1,10 @@
-const axios = require('axios');
-const path = require('path');
-const { validate } = require('uuid');
-const { error } = require('console');
+import axios from 'axios';
+import path from 'path';
+import { validate } from 'uuid';
+import { logger, execPath, getCliOptions } from '../../globals.js';
+import setupQRSConnection from './qrs.js';
 
-const { logger, execPath, getCliOptions } = require('../../globals');
-const { setupQRSConnection } = require('./qrs');
-
-async function getApps(options, idArray, tagArray) {
+export async function getApps(options, idArray, tagArray) {
     try {
         logger.debug(`Getting app IDs from appId and appTag arrays`);
 
@@ -99,7 +97,7 @@ async function getApps(options, idArray, tagArray) {
 }
 
 // Function to get app info from QRS, given app ID
-async function getAppById(appId, optionsParam) {
+export async function getAppById(appId, optionsParam) {
     try {
         logger.debug(`GET APP BY ID: Starting get app from QSEoW for app id ${appId}`);
         // Did we get any options as parameter?
@@ -168,7 +166,7 @@ async function getAppById(appId, optionsParam) {
 }
 
 // Function to delete app given app ID
-async function deleteAppById(appId, options) {
+export async function deleteAppById(appId, options) {
     // Ensuire options are specified. Exit if not
     if (!options) {
         logger.error(`DELETE APP: No options specified. Exiting.`);
@@ -223,7 +221,7 @@ async function deleteAppById(appId, options) {
 }
 
 // Check if an app with a given id exists
-async function appExistById(appId, options) {
+export async function appExistById(appId, options) {
     try {
         logger.debug(`Checking if app with id ${appId} exists in QSEoW`);
 
@@ -290,10 +288,3 @@ async function appExistById(appId, options) {
         return false;
     }
 }
-
-module.exports = {
-    getApps,
-    getAppById,
-    deleteAppById,
-    appExistById,
-};

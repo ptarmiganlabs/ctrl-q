@@ -1,12 +1,13 @@
-const axios = require('axios');
-const path = require('path');
+import axios from 'axios';
+import path from 'path';
 
 // const { promises: Fs } = require('fs');
 // const yesno = require('yesno');
 
-const { logger, execPath } = require('../../globals');
-const { setupQRSConnection } = require('../util/qrs');
-const { getCertFilePaths } = require('../util/cert');
+import { logger, execPath } from '../../globals.js';
+
+import setupQRSConnection from '../util/qrs.js';
+import getCertFilePaths from '../util/cert.js';
 // const { QlikSenseTasks } = require('./class_alltasks');
 // const { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } = require('../util/lookups');
 
@@ -20,7 +21,7 @@ function uniqueByTaskKeys(array, keys) {
     return filtered;
 }
 
-const getCustomProperty = async (options) => {
+export const getCustomProperty = async (options) => {
     let cp;
 
     try {
@@ -60,7 +61,7 @@ const getCustomProperty = async (options) => {
     return cp;
 };
 
-const getTasksFromQseow = async (options) => {
+export const getTasksFromQseow = async (options) => {
     let taskList;
 
     try {
@@ -133,7 +134,7 @@ const getTasksFromQseow = async (options) => {
     }
 };
 
-const updateReloadTask = async (options, payload) => {
+export const updateReloadTask = async (options, payload) => {
     try {
         // Get cert files
         const certFilesFullPath = await getCertFilePaths(options);
@@ -154,10 +155,4 @@ const updateReloadTask = async (options, payload) => {
         return false;
     }
     return true;
-};
-
-module.exports = {
-    getCustomProperty,
-    getTasksFromQseow,
-    updateReloadTask,
 };

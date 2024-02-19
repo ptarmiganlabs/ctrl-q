@@ -1,11 +1,11 @@
-const http = require('http');
-const path = require('path');
-const fs = require('fs');
-const handlebars = require('handlebars');
-const { Readable } = require('stream');
-const { appVersion, logger, setLoggingLevel, isPkg, execPath, verifyFileExists } = require('../../globals');
-const { QlikSenseTasks } = require('../task/class_alltasks');
-const { log } = require('console');
+import http from 'http';
+import path from 'path';
+import fs from 'fs';
+import handlebars from 'handlebars';
+import { Readable } from 'stream';
+import { appVersion, logger, setLoggingLevel, isPkg, execPath, verifyFileExists } from '../../globals.js';
+import QlikSenseTasks from '../task/class_alltasks.js';
+import { log } from 'console';
 
 // js: 'application/javascript',
 const MIME_TYPES = {
@@ -398,6 +398,4 @@ const visTask = async (options) => {
     return true;
 };
 
-module.exports = {
-    visTask,
-};
+export default visTask;
