@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.15.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.15.1...ctrl-q-v3.15.1) (2024-02-19)
+
+
+### Miscellaneous
+
+* **deps:** Update app dependencies ([d66d7e6](https://github.com/ptarmiganlabs/ctrl-q/commit/d66d7e6875b566572b5710e3b2c916195396f28c))
+* **deps:** Update build pipeline dependencies ([d66d7e6](https://github.com/ptarmiganlabs/ctrl-q/commit/d66d7e6875b566572b5710e3b2c916195396f28c))
+* **main:** release ctrl-q 3.15.1 ([a772047](https://github.com/ptarmiganlabs/ctrl-q/commit/a77204729e9024eae76e2e554946f057cbef8395))
+* **main:** release ctrl-q 3.15.1 ([73174bb](https://github.com/ptarmiganlabs/ctrl-q/commit/73174bb40ace51166f6dc75ad273bebbc319250d))
+* release-please debugging ([34eba8f](https://github.com/ptarmiganlabs/ctrl-q/commit/34eba8fa27ea4372e8d6d3ffcd3b11fa13d81982))
+* **win:** Switch to new signing solution for Windows binaries ([d66d7e6](https://github.com/ptarmiganlabs/ctrl-q/commit/d66d7e6875b566572b5710e3b2c916195396f28c))
+
 ## [3.15.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.15.1...ctrl-q-v3.15.1) (2024-02-18)
 
 
