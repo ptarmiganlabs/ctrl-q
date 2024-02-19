@@ -1,10 +1,10 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-await-in-loop */
-const enigma = require('enigma.js');
-const { table } = require('table');
+import enigma from 'enigma.js';
 
-const { setupEnigmaConnection, addTrafficLogging } = require('../util/enigma');
-const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
+import { table } from 'table';
+import { setupEnigmaConnection, addTrafficLogging } from '../util/enigma.js';
+import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
 
 const consoleTableConfig = {
     border: {
@@ -271,6 +271,4 @@ const getMasterDimension = async (options) => {
     }
 };
 
-module.exports = {
-    getMasterDimension,
-};
+export default getMasterDimension;

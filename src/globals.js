@@ -1,11 +1,38 @@
-const winston = require('winston');
-const upath = require('upath');
-const { promises: Fs } = require('fs');
-const fs = require('fs');
-require('winston-daily-rotate-file');
+import winston from 'winston';
+import upath from 'upath';
+import { fileURLToPath } from 'url';
+import { readFileSync, promises as Fs } from 'fs';
+import 'winston-daily-rotate-file';
 
 // Get app version from package.json file
-const appVersion = require('../package.json').version;
+// Get app version from package.json file
+const filenamePackage = `./package.json`;
+let a;
+let b;
+let c;
+// Are we running as a packaged app?
+if (process.pkg) {
+    // Get path to JS file
+    a = process.pkg.defaultEntrypoint;
+
+    // Strip off the filename
+    b = upath.dirname(a);
+
+    // Add path to package.json file
+    c = upath.join(b, filenamePackage);
+} else {
+    // Get path to JS file
+    a = fileURLToPath(import.meta.url);
+
+    // Strip off the filename
+    b = upath.dirname(a);
+
+    // Add path to package.json file
+    c = upath.join(b, '..', filenamePackage);
+}
+
+const { version } = JSON.parse(readFileSync(c));
+export const appVersion = version;
 
 // Set up logger with timestamps and colors, and optional logging to disk file
 const logTransports = [];
@@ -27,7 +54,7 @@ logTransports.push(
     })
 );
 
-const logger = winston.createLogger({
+export const logger = winston.createLogger({
     transports: logTransports,
     format: winston.format.combine(
         winston.format.errors({ stack: true }),
@@ -37,17 +64,17 @@ const logger = winston.createLogger({
 });
 
 // Are we running as standalone app or not?
-const isPkg = typeof process.pkg !== 'undefined';
-const execPath = isPkg ? upath.dirname(process.execPath) : process.cwd();
+export const isPkg = typeof process.pkg !== 'undefined';
+export const execPath = isPkg ? upath.dirname(process.execPath) : process.cwd();
 
 // Functions to get/set current console logging level
-const getLoggingLevel = () => logTransports.find((transport) => transport.name === 'console').level;
+export const getLoggingLevel = () => logTransports.find((transport) => transport.name === 'console').level;
 
-const setLoggingLevel = (newLevel) => {
+export const setLoggingLevel = (newLevel) => {
     logTransports.find((transport) => transport.name === 'console').level = newLevel;
 };
 
-const verifyFileExists = async (file) => {
+export const verifyFileExists = async (file) => {
     let exists = false;
     try {
         await Fs.stat(file);
@@ -59,7 +86,7 @@ const verifyFileExists = async (file) => {
     return exists;
 };
 
-const mergeDirFilePath = (pathElements) => {
+export const mergeDirFilePath = (pathElements) => {
     let fullPath = '';
     if (isPkg) {
         fullPath = upath.resolve(upath.dirname(process.execPath), ...pathElements);
@@ -70,7 +97,7 @@ const mergeDirFilePath = (pathElements) => {
     return fullPath;
 };
 
-const generateXrfKey = () => {
+export const generateXrfKey = () => {
     let xrfString = '';
     // eslint-disable-next-line no-plusplus
     for (let i = 0; i < 16; i++) {
@@ -94,10 +121,10 @@ const generateXrfKey = () => {
  * @param {*} filename
  * @returns
  */
-const readCert = (filename) => fs.readFileSync(filename);
+export const readCert = (filename) => readFileSync(filename);
 
 // https://stackoverflow.com/questions/175739/how-can-i-check-if-a-string-is-a-valid-number
-function isNumeric(str) {
+export function isNumeric(str) {
     if (typeof str !== 'string') return false; // we only process strings!
     return (
         !Number.isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
@@ -105,35 +132,34 @@ function isNumeric(str) {
     ); // ...and ensure strings of whitespace fail
 }
 
-function sleep(ms) {
+export function sleep(ms) {
     // eslint-disable-next-line no-promise-executor-return
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // Function to set CLI options. Clear any existing options first.
-const setCliOptions = (options) => {
+export const setCliOptions = (options) => {
     cliOptions = {};
 
     Object.assign(cliOptions, options);
 };
 
 // Function to get CLI options
-const getCliOptions = () => cliOptions;
+export const getCliOptions = () => cliOptions;
 
-module.exports = {
-    logger,
-    appVersion,
-    getLoggingLevel,
-    setLoggingLevel,
-    execPath,
-    isPkg,
-    verifyFileExists,
-    generateXrfKey,
-    readCert,
-    isNumeric,
-    mergeDirFilePath,
-    sleep,
-    getCliOptions,
-    setCliOptions,
-};
-
+// export default {
+//     logger,
+//     appVersion,
+//     getLoggingLevel,
+//     setLoggingLevel,
+//     execPath,
+//     isPkg,
+//     verifyFileExists,
+//     generateXrfKey,
+//     readCert,
+//     isNumeric,
+//     mergeDirFilePath,
+//     sleep,
+//     getCliOptions,
+//     setCliOptions,
+// };

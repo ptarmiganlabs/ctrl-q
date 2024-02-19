@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 /* eslint-disable no-await-in-loop */
-const enigma = require('enigma.js');
-const xlsx = require('node-xlsx').default;
-const uuidCreate = require('uuid').v4;
+import enigma from 'enigma.js';
 
-const { setupEnigmaConnection, addTrafficLogging } = require('../util/enigma');
-const { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, sleep } = require('../../globals');
+import xlsx from 'node-xlsx';
+import { v4 as uuidCreate } from 'uuid';
+import { setupEnigmaConnection, addTrafficLogging } from '../util/enigma.js';
+import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, sleep } from '../../globals.js';
 
 let importCount = 0;
 
@@ -1149,6 +1149,4 @@ const importMasterItemFromFile = async (options) => {
     }
 };
 
-module.exports = {
-    importMasterItemFromFile,
-};
+export default importMasterItemFromFile;

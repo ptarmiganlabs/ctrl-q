@@ -1,11 +1,10 @@
-const axios = require('axios');
-const path = require('path');
+import axios from 'axios';
+import path from 'path';
+import { logger, execPath } from '../../globals.js';
+import setupQRSConnection from './qrs.js';
 
-const { logger, execPath } = require('../../globals');
-const { setupQRSConnection } = require('./qrs');
-
-function getTagsFromQseow(options) {
-    return new Promise((resolve, reject) => {
+export function getTagsFromQseow(options) {
+    return new Promise((resolve, _reject) => {
         logger.verbose(`Getting tags from QSEoW...`);
 
         // Should cerrificates be used for authentication?
@@ -47,8 +46,8 @@ function getTagsFromQseow(options) {
     });
 }
 
-function getTagIdByName(tagName, tagsExisting) {
-    return new Promise((resolve, reject) => {
+export function getTagIdByName(tagName, tagsExisting) {
+    return new Promise((resolve, _reject) => {
         logger.debug(`Looking up ID for tag named "${tagName}"`);
 
         let tag;
@@ -95,8 +94,3 @@ function getTagIdByName(tagName, tagsExisting) {
 //             });
 //     });
 // }
-
-module.exports = {
-    getTagIdByName,
-    getTagsFromQseow,
-};

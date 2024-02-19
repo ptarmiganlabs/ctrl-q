@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
-const { test, expect, describe } = require('@jest/globals');
+import { jest, test, expect, describe } from '@jest/globals';
 
-const { setTaskCustomProperty } = require('../lib/cmd/settaskcp');
-const { getTaskById } = require('../lib/util/task');
+import setTaskCustomProperty from '../lib/cmd/settaskcp.js';
+import { getTaskById } from '../lib/util/task.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
-const { test, expect, describe } = require('@jest/globals');
+import { jest, test, expect, describe } from '@jest/globals';
 
-const { getApps, getAppById, appExistById, deleteAppById } = require('../lib/util/app');
-const { importAppFromFile } = require('../lib/cmd/importapp');
-const { sleep } = require('../globals');
+import { getApps, getAppById, appExistById, deleteAppById } from '../lib/util/app.js';
+import importAppFromFile from '../lib/cmd/importapp.js';
+import { sleep } from '../globals.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

@@ -1,6 +1,5 @@
-const https = require('https');
-
-const { logger, generateXrfKey, readCert } = require('../../globals');
+import https from 'https';
+import { logger, generateXrfKey, readCert } from '../../globals.js';
 
 const setupQRSConnection = (options, param) => {
     // eslint-disable-next-line no-unused-vars
@@ -108,6 +107,4 @@ const setupQRSConnection = (options, param) => {
     return axiosConfig;
 };
 
-module.exports = {
-    setupQRSConnection,
-};
+export default setupQRSConnection;

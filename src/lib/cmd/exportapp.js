@@ -1,10 +1,10 @@
-const xlsx = require('node-xlsx').default;
-const fs = require('fs');
-const path = require('path');
-const yesno = require('yesno');
+import xlsx from 'node-xlsx';
+import fs from 'fs';
+import path from 'path';
+import yesno from 'yesno';
 
-const { logger, setLoggingLevel, isPkg, execPath, mergeDirFilePath, verifyFileExists, isNumeric, sleep } = require('../../globals');
-const { QlikSenseApps } = require('../app/class_allapps');
+import { logger, setLoggingLevel, isPkg, execPath, mergeDirFilePath, verifyFileExists, isNumeric, sleep } from '../../globals.js';
+import QlikSenseApps from '../app/class_allapps.js';
 
 const exportAppToFile = async (options) => {
     try {
@@ -155,6 +155,4 @@ const exportAppToFile = async (options) => {
     }
 };
 
-module.exports = {
-    exportAppToFile,
-};
+export default exportAppToFile;

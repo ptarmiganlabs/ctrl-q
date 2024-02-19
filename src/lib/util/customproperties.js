@@ -1,11 +1,10 @@
-const axios = require('axios');
-const path = require('path');
+import axios from 'axios';
+import path from 'path';
+import { logger, execPath } from '../../globals.js';
+import setupQRSConnection from './qrs.js';
 
-const { logger, execPath } = require('../../globals');
-const { setupQRSConnection } = require('./qrs');
-
-function getCustomPropertiesFromQseow(options) {
-    return new Promise((resolve, reject) => {
+export function getCustomPropertiesFromQseow(options) {
+    return new Promise((resolve, _reject) => {
         logger.verbose(`Getting custom properties from QSEoW...`);
 
         // Should cerrificates be used for authentication?
@@ -46,8 +45,8 @@ function getCustomPropertiesFromQseow(options) {
     });
 }
 
-function getCustomPropertyIdByName(objectType, customPropertyName, cpExisting) {
-    return new Promise((resolve, reject) => {
+export function getCustomPropertyIdByName(objectType, customPropertyName, cpExisting) {
+    return new Promise((resolve, _reject) => {
         logger.debug(`Looking up ID for custom property named "${customPropertyName}" on object type "${objectType}"`);
 
         const cp = cpExisting.filter((item) => item.name === customPropertyName);
@@ -107,8 +106,8 @@ function getCustomPropertyIdByName(objectType, customPropertyName, cpExisting) {
 //     });
 // }
 
-function getCustomPropertyDefinitionByName(objectType, customPropertyName, cpExisting) {
-    return new Promise((resolve, reject) => {
+export function getCustomPropertyDefinitionByName(objectType, customPropertyName, cpExisting) {
+    return new Promise((resolve, _reject) => {
         logger.debug(`Looking up definition for custom property named "${customPropertyName}" on object type "${objectType}"`);
 
         const cp = cpExisting.filter((item) => item.name === customPropertyName);
@@ -168,8 +167,8 @@ function getCustomPropertyDefinitionByName(objectType, customPropertyName, cpExi
 //     });
 // }
 
-function doesCustomPropertyValueExist(objectType, customPropertyName, customPropertyValue, cpExisting) {
-    return new Promise((resolve, reject) => {
+export function doesCustomPropertyValueExist(objectType, customPropertyName, customPropertyValue, cpExisting) {
+    return new Promise((resolve, _reject) => {
         logger.debug(
             `Checking if value "${customPropertyValue}" is valid for custom property "${customPropertyName}" on object type "${objectType}"`
         );
@@ -202,6 +201,7 @@ function doesCustomPropertyValueExist(objectType, customPropertyName, customProp
         }
     });
 }
+
 // function doesCustomPropertyValueExist2(objectType, customPropertyName, customPropertyValue, options, fileCert, fileCertKey) {
 //     return new Promise((resolve, reject) => {
 //         logger.debug(
@@ -250,10 +250,3 @@ function doesCustomPropertyValueExist(objectType, customPropertyName, customProp
 //             });
 //     });
 // }
-
-module.exports = {
-    getCustomPropertiesFromQseow,
-    getCustomPropertyIdByName,
-    getCustomPropertyDefinitionByName,
-    doesCustomPropertyValueExist,
-};

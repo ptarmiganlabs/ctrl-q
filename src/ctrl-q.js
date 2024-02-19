@@ -1,37 +1,30 @@
-const { Command, Option } = require('commander');
-
-const { logger, appVersion, setLoggingLevel, setCliOptions } = require('./globals');
-const { logStartupInfo } = require('./lib/util/log');
+import { Command, Option } from 'commander';
+import { logger, appVersion, setLoggingLevel, setCliOptions } from './globals.js';
+import logStartupInfo from './lib/util/log.js';
 
 // const { createUserActivityCustomProperty } = require('./lib/createuseractivitycp');
 
-const { getMasterDimension } = require('./lib/cmd/getdim');
-const { deleteMasterDimension } = require('./lib/cmd/deletedim');
+import { getMasterDimension } from './lib/cmd/getdim.js';
 
-const { getMasterMeasure } = require('./lib/cmd/getmeasure');
-const { deleteMasterMeasure } = require('./lib/cmd/deletemeasure');
+import { deleteMasterDimension } from './lib/cmd/deletedim.js';
+import { getMasterMeasure } from './lib/cmd/getmeasure.js';
+import { deleteMasterMeasure } from './lib/cmd/deletemeasure.js';
+import { getVariable } from './lib/cmd/getvariable.js';
+import { deleteVariable } from './lib/cmd/deletevariable.js';
+import { getBookmark } from './lib/cmd/getbookmark.js';
+import { importMasterItemFromFile } from './lib/cmd/import-masteritem-excel.js';
+import { scrambleField } from './lib/cmd/scramblefield.js';
+import { getScript } from './lib/cmd/getscript.js';
+import { getTask } from './lib/cmd/gettask.js';
+import { setTaskCustomProperty } from './lib/cmd/settaskcp.js';
+import { importTaskFromFile } from './lib/cmd/importtask.js';
+import { importAppFromFile } from './lib/cmd/importapp.js';
+import { exportAppToFile } from './lib/cmd/exportapp.js';
+import { jest, testConnection } from './lib/cmd/testconnection.js';
+import { visTask } from './lib/cmd/vistask.js';
 
-const { getVariable } = require('./lib/cmd/getvariable');
-const { deleteVariable } = require('./lib/cmd/deletevariable');
-
-const { getBookmark } = require('./lib/cmd/getbookmark');
-
-const { importMasterItemFromFile } = require('./lib/cmd/import-masteritem-excel');
-
-const { scrambleField } = require('./lib/cmd/scramblefield');
-const { getScript } = require('./lib/cmd/getscript');
-
-const { getTask } = require('./lib/cmd/gettask');
-const { setTaskCustomProperty } = require('./lib/cmd/settaskcp');
-const { importTaskFromFile } = require('./lib/cmd/importtask');
-const { importAppFromFile } = require('./lib/cmd/importapp');
-const { exportAppToFile } = require('./lib/cmd/exportapp');
-const { testConnection } = require('./lib/cmd/testconnection');
-const { visTask } = require('./lib/cmd/vistask');
-
-const {
+import {
     sharedParamAssertOptions,
-    // userActivityCustomPropertyAssertOptions,
     masterItemImportAssertOptions,
     masterItemMeasureDeleteAssertOptions,
     masterItemDimDeleteAssertOptions,
@@ -45,7 +38,7 @@ const {
     taskImportAssertOptions,
     appImportAssertOptions,
     appExportAssertOptions,
-} = require('./lib/util/assert-options');
+} from './lib/util/assert-options.js';
 
 const program = new Command();
 

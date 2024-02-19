@@ -1,5 +1,5 @@
-const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
-const { getAboutFromQseow } = require('../util/about');
+import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
+import getAboutFromQseow from '../util/about.js';
 
 const testConnection = async (options) => {
     try {
@@ -30,6 +30,4 @@ const testConnection = async (options) => {
     }
 };
 
-module.exports = {
-    testConnection,
-};
+export default testConnection;

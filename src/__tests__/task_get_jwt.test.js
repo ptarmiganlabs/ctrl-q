@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
-const { test, expect, describe } = require('@jest/globals');
-const fs = require('fs');
-const path = require('path');
+import { jest, test, expect, describe } from '@jest/globals';
 
-const { getTask } = require('../lib/cmd/gettask');
+import fs from 'fs';
+import path from 'path';
+import getTask from '../lib/cmd/gettask.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

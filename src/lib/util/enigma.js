@@ -1,14 +1,47 @@
-const SenseUtilities = require('enigma.js/sense-utilities');
-const WebSocket = require('ws');
-const path = require('path');
+import SenseUtilities from 'enigma.js/sense-utilities';
+import WebSocket from 'ws';
+import path from 'path';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import upath from 'upath';
+import { logger, execPath, readCert } from '../../globals.js';
 
-const { logger, execPath, readCert } = require('../../globals');
-
-const setupEnigmaConnection = async (options, sessionId) => {
+export const setupEnigmaConnection = async (options, sessionId) => {
     logger.debug('Prepping for Enigma connection...');
 
+    // Set up enigma.js configuration
+    const schemaFile = `../node_modules/enigma.js/schemas/${options.schemaVersion}.json`;
+    let a;
+    let b;
+    let c;
+    // Are we running as a packaged app?
+    if (process.pkg) {
+        // Yes, we are running as a packaged app
+        // Get path to JS file const
+        a = process.pkg.defaultEntrypoint;
+
+        // Strip off the filename
+        b = upath.dirname(a);
+
+        // Add path to package.json file
+        c = upath.join(b, schemaFile);
+    } else {
+        // No, we are running as native Node.js
+        // Get path to JS file
+        a = fileURLToPath(import.meta.url);
+
+        // Strip off the filename
+        b = upath.dirname(a);
+
+        // Add path to package.json file
+        c = upath.join(b, '..', '..', schemaFile);
+    }
+
+    logger.verbose(`APPDUMP: Using engine schema in file: ${c}`);
+    const qixSchema = JSON.parse(readFileSync(c));
+
     // eslint-disable-next-line global-require, import/no-dynamic-require
-    const qixSchema = require(`enigma.js/schemas/${options.schemaVersion}`);
+    // const qixSchema = require(`enigma.js/schemas/${options.schemaVersion}`);
 
     let enigmaConfig;
     // Should certificates be used for authentication?
@@ -86,7 +119,7 @@ const setupEnigmaConnection = async (options, sessionId) => {
 };
 
 // Function to add logging of session's websocket traffic
-const addTrafficLogging = (session, options) => {
+export const addTrafficLogging = (session, options) => {
     session.on('notification:*', (eventName, data) => {
         // console.log(`SESSION EVENT=${eventName}: `, data);
 
@@ -150,9 +183,4 @@ const addTrafficLogging = (session, options) => {
             process.exit(1);
         });
     }
-};
-
-module.exports = {
-    setupEnigmaConnection,
-    addTrafficLogging,
 };

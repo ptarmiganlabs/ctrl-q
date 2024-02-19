@@ -1,7 +1,6 @@
-const enigma = require('enigma.js');
-
-const { setupEnigmaConnection } = require('../util/enigma');
-const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
+import enigma from 'enigma.js';
+import setupEnigmaConnection from '../util/enigma.js';
+import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
 
 /**
  *
@@ -256,6 +255,4 @@ const createMasterDimension = async (options) => {
     }
 };
 
-module.exports = {
-    createMasterDimension,
-};
+export default createMasterDimension;

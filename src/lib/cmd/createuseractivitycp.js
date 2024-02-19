@@ -1,15 +1,15 @@
-const qrsInteract = require('qrs-interact');
-const path = require('path');
+import qrsInteract from 'qrs-interact';
+import path from 'path';
+import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
 
-const { logger, setLoggingLevel, isPkg, execPath } = require('../../globals');
-const {
+import {
     getUserActivityProfessional,
     getUserActivityAnalyzer,
     getUserActivityAnalyzerTime,
     getUserActivityLogin,
     getUserActivityUser,
     getUsersLastActivity,
-} = require('./useractivity');
+} from './useractivity.js';
 
 const _MS_PER_DAY = 1000 * 60 * 60 * 24;
 
@@ -212,6 +212,4 @@ const createUserActivityCustomProperty = async (options) => {
     }
 };
 
-module.exports = {
-    createUserActivityCustomProperty,
-};
+export default createUserActivityCustomProperty;

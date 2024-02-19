@@ -1,25 +1,25 @@
-const axios = require('axios');
-const path = require('path');
-const { v4: uuidv4, validate } = require('uuid');
+import axios from 'axios';
+import path from 'path';
+import { v4 as uuidv4, validate } from 'uuid';
+import { logger, execPath } from '../../globals.js';
+import setupQRSConnection from '../util/qrs.js';
 
-const { logger, execPath } = require('../../globals');
-const { setupQRSConnection } = require('../util/qrs');
-const {
+import {
     mapTaskType,
     mapDaylightSavingTime,
     mapEventType,
     mapIncrementOption,
     mapRuleState,
     getTaskColumnPosFromHeaderRow,
-} = require('../util/lookups');
-const { QlikSenseTask } = require('./class_task');
-const { QlikSenseSchemaEvents } = require('./class_allschemaevents');
-const { QlikSenseCompositeEvents } = require('./class_allcompositeevents');
-const { getTagIdByName } = require('../util/tag');
-const { getCustomPropertyIdByName } = require('../util/customproperties');
-const { taskExistById } = require('../util/task');
-const { getAppById } = require('../util/app');
-const { getTaskById, getTaskByName } = require('../util/task');
+} from '../util/lookups.js';
+
+import QlikSenseTask from './class_task.js';
+import QlikSenseSchemaEvents from './class_allschemaevents.js';
+import QlikSenseCompositeEvents from './class_allcompositeevents.js';
+import { getTagIdByName } from '../util/tag.js';
+import { getCustomPropertyIdByName } from '../util/customproperties.js';
+import { getAppById } from '../util/app.js';
+import { taskExistById, getTaskById } from '../util/task.js';
 
 class QlikSenseTasks {
     // eslint-disable-next-line no-useless-constructor
@@ -2423,6 +2423,4 @@ class QlikSenseTasks {
     }
 }
 
-module.exports = {
-    QlikSenseTasks,
-};
+export default QlikSenseTasks;

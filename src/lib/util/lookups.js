@@ -1,4 +1,4 @@
-const mapDaylightSavingTime = new Map([
+export const mapDaylightSavingTime = new Map([
     [0, 'ObserveDaylightSavingTime'],
     [1, 'PermanentStandardTime'],
     [2, 'PermanentDaylightSavingTime'],
@@ -7,14 +7,14 @@ const mapDaylightSavingTime = new Map([
     ['PermanentDaylightSavingTime', 2],
 ]);
 
-const mapEventType = new Map([
+export const mapEventType = new Map([
     [0, 'Schema'],
     [1, 'Composite'],
     ['Schema', 0],
     ['Composite', 1],
 ]);
 
-const mapIncrementOption = new Map([
+export const mapIncrementOption = new Map([
     [0, 'once'],
     [1, 'hourly'],
     [2, 'daily'],
@@ -29,7 +29,7 @@ const mapIncrementOption = new Map([
     ['custom', 5],
 ]);
 
-const mapRuleState = new Map([
+export const mapRuleState = new Map([
     [0, 'Undefined'],
     [1, 'TaskSuccessful'],
     [2, 'TaskFail'],
@@ -38,7 +38,7 @@ const mapRuleState = new Map([
     ['TaskFail', 2],
 ]);
 
-const mapTaskExecutionStatus = new Map([
+export const mapTaskExecutionStatus = new Map([
     [0, 'NeverStarted'],
     [1, 'Triggered'],
     [2, 'Started'],
@@ -67,7 +67,7 @@ const mapTaskExecutionStatus = new Map([
     ['Reset', 11],
 ]);
 
-const mapTaskType = new Map([
+export const mapTaskType = new Map([
     [0, 'Reload'],
     [1, 'ExternalProgram'],
     [2, 'UserSync'],
@@ -81,7 +81,7 @@ const mapTaskType = new Map([
 // Used to find the column position in the source csv/Excel file containing the task definition
 // position=999 may be set later in the code and  means that a certain column is not present in the source file.
 // It is then up to the code to handle this situation.
-const taskFileColumnHeaders = {
+export const taskFileColumnHeaders = {
     taskCounter: { name: 'Task counter', pos: -1 },
     taskType: { name: 'Task type', pos: -1 },
     taskName: { name: 'Task name', pos: -1 },
@@ -135,7 +135,7 @@ const taskFileColumnHeaders = {
     ruleTaskId: { name: 'Rule task id', pos: -1 },
 };
 
-const appFileColumnHeaders = {
+export const appFileColumnHeaders = {
     appCounter: { name: 'App counter', pos: -1 },
     appName: { name: 'App name', pos: -1 },
     qvfDirectory: { name: 'QVF directory', pos: -1 },
@@ -149,7 +149,7 @@ const appFileColumnHeaders = {
     appPublishToStreamOption: { name: 'Publish options', pos: -1 },
 };
 
-function getTaskColumnPosFromHeaderRow(headerRow) {
+export function getTaskColumnPosFromHeaderRow(headerRow) {
     taskFileColumnHeaders.taskCounter.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskCounter.name);
     taskFileColumnHeaders.taskType.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskType.name);
     taskFileColumnHeaders.taskName.pos = headerRow.findIndex((item) => item === taskFileColumnHeaders.taskName.name);
@@ -212,7 +212,7 @@ function getTaskColumnPosFromHeaderRow(headerRow) {
     return taskFileColumnHeaders;
 }
 
-function getAppColumnPosFromHeaderRow(headerRow) {
+export function getAppColumnPosFromHeaderRow(headerRow) {
     appFileColumnHeaders.appCounter.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appCounter.name);
     appFileColumnHeaders.appName.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.appName.name);
     appFileColumnHeaders.qvfDirectory.pos = headerRow.findIndex((item) => item === appFileColumnHeaders.qvfDirectory.name);
@@ -233,15 +233,3 @@ function getAppColumnPosFromHeaderRow(headerRow) {
 
     return appFileColumnHeaders;
 }
-
-module.exports = {
-    mapDaylightSavingTime,
-    mapEventType,
-    mapIncrementOption,
-    mapRuleState,
-    mapTaskExecutionStatus,
-    mapTaskType,
-    taskFileColumnHeaders,
-    getTaskColumnPosFromHeaderRow,
-    getAppColumnPosFromHeaderRow,
-};

@@ -1,6 +1,5 @@
-const path = require('path');
-
-const { logger, execPath } = require('../../globals');
+import path from 'path';
+import { logger, execPath } from '../../globals.js';
 
 const getCertFilePaths = async (options) => {
     let fileCert;
@@ -16,6 +15,4 @@ const getCertFilePaths = async (options) => {
     return { fileCert, fileCertKey };
 };
 
-module.exports = {
-    getCertFilePaths,
-};
+export default getCertFilePaths;

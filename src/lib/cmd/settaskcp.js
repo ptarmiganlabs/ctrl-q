@@ -1,7 +1,6 @@
-const yesno = require('yesno');
-
-const { logger } = require('../../globals');
-const { getCustomProperty, getTasksFromQseow, updateReloadTask } = require('../task/task_qrs');
+import yesno from 'yesno';
+import { logger } from '../../globals.js';
+import { getCustomProperty, getTasksFromQseow, updateReloadTask } from '../task/task_qrs.js';
 
 const updateTask = async (options, customPropertyDef, task) =>
     new Promise(async (resolve, reject) => {
@@ -219,6 +218,4 @@ const setTaskCustomProperty = async (options) => {
     }
 };
 
-module.exports = {
-    setTaskCustomProperty,
-};
+export default setTaskCustomProperty;

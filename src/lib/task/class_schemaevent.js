@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-const { logger } = require('../../globals');
+import { logger } from '../../globals.js';
 
 class QlikSenseSchemaEvent {
     constructor(schemaEvent) {
@@ -11,6 +10,4 @@ class QlikSenseSchemaEvent {
     // Other methods
 }
 
-module.exports = {
-    QlikSenseSchemaEvent,
-};
+export default QlikSenseSchemaEvent;

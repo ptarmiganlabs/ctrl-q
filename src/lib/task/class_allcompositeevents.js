@@ -1,9 +1,8 @@
-const axios = require('axios');
-const path = require('path');
-
-const { logger, execPath, verifyFileExists } = require('../../globals');
-const { setupQRSConnection } = require('../util/qrs');
-const { QlikSenseCompositeEvent } = require('./class_compositeevent');
+import axios from 'axios';
+import path from 'path';
+import { logger, execPath, verifyFileExists } from '../../globals.js';
+import setupQRSConnection from '../util/qrs.js';
+import QlikSenseCompositeEvent from './class_compositeevent.js';
 
 class QlikSenseCompositeEvents {
     // eslint-disable-next-line no-useless-constructor
@@ -74,6 +73,4 @@ class QlikSenseCompositeEvents {
     }
 }
 
-module.exports = {
-    QlikSenseCompositeEvents,
-};
+export default QlikSenseCompositeEvents;

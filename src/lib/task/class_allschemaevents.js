@@ -1,9 +1,8 @@
-const axios = require('axios');
-const path = require('path');
-
-const { logger, execPath } = require('../../globals');
-const { setupQRSConnection } = require('../util/qrs');
-const { QlikSenseSchemaEvent } = require('./class_schemaevent');
+import axios from 'axios';
+import path from 'path';
+import { logger, execPath } from '../../globals.js';
+import setupQRSConnection from '../util/qrs.js';
+import QlikSenseSchemaEvent from './class_schemaevent.js';
 
 class QlikSenseSchemaEvents {
     // eslint-disable-next-line no-useless-constructor
@@ -91,6 +90,4 @@ class QlikSenseSchemaEvents {
     }
 }
 
-module.exports = {
-    QlikSenseSchemaEvents,
-};
+export default QlikSenseSchemaEvents;

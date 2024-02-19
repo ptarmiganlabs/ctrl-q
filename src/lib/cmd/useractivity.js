@@ -1,6 +1,6 @@
-const { logger } = require('../../globals');
+import { logger } from '../../globals.js';
 
-function getUserActivityProfessional(qrsInteractInstance) {
+export function getUserActivityProfessional(qrsInteractInstance) {
     // eslint-disable-next-line no-unused-vars, no-async-promise-executor
     return new Promise(async (resolve, _reject) => {
         let result;
@@ -14,7 +14,7 @@ function getUserActivityProfessional(qrsInteractInstance) {
     });
 }
 
-function getUserActivityAnalyzer(qrsInteractInstance) {
+export function getUserActivityAnalyzer(qrsInteractInstance) {
     // eslint-disable-next-line no-unused-vars, no-async-promise-executor
     return new Promise(async (resolve, _reject) => {
         let result;
@@ -28,7 +28,7 @@ function getUserActivityAnalyzer(qrsInteractInstance) {
     });
 }
 
-function getUserActivityAnalyzerTime(qrsInteractInstance) {
+export  getUserActivityAnalyzerTime(qrsInteractInstance) {
     // eslint-disable-next-line no-unused-vars, no-async-promise-executor
     return new Promise(async (resolve, _reject) => {
         let result;
@@ -42,7 +42,7 @@ function getUserActivityAnalyzerTime(qrsInteractInstance) {
     });
 }
 
-function getUserActivityLogin(qrsInteractInstance) {
+export function getUserActivityLogin(qrsInteractInstance) {
     // eslint-disable-next-line no-unused-vars, no-async-promise-executor
     return new Promise(async (resolve, _reject) => {
         let result;
@@ -56,7 +56,7 @@ function getUserActivityLogin(qrsInteractInstance) {
     });
 }
 
-function getUserActivityUser(qrsInteractInstance) {
+export function getUserActivityUser(qrsInteractInstance) {
     // eslint-disable-next-line no-unused-vars, no-async-promise-executor
     return new Promise(async (resolve, _reject) => {
         let result;
@@ -70,7 +70,7 @@ function getUserActivityUser(qrsInteractInstance) {
     });
 }
 
-function getUsersLastActivity(activityProfessional, activityAnalyzer, activityAnalyzerTime, activityLogin, activityUser) {
+export function getUsersLastActivity(activityProfessional, activityAnalyzer, activityAnalyzerTime, activityLogin, activityUser) {
     // eslint-disable-next-line no-unused-vars, no-async-promise-executor
     return new Promise(async (resolve, _reject) => {
         const usersActivity = [];
@@ -184,12 +184,3 @@ function getUsersLastActivity(activityProfessional, activityAnalyzer, activityAn
         resolve(usersActivity);
     });
 }
-
-module.exports = {
-    getUserActivityProfessional,
-    getUserActivityAnalyzer,
-    getUserActivityAnalyzerTime,
-    getUserActivityLogin,
-    getUserActivityUser,
-    getUsersLastActivity,
-};

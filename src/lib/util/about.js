@@ -1,8 +1,7 @@
-const axios = require('axios');
-const path = require('path');
-
-const { logger, execPath } = require('../../globals');
-const { setupQRSConnection } = require('./qrs');
+import axios from 'axios';
+import path from 'path';
+import { logger, execPath } from '../../globals.js';
+import setupQRSConnection from './qrs.js';
 
 function getAboutFromQseow(options) {
     return new Promise((resolve, reject) => {
@@ -47,6 +46,4 @@ function getAboutFromQseow(options) {
     });
 }
 
-module.exports = {
-    getAboutFromQseow,
-};
+export default getAboutFromQseow;
