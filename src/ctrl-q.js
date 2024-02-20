@@ -1,27 +1,27 @@
 import { Command, Option } from 'commander';
 import { logger, appVersion, setLoggingLevel, setCliOptions } from './globals.js';
-import logStartupInfo from './lib/util/log.js';
+import { catchLog, logStartupInfo } from './lib/util/log.js';
 
 // const { createUserActivityCustomProperty } = require('./lib/createuseractivitycp');
 
-import { getMasterDimension } from './lib/cmd/getdim.js';
+import getMasterDimension from './lib/cmd/getdim.js';
 
-import { deleteMasterDimension } from './lib/cmd/deletedim.js';
-import { getMasterMeasure } from './lib/cmd/getmeasure.js';
-import { deleteMasterMeasure } from './lib/cmd/deletemeasure.js';
-import { getVariable } from './lib/cmd/getvariable.js';
-import { deleteVariable } from './lib/cmd/deletevariable.js';
-import { getBookmark } from './lib/cmd/getbookmark.js';
-import { importMasterItemFromFile } from './lib/cmd/import-masteritem-excel.js';
-import { scrambleField } from './lib/cmd/scramblefield.js';
-import { getScript } from './lib/cmd/getscript.js';
-import { getTask } from './lib/cmd/gettask.js';
-import { setTaskCustomProperty } from './lib/cmd/settaskcp.js';
-import { importTaskFromFile } from './lib/cmd/importtask.js';
-import { importAppFromFile } from './lib/cmd/importapp.js';
-import { exportAppToFile } from './lib/cmd/exportapp.js';
-import { jest, testConnection } from './lib/cmd/testconnection.js';
-import { visTask } from './lib/cmd/vistask.js';
+import deleteMasterDimension from './lib/cmd/deletedim.js';
+import getMasterMeasure from './lib/cmd/getmeasure.js';
+import deleteMasterMeasure from './lib/cmd/deletemeasure.js';
+import getVariable from './lib/cmd/getvariable.js';
+import deleteVariable from './lib/cmd/deletevariable.js';
+import getBookmark from './lib/cmd/getbookmark.js';
+import importMasterItemFromFile from './lib/cmd/import-masteritem-excel.js';
+import scrambleField from './lib/cmd/scramblefield.js';
+import getScript from './lib/cmd/getscript.js';
+import getTask from './lib/cmd/gettask.js';
+import setTaskCustomProperty from './lib/cmd/settaskcp.js';
+import importTaskFromFile from './lib/cmd/importtask.js';
+import importAppFromFile from './lib/cmd/importapp.js';
+import exportAppToFile from './lib/cmd/exportapp.js';
+import testConnection from './lib/cmd/testconnection.js';
+import visTask from './lib/cmd/vistask.js';
 
 import {
     sharedParamAssertOptions,
@@ -128,7 +128,7 @@ const program = new Command();
                 masterItemImportAssertOptions(options);
                 importMasterItemFromFile(options);
             } catch (err) {
-                logger.error(`IMPORT EXCEL: ${err}`);
+                catchLog('IMPORT EXCEL', err);
             }
         })
         .addOption(
@@ -632,7 +632,7 @@ const program = new Command();
                 taskImportAssertOptions(options);
                 importTaskFromFile(options);
             } catch (err) {
-                logger.error(`IMPORT TASK 1: ${err}`);
+                catchLog('IMPORT TASK 1', err);
             }
         })
         .addOption(
@@ -684,7 +684,7 @@ const program = new Command();
                 appImportAssertOptions(options);
                 importAppFromFile(options);
             } catch (err) {
-                logger.error(`IMPORT APP: ${err}`);
+                catchLog('IMPORT APP', err);
             }
         })
         .addOption(
@@ -727,7 +727,7 @@ const program = new Command();
                 await appExportAssertOptions(options);
                 exportAppToFile(options);
             } catch (err) {
-                logger.error(`EXPORT APP: ${err}`);
+                catchLog('EXPORT APP', err);
             }
         })
         .addOption(
@@ -788,7 +788,7 @@ const program = new Command();
                 await sharedParamAssertOptions(options);
                 testConnection(options);
             } catch (err) {
-                logger.error(`CONNECTION TEST: ${err}`);
+                catchLog('CONNECTION TEST', err);
             }
         })
         .addOption(

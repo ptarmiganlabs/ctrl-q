@@ -1,5 +1,6 @@
 import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
 import getAboutFromQseow from '../util/about.js';
+import { catchLog } from '../util/log.js';
 
 const testConnection = async (options) => {
     try {
@@ -25,6 +26,7 @@ const testConnection = async (options) => {
 
         return aboutInfo;
     } catch (err) {
+        catchLog(`Error testing connection to Qlik Sense server ${options.host} on port ${options.port}`, err);
         logger.error(`EXPORT APP: ${err.stack}`);
         return false;
     }

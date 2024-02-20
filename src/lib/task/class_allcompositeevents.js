@@ -3,6 +3,7 @@ import path from 'path';
 import { logger, execPath, verifyFileExists } from '../../globals.js';
 import setupQRSConnection from '../util/qrs.js';
 import QlikSenseCompositeEvent from './class_compositeevent.js';
+import { catchLog } from '../util/log.js';
 
 class QlikSenseCompositeEvents {
     // eslint-disable-next-line no-useless-constructor
@@ -21,7 +22,7 @@ class QlikSenseCompositeEvents {
                 this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
             }
         } catch (err) {
-            logger.error(`GET COMPOSITE EVENT: ${err}`);
+            catchLog(`GET COMPOSITE EVENT`, err);
         }
     }
 
@@ -62,11 +63,11 @@ class QlikSenseCompositeEvents {
                         resolve(this.taskList);
                     })
                     .catch((err) => {
-                        logger.error(`GET COMPOSITE EVENT 1: ${err}`);
+                        catchLog(`GET COMPOSITE EVENT 1`, err);
                         reject(err);
                     });
             } catch (err) {
-                logger.error(`GET COMPOSITE EVENT 2: ${err}`);
+                catchLog(`GET COMPOSITE EVENT 2`, err);
                 reject(err);
             }
         });

@@ -5,7 +5,6 @@ import handlebars from 'handlebars';
 import { Readable } from 'stream';
 import { appVersion, logger, setLoggingLevel, isPkg, execPath, verifyFileExists } from '../../globals.js';
 import QlikSenseTasks from '../task/class_alltasks.js';
-import { log } from 'console';
 
 // js: 'application/javascript',
 const MIME_TYPES = {

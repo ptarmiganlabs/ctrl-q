@@ -21,7 +21,7 @@ const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 120000; // 2 minut
 jest.setTimeout(defaultTestTimeout);
 
 // Get app script
-describe('get app script (cert auth)', () => {
+describe('get app script (jwt auth)', () => {
     options.authType = 'jwt';
     options.port = '443';
     options.virtualProxy = 'jwt';

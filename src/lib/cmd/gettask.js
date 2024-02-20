@@ -8,6 +8,7 @@ import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } from '../.
 import QlikSenseTasks from '../task/class_alltasks.js';
 import { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } from '../util/lookups.js';
 import { getTagsFromQseow } from '../util/tag.js';
+import { catchLog } from '../util/log.js';
 
 const consoleTableConfig = {
     border: {
@@ -769,7 +770,7 @@ const getTask = async (options) => {
         }
         return returnValue;
     } catch (err) {
-        logger.error(`GET TASK: ${err.stack}`);
+        catchLog('Get task', err);
         return false;
     }
 };

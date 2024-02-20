@@ -7,6 +7,7 @@ import QlikSenseApps from '../app/class_allapps.js';
 import { getAppColumnPosFromHeaderRow } from '../util/lookups.js';
 import { getTagsFromQseow } from '../util/tag.js';
 import { getCustomPropertiesFromQseow } from '../util/customproperties.js';
+import { catchLog } from '../util/log.js';
 
 const importAppFromFile = async (options) => {
     try {
@@ -82,7 +83,7 @@ const importAppFromFile = async (options) => {
         }
         return false;
     } catch (err) {
-        logger.error(`IMPORT APP: ${err.stack}`);
+        catchLog('IMPORT APP', err);
         return false;
     }
 };

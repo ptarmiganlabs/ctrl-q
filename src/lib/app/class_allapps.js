@@ -6,13 +6,14 @@ import fs from 'fs/promises';
 import fs2 from 'fs';
 import { v4 as uuidv4, validate } from 'uuid';
 import yesno from 'yesno';
-import { logger, execPath, mergeDirFilePath, verifyFileExists, sleep } from '../../globals.js';
+import { logger, execPath, mergeDirFilePath, verifyFileExists, sleep, isPkg } from '../../globals.js';
 import setupQRSConnection from '../util/qrs.js';
 import { getAppColumnPosFromHeaderRow } from '../util/lookups.js';
 import QlikSenseApp from './class_app.js';
 import { getTagIdByName } from '../util/tag.js';
 import { getAppById, deleteAppById } from '../util/app.js';
 import { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } from '../util/customproperties.js';
+import { catchLog } from '../util/log.js';
 
 class QlikSenseApps {
     // eslint-disable-next-line no-useless-constructor
@@ -35,12 +36,7 @@ class QlikSenseApps {
             // Map that will connect app counter from Excel file with ID an app gets after import to QSEoW
             this.appCounterIdMap = new Map();
         } catch (err) {
-            logger.error(`QS APP: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`QS APP:\n  ${err.stack}`);
-            }
+            catchLog(`INIT QS APP`, err);
         }
     }
 
@@ -157,13 +153,7 @@ class QlikSenseApps {
 
             return apps;
         } catch (err) {
-            // console.log(err)
-            logger.error(`GET QS APP 2: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`GET QS APP 2:\n  ${err.stack}`);
-            }
+            catchLog(`GET QS APP 2`, err);
 
             return false;
         }
@@ -676,12 +666,7 @@ class QlikSenseApps {
             );
             return false;
         } catch (err) {
-            logger.error(`UPDATE UPLOADED APP: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`UPDATE UPLOADED APP:\n  ${err.stack}`);
-            }
+            catchLog(`UPDATE UPLOADED APP`, err);
 
             return false;
         }
@@ -763,12 +748,8 @@ class QlikSenseApps {
 
             return result;
         } catch (err) {
-            logger.error(`(${appCounter}) PUBLISH APP publish-replace: Failed: ${err}`);
+            catchLog(`PUBLISH APP publish-replace`, err);
 
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`(${appCounter}) PUBLISH APP publish-replace:\n  ${err.stack}`);
-            }
             return { res: false, publishedApp: null };
         }
     }
@@ -795,12 +776,7 @@ class QlikSenseApps {
 
             return result;
         } catch (err) {
-            logger.error(`(${appCounter}) PUBLISH APP publish-another: Failed: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`(${appCounter}) PUBLISH APP publish-another:\n  ${err.stack}`);
-            }
+            catchLog(`PUBLISH APP publish-another`, err);
 
             return { res: false, publishedApp: null };
         }
@@ -864,12 +840,7 @@ class QlikSenseApps {
 
             return result;
         } catch (err) {
-            logger.error(`(${appCounter}) PUBLISH APP delete-publish: Failed: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`(${appCounter}) PUBLISH APP delete-publish:\n  ${err.stack}`);
-            }
+            catchLog(`PUBLISH APP delete-publish`, err);
 
             return { res: false, publishedApp: null };
         }
@@ -916,12 +887,7 @@ class QlikSenseApps {
 
             return false;
         } catch (err) {
-            logger.error(`PUBLISH APP NORMAL: Failed: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`PUBLISH APP NORMAL:\n  ${err.stack}`);
-            }
+            catchLog(`PUBLISH APP NORMAL`, err);
 
             return false;
         }
@@ -966,12 +932,7 @@ class QlikSenseApps {
 
             return false;
         } catch (err) {
-            logger.error(`PUBLISH APP REPLACE: Failed: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`PUBLISH APP REPLACE:\n  ${err.stack}`);
-            }
+            catchLog(`PUBLISH APP REPLACE`, err);
 
             return false;
         }
@@ -1033,12 +994,7 @@ class QlikSenseApps {
             logger.debug(`CHECK IF APP EXISTS IN STREAM: App "${appName}" does not exist in stream "${streamName}"`);
             return 0;
         } catch (err) {
-            logger.error(`CHECK IF APP EXISTS IN STREAM: Failed: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`CHECK IF APP EXISTS IN STREAM:\n  ${err.stack}`);
-            }
+            catchLog(`CHECK IF APP EXISTS IN STREAM`, err);
 
             return false;
         }
@@ -1094,12 +1050,7 @@ class QlikSenseApps {
             logger.error(`GET APP IN STREAM: Something went wrong`);
             return false;
         } catch (err) {
-            logger.error(`GET APP IN STREAM: Failed: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`GET APP IN STREAM:\n  ${err.stack}`);
-            }
+            catchLog(`GET APP IN STREAM`, err);
 
             return false;
         }
@@ -1197,12 +1148,7 @@ class QlikSenseApps {
 
             return false;
         } catch (err) {
-            logger.error(`CHECK IF STREAM EXISTS: Failed: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`CHECK IF STREAM EXISTS:\n  ${err.stack}`);
-            }
+            catchLog(`CHECK IF STREAM EXISTS`, err);
 
             return false;
         }
@@ -1301,12 +1247,7 @@ class QlikSenseApps {
 
             return false;
         } catch (err) {
-            logger.error(`CREATE RELOAD TASK IN QSEOW 2: ${err}`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`CREATE RELOAD TASK IN QSEOW 2:\n  ${err.stack}`);
-            }
+            catchLog(`UPLOAD APP TO QSEOW`, err);
 
             return false;
         }
@@ -1350,12 +1291,7 @@ class QlikSenseApps {
             logger.warn(`Export app step 1 failed: [${result.status}] ${result.statusText}`);
             return false;
         } catch (err) {
-            logger.error(`[${err}] Export app step 1`);
-
-            // Show stack trace if available
-            if (err?.stack) {
-                logger.error(`[${err}] Export app step 1:\n  ${err.stack}`);
-            }
+            catchLog(`EXPORT APP STEP 1`, err);
 
             return false;
         }

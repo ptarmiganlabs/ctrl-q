@@ -1,6 +1,5 @@
 import axios from 'axios';
 import path from 'path';
-
 // const { promises: Fs } = require('fs');
 // const yesno = require('yesno');
 
@@ -8,6 +7,7 @@ import { logger, execPath } from '../../globals.js';
 
 import setupQRSConnection from '../util/qrs.js';
 import getCertFilePaths from '../util/cert.js';
+import { catchLog } from '../util/log.js';
 // const { QlikSenseTasks } = require('./class_alltasks');
 // const { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } = require('../util/lookups');
 
@@ -56,7 +56,7 @@ export const getCustomProperty = async (options) => {
             cp = false;
         }
     } catch (err) {
-        logger.error(`GET CP FROM QRS: ${err.stack}`);
+        catchLog(`GET CP FROM QRS`, err);
     }
     return cp;
 };
@@ -129,7 +129,7 @@ export const getTasksFromQseow = async (options) => {
         logger.debug(`GET TASK 3: List of tasks: ${JSON.stringify(taskList)}`);
         return taskList;
     } catch (err) {
-        logger.error(`GET TASKS FROM QRS: ${err.stack}`);
+        catchLog(`GET TASKS FROM QRS`, err);
         return false;
     }
 };
@@ -151,7 +151,7 @@ export const updateReloadTask = async (options, payload) => {
         const result = await axios.request(axiosConfig);
         logger.debug(`UPDATE RELOAD TASK CUSTOM PROPERTY: Result=${result.status}`);
     } catch (err) {
-        logger.error(`UPDATE RELOAD TASK: ${err.stack}`);
+        catchLog(`UPDATE RELOAD TASK`, err);
         return false;
     }
     return true;

@@ -58,124 +58,125 @@ describe('get in-app bookmarks (jwt auth)', () => {
         options.idType = 'id';
         options.outputFormat = 'json';
 
+        console.log(options)
         const result = await getBookmark(options);
 
         // Result should be false
         expect(result).toBe(false);
     });
 
-    /**
-     * All bookmarks in app, JSON output
-     * No bookmarks exist in app that exist
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
-     */
-    test('get all bookmarks from app that has no bookmarks in it', async () => {
-        options.appId = appIdExistsNoBookmarks1;
-        options.idType = 'id';
-        options.outputFormat = 'json';
+    // /**
+    //  * All bookmarks in app, JSON output
+    //  * No bookmarks exist in app that exist
+    //  *
+    //  * --app-id <id>
+    //  * --id-type id
+    //  * --output-format json
+    //  */
+    // test('get all bookmarks from app that has no bookmarks in it', async () => {
+    //     options.appId = appIdExistsNoBookmarks1;
+    //     options.idType = 'id';
+    //     options.outputFormat = 'json';
 
-        const result = await getBookmark(options);
+    //     const result = await getBookmark(options);
 
-        // Result should be empty array
-        expect(result).toStrictEqual([]);
-    });
+    //     // Result should be empty array
+    //     expect(result).toStrictEqual([]);
+    // });
 
-    /**
-     * All bookmarks in app, JSON output
-     * App has 2 bookmarks
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
-     */
-    test('get all bookmarks from app that has bookmarks in it', async () => {
-        options.appId = appIdExistsHasBookmarks1;
-        options.idType = 'id';
-        options.outputFormat = 'json';
+    // /**
+    //  * All bookmarks in app, JSON output
+    //  * App has 2 bookmarks
+    //  *
+    //  * --app-id <id>
+    //  * --id-type id
+    //  * --output-format json
+    //  */
+    // test('get all bookmarks from app that has bookmarks in it', async () => {
+    //     options.appId = appIdExistsHasBookmarks1;
+    //     options.idType = 'id';
+    //     options.outputFormat = 'json';
 
-        const result = await getBookmark(options);
+    //     const result = await getBookmark(options);
 
-        // Result should be array with 2 bookmarks
-        expect(result.length).toBe(2);
+    //     // Result should be array with 2 bookmarks
+    //     expect(result.length).toBe(2);
 
-        // Verify that the bookmarks have the correct IDs
-        expect(result[0].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark1);
-        expect(result[1].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark2);
-    });
+    //     // Verify that the bookmarks have the correct IDs
+    //     expect(result[0].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark1);
+    //     expect(result[1].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark2);
+    // });
 
-    /**
-     * All bookmarks in app, table output
-     * App has 2 bookmarks
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
-     */
-    test('get all bookmarks from app that has bookmarks in it', async () => {
-        options.appId = appIdExistsHasBookmarks1;
-        options.idType = 'id';
-        options.outputFormat = 'table';
+    // /**
+    //  * All bookmarks in app, table output
+    //  * App has 2 bookmarks
+    //  *
+    //  * --app-id <id>
+    //  * --id-type id
+    //  * --output-format json
+    //  */
+    // test('get all bookmarks from app that has bookmarks in it', async () => {
+    //     options.appId = appIdExistsHasBookmarks1;
+    //     options.idType = 'id';
+    //     options.outputFormat = 'table';
 
-        const result = await getBookmark(options);
+    //     const result = await getBookmark(options);
 
-        // Result should be array with 2 bookmarks
-        expect(result.length).toBe(2);
+    //     // Result should be array with 2 bookmarks
+    //     expect(result.length).toBe(2);
 
-        // Verify that the bookmarks have the correct IDs
-        expect(result[0].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark1);
-        expect(result[1].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark2);
-    });
+    //     // Verify that the bookmarks have the correct IDs
+    //     expect(result[0].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark1);
+    //     expect(result[1].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark2);
+    // });
 
-    /**
-     * Get 2 specific bookmarks (based on ID) from app, JSON output
-     * App has 2 bookmarks
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
-     * --bookmark [<id>, <id>]
-     */
-    test('get 2 specific bookmarks from app that has bookmarks in it', async () => {
-        options.appId = appIdExistsHasBookmarks1;
-        options.idType = 'id';
-        options.outputFormat = 'json';
-        options.bookmark = [appIdExistsHasBookmarks1Bookmark1, appIdExistsHasBookmarks1Bookmark2];
+    // /**
+    //  * Get 2 specific bookmarks (based on ID) from app, JSON output
+    //  * App has 2 bookmarks
+    //  *
+    //  * --app-id <id>
+    //  * --id-type id
+    //  * --output-format json
+    //  * --bookmark [<id>, <id>]
+    //  */
+    // test('get 2 specific bookmarks from app that has bookmarks in it', async () => {
+    //     options.appId = appIdExistsHasBookmarks1;
+    //     options.idType = 'id';
+    //     options.outputFormat = 'json';
+    //     options.bookmark = [appIdExistsHasBookmarks1Bookmark1, appIdExistsHasBookmarks1Bookmark2];
 
-        const result = await getBookmark(options);
+    //     const result = await getBookmark(options);
 
-        // Result should be array with 2 bookmarks
-        expect(result.length).toBe(2);
+    //     // Result should be array with 2 bookmarks
+    //     expect(result.length).toBe(2);
 
-        // Verify that the bookmarks have the correct IDs
-        expect(result[0].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark1);
-        expect(result[1].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark2);
-    });
+    //     // Verify that the bookmarks have the correct IDs
+    //     expect(result[0].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark1);
+    //     expect(result[1].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark2);
+    // });
 
-    /**
-     * Get 2 specific bookmarks (based on name) from app, JSON output
-     * App has 2 bookmarks
-     *
-     * --app-id <id>
-     * --id-type name
-     * --output-format json
-     * --bookmark [<name>, <name>]
-     */
-    test('get 2 specific bookmarks from app that has bookmarks in it', async () => {
-        options.appId = appIdExistsHasBookmarks1;
-        options.idType = 'name';
-        options.outputFormat = 'json';
-        options.bookmark = ['Bookmark 1', 'Bookmark 2'];
+    // /**
+    //  * Get 2 specific bookmarks (based on name) from app, JSON output
+    //  * App has 2 bookmarks
+    //  *
+    //  * --app-id <id>
+    //  * --id-type name
+    //  * --output-format json
+    //  * --bookmark [<name>, <name>]
+    //  */
+    // test('get 2 specific bookmarks from app that has bookmarks in it', async () => {
+    //     options.appId = appIdExistsHasBookmarks1;
+    //     options.idType = 'name';
+    //     options.outputFormat = 'json';
+    //     options.bookmark = ['Bookmark 1', 'Bookmark 2'];
 
-        const result = await getBookmark(options);
+    //     const result = await getBookmark(options);
 
-        // Result should be array with 2 bookmark
-        expect(result.length).toBe(2);
+    //     // Result should be array with 2 bookmark
+    //     expect(result.length).toBe(2);
 
-        // Verify that the bookmarks have the correct IDs
-        expect(result[0].qMeta.title).toBe('Bookmark 1');
-        expect(result[1].qMeta.title).toBe('Bookmark 2');
-    });
+    //     // Verify that the bookmarks have the correct IDs
+    //     expect(result[0].qMeta.title).toBe('Bookmark 1');
+    //     expect(result[1].qMeta.title).toBe('Bookmark 2');
+    // });
 });

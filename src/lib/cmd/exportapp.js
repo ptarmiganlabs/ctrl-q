@@ -5,6 +5,7 @@ import yesno from 'yesno';
 
 import { logger, setLoggingLevel, isPkg, execPath, mergeDirFilePath, verifyFileExists, isNumeric, sleep } from '../../globals.js';
 import QlikSenseApps from '../app/class_allapps.js';
+import { catchLog } from '../util/log.js';
 
 const exportAppToFile = async (options) => {
     try {
@@ -151,7 +152,7 @@ const exportAppToFile = async (options) => {
         }
         return true;
     } catch (err) {
-        logger.error(`EXPORT APP: ${err.stack}`);
+        catchLog('Export app', err);
     }
 };
 

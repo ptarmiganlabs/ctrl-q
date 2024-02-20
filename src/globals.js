@@ -80,7 +80,19 @@ export const verifyFileExists = async (file) => {
         await Fs.stat(file);
         exists = true;
     } catch (err) {
-        logger.error(`Error while checking if file ${file} exists: ${JSON.stringify(err, null, 2)}`);
+        if (isPkg) {
+            if (err.message) {
+                logger.error(`Error while checking if file ${file} exists: ${err.message}`);
+            } else {
+                logger.error(`Error while checking if file ${file} exists: ${err}`);
+            }
+        } else if (err.stack) {
+            logger.error(`Error while checking if file ${file} exists: ${err.stack}`);
+        } else if (err.message) {
+            logger.error(`Error while checking if file ${file} exists: ${err.message}`);
+        } else {
+            logger.error(`Error while checking if file ${file} exists: ${err}`);
+        }
     }
 
     return exists;

@@ -14,6 +14,7 @@ import QlikSenseApps from '../app/class_allapps.js';
 import { getTaskColumnPosFromHeaderRow } from '../util/lookups.js';
 import { getTagsFromQseow } from '../util/tag.js';
 import { getCustomPropertiesFromQseow } from '../util/customproperties.js';
+import { catchLog } from '../util/log.js';
 
 const getHeaders = async (options) => {
     const records = [];
@@ -421,7 +422,7 @@ const importTaskFromFile = async (options) => {
         }
         return false;
     } catch (err) {
-        logger.error(`IMPORT TASK 2: ${err.stack}`);
+        catchLog('IMPORT TASK 2', err);
     }
 };
 

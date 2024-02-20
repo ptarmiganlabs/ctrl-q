@@ -10,6 +10,7 @@ import {
     getUserActivityUser,
     getUsersLastActivity,
 } from './useractivity.js';
+import { catchLog } from '../util/log.js';
 
 const _MS_PER_DAY = 1000 * 60 * 60 * 24;
 
@@ -66,7 +67,7 @@ const createUserActivityCustomProperty = async (options) => {
             result = await qrsInteractInstance.Get(`custompropertydefinition/full?filter=name eq '${options.customPropertyName}'`);
         } catch (err) {
             // Return error msg
-            logger.error(`USER ACTIVITY CP: Error getting user activity custom property: ${err}`);
+            catchLog(`USER ACTIVITY CP: Error getting user activity custom property`, err);
         }
 
         if (result.statusCode === 200) {
@@ -110,7 +111,7 @@ const createUserActivityCustomProperty = async (options) => {
                         'json'
                     );
                 } catch (err) {
-                    logger.error(`USER ACTIVITY CP: Error creating user activity custom property: ${err}`);
+                    catchLog(`USER ACTIVITY CP: Error creating user activity custom property`, err);
                 }
 
                 if (result.statusCode === 201) {
@@ -201,14 +202,14 @@ const createUserActivityCustomProperty = async (options) => {
                         'json'
                     );
                 } catch (err) {
-                    logger.error(`USER ACTIVITY CP: Error creating user activity custom property: ${err}`);
+                    catchLog(`USER ACTIVITY CP: Error creating user activity custom property`, err);
                 }
             }
             logger.verbose(`USER ACTIVITY CP: Assigned activity buckets to users via custom property ${options.customPropertyName}`);
         }
     } catch (err) {
         // Return error msg
-        logger.error(`USER ACTIVITY CP: ${err}`);
+        catchLog(`USER ACTIVITY CP: Error creating user activity custom property`, err);
     }
 };
 

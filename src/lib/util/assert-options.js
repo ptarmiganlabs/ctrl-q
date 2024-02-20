@@ -4,7 +4,7 @@ import { validate as uuidValidate } from 'uuid';
 import fs from 'fs';
 import { logger, execPath, mergeDirFilePath, verifyFileExists } from '../../globals.js';
 
-const sharedParamAssertOptions = async (options) => {
+export const sharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
     if (options.authType === undefined || !options.authType) {
         logger.error('Mandatory option --auth-type is missing. Use it to specify how authorization with Qlik Sense will be done.');
@@ -47,7 +47,7 @@ const sharedParamAssertOptions = async (options) => {
     }
 };
 
-const userActivityCustomPropertyAssertOptions = (options) => {
+export const userActivityCustomPropertyAssertOptions = (options) => {
     const newOptions = options;
 
     // If certificate authentication is used: certs and user dir/id must be present.
@@ -65,7 +65,7 @@ const userActivityCustomPropertyAssertOptions = (options) => {
     return newOptions;
 };
 
-const masterItemImportAssertOptions = (options) => {
+export const masterItemImportAssertOptions = (options) => {
     if (options.colRefBy === undefined || !options.colRefBy) {
         logger.error(
             'Mandatory option --col-ref-by is missing. Use it to specify how Excel file columns are referenced (by name or position)'
@@ -74,7 +74,7 @@ const masterItemImportAssertOptions = (options) => {
     }
 };
 
-const masterItemMeasureDeleteAssertOptions = (options) => {
+export const masterItemMeasureDeleteAssertOptions = (options) => {
     // Make sure options are valid for deleting master measures
 
     // Either --delete-all OR (--id-type and --master-item) should be specified
@@ -100,7 +100,7 @@ const masterItemMeasureDeleteAssertOptions = (options) => {
     }
 };
 
-const masterItemDimDeleteAssertOptions = (options) => {
+export const masterItemDimDeleteAssertOptions = (options) => {
     // Make sure options are valid for deleting master dimensions
 
     // Either --delete-all OR (--id-type and --master-item) should be specified
@@ -127,22 +127,22 @@ const masterItemDimDeleteAssertOptions = (options) => {
 };
 
 // eslint-disable-next-line no-unused-vars
-const masterItemGetAssertOptions = (options) => {
+export const masterItemGetAssertOptions = (options) => {
     //
 };
 
 // eslint-disable-next-line no-unused-vars
-const getScriptAssertOptions = (options) => {
+export const getScriptAssertOptions = (options) => {
     //
 };
 
 // eslint-disable-next-line no-unused-vars
-const getBookmarkAssertOptions = (options) => {
+export const getBookmarkAssertOptions = (options) => {
     //
 };
 
 // eslint-disable-next-line no-unused-vars
-const getTaskAssertOptions = (options) => {
+export const getTaskAssertOptions = (options) => {
     // ---task-id and --task-tag only allowed for task tables, not trees
     if (options.taskId || options.taskTag) {
         if (options.outputFormat === 'tree') {
@@ -204,12 +204,12 @@ const getTaskAssertOptions = (options) => {
 };
 
 // eslint-disable-next-line no-unused-vars
-const setTaskCustomPropertyAssertOptions = (options) => {
+export const setTaskCustomPropertyAssertOptions = (options) => {
     //
 };
 
 // eslint-disable-next-line no-unused-vars
-const taskImportAssertOptions = (options) => {
+export const taskImportAssertOptions = (options) => {
     // If --import-app is specified, the import file type must be Excel
     if (options.importApp && options.fileType !== 'excel') {
         logger.error(
@@ -234,17 +234,17 @@ const taskImportAssertOptions = (options) => {
 };
 
 // eslint-disable-next-line no-unused-vars
-const appImportAssertOptions = (options) => {
+export const appImportAssertOptions = (options) => {
     //
 };
 
 // Assert that values in Excel sheet are valid
-const appImportAssertExcelSheet = (options) => {
+export const appImportAssertExcelSheet = (options) => {
     //
 };
 
 // eslint-disable-next-line no-unused-vars
-const appExportAssertOptions = async (options) => {
+export const appExportAssertOptions = async (options) => {
     // Verify output directory exists
     // const outputDir = mergeDirFilePath([options.outputDir]);
     // const existsOutputDir = await fs.promises.access(outputDir);
@@ -254,7 +254,7 @@ const appExportAssertOptions = async (options) => {
     // }
 };
 
-const variableGetAssertOptions = (options) => {
+export const variableGetAssertOptions = (options) => {
     // Make sure options are valid for getting variables
     // At least one app specified?
     if (options.appId === undefined && options.appTag === undefined) {
@@ -263,7 +263,7 @@ const variableGetAssertOptions = (options) => {
     }
 };
 
-const variableDeleteAssertOptions = (options) => {
+export const variableDeleteAssertOptions = (options) => {
     // Make sure options are valid for deleting variables
 
     // At least one app specified?
@@ -293,23 +293,4 @@ const variableDeleteAssertOptions = (options) => {
         logger.error('Invalid combination of options.\nUse either --delete-all or both of --id-type and --variable.');
         process.exit(1);
     }
-};
-
-export default {
-    sharedParamAssertOptions,
-    userActivityCustomPropertyAssertOptions,
-    masterItemImportAssertOptions,
-    masterItemMeasureDeleteAssertOptions,
-    masterItemDimDeleteAssertOptions,
-    masterItemGetAssertOptions,
-    variableGetAssertOptions,
-    variableDeleteAssertOptions,
-    getScriptAssertOptions,
-    getBookmarkAssertOptions,
-    getTaskAssertOptions,
-    setTaskCustomPropertyAssertOptions,
-    taskImportAssertOptions,
-    appImportAssertOptions,
-    appImportAssertExcelSheet,
-    appExportAssertOptions,
 };

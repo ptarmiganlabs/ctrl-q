@@ -1,6 +1,7 @@
 import enigma from 'enigma.js';
 import setupEnigmaConnection from '../util/enigma.js';
 import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
+import { catchLog } from '../util/log.js';
 
 /**
  *
@@ -251,7 +252,7 @@ const createMasterDimension = async (options) => {
             logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
         }
     } catch (err) {
-        logger.error(`Error destroying session object for master dimenions`);
+        catchLog('Error creating master dimension', err);
     }
 };
 

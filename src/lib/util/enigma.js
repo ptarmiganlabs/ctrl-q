@@ -1,4 +1,4 @@
-import SenseUtilities from 'enigma.js/sense-utilities';
+import SenseUtilities from 'enigma.js/sense-utilities.js';
 import WebSocket from 'ws';
 import path from 'path';
 import { readFileSync } from 'fs';
