@@ -20,6 +20,7 @@ import { getTagIdByName } from '../util/tag.js';
 import { getCustomPropertyIdByName } from '../util/customproperties.js';
 import { getAppById } from '../util/app.js';
 import { taskExistById, getTaskById } from '../util/task.js';
+import { catchLog } from '../util/log.js';
 
 class QlikSenseTasks {
     // eslint-disable-next-line no-useless-constructor
@@ -53,7 +54,7 @@ class QlikSenseTasks {
             this.qlikSenseCompositeEvents = new QlikSenseCompositeEvents();
             await this.qlikSenseCompositeEvents.init(options);
         } catch (err) {
-            logger.error(`QS TASK: ${err}`);
+            catchLog(`QS TASK`, err);
         }
     }
 
@@ -1269,6 +1270,8 @@ class QlikSenseTasks {
 
                 resolve(this.taskList);
             } catch (err) {
+                catchLog('PARSE TASKS FROM FILE 1', err);
+
                 if (err?.response?.status) {
                     logger.error(`Received error ${err.response?.status}/${err.response?.statusText} from QRS API`);
                 }
@@ -1278,10 +1281,8 @@ class QlikSenseTasks {
                 if (err?.config?.data) {
                     logger.error(`Data sent to Sense: ${JSON.stringify(JSON.parse(err.config.data), null, 2)}}`);
                 }
-                logger.error(`PARSE TASKS FROM FILE 1: ${err}`);
                 reject(err);
             }
-            // return null;
         });
     }
 
@@ -1327,10 +1328,10 @@ class QlikSenseTasks {
                         }
                     })
                     .catch((err) => {
-                        logger.error(`CREATE COMPOSITE EVENT IN QSEOW 1: ${err}`);
+                        catchLog('CREATE COMPOSITE EVENT IN QSEOW 1', err);
                     });
             } catch (err) {
-                logger.error(`CREATE COMPOSITE EVENT IN QSEOW 2: ${err}`);
+                catchLog('CREATE COMPOSITE EVENT IN QSEOW 2', err);
                 reject(err);
             }
         });
@@ -1388,11 +1389,11 @@ class QlikSenseTasks {
                         }
                     })
                     .catch((err) => {
-                        logger.error(`CREATE RELOAD TASK IN QSEOW 1: ${err}`);
+                        catchLog('CREATE RELOAD TASK IN QSEOW 1', err);
                         reject(err);
                     });
             } catch (err) {
-                logger.error(`CREATE RELOAD TASK IN QSEOW 2: ${err}`);
+                catchLog('CREATE RELOAD TASK IN QSEOW 2', err);
                 reject(err);
             }
         });
@@ -1450,11 +1451,11 @@ class QlikSenseTasks {
                         }
                     })
                     .catch((err) => {
-                        logger.error(`CREATE EXTERNAL PROGRAM TASK IN QSEOW 1: ${err}`);
+                        catchLog('CREATE EXTERNAL PROGRAM TASK IN QSEOW 1', err);
                         reject(err);
                     });
             } catch (err) {
-                logger.error(`CREATE EXTERNAL PROGRAM TASK IN QSEOW 2: ${err}`);
+                catchLog('CREATE EXTERNAL PROGRAM TASK IN QSEOW 2', err);
                 reject(err);
             }
         });
@@ -1512,7 +1513,7 @@ class QlikSenseTasks {
                                 }
                             });
                         } catch (err) {
-                            logger.error(`SAVE TASK TO QSEOW 1: ${err}`);
+                            catchLog('SAVE TASK TO QSEOW 1', err);
                             reject2();
                         }
                     });
@@ -1520,7 +1521,7 @@ class QlikSenseTasks {
                 }
                 resolve();
             } catch (err) {
-                logger.error(`SAVE TASK TO QSEOW 2: ${err}`);
+                catchLog('SAVE TASK TO QSEOW 2', err);
                 reject(err);
             }
         });
@@ -1857,7 +1858,7 @@ class QlikSenseTasks {
             return subTree;
             // console.log('subTree: ' + JSON.stringify(subTree));
         } catch (err) {
-            logger.error(`GET TASK SUBTREE (tree): ${err.stack}`);
+            catchLog('GET TASK SUBTREE (tree)', err);
             return false;
         }
     }
@@ -1931,7 +1932,7 @@ class QlikSenseTasks {
 
             return subTree;
         } catch (err) {
-            logger.error(`GET TASK SUBTREE (table): ${err}`);
+            catchLog('GET TASK SUBTABLE (table)', err);
             return null;
         }
     }
@@ -1947,7 +1948,7 @@ class QlikSenseTasks {
                     resolve(tableTaskBasic);
                 }
             } catch (err) {
-                logger.error(`GET TASK TABLE: ${err}`);
+                catchLog('GET TASK TABLE', err);
                 reject();
             }
         });
@@ -1961,7 +1962,7 @@ class QlikSenseTasks {
             logger.verbose(`Getting tasks from QSEoW...`);
             await this.getTasksFromQseow();
         } catch (err) {
-            logger.error(`GET TASK MODEL FROM QSEOW 1: ${err}`);
+            catchLog('GET TASK MODEL FROM QSEOW 1', err);
             return false;
         }
 
@@ -1972,7 +1973,7 @@ class QlikSenseTasks {
 
             logger.silly(`Schema events from QSEoW: ${JSON.stringify(result1, null, 2)}`);
         } catch (err) {
-            logger.error(`GET TASK MODEL FROM QSEOW 2: ${err}`);
+            catchLog('GET TASK MODEL FROM QSEOW 2', err);
             return false;
         }
 
@@ -1983,7 +1984,7 @@ class QlikSenseTasks {
 
             logger.silly(`Composite events from QSEoW: ${JSON.stringify(result2, null, 2)}`);
         } catch (err) {
-            logger.error(`GET TASK MODEL FROM QSEOW 3: ${err}`);
+            catchLog('GET TASK MODEL FROM QSEOW 3', err);
             return false;
         }
 

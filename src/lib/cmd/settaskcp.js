@@ -1,6 +1,7 @@
 import yesno from 'yesno';
 import { logger } from '../../globals.js';
 import { getCustomProperty, getTasksFromQseow, updateReloadTask } from '../task/task_qrs.js';
+import { catchLog } from '../util/log.js';
 
 const updateTask = async (options, customPropertyDef, task) =>
     new Promise(async (resolve, reject) => {
@@ -213,7 +214,7 @@ const setTaskCustomProperty = async (options) => {
             return true;
         }
     } catch (err) {
-        logger.error(`SET RELOAD TASK CP: ${err}`);
+        catchLog(`SET RELOAD TASK CP`, err);
         return false;
     }
 };

@@ -2,6 +2,7 @@ import axios from 'axios';
 import path from 'path';
 import { logger, execPath } from '../../globals.js';
 import setupQRSConnection from './qrs.js';
+import { catchLog } from './log.js';
 
 export function getTagsFromQseow(options) {
     return new Promise((resolve, _reject) => {
@@ -41,7 +42,7 @@ export function getTagsFromQseow(options) {
                 resolve(false);
             })
             .catch((err) => {
-                logger.error(`GET TAGS FROM QSEoW: ${err}`);
+                catchLog('GET TAGS FROM QSEoW', err);
             });
     });
 }

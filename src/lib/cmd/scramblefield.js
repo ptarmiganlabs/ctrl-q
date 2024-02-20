@@ -1,6 +1,7 @@
 import enigma from 'enigma.js';
 import { setupEnigmaConnection, addTrafficLogging } from '../util/enigma.js';
 import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
+import { catchLog } from '../util/log.js';
 
 /**
  *
@@ -28,7 +29,7 @@ const scrambleField = async (options) => {
             session = await enigma.create(configEnigma);
             logger.verbose(`Created session to server ${options.host}.`);
         } catch (err) {
-            logger.error(`Error creating session to server ${options.host}: ${err}`);
+            catchLog(`Error creating session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -39,7 +40,7 @@ const scrambleField = async (options) => {
         try {
             global = await session.open();
         } catch (err) {
-            logger.error(`Error opening session to server ${options.host}: ${err}`);
+            catchLog(`Error opening session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -48,7 +49,7 @@ const scrambleField = async (options) => {
             engineVersion = await global.engineVersion();
             logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
         } catch (err) {
-            logger.error(`Error getting engine version from server ${options.host}: ${err}`);
+            catchLog(`Error getting engine version from server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -71,7 +72,7 @@ const scrambleField = async (options) => {
                     const res = await app.scramble(field);
                     logger.info(`Scrambled field "${field}"`);
                 } catch (err) {
-                    logger.error(`Failed scrambling field "${field}". Please make sure it exists in the app.`);
+                    catchLog(`Error scrambling field "${field}". please make sure it exists in the app.`, err);
                 }
             }
 
@@ -86,7 +87,7 @@ const scrambleField = async (options) => {
             }
         }
     } catch (err) {
-        logger.error(err);
+        catchLog('Error in scrambleField', err);
     }
 };
 

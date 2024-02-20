@@ -1,5 +1,6 @@
 import path from 'path';
 import { logger, execPath } from '../../globals.js';
+import { catchLog } from './log.js';
 
 const getCertFilePaths = async (options) => {
     let fileCert;
@@ -9,7 +10,7 @@ const getCertFilePaths = async (options) => {
         fileCert = path.resolve(execPath, options.authCertFile);
         fileCertKey = path.resolve(execPath, options.authCertKeyFile);
     } catch (err) {
-        logger.error(`GET TASK QRS (ID): ${err.stack}. Exiting.`);
+        catchLog('GET TASK QRS (ID). Exiting. ', err);
         process.exit(1);
     }
     return { fileCert, fileCertKey };

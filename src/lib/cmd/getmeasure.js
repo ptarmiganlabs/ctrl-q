@@ -4,6 +4,7 @@ import enigma from 'enigma.js';
 import { table } from 'table';
 import { setupEnigmaConnection, addTrafficLogging } from '../util/enigma.js';
 import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
+import { catchLog } from '../util/log.js';
 
 const consoleTableConfig = {
     border: {
@@ -60,7 +61,7 @@ const getMasterMeasure = async (options) => {
             session = await enigma.create(configEnigma);
             logger.verbose(`Created session to server ${options.host}.`);
         } catch (err) {
-            logger.error(`Error creating session to server ${options.host}: ${err}`);
+            catchLog(`Error creating session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -71,7 +72,7 @@ const getMasterMeasure = async (options) => {
         try {
             global = await session.open();
         } catch (err) {
-            logger.error(`Error opening session to server ${options.host}: ${err}`);
+            catchLog(`Error opening session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -80,7 +81,7 @@ const getMasterMeasure = async (options) => {
             engineVersion = await global.engineVersion();
             logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
         } catch (err) {
-            logger.error(`Error getting engine version from server ${options.host}: ${err}`);
+            catchLog(`Error getting engine version from server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -240,7 +241,7 @@ const getMasterMeasure = async (options) => {
             logger.error(`Error destroying session object for master measures`);
         }
     } catch (err) {
-        logger.error(err.stack);
+        catchLog('Error in getMasterMeasure', err);
     }
 };
 

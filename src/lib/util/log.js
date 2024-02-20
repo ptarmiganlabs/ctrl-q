@@ -1,6 +1,6 @@
 import { logger, appVersion, isPkg, execPath } from '../../globals.js';
 
-const logStartupInfo = (options, cmd, cmdDesc) => {
+export const logStartupInfo = (options, cmd, cmdDesc) => {
     logger.info('-----------------------------------------------------------');
     logger.info('| Ctrl-Q');
     logger.info('| ');
@@ -21,4 +21,20 @@ const logStartupInfo = (options, cmd, cmdDesc) => {
     logger.verbose(``);
 };
 
-export default logStartupInfo;
+// Function used to provide consistent logging to all try-catch blocks
+export const catchLog = (msgContext, err) => {
+    if (isPkg) {
+        if (err.message) {
+            logger.error(`${msgContext}: ${err.message}`);
+        } else {
+            logger.error(`${msgContext}: ${err}`);
+        }
+    } else if (err.stack) {
+        logger.error(`${msgContext}: ${err.stack}`);
+    } else if (err.message) {
+        logger.error(`${msgContext}: ${err.message}`);
+    } else {
+        logger.error(`${msgContext}: ${err}`);
+    }
+}
+

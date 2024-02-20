@@ -6,6 +6,7 @@ import xlsx from 'node-xlsx';
 import { v4 as uuidCreate } from 'uuid';
 import { setupEnigmaConnection, addTrafficLogging } from '../util/enigma.js';
 import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, sleep } from '../../globals.js';
+import { catchLog } from '../util/log.js';
 
 let importCount = 0;
 
@@ -206,7 +207,7 @@ const updateDimension = async (
         [existingColorMapModel] = await Promise.all([existingColorMapPromise]);
         existingColorMapLayout = await existingColorMapModel.getLayout();
     } catch (err) {
-        logger.verbose(`No per-value color map exists for existing dimension "${existingDimensionLayout.qMeta.title}"`);
+        catchLog(`No per-value color map exists for existing dimension "${existingDimensionLayout.qMeta.title}"`, err);
     }
 
     // Do we have new per-value color data?
@@ -723,7 +724,7 @@ const createMasterItems = async (masterItemDefs, options, colPos, existingMeasur
         try {
             global = await session.open();
         } catch (err) {
-            logger.error(`Error opening session to server ${options.host}: ${err}`);
+            catchLog(`Error opening session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -1022,7 +1023,7 @@ const importMasterItemFromExcel = async (options) => {
             session = await enigma.create(configEnigma);
             logger.verbose(`Created session to server ${options.host}.`);
         } catch (err) {
-            logger.error(`Error creating session to server ${options.host}: ${err}`);
+            catchLog(`Error creating session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -1033,7 +1034,7 @@ const importMasterItemFromExcel = async (options) => {
         try {
             global = await session.open();
         } catch (err) {
-            logger.error(`Error opening session to server ${options.host}: ${err}`);
+            catchLog(`Error opening session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -1042,7 +1043,7 @@ const importMasterItemFromExcel = async (options) => {
             engineVersion = await global.engineVersion();
             logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
         } catch (err) {
-            logger.error(`Error getting engine version from server ${options.host}: ${err}`);
+            catchLog(`Error getting engine version from server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -1138,7 +1139,7 @@ const importMasterItemFromExcel = async (options) => {
             logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
         }
     } catch (err) {
-        logger.error(err.stack);
+        catchLog('Error importing master items from Excel file', err);
     }
 };
 

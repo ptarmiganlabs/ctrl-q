@@ -3,6 +3,7 @@ import path from 'path';
 import { logger, execPath } from '../../globals.js';
 import setupQRSConnection from '../util/qrs.js';
 import QlikSenseSchemaEvent from './class_schemaevent.js';
+import { catchLog } from '../util/log.js';
 
 class QlikSenseSchemaEvents {
     // eslint-disable-next-line no-useless-constructor
@@ -21,7 +22,7 @@ class QlikSenseSchemaEvents {
                 this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
             }
         } catch (err) {
-            logger.error(`GET SCHEMA EVENT: ${err}`);
+            catchLog(`GET SCHEMA EVENT INIT`, err);
         }
     }
 
@@ -45,7 +46,7 @@ class QlikSenseSchemaEvents {
 
                 resolve();
             } catch (err) {
-                logger.error(`GET SCHEMA EVENT 2: ${err}`);
+                catchLog(`GET SCHEMA EVENT 1`, err);
                 reject(err);
             }
         });
@@ -79,11 +80,11 @@ class QlikSenseSchemaEvents {
                         resolve(this.taskList);
                     })
                     .catch((err) => {
-                        logger.error(`GET SCHEMA EVENT 1: ${err}`);
+                        catchLog(`GET SCHEMA EVENT 2`, err);
                         reject(err);
                     });
             } catch (err) {
-                logger.error(`GET SCHEMA EVENT 2: ${err}`);
+                catchLog(`GET SCHEMA EVENT 3`, err);
                 reject(err);
             }
         });

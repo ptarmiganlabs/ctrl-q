@@ -1,4 +1,5 @@
 import { logger } from '../../globals.js';
+import { catchLog } from '../util/log.js';
 
 export function getUserActivityProfessional(qrsInteractInstance) {
     // eslint-disable-next-line no-unused-vars, no-async-promise-executor
@@ -7,7 +8,7 @@ export function getUserActivityProfessional(qrsInteractInstance) {
         try {
             result = await qrsInteractInstance.Get('license/professionalaccesstype/full');
         } catch (err) {
-            logger.error(`USER ACTIVITY PROFESSIONAL: Error getting user activity info from QRS: ${err}`);
+            catchLog(`USER ACTIVITY PROFESSIONAL: Error getting user activity info from QRS`, err);
         }
 
         resolve(result.body);
@@ -21,7 +22,7 @@ export function getUserActivityAnalyzer(qrsInteractInstance) {
         try {
             result = await qrsInteractInstance.Get('license/analyzeraccesstype/full');
         } catch (err) {
-            logger.error(`USER ACTIVITY ANALYZER: Error getting user activity info from QRS: ${err}`);
+            catchLog(`USER ACTIVITY ANALYZER: Error getting user activity info from QRS`, err);
         }
 
         resolve(result.body);
@@ -35,7 +36,7 @@ export  getUserActivityAnalyzerTime(qrsInteractInstance) {
         try {
             result = await qrsInteractInstance.Get('license/analyzertimeaccesstype/full');
         } catch (err) {
-            logger.error(`USER ACTIVITY ANALYZER TIME: Error getting user activity info from QRS: ${err}`);
+            catchLog(`USER ACTIVITY ANALYZER TIME: Error getting user activity info from QRS`, err);
         }
 
         resolve(result.body);
@@ -49,7 +50,7 @@ export function getUserActivityLogin(qrsInteractInstance) {
         try {
             result = await qrsInteractInstance.Get('license/loginaccesstype/full');
         } catch (err) {
-            logger.error(`USER ACTIVITY LOGIN: Error getting user activity info from QRS: ${err}`);
+            catchLog(`USER ACTIVITY LOGIN: Error getting user activity info from QRS`, err);
         }
 
         resolve(result.body);
@@ -63,7 +64,7 @@ export function getUserActivityUser(qrsInteractInstance) {
         try {
             result = await qrsInteractInstance.Get('license/useraccesstype/full');
         } catch (err) {
-            logger.error(`USER ACTIVITY USER: Error getting user activity info from QRS: ${err}`);
+            catchLog(`USER ACTIVITY USER: Error getting user activity info from QRS`, err);
         }
 
         resolve(result.body);

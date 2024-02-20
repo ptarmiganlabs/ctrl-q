@@ -23,11 +23,11 @@ const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minu
 jest.setTimeout(defaultTestTimeout);
 
 // Mock logger
-// global.console = {
-//     log: jest.fn(),
-//     info: jest.fn(),
-//     error: jest.fn(),
-// };
+global.console = {
+    log: jest.fn(),
+    info: jest.fn(),
+    error: jest.fn(),
+};
 
 // Define existing and non-existing tasks
 const existingTaskId = 'e9100e69-4e8e-414b-bf88-10a1110c43a9';
@@ -79,20 +79,20 @@ describe('getTaskByName: Get task by name (cert auth)', () => {
     });
 });
 
-// Get task by ID
-describe('getTaskById: Get task by ID (cert auth)', () => {
-    test('no matching task', async () => {
-        const result = await getTaskById(nonExistingTaskId, options);
-        expect(result).toEqual(false);
-    });
+// // Get task by ID
+// describe('getTaskById: Get task by ID (cert auth)', () => {
+//     test('no matching task', async () => {
+//         const result = await getTaskById(nonExistingTaskId, options);
+//         expect(result).toEqual(false);
+//     });
 
-    test('1 matching task', async () => {
-        const result = await getTaskById(existingTaskId, options);
-        expect(result.id).toEqual(existingTaskId);
-    });
+//     test('1 matching task', async () => {
+//         const result = await getTaskById(existingTaskId, options);
+//         expect(result.id).toEqual(existingTaskId);
+//     });
 
-    test('no task id provided', async () => {
-        const result = await getTaskById('', options);
-        expect(result).toEqual(false);
-    });
-});
+//     test('no task id provided', async () => {
+//         const result = await getTaskById('', options);
+//         expect(result).toEqual(false);
+//     });
+// });

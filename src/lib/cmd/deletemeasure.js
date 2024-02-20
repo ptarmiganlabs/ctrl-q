@@ -1,6 +1,7 @@
 import enigma from 'enigma.js';
 import { setupEnigmaConnection, addTrafficLogging } from '../util/enigma.js';
 import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
+import { catchLog } from '../util/log.js';
 
 // Variable to keep track of how many measures have been deleted
 let deleteCount = 0;
@@ -31,7 +32,7 @@ const deleteMasterMeasure = async (options) => {
             session = await enigma.create(configEnigma);
             logger.verbose(`Created session to server ${options.host}.`);
         } catch (err) {
-            logger.error(`Error creating session to server ${options.host}: ${err}`);
+            catchLog(`Error creating session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -42,7 +43,7 @@ const deleteMasterMeasure = async (options) => {
         try {
             global = await session.open();
         } catch (err) {
-            logger.error(`Error opening session to server ${options.host}: ${err}`);
+            catchLog(`Error opening session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -51,7 +52,7 @@ const deleteMasterMeasure = async (options) => {
             engineVersion = await global.engineVersion();
             logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
         } catch (err) {
-            logger.error(`Error getting engine version from server ${options.host}: ${err}`);
+            catchLog(`Error getting engine version from server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -145,7 +146,7 @@ const deleteMasterMeasure = async (options) => {
             logger.error(`Error destroying session object for master dimenions`);
         }
     } catch (err) {
-        logger.error(err.stack);
+        catchLog('Error in deleteMasterMeasure', err);
     }
 };
 

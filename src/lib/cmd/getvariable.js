@@ -6,6 +6,7 @@ import { table } from 'table';
 import { setupEnigmaConnection, addTrafficLogging } from '../util/enigma.js';
 import { getApps } from '../util/app.js';
 import { logger, setLoggingLevel, isPkg, execPath } from '../../globals.js';
+import { catchLog } from '../util/log.js';
 
 const consoleTableConfig = {
     border: {
@@ -63,7 +64,7 @@ const getVariable = async (options) => {
             session = await enigma.create(configEnigma);
             logger.verbose(`Created session to server ${options.host}.`);
         } catch (err) {
-            logger.error(`Error creating session to server ${options.host}: ${err}`);
+            catchLog(`Error creating session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -74,7 +75,7 @@ const getVariable = async (options) => {
         try {
             global = await session.open();
         } catch (err) {
-            logger.error(`Error opening session to server ${options.host}: ${err}`);
+            catchLog(`Error opening session to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -83,7 +84,7 @@ const getVariable = async (options) => {
             engineVersion = await global.engineVersion();
             logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
         } catch (err) {
-            logger.error(`Error getting engine version from server ${options.host}: ${err}`);
+            catchLog(`Error getting engine version from server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -247,7 +248,7 @@ const getVariable = async (options) => {
             logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
         }
     } catch (err) {
-        logger.error(`GET VARIABLE: ${err.stack}`);
+        catchLog(`Error in getVariable`, err);
     }
 };
 

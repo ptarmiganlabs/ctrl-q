@@ -2,6 +2,7 @@ import axios from 'axios';
 import path from 'path';
 import { logger, execPath } from '../../globals.js';
 import setupQRSConnection from './qrs.js';
+import { catchLog } from './log.js';
 
 function getAboutFromQseow(options) {
     return new Promise((resolve, reject) => {
@@ -41,7 +42,7 @@ function getAboutFromQseow(options) {
                 resolve(false);
             })
             .catch((err) => {
-                logger.error(`GET ABOUT INFO: ${err}`);
+                catchLog('GET ABOUT INFO', err);
             });
     });
 }

@@ -4,6 +4,7 @@ import path from 'path';
 import { validate } from 'uuid';
 import { logger, execPath, getCliOptions } from '../../globals.js';
 import setupQRSConnection from './qrs.js';
+import { catchLog } from './log.js';
 
 // Check if a task with a given id exists
 // Look for all kinds of tasks, not just reload tasks
@@ -74,13 +75,7 @@ export async function taskExistById(taskId, optionsParam) {
 
         return false;
     } catch (err) {
-        logger.error(`TASK EXIST BY ID: ${err}`);
-
-        // Show stack trace if available
-        if (err?.stack) {
-            logger.error(`TASK EXIST BY ID:\n  ${err.stack}`);
-        }
-
+        catchLog('TASK EXIST BY ID', err);
         return false;
     }
 }
@@ -143,13 +138,7 @@ export async function getTaskByName(taskName, optionsParam) {
         }
         return false;
     } catch (err) {
-        logger.error(`GET TASK BY NAME: ${err}`);
-
-        // Show stack trace if available
-        if (err?.stack) {
-            logger.error(`GET TASK BY NAME:\n  ${err.stack}`);
-        }
-
+        catchLog('GET TASK BY NAME', err);
         return false;
     }
 }
@@ -221,13 +210,7 @@ export async function getTaskById(taskId, optionsParam) {
 
         return false;
     } catch (err) {
-        logger.error(`GET TASK BY ID: ${err}`);
-
-        // Show stack trace if available
-        if (err?.stack) {
-            logger.error(`GET TASK BY ID:\n  ${err.stack}`);
-        }
-
+        catchLog('GET TASK BY ID', err);
         return false;
     }
 }
@@ -297,13 +280,7 @@ export async function deleteReloadTaskById(taskId, optionsParam) {
 
         return false;
     } catch (err) {
-        logger.error(`DELETE RELOAD TASK BY ID: ${err}`);
-
-        // Show stack trace if available
-        if (err?.stack) {
-            logger.error(`DELETE RELOAD TASK BY ID:\n  ${err.stack}`);
-        }
-
+        catchLog('DELETE RELOAD TASK BY ID', err);
         return false;
     }
 }
@@ -373,13 +350,7 @@ export async function deleteExternalProgramTaskById(taskId, optionsParam) {
 
         return false;
     } catch (err) {
-        logger.error(`DELETE EXT PGM TASK BY ID: ${err}`);
-
-        // Show stack trace if available
-        if (err?.stack) {
-            logger.error(`DELETE EXT PGM TASK BY ID:\n  ${err.stack}`);
-        }
-
+        catchLog('DELETE EXT PGM TASK BY ID', err);
         return false;
     }
 }

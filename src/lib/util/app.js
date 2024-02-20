@@ -3,6 +3,7 @@ import path from 'path';
 import { validate } from 'uuid';
 import { logger, execPath, getCliOptions } from '../../globals.js';
 import setupQRSConnection from './qrs.js';
+import { catchLog } from './log.js';
 
 export async function getApps(options, idArray, tagArray) {
     try {
@@ -91,7 +92,7 @@ export async function getApps(options, idArray, tagArray) {
 
         return apps;
     } catch (err) {
-        logger.error(err.stack);
+        catchLog('GET APPS', err);
         return false;
     }
 }
@@ -154,13 +155,7 @@ export async function getAppById(appId, optionsParam) {
 
         return false;
     } catch (err) {
-        logger.error(`GET APP BY ID: ${err}`);
-
-        // Show stack trace if available
-        if (err?.stack) {
-            logger.error(`GET APP BY ID:\n  ${err.stack}`);
-        }
-
+        catchLog('GET APP BY ID', err);
         return false;
     }
 }
@@ -209,13 +204,7 @@ export async function deleteAppById(appId, options) {
 
         return true;
     } catch (err) {
-        logger.error(`DELETE APP: ${err}`);
-
-        // Show stack trace if available
-        if (err?.stack) {
-            logger.error(`DELETE APP:\n  ${err.stack}`);
-        }
-
+        catchLog('DELETE APP', err);
         return false;
     }
 }
@@ -278,13 +267,7 @@ export async function appExistById(appId, options) {
 
         return false;
     } catch (err) {
-        logger.error(`APP EXIST BY ID: ${err}`);
-
-        // Show stack trace if available
-        if (err?.stack) {
-            logger.error(`APP EXIST BY ID:\n  ${err.stack}`);
-        }
-
+        catchLog('APP EXIST BY ID', err);
         return false;
     }
 }
