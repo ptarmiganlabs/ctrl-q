@@ -1,6 +1,5 @@
 import path from 'path';
-import { version as uuidVersion } from 'uuid';
-import { validate as uuidValidate } from 'uuid';
+import { version as uuidVersion,validate as uuidValidate } from 'uuid';
 import fs from 'fs';
 import { logger, execPath, mergeDirFilePath, verifyFileExists } from '../../globals.js';
 
@@ -294,3 +293,13 @@ export const variableDeleteAssertOptions = (options) => {
         process.exit(1);
     }
 };
+
+// eslint-disable-next-line no-unused-vars
+export const getSessionsAssertOptions = (options) => {
+    //
+};
+
+// eslint-disable-next-line no-unused-vars
+export const deleteSessionsAssertOptions = (options) => {
+    //
+}

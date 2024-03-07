@@ -17,6 +17,7 @@ qvfs
 qvfs_1
 qvfs_2
 qvfs_3
+qvfs_tmp
 
 src/node_modules/*
 

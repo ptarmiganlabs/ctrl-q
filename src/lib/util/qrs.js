@@ -43,7 +43,7 @@ const setupQRSConnection = (options, param) => {
     let axiosConfig;
     // Should cerrificates be used for authentication?
     if (options.authType === 'cert') {
-        logger.verbose(`Using certificates for authentication with QRS`);
+        logger.debug(`Using certificates for authentication with QRS`);
 
         const httpsAgent = new https.Agent({
             rejectUnauthorized: false,
