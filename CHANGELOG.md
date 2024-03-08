@@ -17,6 +17,32 @@
 
 * Clean up source code formatting ([6baccc0](https://github.com/ptarmiganlabs/ctrl-q/commit/6baccc0197fe98d4cddfbd157305050ef620dfbb))
 * **deps:** Upgrade app upload retry logic ([98b3a0d](https://github.com/ptarmiganlabs/ctrl-q/commit/98b3a0d28f5b26aa80acba837f41f3d6a49d7114))
+* **main:** release ctrl-q 3.15.2 ([6f64c8b](https://github.com/ptarmiganlabs/ctrl-q/commit/6f64c8b95964798a3726e95edc880a0fa830876b))
+* **main:** release ctrl-q 3.15.2 ([ccc038b](https://github.com/ptarmiganlabs/ctrl-q/commit/ccc038b589a03faa4b6015ed2d17876d4ad772f1))
+* **main:** release ctrl-q 3.15.2 ([f12d7c5](https://github.com/ptarmiganlabs/ctrl-q/commit/f12d7c57f4ad6ef0b0ef28521ae17b6c5c5a53fa))
+
+
+### Refactoring
+
+* Migrate from CJS to ESM ([23deb10](https://github.com/ptarmiganlabs/ctrl-q/commit/23deb1066cfb2f461b7cf9bb952670e2b60b1750)), closes [#400](https://github.com/ptarmiganlabs/ctrl-q/issues/400)
+
+## [3.15.2](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.15.2...ctrl-q-v3.15.2) (2024-03-08)
+
+
+### Bug Fixes
+
+* **app-upload:** More consistent logging during up/download of Sense apps ([32f6d70](https://github.com/ptarmiganlabs/ctrl-q/commit/32f6d70e9b6dba506fd1d2a3e8fe233ed59ee618))
+* **certificates:** Handle --secure flag correctly, rejecting/allowing unauthorised certificates based on this flag. ([4634693](https://github.com/ptarmiganlabs/ctrl-q/commit/463469381ddd95f620ef45318552d915df7723e1)), closes [#416](https://github.com/ptarmiganlabs/ctrl-q/issues/416)
+* Make error logging consistent across all of Ctrl-Q ([9b65770](https://github.com/ptarmiganlabs/ctrl-q/commit/9b65770e5edd2611be931420fc44839aecf9c237))
+* **task-get:** More consistent logging when exporting task definitions to disk file ([8a4d9bb](https://github.com/ptarmiganlabs/ctrl-q/commit/8a4d9bb52cbea3ca732a5c9c6dce07dea7c7e035))
+* **task-vis:** Add `--secure` command line option to task-vis command ([766725c](https://github.com/ptarmiganlabs/ctrl-q/commit/766725c02381962eb1931fc1f3a2a1c334a2008d))
+* **task-vis:** Add more robust error handling ([dd7feac](https://github.com/ptarmiganlabs/ctrl-q/commit/dd7feac71408f1f7fbd21c4a50118f44238ff4d1))
+
+
+### Miscellaneous
+
+* Clean up source code formatting ([6baccc0](https://github.com/ptarmiganlabs/ctrl-q/commit/6baccc0197fe98d4cddfbd157305050ef620dfbb))
+* **deps:** Upgrade app upload retry logic ([98b3a0d](https://github.com/ptarmiganlabs/ctrl-q/commit/98b3a0d28f5b26aa80acba837f41f3d6a49d7114))
 * **main:** release ctrl-q 3.15.2 ([ccc038b](https://github.com/ptarmiganlabs/ctrl-q/commit/ccc038b589a03faa4b6015ed2d17876d4ad772f1))
 * **main:** release ctrl-q 3.15.2 ([f12d7c5](https://github.com/ptarmiganlabs/ctrl-q/commit/f12d7c57f4ad6ef0b0ef28521ae17b6c5c5a53fa))
 
