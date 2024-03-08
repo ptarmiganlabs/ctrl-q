@@ -953,7 +953,6 @@ const program = new Command();
         )
         .option('--qps-port <port>', 'Qlik Sense proxy service (QPS) port (usually 4243)', '4243')
 
-
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 

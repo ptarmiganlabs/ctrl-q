@@ -1599,58 +1599,68 @@ class QlikSenseTasks {
 
             let axiosConfig;
             let tasks = [];
+            let result;
 
-            // Get reload tasks
-            if (filter === '') {
-                axiosConfig = setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
-                    path: '/qrs/reloadtask/full',
-                });
-            } else {
-                axiosConfig = setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
-                    path: '/qrs/reloadtask/full',
-                    queryParameters: [{ name: 'filter', value: filter }],
-                });
+            try {
+                // Get reload tasks
+                if (filter === '') {
+                    axiosConfig = setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        fileCertCA: this.fileCertCA,
+                        path: '/qrs/reloadtask/full',
+                    });
+                } else {
+                    axiosConfig = setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        fileCertCA: this.fileCertCA,
+                        path: '/qrs/reloadtask/full',
+                        queryParameters: [{ name: 'filter', value: filter }],
+                    });
+                }
+
+                result = await axios.request(axiosConfig);
+                logger.debug(`GET RELOAD TASK: Result=result.status`);
+
+                tasks = tasks.concat(JSON.parse(result.data));
+                logger.verbose(`GET RELOAD TASK: # tasks: ${tasks.length}`);
+            } catch (err) {
+                catchLog('GET TASKS FROM QSEOW 1', err);
+                reject(err);
             }
+            try {
+                // Get external program tasks
+                if (filter === '') {
+                    axiosConfig = setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        fileCertCA: this.fileCertCA,
+                        path: '/qrs/externalprogramtask/full',
+                    });
+                } else {
+                    axiosConfig = setupQRSConnection(this.options, {
+                        method: 'get',
+                        fileCert: this.fileCert,
+                        fileCertKey: this.fileCertKey,
+                        fileCertCA: this.fileCertCA,
+                        path: '/qrs/externalprogramtask/full',
+                        queryParameters: [{ name: 'filter', value: filter }],
+                    });
+                }
 
-            let result = await axios.request(axiosConfig);
-            logger.debug(`GET RELOAD TASK: Result=result.status`);
+                result = await axios.request(axiosConfig);
+                logger.debug(`GET EXT PROGRAM TASK: Result=result.status`);
 
-            tasks = tasks.concat(JSON.parse(result.data));
-            logger.verbose(`GET RELOAD TASK: # tasks: ${tasks.length}`);
-
-            // Get external program tasks
-            if (filter === '') {
-                axiosConfig = setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
-                    path: '/qrs/externalprogramtask/full',
-                });
-            } else {
-                axiosConfig = setupQRSConnection(this.options, {
-                    method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
-                    path: '/qrs/externalprogramtask/full',
-                    queryParameters: [{ name: 'filter', value: filter }],
-                });
+                tasks = tasks.concat(JSON.parse(result.data));
+                logger.verbose(`GET EXT PROGRAM TASK: # tasks: ${tasks.length}`);
+            } catch (err) {
+                catchLog('GET EXTERNAL PROGRAM TASKS FROM QSEOW 1', err);
+                reject(err);
             }
-
-            result = await axios.request(axiosConfig);
-            logger.debug(`GET EXT PROGRAM TASK: Result=result.status`);
-
-            tasks = tasks.concat(JSON.parse(result.data));
-            logger.verbose(`GET EXT PROGRAM TASK: # tasks: ${tasks.length}`);
 
             // TODO
             // Determine whether task name anonymisation should be done
