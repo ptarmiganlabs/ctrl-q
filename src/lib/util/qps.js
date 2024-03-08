@@ -20,11 +20,14 @@ const setupQPSConnection = (options, param) => {
     // Use cerrificates be used for authentication
     if (options.authType === 'cert') {
         logger.debug(`Using certificates for authentication with QPS`);
+        logger.debug(`QPS host: ${options.hostProxy}`);
+        logger.debug(`Reject unauthorized certificate: ${!!options.secure}`);
 
         const httpsAgent = new https.Agent({
-            rejectUnauthorized: false,
+            rejectUnauthorized: options.secure !== 'false',
             cert: readCert(param.fileCert),
             key: readCert(param.fileCertKey),
+            ca: readCert(param.fileCertCA),
         });
 
         axiosConfig = {

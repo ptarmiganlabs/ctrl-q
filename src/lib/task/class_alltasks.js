@@ -46,6 +46,7 @@ class QlikSenseTasks {
                 // Make sure certificates exist
                 this.fileCert = path.resolve(execPath, options.authCertFile);
                 this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+                this.fileCertCA = path.resolve(execPath, options.authRootCertFile);
             }
 
             this.qlikSenseSchemaEvents = new QlikSenseSchemaEvents();
@@ -1300,6 +1301,7 @@ class QlikSenseTasks {
                     method: 'post',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: '/qrs/compositeevent',
                     body,
                 });
@@ -1369,6 +1371,7 @@ class QlikSenseTasks {
                     method: 'post',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: '/qrs/reloadtask/create',
                     body,
                 });
@@ -1431,6 +1434,7 @@ class QlikSenseTasks {
                     method: 'post',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: '/qrs/externalprogramtask/create',
                     body,
                 });
@@ -1497,6 +1501,7 @@ class QlikSenseTasks {
                             method: 'post',
                             fileCert: this.fileCert,
                             fileCertKey: this.fileCertKey,
+                            fileCertCA: this.fileCertCA,
                             path: '/qrs/reloadtask/create',
                             body,
                         });
@@ -1601,6 +1606,7 @@ class QlikSenseTasks {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: '/qrs/reloadtask/full',
                 });
             } else {
@@ -1608,6 +1614,7 @@ class QlikSenseTasks {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: '/qrs/reloadtask/full',
                     queryParameters: [{ name: 'filter', value: filter }],
                 });
@@ -1625,6 +1632,7 @@ class QlikSenseTasks {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: '/qrs/externalprogramtask/full',
                 });
             } else {
@@ -1632,6 +1640,7 @@ class QlikSenseTasks {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: '/qrs/externalprogramtask/full',
                     queryParameters: [{ name: 'filter', value: filter }],
                 });

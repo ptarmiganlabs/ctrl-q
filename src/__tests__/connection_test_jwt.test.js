@@ -6,8 +6,6 @@ import testConnection from '../lib/cmd/testconnection.js';
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
     authType: process.env.CTRL_Q_AUTH_TYPE,
-    authCertFile: process.env.CTRL_Q_AUTH_CERT_FILE || './cert/client.pem',
-    authCertKeyFile: process.env.CTRL_Q_AUTH_CERT_KEY_FILE || './cert/client_key.pem',
     host: process.env.CTRL_Q_HOST || '',
     port: process.env.CTRL_Q_PORT || '',
     virtualProxy: process.env.CTRL_Q_VIRTUAL_PROXY || '',

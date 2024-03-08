@@ -95,7 +95,7 @@ const program = new Command();
     //     .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
     //     .option('--port <port>', 'Qlik Sense repository API port', '4242')
     //     .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-    //     .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+    //     .requiredOption('--secure <true|false>', 'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.', true)
     //     .option('--auth-user-dir <directory>', 'user directory for user to connect with', 'Internal')
     //     .option('--auth-user-id <userid>', 'user ID for user to connect with', 'sa_repository')
 
@@ -143,7 +143,11 @@ const program = new Command();
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -231,7 +235,11 @@ const program = new Command();
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -265,7 +273,11 @@ const program = new Command();
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -297,7 +309,11 @@ const program = new Command();
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -331,7 +347,11 @@ const program = new Command();
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -366,7 +386,11 @@ const program = new Command();
         .option('--app-id <id...>', 'Qlik Sense app ID(s) to get variables from')
         .option('--app-tag <tag...>', 'Qlik Sense app tag(s) to get variables')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -402,7 +426,11 @@ const program = new Command();
         .option('--app-id <id...>', 'Qlik Sense app ID(s) to get variables from')
         .option('--app-tag <tag...>', 'Qlik Sense app tag(s) to get variables')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -436,7 +464,11 @@ const program = new Command();
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -467,7 +499,11 @@ const program = new Command();
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -495,7 +531,11 @@ const program = new Command();
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -543,7 +583,11 @@ const program = new Command();
         .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -598,7 +642,11 @@ const program = new Command();
         .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -646,7 +694,11 @@ const program = new Command();
         .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -698,7 +750,11 @@ const program = new Command();
         .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -741,7 +797,11 @@ const program = new Command();
         .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -802,7 +862,11 @@ const program = new Command();
         .option('--port <port>', 'Qlik Sense proxy service port', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -840,7 +904,7 @@ const program = new Command();
         .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         // .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        // .requiredOption('--secure <true|false>', 'connection to Qlik Sense engine is via https', true)
+        // .requiredOption('--secure <true|false>', 'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.', true)
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 

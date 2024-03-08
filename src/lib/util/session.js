@@ -75,6 +75,7 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
     // Make sure certificates exist
     const fileCert = path.resolve(execPath, options.authCertFile);
     const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+    const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
     let axiosConfig;
     let virtualProxiesToProcess = [];
@@ -92,6 +93,7 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
             method: 'get',
             fileCert,
             fileCertKey,
+            fileCertCA,
             path: '/qrs/virtualproxyconfig/full',
             queryParameters: [{ name: 'filter', value: encodeURI(vpFilter) }],
         });
@@ -101,6 +103,7 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
             method: 'get',
             fileCert,
             fileCertKey,
+            fileCertCA,
             path: '/qrs/virtualproxyconfig/full',
         });
     }
@@ -223,6 +226,7 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
                 method: 'get',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: `/qps/${vp.prefix}/session`,
                 sessionCookie: null,
             });
@@ -274,6 +278,7 @@ export const deleteSessionsFromQSEoWIds = async (options) => {
     // Make sure certificates exist
     const fileCert = path.resolve(execPath, options.authCertFile);
     const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+    const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
     try {
         const sessionDelete = [];
@@ -359,6 +364,7 @@ export const deleteSessionsFromQSEoWIds = async (options) => {
                     method: 'delete',
                     fileCert,
                     fileCertKey,
+                    fileCertCA,
                     path: `/qps/${options.sessionVirtualProxy}/session/${s.sessionId}`,
                     sessionCookie: null,
                 });

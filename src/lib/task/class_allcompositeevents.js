@@ -20,6 +20,7 @@ class QlikSenseCompositeEvents {
                 // Make sure certificates exist
                 this.fileCert = path.resolve(execPath, options.authCertFile);
                 this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+                this.fileCertCA = path.resolve(execPath, options.authRootCertFile);
             }
         } catch (err) {
             catchLog(`GET COMPOSITE EVENT`, err);
@@ -45,6 +46,7 @@ class QlikSenseCompositeEvents {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: '/qrs/compositeevent/full',
                 });
 

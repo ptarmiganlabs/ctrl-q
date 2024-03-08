@@ -6,8 +6,6 @@ import { taskExistById, getTaskByName, getTaskById } from '../lib/util/task.js';
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
     authType: process.env.CTRL_Q_AUTH_TYPE || 'cert',
-    authCertFile: process.env.CTRL_Q_AUTH_CERT_FILE || './cert/client.pem',
-    authCertKeyFile: process.env.CTRL_Q_AUTH_CERT_KEY_FILE || './cert/client_key.pem',
     host: process.env.CTRL_Q_HOST || '',
     port: process.env.CTRL_Q_PORT || '4242',
     schemaVersion: process.env.CTRL_Q_SCHEMA_VERSION || '12.612.0',
@@ -15,6 +13,7 @@ const options = {
     secure: process.env.CTRL_Q_SECURE || true,
     authUserDir: process.env.CTRL_Q_AUTH_USER_DIR || '',
     authUserId: process.env.CTRL_Q_AUTH_USER_ID || '',
+    authJwt: process.env.CTRL_Q_AUTH_JWT || '',
 
     taskType: process.env.CTRL_Q_TASK_TYPE || 'reload',
 };
@@ -36,8 +35,12 @@ const multipleMatchingTaskNames = '[ctrl-q unit test] app 1, task 2 (duplicates 
 const nonExistingTaskId = '9f0d0e02-cccc-bbbb-aaaa-3e9a4d0c8a3d';
 const nonExistingTaskName = 'Non-existing task 298374293874298734';
 
+options.authType = 'jwt';
+options.port = '443';
+options.virtualProxy = 'jwt';
+
 // Check if task exists by ID
-describe('taskExistById: Check if task exists by ID (cert auth)', () => {
+describe('taskExistById: Check if task exists by ID (jwt auth)', () => {
     test('existing task', async () => {
         const result = await taskExistById(existingTaskId, options);
         expect(result).toBe(true);
@@ -50,7 +53,7 @@ describe('taskExistById: Check if task exists by ID (cert auth)', () => {
 });
 
 // Get task by name
-describe('getTaskByName: Get task by name (cert auth)', () => {
+describe('getTaskByName: Get task by name (jwt auth)', () => {
     test('no matching task', async () => {
         const result = await getTaskByName(nonExistingTaskName, options);
         expect(result).toBe(false);
@@ -80,7 +83,7 @@ describe('getTaskByName: Get task by name (cert auth)', () => {
 });
 
 // Get task by ID
-describe('getTaskById: Get task by ID (cert auth)', () => {
+describe('getTaskById: Get task by ID (jwt auth)', () => {
     test('no matching task', async () => {
         const result = await getTaskById(nonExistingTaskId, options);
         expect(result).toEqual(false);

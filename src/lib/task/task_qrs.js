@@ -35,6 +35,7 @@ export const getCustomProperty = async (options) => {
             method: 'get',
             fileCert: certFilesFullPath.fileCert,
             fileCertKey: certFilesFullPath.fileCertKey,
+            fileCertCA: certFilesFullPath.fileCertCA,
             path: '/qrs/CustomPropertyDefinition/full',
             queryParameters: [{ name: 'filter', value: filter }],
         });
@@ -68,6 +69,7 @@ export const getTasksFromQseow = async (options) => {
         // Get QRS certificates
         const fileCert = path.resolve(execPath, options.authCertFile);
         const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+        const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
         //
         // Build QRS query string using task IDs
@@ -112,6 +114,7 @@ export const getTasksFromQseow = async (options) => {
             method: 'get',
             fileCert,
             fileCertKey,
+            fileCertCA,
             path: '/qrs/reloadtask/full',
             queryParameters: [{ name: 'filter', value: filter }],
         });
@@ -143,6 +146,7 @@ export const updateReloadTask = async (options, payload) => {
             method: 'post',
             fileCert: certFilesFullPath.fileCert,
             fileCertKey: certFilesFullPath.fileCertKey,
+            fileCertCA: certFilesFullPath.fileCertCA,
             path: '/qrs/reloadtask/update',
             body: payload,
         });
