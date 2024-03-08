@@ -71,6 +71,7 @@
             "node_modules/axios/**/*",
             "node_modules/fsevents/fsevents.node",
             "node_modules/csv-stringify/dist/cjs",
+            "node_modules/enigma.js/**/*.json",
             "src/static",
             "package.json"
         ],
