@@ -10,35 +10,46 @@ export const setupEnigmaConnection = async (options, sessionId) => {
     logger.debug('Prepping for Enigma connection...');
 
     // Set up enigma.js configuration
-    const schemaFile = `../node_modules/enigma.js/schemas/${options.schemaVersion}.json`;
+    let schemaFile;
     let a;
     let b;
     let c;
 
     logger.debug(`Enigma.js schema version: ${options.schemaVersion}`);
-    logger.debug(`Enigma.js schema file: ${schemaFile}`);
 
     // Are we running as a packaged app?
     if (process.pkg) {
+        schemaFile = `./node_modules/enigma.js/schemas/${options.schemaVersion}.json`;
+        logger.debug(`Enigma.js schema file: ${schemaFile}`);
+
         // Yes, we are running as a packaged app
         // Get path to JS file const
         a = process.pkg.defaultEntrypoint;
+        logger.debug(`APPDUMP schema path a: ${a}`);
 
         // Strip off the filename
         b = upath.dirname(a);
+        logger.debug(`APPDUMP schema path b: ${b}`);
 
         // Add path to package.json file
         c = upath.join(b, schemaFile);
+        logger.debug(`APPDUMP schema path c: ${c}`);
     } else {
+        schemaFile = `../node_modules/enigma.js/schemas/${options.schemaVersion}.json`;
+        logger.debug(`Enigma.js schema file: ${schemaFile}`);
+
         // No, we are running as native Node.js
         // Get path to JS file
         a = fileURLToPath(import.meta.url);
+        logger.debug(`APPDUMP schema path a: ${a}`);
 
         // Strip off the filename
         b = upath.dirname(a);
+        logger.debug(`APPDUMP schema path b: ${b}`);
 
         // Add path to package.json file
         c = upath.join(b, '..', '..', schemaFile);
+        logger.debug(`APPDUMP schema path c: ${c}`);
     }
 
     logger.verbose(`APPDUMP: Using engine schema in file: ${c}`);
