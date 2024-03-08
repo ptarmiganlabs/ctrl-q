@@ -73,7 +73,6 @@ describe('import apps from QVF files (cert auth)', () => {
             } else {
                 // App does not exist
                 expect(appExists).toBe(false);
-                // console.log(`App ${appId} does not exist in Sense. Skipping delete.`);
             }
             i += 1;
         }

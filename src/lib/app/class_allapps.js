@@ -1,4 +1,4 @@
-import rax from 'retry-axios';
+import * as rax from 'retry-axios';
 import axios from 'axios';
 import path from 'path';
 import FormData from 'form-data';
