@@ -11,12 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
-      release_tag_name: ${{ steps.release.outputs['src--tag_name'] }}
-      release_upload_url: ${{ steps.release.outputs['src--upload_url'] }}
+      release_tag_name: ${{ steps.release.outputs['tag_name'] }}
+      release_upload_url: ${{ steps.release.outputs['upload_url'] }}
     env:
       GITHUB_REF: ${{ github.ref }}
-      GITHUB_TOKEN: ${{ secrets.PAT }}
+      GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
       DIST_FILE_NAME: ctrl-q
+    permissions:
+        contents: write
+        pull-requests: write
     steps:
       - name: Show github.ref
         run: echo "$GITHUB_REF"
@@ -42,17 +45,17 @@ jobs:
       - name: Show output from Release-Please
         run: |
           echo "releases_created: ${{ steps.release.outputs.releases_created }}"
-          echo "release_created : ${{ steps.release.outputs['src--release_created'] }}"
-          echo "draft           : ${{ steps.release.outputs['src--draft'] }}"
-          echo "path            : ${{ steps.release.outputs['src--path'] }}"
-          echo "upload_url      : ${{ steps.release.outputs['src--upload_url'] }}"
-          echo "html_url        : ${{ steps.release.outputs['src--html_url'] }}"
-          echo "tag_name        : ${{ steps.release.outputs['src--tag_name'] }}"
-          echo "version         : ${{ steps.release.outputs['src--version'] }}"
-          echo "major           : ${{ steps.release.outputs['src--major'] }}"
-          echo "minor           : ${{ steps.release.outputs['src--minor'] }}"
-          echo "patch           : ${{ steps.release.outputs['src--patch'] }}"
-          echo "sha             : ${{ steps.release.outputs['src--sha'] }}"
+          echo "release_created : ${{ steps.release.outputs.release_created }}"
+          echo "draft           : ${{ steps.release.outputs['draft'] }}"
+          echo "path            : ${{ steps.release.outputs['path'] }}"
+          echo "upload_url      : ${{ steps.release.outputs['upload_url'] }}"
+          echo "html_url        : ${{ steps.release.outputs['html_url'] }}"
+          echo "tag_name        : ${{ steps.release.outputs['tag_name'] }}"
+          echo "version         : ${{ steps.release.outputs['version'] }}"
+          echo "major           : ${{ steps.release.outputs['major'] }}"
+          echo "minor           : ${{ steps.release.outputs['minor'] }}"
+          echo "patch           : ${{ steps.release.outputs['patch'] }}"
+          echo "sha             : ${{ steps.release.outputs['sha'] }}"
 
 
   #####################
@@ -68,7 +71,7 @@ jobs:
     if: needs.release-please.outputs.releases_created == 'true'
     env:
       DIST_FILE_NAME: ctrl-q
-      GITHUB_TOKEN: ${{ secrets.PAT }}
+      GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
       MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE_BASE64_CODESIGN }}
       MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_CODESIGN_PWD }}
       MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_CODESIGN_NAME }}
@@ -180,7 +183,7 @@ jobs:
     if: needs.release-please.outputs.releases_created == 'true'
     env:
       DIST_FILE_NAME: ctrl-q
-      GITHUB_TOKEN: ${{ secrets.PAT }}
+      GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
       # CODESIGN_PWD: ${{ secrets.WIN_CODESIGN_PWD}}
       # CODESIGN_INTERMEDIATE_BASE64: ${{ secrets.WIN_CODESIGN_INTERMEDIATE_BASE64 }}
       # CODESIGN_BASE64: ${{ secrets.WIN_CODESIGN_BASE64}}
@@ -271,7 +274,7 @@ jobs:
     if: needs.release-please.outputs.releases_created == 'true'
     env:
       DIST_FILE_NAME: ctrl-q
-      GITHUB_TOKEN: ${{ secrets.PAT }}
+      GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
     steps:
       - name: Release tag and upload url from previous job
         run: |
