@@ -14,6 +14,10 @@ export const setupEnigmaConnection = async (options, sessionId) => {
     let a;
     let b;
     let c;
+
+    logger.debug(`Enigma.js schema version: ${options.schemaVersion}`);
+    logger.debug(`Enigma.js schema file: ${schemaFile}`);
+
     // Are we running as a packaged app?
     if (process.pkg) {
         // Yes, we are running as a packaged app
