@@ -37,7 +37,7 @@
         }
     ],
     "packages": {
-        "src": {
+        ".": {
             "package-name": "ctrl-q"
         }
     }

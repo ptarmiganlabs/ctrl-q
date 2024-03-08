@@ -138,3 +138,5 @@ tasktable.csv
 task-chain.csv
 .vscode/launch.json
 .vscode/launch.json
+build.cjs
+ctrl-q
