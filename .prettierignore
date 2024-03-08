@@ -1,2 +1,6 @@
 dist
 node_modules/**
+vis-network.min.js
+package-lock.json
+CHANGELOG.md
+

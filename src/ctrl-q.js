@@ -819,6 +819,7 @@ const program = new Command();
         .addOption(
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
+        // eslint-disable-next-line no-unused-vars
         .action(async (options) => {
             logger.verbose(`Version: ${appVersion}`);
         });

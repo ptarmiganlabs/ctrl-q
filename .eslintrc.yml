@@ -14,12 +14,12 @@ parserOptions:
     babelOptions:
         plugins:
             - '@babel/plugin-syntax-import-assertions'
-parser: '@babel/eslint-parser'    
+parser: '@babel/eslint-parser'
 rules:
     prettier/prettier: error
     import/no-unresolved: 2
     import/no-commonjs: 2
-    import/extensions: [2, "ignorePackages"]
+    import/extensions: [2, 'ignorePackages']
 plugins:
     - prettier
     - import

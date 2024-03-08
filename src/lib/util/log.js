@@ -36,5 +36,4 @@ export const catchLog = (msgContext, err) => {
     } else {
         logger.error(`${msgContext}: ${err}`);
     }
-}
-
+};

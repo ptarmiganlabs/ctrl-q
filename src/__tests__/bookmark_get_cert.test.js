@@ -127,7 +127,7 @@ describe('get in-app bookmarks (cert auth)', () => {
     /**
      * Get 1 specific bookmark (based on ID) from app, JSON output
      * App has 2 bookmarks
-     * 
+     *
      * --app-id <id>
      * --id-type id
      * --output-format json
@@ -151,7 +151,7 @@ describe('get in-app bookmarks (cert auth)', () => {
     /**
      * Get 2 specific bookmarks (based on ID) from app, JSON output
      * App has 2 bookmarks
-     * 
+     *
      * --app-id <id>
      * --id-type id
      * --output-format json
@@ -176,7 +176,7 @@ describe('get in-app bookmarks (cert auth)', () => {
     /**
      * Get 2 specific bookmarks (based on name) from app, JSON output
      * App has 2 bookmarks
-     * 
+     *
      * --app-id <id>
      * --id-type name
      * --output-format json

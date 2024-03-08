@@ -1,7 +1,6 @@
 import path from 'path';
-import { version as uuidVersion,validate as uuidValidate } from 'uuid';
-import fs from 'fs';
-import { logger, execPath, mergeDirFilePath, verifyFileExists } from '../../globals.js';
+import { version as uuidVersion, validate as uuidValidate } from 'uuid';
+import { logger, execPath, verifyFileExists } from '../../globals.js';
 
 export const sharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
@@ -302,4 +301,4 @@ export const getSessionsAssertOptions = (options) => {
 // eslint-disable-next-line no-unused-vars
 export const deleteSessionsAssertOptions = (options) => {
     //
-}
+};

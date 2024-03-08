@@ -4,7 +4,7 @@ import { logger, execPath } from '../../globals.js';
 import setupQRSConnection from './qrs.js';
 import { catchLog } from './log.js';
 
-const getProxiesFromQseow = async (options, sessionCookie) => {
+const getProxiesFromQseow = async (options, _sessionCookie) => {
     logger.verbose(`Getting all proxies from QSEoW...`);
 
     // Make sure certificates exist

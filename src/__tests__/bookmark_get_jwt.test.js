@@ -58,7 +58,7 @@ describe('get in-app bookmarks (jwt auth)', () => {
         options.idType = 'id';
         options.outputFormat = 'json';
 
-        console.log(options)
+        console.log(options);
         const result = await getBookmark(options);
 
         // Result should be false

@@ -165,7 +165,9 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
                     return h;
                 }
                 logger.error(
-                    `❌ The --host-proxy parameter is set to "${h}". Getting sessions from Sense only work correctly if the correct --host-proxy parameter is used when calling Ctrl-Q.\n\n===> Please use one or more of the following proxy host names: ${proxyHostNames.join(', ')}\n`
+                    `❌ The --host-proxy parameter is set to "${h}". Getting sessions from Sense only work correctly if the correct --host-proxy parameter is used when calling Ctrl-Q.\n\n===> Please use one or more of the following proxy host names: ${proxyHostNames.join(
+                        ', '
+                    )}\n`
                 );
                 return null;
             });

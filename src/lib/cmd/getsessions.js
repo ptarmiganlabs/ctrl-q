@@ -54,6 +54,47 @@ const getSessions = async (options) => {
             return false;
         }
 
+        // Get mapping between proxy host and proxy host name
+        // Reduce to unique mappings
+        const proxyHostNameMap = sessionDataArray.map((vp) => ({ hostProxy: vp.hostProxy, hostProxyName: vp.hostProxyName }));
+        const uniqueProxyHostNameMap = proxyHostNameMap.filter(
+            (vp, index, self) => index === self.findIndex((t) => t.hostProxy === vp.hostProxy)
+        );
+
+        // Expand all session data into a single array of objects to make later sorting and filtering easier
+        const sessionsTabular = [];
+        sessionDataArray.forEach((vp) => {
+            vp.sessions.forEach((s) => {
+                const proxyHostName = uniqueProxyHostNameMap.find((m) => m.hostProxy === vp.hostProxy).hostProxyName;
+                const vpLoadBalancingNodes = vp.virtualproxy.loadBalancingServerNodes
+                    .map((node) => `${node.name}: ${node.hostName}`)
+                    .join('\n');
+
+                // session.Attributes is an array, where each element is an object with a single key-value pair
+                const attributes = s.Attributes.map((a) => {
+                    // Convert object to string on the format "key: value"
+                    const attr = Object.keys(a).map((key) => `${key}: ${a[key]}`)[0];
+
+                    return attr;
+                }).join('\n');
+
+                sessionsTabular.push({
+                    vpDescription: vp.virtualproxy.description,
+                    vpPrefix: vp.virtualproxy.prefix,
+                    vpSessionCookieHeaderName: vp.virtualproxy.sessionCookieHeaderName,
+                    proxyHost: vp.hostProxy,
+                    proxyName: proxyHostName,
+                    proxyFull: `${proxyHostName}:\n${vp.hostProxy}`,
+                    loadBalancingNodes: vpLoadBalancingNodes,
+                    userDir: s.UserDirectory,
+                    userId: s.UserId,
+                    userName: s.UserName === undefined || s.UserName === null ? '' : s.UserName,
+                    attributes,
+                    sessionId: s.SessionId,
+                });
+            });
+        });
+
         // Build table or json, depending on output format
         if (options.outputFormat === 'table') {
             const sessionsTable = [];
@@ -82,13 +123,6 @@ const getSessions = async (options) => {
                 return { host, sessions };
             });
 
-            // Get mapping between proxy host and proxy host name
-            // Reduce to uniqur mappings
-            const proxyHostNameMap = sessionDataArray.map((vp) => ({ hostProxy: vp.hostProxy, hostProxyName: vp.hostProxyName }));
-            const uniqueProxyHostNameMap = proxyHostNameMap.filter(
-                (vp, index, self) => index === self.findIndex((t) => t.hostProxy === vp.hostProxy)
-            );
-
             // Build text for table header
             let headerText = `-- Sessions per virtual proxy and proxy services --\n\nTotal number of sessions: ${totalSessions}\n\n`;
 
@@ -104,40 +138,6 @@ const getSessions = async (options) => {
                 alignment: 'left',
                 content: headerText,
             };
-
-            // Expand all session data into a single array of objects to make later sorting and filtering easier
-            const sessionsTabular = [];
-            sessionDataArray.forEach((vp) => {
-                vp.sessions.forEach((s) => {
-                    const proxyHostName = uniqueProxyHostNameMap.find((m) => m.hostProxy === vp.hostProxy).hostProxyName;
-                    const vpLoadBalancingNodes = vp.virtualproxy.loadBalancingServerNodes
-                        .map((node) => `${node.name}: ${node.hostName}`)
-                        .join('\n');
-
-                    // session.Attributes is an array, where each element is an object with a single key-value pair
-                    const attributes = s.Attributes.map((a) => {
-                        // Convert object to string on the format "key: value"
-                        const attr = Object.keys(a).map((key) => `${key}: ${a[key]}`)[0];
-
-                        return attr;
-                    }).join('\n');
-
-                    sessionsTabular.push({
-                        vpDescription: vp.virtualproxy.description,
-                        vpPrefix: vp.virtualproxy.prefix,
-                        vpSessionCookieHeaderName: vp.virtualproxy.sessionCookieHeaderName,
-                        proxyHost: vp.hostProxy,
-                        proxyName: proxyHostName,
-                        proxyFull: `${proxyHostName}:\n${vp.hostProxy}`,
-                        loadBalancingNodes: vpLoadBalancingNodes,
-                        userDir: s.UserDirectory,
-                        userId: s.UserId,
-                        userName: s.UserName === undefined || s.UserName === null ? '' : s.UserName,
-                        attributes,
-                        sessionId: s.SessionId,
-                    });
-                });
-            });
 
             // Sort the sessionDataArray as specified in the options.sortBy option
             // Possible values are: 'prefix', 'proxyhost', 'proxyname'
@@ -179,8 +179,7 @@ const getSessions = async (options) => {
             // Print table to console
             logger.info(`\n${table(sessionsTable, consoleTableConfig)}`);
         } else {
-            logger.error('Invalid --output-format option');
-            return false;
+            logger.info(`Sessions data in JSON format\n\n${JSON.stringify(sessionsTabular, null, 2)}`);
         }
 
         return sessionDataArray;
