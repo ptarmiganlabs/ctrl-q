@@ -904,7 +904,12 @@ const program = new Command();
         .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         // .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        // .requiredOption('--secure <true|false>', 'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.', true)
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
+
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -933,8 +938,13 @@ const program = new Command();
         )
 
         .requiredOption('--host <host>', 'Qlik Sense host (IP/FQDN) where Qlik Repository Service (QRS) is running')
-        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix to access QRS via', '')
         .option('--qrs-port <port>', 'Qlik Sense repository service (QRS) port (usually 4242)', '4242')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix to access QRS via', '')
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
 
         .option('--session-virtual-proxy <prefix...>', 'one or more Qlik Sense virtual proxies to get sessions for')
         .option(
@@ -943,7 +953,6 @@ const program = new Command();
         )
         .option('--qps-port <port>', 'Qlik Sense proxy service (QPS) port (usually 4243)', '4243')
 
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense repository service is via https', true)
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
@@ -973,9 +982,15 @@ const program = new Command();
         .addOption(
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
+
         .requiredOption('--host <host>', 'Qlik Sense host (IP/FQDN) where Qlik Repository Service (QRS) is running')
-        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix to access QRS via', '')
         .option('--qrs-port <port>', 'Qlik Sense repository service (QRS) port (usually 4242)', '4242')
+        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix to access QRS via', '')
+        .requiredOption(
+            '--secure <true|false>',
+            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
+            true
+        )
 
         .option('--session-id <id...>', 'session IDs to delete')
         .requiredOption('--session-virtual-proxy <prefix>', 'Qlik Sense virtual proxy (prefix) to delete proxy session(s) on', '')
@@ -985,7 +1000,6 @@ const program = new Command();
         )
         .option('--qps-port <port>', 'Qlik Sense proxy service (QPS) port (usually 4243)', '4243')
 
-        .requiredOption('--secure <true|false>', 'connection to Qlik Sense repository service is via https', true)
         .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
         .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
 
