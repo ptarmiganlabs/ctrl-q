@@ -74,24 +74,35 @@ export const setLoggingLevel = (newLevel) => {
     logTransports.find((transport) => transport.name === 'console').level = newLevel;
 };
 
-export const verifyFileExists = async (file) => {
+export const verifyFileExists = async (file, silent = false) => {
     let exists = false;
     try {
         await Fs.stat(file);
         exists = true;
     } catch (err) {
-        if (isPkg) {
-            if (err.message) {
-                logger.error(`Error while checking if file ${file} exists: ${err.message}`);
+        if (!silent) {
+            if (isPkg) {
+                if (err.message) {
+                    // Make message a bit nicer than what's returned from stat()
+                    if (err.message.includes('no such file or directory')) {
+                        logger.error(`File "${file}" does not exist.`);
+                    } else {
+                        logger.error(`Error while checking if file ${file} exists: ${err.message}`);
+                    }
+                } else {
+                    logger.error(`Error while checking if file ${file} exists: ${err}`);
+                }
+            } else if (err.message) {
+                if (err.message.includes('no such file or directory')) {
+                    logger.error(`File "${file}" does not exist.`);
+                } else {
+                    logger.error(`Error while checking if file ${file} exists: ${err.message}`);
+                }
+            } else if (err.stack) {
+                logger.error(`Error while checking if file ${file} exists: ${err.stack}`);
             } else {
                 logger.error(`Error while checking if file ${file} exists: ${err}`);
             }
-        } else if (err.stack) {
-            logger.error(`Error while checking if file ${file} exists: ${err.stack}`);
-        } else if (err.message) {
-            logger.error(`Error while checking if file ${file} exists: ${err.message}`);
-        } else {
-            logger.error(`Error while checking if file ${file} exists: ${err}`);
         }
     }
 

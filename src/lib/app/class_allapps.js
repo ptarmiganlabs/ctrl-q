@@ -1344,7 +1344,8 @@ class QlikSenseApps {
         logger.verbose(`Full path to QVF: ${fileName}`);
 
         // Check if destination QVF file already exists
-        const fileExists = await verifyFileExists(fileName);
+        // 2nd parameter controls whether to log info or not about file's existence
+        const fileExists = await verifyFileExists(fileName, true);
         let fileSkipped = false;
         let writer;
 
