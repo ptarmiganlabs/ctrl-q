@@ -68,11 +68,13 @@ export async function getApps(options, idArray, tagArray) {
             // Make sure certificates exist
             const fileCert = path.resolve(execPath, options.authCertFile);
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             axiosConfig = setupQRSConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: '/qrs/app/full',
                 queryParameters: [{ name: 'filter', value: filter }],
             });
@@ -123,11 +125,13 @@ export async function getAppById(appId, optionsParam) {
             // Make sure certificates exist
             const fileCert = path.resolve(execPath, options.authCertFile);
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             axiosConfig = setupQRSConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: `/qrs/app/${appId}`,
             });
         } else if (options.authType === 'jwt') {
@@ -180,11 +184,13 @@ export async function deleteAppById(appId, options) {
             // Make sure certificates exist
             const fileCert = path.resolve(execPath, options.authCertFile);
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             axiosConfig = setupQRSConnection(options, {
                 method: 'delete',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: `/qrs/app/${appId}`,
             });
         } else if (options.authType === 'jwt') {
@@ -227,11 +233,13 @@ export async function appExistById(appId, options) {
             // Make sure certificates exist
             const fileCert = path.resolve(execPath, options.authCertFile);
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             axiosConfig = setupQRSConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: '/qrs/app',
                 queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${appId}`) }],
             });

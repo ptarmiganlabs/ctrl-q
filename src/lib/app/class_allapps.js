@@ -1,4 +1,4 @@
-import rax from 'retry-axios';
+import * as rax from 'retry-axios';
 import axios from 'axios';
 import path from 'path';
 import FormData from 'form-data';
@@ -31,6 +31,7 @@ class QlikSenseApps {
                 // Make sure certificates exist
                 this.fileCert = path.resolve(execPath, options.authCertFile);
                 this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+                this.fileCertCA = path.resolve(execPath, options.authRootCertFile);
             }
 
             // Map that will connect app counter from Excel file with ID an app gets after import to QSEoW
@@ -113,6 +114,7 @@ class QlikSenseApps {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
+                        fileCertCA: this.fileCertCA,
                         path: '/qrs/app/full',
                     });
                 } else {
@@ -120,6 +122,7 @@ class QlikSenseApps {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
+                        fileCertCA: this.fileCertCA,
                         path: '/qrs/app/full',
                         queryParameters: [{ name: 'filter', value: filter }],
                     });
@@ -555,6 +558,7 @@ class QlikSenseApps {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app/${uploadedAppId}`,
                 });
             } else if (this.options.authType === 'jwt') {
@@ -596,6 +600,7 @@ class QlikSenseApps {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
+                        fileCertCA: this.fileCertCA,
                         path: '/qrs/user',
                         queryParameters: [{ name: 'filter', value: filter }],
                     });
@@ -644,6 +649,7 @@ class QlikSenseApps {
                     method: 'put',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app/${app.id}`,
                     body: app,
                 });
@@ -865,6 +871,7 @@ class QlikSenseApps {
                     method: 'put',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app/${appId}/publish`,
                     queryParameters,
                 });
@@ -910,6 +917,7 @@ class QlikSenseApps {
                     method: 'put',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app/${sourceAppId}/replace`,
                     queryParameters,
                 });
@@ -970,6 +978,7 @@ class QlikSenseApps {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app`,
                     queryParameters: [{ name: 'filter', value: filter }],
                 });
@@ -1016,6 +1025,7 @@ class QlikSenseApps {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app`,
                     queryParameters: [{ name: 'filter', value: filter }],
                 });
@@ -1078,6 +1088,7 @@ class QlikSenseApps {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
+                        fileCertCA: this.fileCertCA,
                         path: `/qrs/stream/${uploadedAppInfo.appPublishToStream}`,
                     });
                 } else if (this.options.authType === 'jwt') {
@@ -1106,6 +1117,7 @@ class QlikSenseApps {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
+                        fileCertCA: this.fileCertCA,
                         path: '/qrs/stream',
                         queryParameters: [{ name: 'filter', value: filter }],
                     });
@@ -1172,6 +1184,7 @@ class QlikSenseApps {
                 method: 'post',
                 fileCert: this.fileCert,
                 fileCertKey: this.fileCertKey,
+                fileCertCA: this.fileCertCA,
                 path: '/qrs/app/upload',
                 body: form,
                 headers: {
@@ -1266,6 +1279,7 @@ class QlikSenseApps {
                     method: 'post',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app/${app.id}/export/${exportToken}`,
                     queryParameters: [{ name: 'skipData', value: excludeData }],
                 });
@@ -1344,7 +1358,8 @@ class QlikSenseApps {
         logger.verbose(`Full path to QVF: ${fileName}`);
 
         // Check if destination QVF file already exists
-        const fileExists = await verifyFileExists(fileName);
+        // 2nd parameter controls whether to log info or not about file's existence
+        const fileExists = await verifyFileExists(fileName, true);
         let fileSkipped = false;
         let writer;
 
@@ -1377,6 +1392,7 @@ class QlikSenseApps {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
+                        fileCertCA: this.fileCertCA,
                         path: urlPath,
                         queryParameters: [{ name: paramName, value: paramValue }],
                     });

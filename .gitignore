@@ -17,6 +17,7 @@ qvfs
 qvfs_1
 qvfs_2
 qvfs_3
+qvfs_tmp
 
 src/node_modules/*
 
@@ -135,4 +136,5 @@ dist
 tasktree.json
 tasktable.csv
 task-chain.csv
+.vscode/launch.json
 .vscode/launch.json

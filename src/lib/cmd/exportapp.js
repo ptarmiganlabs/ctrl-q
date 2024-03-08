@@ -120,7 +120,8 @@ const exportAppToFile = async (options) => {
                 logger.verbose(`Full path to app metadata file: ${fileName}`);
 
                 // Check if app metadata file already exists
-                const fileExists = await verifyFileExists(fileName);
+                // 2nd parameter = true => don't output anything to log
+                const fileExists = await verifyFileExists(fileName, true);
 
                 logger.info('------------------------------------');
 

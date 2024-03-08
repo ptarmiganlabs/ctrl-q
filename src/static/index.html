@@ -1,10 +1,7 @@
 <html>
     <head>
         <title>Ctrl-Q</title>
-        <script
-            type="text/javascript"
-            src="http://{{visTaskHost}}:{{visTaskPort}}/vis-network.min.js"
-        ></script>
+        <script type="text/javascript" src="http://{{visTaskHost}}:{{visTaskPort}}/vis-network.min.js"></script>
         <style type="text/css">
             #header {
                 display: flex;
@@ -206,21 +203,20 @@
                 top: 100px
                 width: 450px;
             }
-            
+
             .dot {
                 height: 20px;
                 width: 42px;
                 border-radius: 50%;
                 display: inline-block;
             }
-
         </style>
     </head>
     <body>
         <div id="header">
             <div id="logo">
                 <a href="https://ctrl-q.ptarmiganlabs.com" target="_blank">
-                    <img src="http://{{visTaskHost}}:{{visTaskPort}}/ctrl-q_2.png" alt="Ctrl-Q logo" height="75px">
+                    <img src="http://{{visTaskHost}}:{{visTaskPort}}/ctrl-q_2.png" alt="Ctrl-Q logo" height="75px" />
                 </a>
             </div>
             <div id="info">
@@ -228,7 +224,7 @@
                 <div><span id="reloadTasksCount">Reload tasks: {{reloadTaskCount}}</span></div>
                 <div><span id="externalProgramTasksCount">External program tasks: {{externalProgramTaskCount}}</span></div>
                 <div><span id="schemaTriggerCount">Schema triggers: {{schemaTriggerCount}}</span></div>
-                <div><span id="compositeTriggerCount">Composite triggers: {{compositeTaskCount}}</span></div>            
+                <div><span id="compositeTriggerCount">Composite triggers: {{compositeTaskCount}}</span></div>
             </div>
             <div id="customize">
                 <button id="refreshNetwork">Refresh</button>
@@ -258,14 +254,28 @@
             </div>
         </div>
 
-        <div id="nodeLegend" style="position: absolute; top: 10px; right: 10px; background: white; padding: 10px; border: 1px solid black; z-index: 1000; cursor: move; width: 250px; top: 100px">
+        <div
+            id="nodeLegend"
+            style="
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: white;
+                padding: 10px;
+                border: 1px solid black;
+                z-index: 1000;
+                cursor: move;
+                width: 250px;
+                top: 100px;
+            "
+        >
             <div id="legendTitle" style="background-color: #ddd; padding: 3px; left: 10px; cursor: move; width: 245px">
                 <h3>Node Legend</h3>
             </div>
-            <p><span class="dot"  style="background-color: green;"></span> Successful task</p>
-            <p><span class="dot"  style="background-color: red;"></span> Failed task</p>
-            <p><span class="dot"  style="background-color: rgb(80, 114, 225);"></span> Never executed task</p>
-            <p><span class="dot"  style="background-color: lightgray;"></span> Disabled</p>
+            <p><span class="dot" style="background-color: green"></span> Successful task</p>
+            <p><span class="dot" style="background-color: red"></span> Failed task</p>
+            <p><span class="dot" style="background-color: rgb(80, 114, 225)"></span> Never executed task</p>
+            <p><span class="dot" style="background-color: lightgray"></span> Disabled</p>
             <!-- Add more node types as needed -->
             <!-- <hr>
             Rectangle: Reload task<br>
@@ -274,9 +284,11 @@
             <hr> -->
             <!-- Add about info -->
             <p>Ctrl-Q {{appVersion}}</p>
-            <p>More info at <a target="_blank" href="https://ctrl-q.ptarmiganlabs.com">ctrl-q.ptarmiganlabs.com</a><br>
-            Report bugs <a target="_blank" href="https://github.com/ptarmiganlabs/ctrl-q/issues/new/choose">here</a><br>
-            Share ideas <a target="_blank" href="https://github.com/ptarmiganlabs/ctrl-q/discussions/categories/ideas">here</a></p>
+            <p>
+                More info at <a target="_blank" href="https://ctrl-q.ptarmiganlabs.com">ctrl-q.ptarmiganlabs.com</a><br />
+                Report bugs <a target="_blank" href="https://github.com/ptarmiganlabs/ctrl-q/issues/new/choose">here</a><br />
+                Share ideas <a target="_blank" href="https://github.com/ptarmiganlabs/ctrl-q/discussions/categories/ideas">here</a>
+            </p>
         </div>
 
         <script type="text/javascript">
@@ -401,13 +413,13 @@
                 if (network != null) {
                     network.destroy();
                     network = null;
-                }                
+                }
                 var nodes = new vis.DataSet([]);
                 nodes.add(setTitles({{nodes}}));
-        
+
                 var edges = new vis.DataSet([]);
                 edges.add({{edges}});
-        
+
                 // create a network
                 var container = document.getElementById("network");
                 var data = {
@@ -469,7 +481,6 @@
             window.addEventListener("load", () => {
                 draw();
             });
-
         </script>
     </body>
 </html>

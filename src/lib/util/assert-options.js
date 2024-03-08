@@ -1,8 +1,6 @@
 import path from 'path';
-import { version as uuidVersion } from 'uuid';
-import { validate as uuidValidate } from 'uuid';
-import fs from 'fs';
-import { logger, execPath, mergeDirFilePath, verifyFileExists } from '../../globals.js';
+import { version as uuidVersion, validate as uuidValidate } from 'uuid';
+import { logger, execPath, verifyFileExists } from '../../globals.js';
 
 export const sharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
@@ -293,4 +291,14 @@ export const variableDeleteAssertOptions = (options) => {
         logger.error('Invalid combination of options.\nUse either --delete-all or both of --id-type and --variable.');
         process.exit(1);
     }
+};
+
+// eslint-disable-next-line no-unused-vars
+export const getSessionsAssertOptions = (options) => {
+    //
+};
+
+// eslint-disable-next-line no-unused-vars
+export const deleteSessionsAssertOptions = (options) => {
+    //
 };

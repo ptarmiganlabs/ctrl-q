@@ -29,7 +29,7 @@ export function getUserActivityAnalyzer(qrsInteractInstance) {
     });
 }
 
-export  getUserActivityAnalyzerTime(qrsInteractInstance) {
+export function getUserActivityAnalyzerTime(qrsInteractInstance) {
     // eslint-disable-next-line no-unused-vars, no-async-promise-executor
     return new Promise(async (resolve, _reject) => {
         let result;

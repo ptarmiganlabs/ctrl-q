@@ -21,6 +21,8 @@ export async function taskExistById(taskId, optionsParam) {
             options = optionsParam;
         }
 
+        logger.debug(`Auth type: ${options.authType}`);
+
         // Is the task ID a valid GUID?
         if (!validate(taskId)) {
             logger.error(`TASK EXIST BY ID: Task ID ${taskId} is not a valid GUID.`);
@@ -34,12 +36,14 @@ export async function taskExistById(taskId, optionsParam) {
             // Make sure certificates exist
             const fileCert = path.resolve(execPath, options.authCertFile);
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             // const filter = encodeURI(`name eq '👍😎 updateSheetThumbnail'`);
             axiosConfig = setupQRSConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: '/qrs/task',
                 queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
             });
@@ -102,11 +106,13 @@ export async function getTaskByName(taskName, optionsParam) {
             // Make sure certificates exist
             const fileCert = path.resolve(execPath, options.authCertFile);
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             axiosConfig = setupQRSConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: '/qrs/task/full',
                 queryParameters: [{ name: 'filter', value: encodeURI(`name eq '${taskName}'`) }],
             });
@@ -172,11 +178,13 @@ export async function getTaskById(taskId, optionsParam) {
             // Make sure certificates exist
             const fileCert = path.resolve(execPath, options.authCertFile);
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             axiosConfig = setupQRSConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: `/qrs/task/full`,
                 queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
             });
@@ -245,6 +253,7 @@ export async function deleteReloadTaskById(taskId, optionsParam) {
             // Expand cert file paths
             const fileCert = path.resolve(execPath, options.authCertFile);
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             // Make sure certificate files exist on disk
             if (!fs.existsSync(fileCert)) {
@@ -261,6 +270,7 @@ export async function deleteReloadTaskById(taskId, optionsParam) {
                 method: 'delete',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: `/qrs/reloadtask/${taskId}`,
             });
         } else if (optionsParam.authType === 'jwt') {
@@ -315,6 +325,7 @@ export async function deleteExternalProgramTaskById(taskId, optionsParam) {
             // Expand cert file paths
             const fileCert = path.resolve(execPath, options.authCertFile);
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             // Make sure certificate files exist on disk
             if (!fs.existsSync(fileCert)) {
@@ -331,6 +342,7 @@ export async function deleteExternalProgramTaskById(taskId, optionsParam) {
                 method: 'delete',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: `/qrs/externalprogramtask/${taskId}`,
             });
         } else if (optionsParam.authType === 'jwt') {

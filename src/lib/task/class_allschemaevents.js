@@ -20,6 +20,7 @@ class QlikSenseSchemaEvents {
                 // Make sure certificates exist
                 this.fileCert = path.resolve(execPath, options.authCertFile);
                 this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+                this.fileCertCA = path.resolve(execPath, options.authRootCertFile);
             }
         } catch (err) {
             catchLog(`GET SCHEMA EVENT INIT`, err);
@@ -62,6 +63,7 @@ class QlikSenseSchemaEvents {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
+                    fileCertCA: this.fileCertCA,
                     path: '/qrs/schemaevent/full',
                 });
 

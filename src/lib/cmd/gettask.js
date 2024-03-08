@@ -257,7 +257,7 @@ const getTask = async (options) => {
                 }
 
                 // Check if file exists
-                if ((await verifyFileExists(options.outputFileName)) === false) {
+                if ((await verifyFileExists(options.outputFileName, true)) === false) {
                     // File doesn't exist
                 } else if (!options.outputFileOverwrite) {
                     // Target file exist. Ask if user wants to overwrite
@@ -746,7 +746,7 @@ const getTask = async (options) => {
                 }
 
                 // Check if file exists
-                if ((await verifyFileExists(options.outputFileName)) === false) {
+                if ((await verifyFileExists(options.outputFileName, true)) === false) {
                     // File doesn't exist
                 } else if (!options.outputFileOverwrite) {
                     // Target file exist. Ask if user wants to overwrite

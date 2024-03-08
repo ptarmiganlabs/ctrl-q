@@ -14,11 +14,13 @@ export function getTagsFromQseow(options) {
             // Make sure certificates exist
             const fileCert = path.resolve(execPath, options.authCertFile);
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             axiosConfig = setupQRSConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
+                fileCertCA,
                 path: '/qrs/tag/full',
             });
         } else if (options.authType === 'jwt') {

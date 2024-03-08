@@ -8,6 +8,7 @@ const options = {
     authType: process.env.CTRL_Q_AUTH_TYPE || 'cert',
     authCertFile: process.env.CTRL_Q_AUTH_CERT_FILE || './cert/client.pem',
     authCertKeyFile: process.env.CTRL_Q_AUTH_CERT_KEY_FILE || './cert/client_key.pem',
+    authRootCertFile: process.env.CTRL_Q_AUTH_ROOT_CERT_FILE || './cert/root.pem',
     host: process.env.CTRL_Q_HOST || '',
     port: process.env.CTRL_Q_PORT || '4747',
     schemaVersion: process.env.CTRL_Q_SCHEMA_VERSION || '12.612.0',
@@ -37,6 +38,7 @@ options.virtualProxy = 'jwt';
 test('get bookmark (verify parameters)', async () => {
     expect(options.authCertFile).not.toHaveLength(0);
     expect(options.authCertKeyFile).not.toHaveLength(0);
+    expect(options.authRootCertFile).not.toHaveLength(0);
     expect(options.host).not.toHaveLength(0);
     expect(options.authUserDir).not.toHaveLength(0);
     expect(options.authUserId).not.toHaveLength(0);
@@ -58,7 +60,7 @@ describe('get in-app bookmarks (jwt auth)', () => {
         options.idType = 'id';
         options.outputFormat = 'json';
 
-        console.log(options)
+        console.log(options);
         const result = await getBookmark(options);
 
         // Result should be false
