@@ -53,6 +53,8 @@ const getVariable = async (options) => {
         // Get IDs of all apps that should be processed
         const apps = await getApps(options, options.appId, options.appTag);
 
+        logger.info(`Found ${apps.length} apps to process`);
+
         // Session ID to use when connecting to the Qlik Sense server
         const sessionId = 'ctrlq';
 
@@ -75,7 +77,7 @@ const getVariable = async (options) => {
         try {
             global = await session.open();
         } catch (err) {
-            catchLog(`Error opening session to server ${options.host}`, err);
+            catchLog(`Error opening session (1) to server ${options.host}`, err);
             process.exit(1);
         }
 
@@ -92,6 +94,25 @@ const getVariable = async (options) => {
         let subsetVariables = [];
 
         for (const app of apps) {
+            logger.info(`Getting variables from app ${app.id}, "${app.name}"`);
+
+            // Do we already have a session, or do we need to open a new one?
+            if (session.globalPromise === undefined) {
+                // Create new session to Sense engine
+                try {
+                    session = await enigma.create(configEnigma);
+                    logger.verbose(`Created new session to server ${options.host}.`);
+
+                    global = await session.open();
+                    logger.verbose(`Opened new session to server ${options.host}.`);
+
+                    engineVersion = await global.engineVersion();
+                } catch (err) {
+                    catchLog(`Error opening session (2) to server ${options.host}`, err);
+                    process.exit(1);
+                }
+            }
+
             // Open app without data
             const doc = await global.openDoc(app.id, '', '', '', true);
             logger.verbose(`Opened app ${app.id}, "${app.name}".`);
@@ -127,7 +148,8 @@ const getVariable = async (options) => {
             allVariables = allVariables.concat({ appId: app.id, appName: app.name, variables: appVariablesLayout.qVariableList.qItems });
 
             // Close app session
-            // doc.session.close();
+            // await doc.session.close();
+            await session.close();
         }
 
         if (options.variable === undefined) {
@@ -242,10 +264,12 @@ const getVariable = async (options) => {
             logger.error('Undefined --output-format option');
         }
 
-        if ((await session.close()) === true) {
-            logger.verbose(`Closed session after getting master item measures in app ${options.appId} on host ${options.host}`);
-        } else {
-            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+        if (session.globalPromise !== undefined) {
+            if ((await session.close()) === true) {
+                logger.verbose(`Closed session after getting app variables.`);
+            } else {
+                logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+            }
         }
     } catch (err) {
         catchLog(`Error in getVariable`, err);
