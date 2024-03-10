@@ -82,9 +82,18 @@ const getVariable = async (options) => {
         }
 
         let engineVersion;
+        let productVersion;
+        let qTProduct;
+        let qvVersion;
         try {
             engineVersion = await global.engineVersion();
             logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
+
+            productVersion = await global.productVersion();
+            logger.verbose(`Server ${options.host} has product version ${productVersion}.`);
+
+            qTProduct = await global.qTProduct();
+            logger.verbose(`Server ${options.host} product name: ${qTProduct}.`);
         } catch (err) {
             catchLog(`Error getting engine version from server ${options.host}`, err);
             process.exit(1);
