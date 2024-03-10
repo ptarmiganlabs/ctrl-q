@@ -46,6 +46,17 @@ import {
 
 const program = new Command();
 
+// Set the name of the program (to be used in help text)
+program.name('ctrl-q');
+
+// Set help text to be shown after errors
+program.showHelpAfterError('(add --help for additional information about required and optional parameters)');
+
+// Help text configuration
+program.configureHelp({
+    sortSubcommands: true,
+});
+
 /**
  * Top level async function.
  * Workaround to deal with the fact that Node.js doesn't currently support top level async functions...
