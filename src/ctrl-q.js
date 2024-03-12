@@ -936,7 +936,7 @@ program.configureHelp({
 
     // Get proxy sessions
     program
-        .command('sessions-get')
+        .command('session-get')
         .description('get info about proxy sessions on one or more virtual proxies')
         .action(async (options) => {
             await sharedParamAssertOptions(options);
@@ -982,7 +982,7 @@ program.configureHelp({
 
     // Delete proxy sessions
     program
-        .command('sessions-delete')
+        .command('session-delete')
         .description('delete proxy session(s) on a specific virtual proxy and proxy service')
         .action(async (options) => {
             await sharedParamAssertOptions(options);
