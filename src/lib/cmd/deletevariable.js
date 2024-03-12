@@ -60,10 +60,27 @@ const deleteVariable = async (options) => {
 
         for (const app of apps) {
             logger.info('------------------------');
-            logger.info(`Deleting variables in app ${app.id} "${app.name}"`);
+            logger.info(`Deleting variables in app ${app.id}, "${app.name}"`);
+
+            // Do we already have a session, or do we need to open a new one?
+            if (session.globalPromise === undefined) {
+                // Create new session to Sense engine
+                try {
+                    session = await enigma.create(configEnigma);
+                    logger.verbose(`Created new session to server ${options.host}.`);
+
+                    global = await session.open();
+                    logger.verbose(`Opened new session to server ${options.host}.`);
+
+                    engineVersion = await global.engineVersion();
+                } catch (err) {
+                    catchLog(`Error opening session (2) to server ${options.host}`, err);
+                    process.exit(1);
+                }
+            }
 
             const doc = await global.openDoc(app.id, '', '', '', true);
-            logger.verbose(`Opened app ${app.id} "${app.name}".`);
+            logger.verbose(`Opened app ${app.id}, "${app.name}".`);
 
             // Get variables from app
             // https://help.qlik.com/en-US/sense-developer/May2021/APIs/EngineAPI/services-Doc-GetVariables.html
@@ -151,13 +168,18 @@ const deleteVariable = async (options) => {
                         logger.warn(`Variable "${variableIdentifier}" does not exist in app ${app.id} "${app.name}"`);
                     }
                 }
+
+                // Close app session
+                await session.close();
             }
         }
 
-        if ((await session.close()) === true) {
-            logger.verbose(`Closed session after getting master item measures in app ${options.appId} on host ${options.host}`);
-        } else {
-            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+        if (session.globalPromise !== undefined) {
+            if ((await session.close()) === true) {
+                logger.verbose(`Closed session after deleting app variables`);
+            } else {
+                logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+            }
         }
     } catch (err) {
         catchLog('Error in deleteVariable', err);
