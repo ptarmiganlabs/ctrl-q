@@ -84,7 +84,6 @@ const getVariable = async (options) => {
         let engineVersion;
         let productVersion;
         let qTProduct;
-        let qvVersion;
         try {
             engineVersion = await global.engineVersion();
             logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
@@ -157,7 +156,6 @@ const getVariable = async (options) => {
             allVariables = allVariables.concat({ appId: app.id, appName: app.name, variables: appVariablesLayout.qVariableList.qItems });
 
             // Close app session
-            // await doc.session.close();
             await session.close();
         }
 
