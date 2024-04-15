@@ -40,7 +40,7 @@
         "fs-extra": "^11.2.0",
         "handlebars": "^4.7.8",
         "luxon": "^3.4.4",
-        "node-xlsx": "^0.23.0",
+        "node-xlsx": "^0.24.0",
         "qrs-interact": "^6.3.1",
         "random-words": "^2.0.1",
         "retry-axios": "^3.1.3",
