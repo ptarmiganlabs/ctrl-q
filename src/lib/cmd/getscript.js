@@ -65,7 +65,8 @@ const getScript = async (options) => {
             logger.info(`Created date: ${appScript.qMeta.createdDate}`);
             logger.info(`Modified date: ${appScript.qMeta.modifiedDate}`);
             logger.info('----- End script metadata -----');
-            logger.info(`\n${appScript.qScript}`);
+            // eslint-disable-next-line no-console
+            console.log(`${appScript.qScript}`);
         } else {
             logger.error(`Failed getting script for app ${options.appId}`);
         }

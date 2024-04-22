@@ -893,39 +893,39 @@
             // ------------------------------------
             //   Delete sessions
             // ------------------------------------
-            "args": [
-                "session-delete",
-                "--host",
-                // "192.168.100.109",
-                // "192.168.100.110",
-                "pro2-win1.lab.ptarmiganlabs.net",
-                // "pro2-win2.lab.ptarmiganlabs.net",
-                // "--qrs-port",
-                // "4242",
-                // "--qps-port",
-                // "4243",
-                "--virtual-proxy",
-                "finance",
-                // "",
+            // "args": [
+            //     "session-delete",
+            //     "--host",
+            //     // "192.168.100.109",
+            //     // "192.168.100.110",
+            //     "pro2-win1.lab.ptarmiganlabs.net",
+            //     // "pro2-win2.lab.ptarmiganlabs.net",
+            //     // "--qrs-port",
+            //     // "4242",
+            //     // "--qps-port",
+            //     // "4243",
+            //     "--virtual-proxy",
+            //     "finance",
+            //     // "",
 
-                "--host-proxy",
-                "pro2-win1.lab.ptarmiganlabs.net",
-                // "pro2-win2.lab.ptarmiganlabs.net",
+            //     "--host-proxy",
+            //     "pro2-win1.lab.ptarmiganlabs.net",
+            //     // "pro2-win2.lab.ptarmiganlabs.net",
 
-                // "--session-id",
-                // "d6e457ca-37c9-4f80-91c2-c63d919c97f9",
-                // "d6e457ca-37c9-4f80-91c2-c63d919c97f8",
-                // "41904757-d2f5-4f6b-bfd6-3c0e125d3e1c",
+            //     // "--session-id",
+            //     // "d6e457ca-37c9-4f80-91c2-c63d919c97f9",
+            //     // "d6e457ca-37c9-4f80-91c2-c63d919c97f8",
+            //     // "41904757-d2f5-4f6b-bfd6-3c0e125d3e1c",
 
-                //"--session-virtual-proxy",
-                // "",
-                //"finance",
+            //     //"--session-virtual-proxy",
+            //     // "",
+            //     //"finance",
 
-                "--auth-user-dir",
-                "LAB",
-                "--auth-user-id",
-                "goran"
-            ]
+            //     "--auth-user-dir",
+            //     "LAB",
+            //     "--auth-user-id",
+            //     "goran"
+            // ]
 
             // ------------------------------------
             //   Get measure by id
@@ -1053,33 +1053,36 @@
             // ------------------------------------
             // Get script
             // ------------------------------------
-            // "args": [
-            //   "script-get",
-            //   "--host",
-            //   "192.168.100.109",
+            "args": [
+              "script-get",
+              "--host",
+              "192.168.100.109",
+            //   "pro2-win1.lab.ptarmiganlabs.net",
 
             //   "--port",
-            //   // "4747",
+            //   "4747",
             //   "443",
 
             //   "--virtual-proxy",
             //   "jwt",
+
             //   "--auth-type",
             //   "jwt",
+            //   "cert",
             //   "--auth-jwt",
             //   "<jwt>",
 
-            //   "--app-id",
-            //   "deba4bcf-47e4-472e-97b2-4fe8d6498e11",
+              "--app-id",
+              "deba4bcf-47e4-472e-97b2-4fe8d6498e11",
 
-            //   "--auth-user-dir",
-            //   "LAB",
-            //   "--auth-user-id",
-            //   "goran",
+              "--auth-user-dir",
+              "LAB",
+              "--auth-user-id",
+              "goran",
 
-            //   "--log-level",
-            //   "info"
-            // ]
+              "--log-level",
+              "info"
+            ]
 
             // ------------------------------------
             // Connection test
