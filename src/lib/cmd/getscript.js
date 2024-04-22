@@ -53,7 +53,12 @@ const getScript = async (options) => {
             process.exit(1);
         }
 
-        const app = await global.openDoc(options.appId, '', '', '', false);
+        // Get open-app-without-data option from command line
+        // Convert string to boolean
+        const openWithoutData = options.openWithoutData === 'true';
+        logger.verbose(`Open app without data: ${openWithoutData}`);
+
+        const app = await global.openDoc(options.appId, '', '', '', openWithoutData);
         logger.verbose(`Opened app ${options.appId}.`);
 
         // Get app script
