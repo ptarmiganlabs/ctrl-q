@@ -53,7 +53,12 @@ const getScript = async (options) => {
             process.exit(1);
         }
 
-        const app = await global.openDoc(options.appId, '', '', '', false);
+        // Get open-app-without-data option from command line
+        // Convert string to boolean
+        const openWithoutData = options.openWithoutData === 'true';
+        logger.verbose(`Open app without data: ${openWithoutData}`);
+
+        const app = await global.openDoc(options.appId, '', '', '', openWithoutData);
         logger.verbose(`Opened app ${options.appId}.`);
 
         // Get app script
@@ -65,7 +70,8 @@ const getScript = async (options) => {
             logger.info(`Created date: ${appScript.qMeta.createdDate}`);
             logger.info(`Modified date: ${appScript.qMeta.modifiedDate}`);
             logger.info('----- End script metadata -----');
-            logger.info(`\n${appScript.qScript}`);
+            // eslint-disable-next-line no-console
+            console.log(`${appScript.qScript}`);
         } else {
             logger.error(`Failed getting script for app ${options.appId}`);
         }

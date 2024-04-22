@@ -121,7 +121,6 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
         }
     } catch (err) {
         catchLog('GET VIRTUAL PROXIES FROM QSEoW', err);
-        // resolve(false);
         return false;
     }
 

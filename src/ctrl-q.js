@@ -509,6 +509,7 @@ program.configureHelp({
         .option('--port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
+        .addOption(new Option('--open-without-data <true|false>', 'open app without data').choices(['true', 'false']).default('true'))
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
         .requiredOption(
             '--secure <true|false>',
