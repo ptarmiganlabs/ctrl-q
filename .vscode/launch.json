@@ -701,56 +701,58 @@
             //   Get variables
             // ------------------------------------
             // "args": [
-            //   "variable-get",
-            //   "--host",
-            //   "192.168.100.109",
+            //     "variable-get",
+            //     "--host",
+            //     //   "192.168.100.109",
+            //     "pro2-win1.lab.ptarmiganlabs.net",
 
-            //   "--qrs-port",
-            //   // "4242",
-            //   "443",
+            //     //   "--qrs-port",
+            //     //   "4242",
+            //     //   "443",
 
-            //   "--engine-port",
-            //   // "4747",
-            //   "443",
+            //     //   "--engine-port",
+            //     //   // "4747",
+            //     //   "443",
 
-            //   "--virtual-proxy",
-            //   "jwt",
-            //   "--auth-type",
-            //   "jwt",
-            //   "--auth-jwt",
-            //   "<jwt>",
+            //     //   "--virtual-proxy",
+            //     //   "jwt",
+            //     "--auth-type",
+            //     //   "jwt",
+            //     "cert",
+            //     //   "--auth-jwt",
+            //     //   "<jwt>",
 
-            //   "--app-id",
-            //   // "a3e0f5d2-000a-464f-998d-33d333b175d7",
-            //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
-            //   // "--app-tag",
-            //   // "Ctrl-Q variable 1",
-            //   // "Ctrl-Q variable 2",
+            //     "--app-id",
+            //     "a3e0f5d2-000a-464f-998d-33d333b175d7",
+            //     //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
+            //     "--app-tag",
+            //     "Ctrl-Q variable 1",
+            //     "Ctrl-Q variable 2",
 
-            //   "--auth-user-dir",
-            //   "LAB",
-            //   "--auth-user-id",
-            //   "goran",
+            //     "--auth-user-dir",
+            //     "LAB",
+            //     "--auth-user-id",
+            //     "goran",
 
-            //   // "--id-type",
-            //   // "id",
-            //   // "--variable",
-            //   // "cd5eb1a8-bd19-42f6-8d58-55905297572b",
-            //   // "3773a685-d3ce-453f-9e7a-d88514207dbe",
-            //   // "548828d1-4e83-4e57-a0ed-b94119fc46ad",
-            //   // "--id-type",
-            //   // "name",
-            //   // "--variable",
-            //   // // "Ctrl-Q variable 1",
-            //   // // "TimestampFormat",
-            //   // // "var1",
-            //   // "vVar1",
+            //     // "--id-type",
+            //     // "id",
+            //     // "--variable",
+            //     // "cd5eb1a8-bd19-42f6-8d58-55905297572b",
+            //     // "3773a685-d3ce-453f-9e7a-d88514207dbe",
+            //     // "548828d1-4e83-4e57-a0ed-b94119fc46ad",
+            //     // "--id-type",
+            //     // "name",
+            //     "--variable",
+            //     "Ctrl-Q variable 1",
+            //     "TimestampFormat",
+            //     "var1",
+            //     "vVar1",
 
-            //   "--output-format",
-            //   "table",
+            //     "--output-format",
+            //     "table"
 
-            //   // "--log-level",
-            //   // "info"
+            //     // "--log-level",
+            //     // "info"
             // ]
 
             // ------------------------------------
@@ -849,50 +851,8 @@
             // ------------------------------------
             //   Get sessions
             // ------------------------------------
-            "args": [
-                "sessions-get",
-                "--host",
-                // "192.168.100.109",
-                "192.168.100.110",
-                // "pro2-win1.lab.ptarmiganlabs.net",
-                // "pro2-win2.lab.ptarmiganlabs.net",
-                // "--qrs-port",
-                // "4242",
-                // "--qps-port",
-                // "4243",
-                // "--virtual-proxy",
-                // "jwt",
-                // "",
-
-                "--auth-user-dir",
-                "LAB",
-                "--auth-user-id",
-                "goran",
-
-                // "--host-proxy",
-                // "pro2-win1.lab.ptarmiganlabs.net",
-                // "pro2-win2.lab.ptarmiganlabs.net",
-
-                // "--session-virtual-proxy",
-                // "dev1",
-                // "finance",
-                // "",
-
-                "--output-format",
-                // "table",
-                "json",
-
-                "--sort-by",
-                "prefix"
-                // "proxyhost",
-                // "proxyname",
-            ]
-
-            // ------------------------------------
-            //   Delete sessions
-            // ------------------------------------
             // "args": [
-            //     "sessions-delete",
+            //     "session-get",
             //     "--host",
             //     // "192.168.100.109",
             //     "192.168.100.110",
@@ -903,27 +863,69 @@
             //     // "--qps-port",
             //     // "4243",
             //     // "--virtual-proxy",
-            //     // // "finance",
+            //     // "jwt",
             //     // "",
-
-            //     "--host-proxy",
-            //     "pro2-win1.lab.ptarmiganlabs.net",
-            //     // "pro2-win2.lab.ptarmiganlabs.net",
-
-            //     // "--session-id",
-            //     // "d6e457ca-37c9-4f80-91c2-c63d919c97f9",
-            //     // "d6e457ca-37c9-4f80-91c2-c63d919c97f8",
-            //     // "41904757-d2f5-4f6b-bfd6-3c0e125d3e1c",
-
-            //     "--session-virtual-proxy",
-            //     // "",
-            //     "finance",
 
             //     "--auth-user-dir",
             //     "LAB",
             //     "--auth-user-id",
-            //     "goran"
+            //     "goran",
+
+            //     // "--host-proxy",
+            //     // "pro2-win1.lab.ptarmiganlabs.net",
+            //     // "pro2-win2.lab.ptarmiganlabs.net",
+
+            //     // "--session-virtual-proxy",
+            //     // "dev1",
+            //     // "finance",
+            //     // "",
+
+            //     "--output-format",
+            //     // "table",
+            //     "json",
+
+            //     "--sort-by",
+            //     "prefix"
+            //     // "proxyhost",
+            //     // "proxyname",
             // ]
+
+            // ------------------------------------
+            //   Delete sessions
+            // ------------------------------------
+            "args": [
+                "session-delete",
+                "--host",
+                // "192.168.100.109",
+                // "192.168.100.110",
+                "pro2-win1.lab.ptarmiganlabs.net",
+                // "pro2-win2.lab.ptarmiganlabs.net",
+                // "--qrs-port",
+                // "4242",
+                // "--qps-port",
+                // "4243",
+                "--virtual-proxy",
+                "finance",
+                // "",
+
+                "--host-proxy",
+                "pro2-win1.lab.ptarmiganlabs.net",
+                // "pro2-win2.lab.ptarmiganlabs.net",
+
+                // "--session-id",
+                // "d6e457ca-37c9-4f80-91c2-c63d919c97f9",
+                // "d6e457ca-37c9-4f80-91c2-c63d919c97f8",
+                // "41904757-d2f5-4f6b-bfd6-3c0e125d3e1c",
+
+                //"--session-virtual-proxy",
+                // "",
+                //"finance",
+
+                "--auth-user-dir",
+                "LAB",
+                "--auth-user-id",
+                "goran"
+            ]
 
             // ------------------------------------
             //   Get measure by id
@@ -1085,23 +1087,26 @@
             // "args": [
             //   "connection-test",
             //   "--host",
-            //   "192.168.100.109",
-            //   "--port",
-            //   "443",
+            // //   "192.168.100.109",
+            //   "pro2-win1.lab.ptarmiganlabs.net",
+            // //   "--port",
+            // //   "443",
 
-            //   "--virtual-proxy",
-            //   "/jwt",
+            // //   "--virtual-proxy",
+            // //   "/jwt",
 
             //   "--auth-type",
-            //   "jwt",
-            //     // "cert",
+            // //   "jwt",
+            //     "cert",
             //   //   "--host",
             //   //   "192.168.100.109",
-            //   //   "--auth-cert-file",
-            //   //   "./cert/client.pem",
-            //   //   "--auth-cert-key-file",
-            //   //   "./cert/client_key.pem",
-            //   // "--auth-jwt",
+            //     "--auth-cert-file",
+            //     "./cert/client.pem",
+            //     "--auth-cert-key-file",
+            //     "./cert/client_key.pem",
+            //     "--auth-root-cert-file",
+            //     "./cert/root.pem",
+            // //   "--auth-jwt",
             //   // "....",
 
             //   "--auth-user-dir",
@@ -1117,41 +1122,42 @@
             // Network chart visualization
             // ------------------------------------
             // "args": [
-            //   "task-vis",
-            //   "--host",
-            //   "192.168.100.109",
-            //   // "--port",
-            //   // "443",
+            //     "task-vis",
+            //     "--host",
+            //     "192.168.100.109",
+            //     // "--port",
+            //     // "443",
 
-            //   "--vis-host",
-            //   "192.168.100.143",
-            //   "--vis-port",
-            //   "3000",
+            //     "--vis-host",
+            //     "192.168.100.143",
+            //     "--vis-port",
+            //     "3000",
 
-            //   // "--virtual-proxy",
-            //   // "/jwt",
+            //     // "--virtual-proxy",
+            //     // "/jwt",
 
-            //   "--auth-type",
-            //   // "jwt",
-            //   "cert",
-            //   //   "--host",
-            //   //   "192.168.100.109",
-            //   "--auth-cert-file",
-            //   "../../code/secret/pro2win1-nopwd/client.pem",
-            //   "--auth-cert-key-file",
-            //   "../../code/secret/pro2win1-nopwd/client_key.pem",
-            //   // "./cert/client.pem",
-            //   // "./cert/client_key.pem",
-            //   // "--auth-jwt",
-            //   // "....",
+            //     "--auth-type",
+            //     // "jwt",
+            //     "cert",
+            //     //   "--host",
+            //     //   "192.168.100.109",
+            //     //   "--auth-cert-file",
+            //     //   "../../code/secret/pro2win1-nopwd/client.pem",
+            //     //   "--auth-cert-key-file",
+            //     //   "../../code/secret/pro2win1-nopwd/client_key.pem",
+            //     // "./cert/client.pem",
+            //     // "./cert/client_key.pem",
+            //     // "--auth-jwt",
+            //     // "....",
 
-            //   "--auth-user-dir",
-            //   "LAB",
-            //   "--auth-user-id",
-            //   "goran",
+            //     "--auth-user-dir",
+            //     "LAB",
+            //     "--auth-user-id",
+            //     "goran",
 
-            //   "--log-level",
-            //   "verbose"
+            //     "--log-level",
+            //     "info"
+            //     //   "verbose"
             // ]
         }
     ]

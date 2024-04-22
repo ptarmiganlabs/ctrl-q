@@ -32,7 +32,7 @@ const getProxiesFromQseow = async (options, _sessionCookie) => {
             logger.info(`Successfully retrieved ${response.length} proxies from host ${options.host}`);
         }
     } catch (err) {
-        catchLog('GET VIRTUAL PROXIES FROM QSEoW', err);
+        catchLog('GET PROXIES FROM QSEoW', err);
         return false;
     }
 
