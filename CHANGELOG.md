@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.17.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.16.0...ctrl-q-v3.17.0) (2024-04-22)
+
+
+### Features
+
+* **script-get:** Add option for (not) loading data when app is opened ([dc0640b](https://github.com/ptarmiganlabs/ctrl-q/commit/dc0640b90606d8692d1eed6eb6c810f028ddc2ea)), closes [#459](https://github.com/ptarmiganlabs/ctrl-q/issues/459)
+* **script-get:** Make it possible to get only the app script, w/o any log info ([cfdb900](https://github.com/ptarmiganlabs/ctrl-q/commit/cfdb900684e43bce9b721436014a85ce73398e9f)), closes [#460](https://github.com/ptarmiganlabs/ctrl-q/issues/460)
+
+
+### Miscellaneous
+
+* **deps:** Update dependencies ([bc90ea9](https://github.com/ptarmiganlabs/ctrl-q/commit/bc90ea9d8b51c6de67a318bc94217300ec0cad4f))
+* Fix incorrect zip file names for release binaries ([86ba819](https://github.com/ptarmiganlabs/ctrl-q/commit/86ba819261eb0e24bbe190ea45442bf6d17450fa)), closes [#461](https://github.com/ptarmiganlabs/ctrl-q/issues/461)
+* Revert to normal version numbering ([c4ccff5](https://github.com/ptarmiganlabs/ctrl-q/commit/c4ccff5837fb0ad406d7f75f21e6e9d08afa1075))
+
 ## [3.16.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.16.0...ctrl-q-v3.16.0) (2024-03-12)
 
 
