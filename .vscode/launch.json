@@ -181,66 +181,70 @@
             // ------------------------------------
             // Export apps to QVF files
             // ------------------------------------
-            // "args": [
-            //   "app-export",
-            //   "--host",
-            //   "192.168.100.109",
+            "args": [
+                "app-export",
+                "--host",
+                "pro2-win1.lab.ptarmiganlabs.net",
+                // "192.168.100.109",
 
-            //   "--port",
-            //   // "4747",
-            //   "443",
+                "--port",
+                "4242",
+                // "443",
 
-            //   "--virtual-proxy",
-            //   "jwt",
-            //   "--auth-type",
-            //   "jwt",
-            //   "--auth-jwt",
-            //   "<jwt>",
+                // "--virtual-proxy",
+                // "jwt",
+                // "--auth-type",
+                // "jwt",
+                // "--auth-jwt",
+                // "<jwt>",
 
-            //   // "--auth-cert-file",
-            //   // "./cert/client.pem",
-            //   // "--auth-cert-key-file",
-            //   // "./cert/client_key.pem",
+                "--auth-cert-file",
+                "./cert/client.pem",
+                "--auth-cert-key-file",
+                "./cert/client_key.pem",
 
-            //   "--auth-user-dir",
-            //   "LAB",
-            //   "--auth-user-id",
-            //   "goran",
+                "--auth-user-dir",
+                "LAB",
+                "--auth-user-id",
+                "goran",
 
-            //   "--app-tag",
-            //   "apiCreated",
-            //   "Ctrl-Q import",
+                "--app-tag",
+                "apiCreated",
+                "Ctrl-Q import",
 
-            //   "--app-id",
-            //   "eb3ab049-d007-43d3-93da-5962f9208c65",
-            //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
+                "--app-id",
+                "eb3ab049-d007-43d3-93da-5962f9208c65",
+                "2933711d-6638-41d4-a2d2-6dd2d965208b",
 
-            //   "--exclude-app-data",
-            //   "false",
+                "--app-published",
 
-            //   "--qvf-name-format",
-            //   // "export-time",
-            //   "app-name",
-            //   "export-date",
+                "--exclude-app-data",
+                // "false",
+                "true",
 
-            //   "--qvf-name-separator",
-            //   "__",
+                "--qvf-name-format",
+                // "export-time",
+                "app-name",
+                "export-date",
 
-            //   "--output-dir",
-            //   "qvfs",
+                "--qvf-name-separator",
+                "__",
 
-            //   // "--limit-export-count",
-            //   //  "2",
+                "--output-dir",
+                "qvfs",
 
-            //   "--sleep-app-export",
-            //    "500",
+                // "--limit-export-count",
+                //  "2",
 
-            //   "--qvf-overwrite",
+                "--sleep-app-export",
+                "500",
 
-            //   // "--dry-run"
+                "--qvf-overwrite",
 
-            //   "--metadata-file-create"
-            // ]
+                // "--dry-run"
+
+                "--metadata-file-create"
+            ]
 
             // ------------------------------------
             // Import apps from Excel file
@@ -1053,36 +1057,36 @@
             // ------------------------------------
             // Get script
             // ------------------------------------
-            "args": [
-              "script-get",
-              "--host",
-              "192.168.100.109",
-            //   "pro2-win1.lab.ptarmiganlabs.net",
+            // "args": [
+            //   "script-get",
+            //   "--host",
+            //   "192.168.100.109",
+            // //   "pro2-win1.lab.ptarmiganlabs.net",
 
-            //   "--port",
-            //   "4747",
-            //   "443",
+            // //   "--port",
+            // //   "4747",
+            // //   "443",
 
-            //   "--virtual-proxy",
-            //   "jwt",
+            // //   "--virtual-proxy",
+            // //   "jwt",
 
-            //   "--auth-type",
-            //   "jwt",
-            //   "cert",
-            //   "--auth-jwt",
-            //   "<jwt>",
+            // //   "--auth-type",
+            // //   "jwt",
+            // //   "cert",
+            // //   "--auth-jwt",
+            // //   "<jwt>",
 
-              "--app-id",
-              "deba4bcf-47e4-472e-97b2-4fe8d6498e11",
+            //   "--app-id",
+            //   "deba4bcf-47e4-472e-97b2-4fe8d6498e11",
 
-              "--auth-user-dir",
-              "LAB",
-              "--auth-user-id",
-              "goran",
+            //   "--auth-user-dir",
+            //   "LAB",
+            //   "--auth-user-id",
+            //   "goran",
 
-              "--log-level",
-              "info"
-            ]
+            //   "--log-level",
+            //   "info"
+            // ]
 
             // ------------------------------------
             // Connection test
