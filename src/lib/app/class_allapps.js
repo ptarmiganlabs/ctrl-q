@@ -52,7 +52,7 @@ class QlikSenseApps {
         this.appList.push(newApp);
     }
 
-    // Get array of apps matching app id, tags etc filters
+    // Get array of apps matching app id, tags, published and other filters
     async getAppsFromQseow() {
         try {
             logger.debug('GET APPS: Starting get apps from QSEoW');
@@ -105,6 +105,18 @@ class QlikSenseApps {
                 filter += encodeURIComponent(')');
             }
             logger.debug(`GET APPS FROM QSEOW: QRS query filter (incl ids, tags): ${filter}`);
+
+            // Add app publish status to query string
+            if (this.options.appPublished === true) {
+                // Add published apps flag
+                if (filter.length >= 1) {
+                    // We've previously added some app IDs and/or tags and/or other filters
+                    filter += encodeURIComponent(' or (published eq true)');
+                } else {
+                    // No app IDs or tags or other filters added yet
+                    filter += encodeURIComponent('published eq true');
+                }
+            }
 
             // Should cerrificates be used for authentication?
             let axiosConfig;

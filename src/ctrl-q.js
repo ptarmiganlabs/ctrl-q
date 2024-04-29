@@ -825,6 +825,7 @@ program.configureHelp({
 
         .option('--app-id <ids...>', 'use app IDs to select which apps to export')
         .option('--app-tag <tags...>', 'use app tags to select which apps to export')
+        .requiredOption('--app-published', 'export all published apps ', false)
 
         .requiredOption('--output-dir <directory>', 'relative or absolut path in which QVF files should be stored.', 'qvf-export')
         .addOption(
