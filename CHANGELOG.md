@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.18.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.17.0...ctrl-q-v3.18.0) (2024-04-29)
+
+
+### Features
+
+* **app-export:** Add --app-published flag for exporting all published apps ([fbff348](https://github.com/ptarmiganlabs/ctrl-q/commit/fbff3483f2b880c5ee6e28c0e028cea91953aec4)), closes [#468](https://github.com/ptarmiganlabs/ctrl-q/issues/468)
+
+
+### Miscellaneous
+
+* **deps:** Update dependencies ([591196b](https://github.com/ptarmiganlabs/ctrl-q/commit/591196b966e05f44ec9f06e354883c8dd334d5c7))
+
 ## [3.17.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.16.0...ctrl-q-v3.17.0) (2024-04-22)
 
 
