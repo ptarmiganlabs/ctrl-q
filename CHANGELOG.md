@@ -1,5 +1,122 @@
 # Changelog
 
+## [3.19.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.18.1...ctrl-q-v3.19.0) (2024-06-05)
+
+
+### Features
+
+* Add JWT auth option for all Ctrl-Q commands ([e1e9f3d](https://github.com/ptarmiganlabs/ctrl-q/commit/e1e9f3d5d0aa03d4c5fd137597c214f58204a1d9)), closes [#155](https://github.com/ptarmiganlabs/ctrl-q/issues/155)
+* **app-export:** Add --app-published flag for exporting all published apps ([fbff348](https://github.com/ptarmiganlabs/ctrl-q/commit/fbff3483f2b880c5ee6e28c0e028cea91953aec4)), closes [#468](https://github.com/ptarmiganlabs/ctrl-q/issues/468)
+* **connection-test:** Add command to test connection to Sense server ([328886e](https://github.com/ptarmiganlabs/ctrl-q/commit/328886e9ec92a553a732ed6f7f0d17bacfd9b2dc)), closes [#328](https://github.com/ptarmiganlabs/ctrl-q/issues/328)
+* **docs:** Move all documentation to ctrl-q.ptarmiganlabs.com ([e60dc31](https://github.com/ptarmiganlabs/ctrl-q/commit/e60dc31c27c889524e0e634ac03c6517285783d6))
+* **help:** Add app version as part of help message ([443bf3f](https://github.com/ptarmiganlabs/ctrl-q/commit/443bf3fa78c902be2210f14d3f688d929bbc5ee7))
+* **script-get:** Add option for (not) loading data when app is opened ([dc0640b](https://github.com/ptarmiganlabs/ctrl-q/commit/dc0640b90606d8692d1eed6eb6c810f028ddc2ea)), closes [#459](https://github.com/ptarmiganlabs/ctrl-q/issues/459)
+* **script-get:** Make it possible to get only the app script, w/o any log info ([cfdb900](https://github.com/ptarmiganlabs/ctrl-q/commit/cfdb900684e43bce9b721436014a85ce73398e9f)), closes [#460](https://github.com/ptarmiganlabs/ctrl-q/issues/460)
+* **sessions:** Add session-get and session-delete commands ([52947a7](https://github.com/ptarmiganlabs/ctrl-q/commit/52947a79ad989f5f1b2d18461b5ab135c301c3bf))
+* **task-get:** Simplify --table-details option ([2cbd470](https://github.com/ptarmiganlabs/ctrl-q/commit/2cbd4704213ba4a043662b462e980f7a47152553)), closes [#345](https://github.com/ptarmiganlabs/ctrl-q/issues/345)
+* **task-get:** Sort tasks in task tree alphabetically using task name ([ca96d4c](https://github.com/ptarmiganlabs/ctrl-q/commit/ca96d4cb0648b71f437bfe457855e9adbc2f0a9d))
+* **task-import:** Support external program tasks when importing tasks ([8060a1b](https://github.com/ptarmiganlabs/ctrl-q/commit/8060a1bda84a685ef150c8e46d8adb0d13cd3f46))
+* **task-vis:** Visualise tasks in network view ([8c01cd3](https://github.com/ptarmiganlabs/ctrl-q/commit/8c01cd3733513982b07b9172c58c3c2c2de6eb5e)), closes [#366](https://github.com/ptarmiganlabs/ctrl-q/issues/366)
+* **version:** New version command ([aa02c0e](https://github.com/ptarmiganlabs/ctrl-q/commit/aa02c0ebf16df55b5a69c8ef0004bb7143e60463))
+
+
+### Bug Fixes
+
+* **app-upload:** More consistent logging during up/download of Sense apps ([32f6d70](https://github.com/ptarmiganlabs/ctrl-q/commit/32f6d70e9b6dba506fd1d2a3e8fe233ed59ee618))
+* **certificates:** Handle --secure flag correctly, rejecting/allowing unauthorised certificates based on this flag. ([4634693](https://github.com/ptarmiganlabs/ctrl-q/commit/463469381ddd95f620ef45318552d915df7723e1)), closes [#416](https://github.com/ptarmiganlabs/ctrl-q/issues/416)
+* Fix broken CI badge in readme file ([57cfae9](https://github.com/ptarmiganlabs/ctrl-q/commit/57cfae9933fdc71f24172d488aae10a0ba6e924a))
+* **get-task:** Fix cyclic dependency issue in task trees ([8af8e94](https://github.com/ptarmiganlabs/ctrl-q/commit/8af8e94591cdc66150a3f3cb21398cc92934bc33)), closes [#291](https://github.com/ptarmiganlabs/ctrl-q/issues/291)
+* Handle relative config file paths ([72285e4](https://github.com/ptarmiganlabs/ctrl-q/commit/72285e4d6130f9ea1bdc96b25ada7491b265788f))
+* Improve help texts for and sort available sub-commands in help texts. ([ec9f1ad](https://github.com/ptarmiganlabs/ctrl-q/commit/ec9f1ad4c8b218f8961761ba971a1f9ad91c7381)), closes [#431](https://github.com/ptarmiganlabs/ctrl-q/issues/431)
+* Incorrect description of --port option ([a6bee97](https://github.com/ptarmiganlabs/ctrl-q/commit/a6bee9763756dc8003cb8d3b4f0e0d4a72c52fe7))
+* Make error logging consistent across all of Ctrl-Q ([9b65770](https://github.com/ptarmiganlabs/ctrl-q/commit/9b65770e5edd2611be931420fc44839aecf9c237))
+* **master-item-dim-get:** Get correct colors for drill-down dimensions ([f0fae78](https://github.com/ptarmiganlabs/ctrl-q/commit/f0fae780c4dff16ac993dfe1f41cb49edb4847a5)), closes [#314](https://github.com/ptarmiganlabs/ctrl-q/issues/314)
+* **set-task-cp:** Respect --overwrite option when setting CPs for reload tasks ([95eabab](https://github.com/ptarmiganlabs/ctrl-q/commit/95eabab88b6f933ad5b8a6d4eb2b705f7bb173eb)), closes [#356](https://github.com/ptarmiganlabs/ctrl-q/issues/356)
+* **task-get:** --table-details wo parameters now return all task details in table ([1a9a587](https://github.com/ptarmiganlabs/ctrl-q/commit/1a9a587a641eac2aa7328f39421218b3973c8f83)), closes [#332](https://github.com/ptarmiganlabs/ctrl-q/issues/332)
+* **task-get:** --task-type option is now invalid for task trees ([1bddb6a](https://github.com/ptarmiganlabs/ctrl-q/commit/1bddb6a1dc685e50f6636a6192d49b59a8ed7837))
+* **task-get:** Add better debug logging when showing task trees ([c66ab77](https://github.com/ptarmiganlabs/ctrl-q/commit/c66ab77fd88cfa2c3a336f10a040dc18a94c49c4))
+* **task-get:** Fix task tree bug when task is triggered by ext program task ([98584b7](https://github.com/ptarmiganlabs/ctrl-q/commit/98584b7e0bad97c73e5aaa1015625e2eae5f1aee))
+* **task-get:** Include all tasks in task trees ([3fbc4d3](https://github.com/ptarmiganlabs/ctrl-q/commit/3fbc4d307179476e89068e5db2030b990e6603da)), closes [#308](https://github.com/ptarmiganlabs/ctrl-q/issues/308)
+* **task-get:** Make "reload" and "ext-program" default for --task-type option ([9b13cce](https://github.com/ptarmiganlabs/ctrl-q/commit/9b13cce142ce07e8e56479f3dfa1b693f55e20da))
+* **task-get:** More consistent logging when exporting task definitions to disk file ([8a4d9bb](https://github.com/ptarmiganlabs/ctrl-q/commit/8a4d9bb52cbea3ca732a5c9c6dce07dea7c7e035))
+* **task-get:** No more duplicate, top-level schema tasks in task tree, for a specfic task. ([d3fe908](https://github.com/ptarmiganlabs/ctrl-q/commit/d3fe9087758ed0476552f2bf2ef86bf77693d0b8)), closes [#333](https://github.com/ptarmiganlabs/ctrl-q/issues/333)
+* **task-get:** Warn if --task-type is used in task tree view ([1fe4764](https://github.com/ptarmiganlabs/ctrl-q/commit/1fe47642bc8c1e7ac516110febb925e354f907b2)), closes [#319](https://github.com/ptarmiganlabs/ctrl-q/issues/319)
+* **task-import:** Correctly handle upstream ext pgm tasks in reload task composite events ([53e076b](https://github.com/ptarmiganlabs/ctrl-q/commit/53e076b5742a2412cffb9176431b2476af996b75)), closes [#331](https://github.com/ptarmiganlabs/ctrl-q/issues/331)
+* **task-import:** Importing tasks from CSV file no longer gives "premature close" ([e06f1a9](https://github.com/ptarmiganlabs/ctrl-q/commit/e06f1a9dc6499d93ddc192e720c46c1e3af2da7c)), closes [#323](https://github.com/ptarmiganlabs/ctrl-q/issues/323)
+* **task-vis:** Add `--secure` command line option to task-vis command ([766725c](https://github.com/ptarmiganlabs/ctrl-q/commit/766725c02381962eb1931fc1f3a2a1c334a2008d))
+* **task-vis:** Add favicons for task network view ([5cfb204](https://github.com/ptarmiganlabs/ctrl-q/commit/5cfb204d62fcad60eaed891f03d72f95dd0a5118))
+* **task-vis:** Add more robust error handling ([dd7feac](https://github.com/ptarmiganlabs/ctrl-q/commit/dd7feac71408f1f7fbd21c4a50118f44238ff4d1))
+* **variable-delete:** Make it possible to delete variables from several apps in one go ([6897603](https://github.com/ptarmiganlabs/ctrl-q/commit/6897603f09582536b1ee5de755843c9266c88487))
+* **variable-get:** Now possible to get variables from more than one app in a single Ctrl-Q execution ([6615afa](https://github.com/ptarmiganlabs/ctrl-q/commit/6615afa9edee6f42496a4bc3f35b1ba9a0abb8f6)), closes [#430](https://github.com/ptarmiganlabs/ctrl-q/issues/430)
+
+
+### Miscellaneous
+
+* Add insiders build step in CI pipeline ([97e933f](https://github.com/ptarmiganlabs/ctrl-q/commit/97e933fb89aed09fbac285a2ba870b3010a02cf2)), closes [#303](https://github.com/ptarmiganlabs/ctrl-q/issues/303)
+* Add unit tests ([50bbae1](https://github.com/ptarmiganlabs/ctrl-q/commit/50bbae1548d59f27cc51f6bafff16483a8ee2c0c))
+* Add unit tests for app-export command ([014096e](https://github.com/ptarmiganlabs/ctrl-q/commit/014096eb3e3d15905ae6b9b1063db3c4b519a1ae))
+* Add unit tests for app-import command ([9b79bf1](https://github.com/ptarmiganlabs/ctrl-q/commit/9b79bf1b24139a402202e9e5ffb23eb4e59eaf37))
+* Add unit tests for bookmark-get command ([4085282](https://github.com/ptarmiganlabs/ctrl-q/commit/4085282e2948da82188b73a82438f0cde16f554f))
+* Add unit tests for script-get command ([855b714](https://github.com/ptarmiganlabs/ctrl-q/commit/855b714022ca56027f704f3007f3f3b3e5e5d86b))
+* Add unit tests for task-custom-property-set command ([cacdbf4](https://github.com/ptarmiganlabs/ctrl-q/commit/cacdbf404d271008a3159794467bce6282f8bff3))
+* Add unit tests for task-get command ([42fd155](https://github.com/ptarmiganlabs/ctrl-q/commit/42fd155a5a8eb6182c96d53bbb2b5308860719db))
+* Add unit tests for task-import command ([be0ca72](https://github.com/ptarmiganlabs/ctrl-q/commit/be0ca72457848da861adf043fe55a12ad828d1dd))
+* Clean up source code formatting ([6baccc0](https://github.com/ptarmiganlabs/ctrl-q/commit/6baccc0197fe98d4cddfbd157305050ef620dfbb))
+* **deps:** update actions/setup-node action to v4 ([aea1d71](https://github.com/ptarmiganlabs/ctrl-q/commit/aea1d713f2ed36ece503d1e3a11282d9bc269d17))
+* **deps:** Update app dependencies ([d66d7e6](https://github.com/ptarmiganlabs/ctrl-q/commit/d66d7e6875b566572b5710e3b2c916195396f28c))
+* **deps:** Update build pipeline dependencies ([d66d7e6](https://github.com/ptarmiganlabs/ctrl-q/commit/d66d7e6875b566572b5710e3b2c916195396f28c))
+* **deps:** update crazy-max/ghaction-virustotal action to v4 ([49d4c23](https://github.com/ptarmiganlabs/ctrl-q/commit/49d4c23e8e308baf51920dc674b50050c2f38251))
+* **deps:** Update dependencies ([591196b](https://github.com/ptarmiganlabs/ctrl-q/commit/591196b966e05f44ec9f06e354883c8dd334d5c7))
+* **deps:** Update dependencies ([bc90ea9](https://github.com/ptarmiganlabs/ctrl-q/commit/bc90ea9d8b51c6de67a318bc94217300ec0cad4f))
+* **deps:** Update dependencies ([731fb56](https://github.com/ptarmiganlabs/ctrl-q/commit/731fb56d28f1e454396571d16ea5ac9730d6b199))
+* **deps:** Update dependencies ([f3e9be4](https://github.com/ptarmiganlabs/ctrl-q/commit/f3e9be46ad7d6d28bc4401bd613efb297a9379b5))
+* **deps:** Update dependencies ([5351e29](https://github.com/ptarmiganlabs/ctrl-q/commit/5351e296bd373f43d7b58ccd6e430a199721398b))
+* **deps:** Update dependencies to stay safe and secure ([568a25f](https://github.com/ptarmiganlabs/ctrl-q/commit/568a25fa6c7b34bdf430dc080e776fed2e261a74))
+* **deps:** Update dependencies to stay safe and secure ([ce0f7b4](https://github.com/ptarmiganlabs/ctrl-q/commit/ce0f7b42fe53b9bbeb7389345d537ffb0e2ef3a2))
+* **deps:** Upgrade app upload retry logic ([98b3a0d](https://github.com/ptarmiganlabs/ctrl-q/commit/98b3a0d28f5b26aa80acba837f41f3d6a49d7114))
+* **deps:** Upgrade dependencies ([e34bf27](https://github.com/ptarmiganlabs/ctrl-q/commit/e34bf271dce35f62ebe3ba4930535937db4ce709))
+* Fix broken build flow post refactoring ([1c91e56](https://github.com/ptarmiganlabs/ctrl-q/commit/1c91e5651c0a408cf2527abae65763a8aa6bf09f))
+* Fix broken Linux build ([7847a6d](https://github.com/ptarmiganlabs/ctrl-q/commit/7847a6def5dafa180361fce48d493d8be68058b7))
+* Fix incorrect zip file names for release binaries ([86ba819](https://github.com/ptarmiganlabs/ctrl-q/commit/86ba819261eb0e24bbe190ea45442bf6d17450fa)), closes [#461](https://github.com/ptarmiganlabs/ctrl-q/issues/461)
+* Fix version number after build refactoring ([5f4347c](https://github.com/ptarmiganlabs/ctrl-q/commit/5f4347c640c58f9a31d8399350af7cededf8b7da))
+* **main:** release 3.13.0 ([17aad7b](https://github.com/ptarmiganlabs/ctrl-q/commit/17aad7bfbb3bd150c94428cf58274f76af3739e6))
+* **main:** release 3.13.1 ([919965d](https://github.com/ptarmiganlabs/ctrl-q/commit/919965d32a34fcb3a1d5309952ef030d16346187))
+* **main:** release 3.13.1 ([3a42857](https://github.com/ptarmiganlabs/ctrl-q/commit/3a428572fbb2f364ab45fdcb8b26ae33aec84c80))
+* **main:** release 3.13.2 ([72d3d8c](https://github.com/ptarmiganlabs/ctrl-q/commit/72d3d8ca5abaacbecf6a7c37af29438898ff7c2f))
+* **main:** release 3.14.0 ([b949e98](https://github.com/ptarmiganlabs/ctrl-q/commit/b949e98abe65b99364a559293aa5c9dcbee9f985))
+* **main:** release 3.15.0 ([dc19fc8](https://github.com/ptarmiganlabs/ctrl-q/commit/dc19fc88a0cd7679363747a7d1648307d4d1cd01))
+* **main:** release ctrl-q 3.15.1 ([d3c6b08](https://github.com/ptarmiganlabs/ctrl-q/commit/d3c6b086d672ebf3934d169c8c12b4ef2a09e934))
+* **main:** release ctrl-q 3.15.1 ([a772047](https://github.com/ptarmiganlabs/ctrl-q/commit/a77204729e9024eae76e2e554946f057cbef8395))
+* **main:** release ctrl-q 3.15.1 ([73174bb](https://github.com/ptarmiganlabs/ctrl-q/commit/73174bb40ace51166f6dc75ad273bebbc319250d))
+* **main:** release ctrl-q 3.15.2 ([423c2d4](https://github.com/ptarmiganlabs/ctrl-q/commit/423c2d45b7b18011aa6cfda78817b16fb24b8597))
+* **main:** release ctrl-q 3.15.2 ([6dc9810](https://github.com/ptarmiganlabs/ctrl-q/commit/6dc9810996e34f523faa7190b44f9c2997804ce4))
+* **main:** release ctrl-q 3.15.2 ([6f64c8b](https://github.com/ptarmiganlabs/ctrl-q/commit/6f64c8b95964798a3726e95edc880a0fa830876b))
+* **main:** release ctrl-q 3.15.2 ([ccc038b](https://github.com/ptarmiganlabs/ctrl-q/commit/ccc038b589a03faa4b6015ed2d17876d4ad772f1))
+* **main:** release ctrl-q 3.15.2 ([f12d7c5](https://github.com/ptarmiganlabs/ctrl-q/commit/f12d7c57f4ad6ef0b0ef28521ae17b6c5c5a53fa))
+* **main:** release ctrl-q 3.16.0 ([306e8d2](https://github.com/ptarmiganlabs/ctrl-q/commit/306e8d2ed641b5b377f0be09fc48b04d35628b1b))
+* **main:** release ctrl-q 3.16.0 ([5cdab52](https://github.com/ptarmiganlabs/ctrl-q/commit/5cdab523177df04e0a8b69b6a3354cb4969131da))
+* **main:** release ctrl-q 3.16.0 ([fcb01ea](https://github.com/ptarmiganlabs/ctrl-q/commit/fcb01eac0fdf9c6ed1555fa66991942862d6f344))
+* **main:** release ctrl-q 3.17.0 ([b20bd18](https://github.com/ptarmiganlabs/ctrl-q/commit/b20bd180f5354a3f89a831fb2c2a59079ac89d47))
+* **main:** release ctrl-q 3.18.0 ([2d2df23](https://github.com/ptarmiganlabs/ctrl-q/commit/2d2df2381a5edba3fdd33ce7aafd317adda42e40))
+* **main:** release ctrl-q 3.18.1 ([7b1d7a8](https://github.com/ptarmiganlabs/ctrl-q/commit/7b1d7a8f1b05f8b3b9d56f79abae725016a0ee82))
+* Recover from build refactoring ([bd865b6](https://github.com/ptarmiganlabs/ctrl-q/commit/bd865b67c14787dbc8e1fed562f984d8a6a56e43))
+* release-please debugging ([34eba8f](https://github.com/ptarmiganlabs/ctrl-q/commit/34eba8fa27ea4372e8d6d3ffcd3b11fa13d81982))
+* Revert to normal version numbering ([c4ccff5](https://github.com/ptarmiganlabs/ctrl-q/commit/c4ccff5837fb0ad406d7f75f21e6e9d08afa1075))
+* Update build pipeline dependencies ([17726cf](https://github.com/ptarmiganlabs/ctrl-q/commit/17726cfa854e565386c8baa5fb7949fcc506f856))
+* Upgrade release-please to latest version ([3ed45f2](https://github.com/ptarmiganlabs/ctrl-q/commit/3ed45f210459e9f0590945c864bf1d39b58a61d9))
+* **win:** Switch to new signing solution for Windows binaries ([d66d7e6](https://github.com/ptarmiganlabs/ctrl-q/commit/d66d7e6875b566572b5710e3b2c916195396f28c))
+
+
+### Refactoring
+
+* Migrate from CJS to ESM ([23deb10](https://github.com/ptarmiganlabs/ctrl-q/commit/23deb1066cfb2f461b7cf9bb952670e2b60b1750)), closes [#400](https://github.com/ptarmiganlabs/ctrl-q/issues/400)
+* **variable-get:** Add a bit more verbose logging about Sense and engine versions ([3bbcf91](https://github.com/ptarmiganlabs/ctrl-q/commit/3bbcf91c3c255317dbe3bc1fb4d042a0e3b4295b))
+
+
+### Documentation
+
+* Add more task import examples ([0ca7363](https://github.com/ptarmiganlabs/ctrl-q/commit/0ca7363038f635a0361cee95c1a8a1145e62be1a))
+
 ## [3.18.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.18.0...ctrl-q-v3.18.1) (2024-06-05)
 
 
