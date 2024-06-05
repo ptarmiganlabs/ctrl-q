@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.18.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.18.0...ctrl-q-v3.18.1) (2024-06-05)
+
+
+### Miscellaneous
+
+* **deps:** Upgrade dependencies ([e34bf27](https://github.com/ptarmiganlabs/ctrl-q/commit/e34bf271dce35f62ebe3ba4930535937db4ce709))
+* Upgrade release-please to latest version ([3ed45f2](https://github.com/ptarmiganlabs/ctrl-q/commit/3ed45f210459e9f0590945c864bf1d39b58a61d9))
+
 ## [3.18.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.17.0...ctrl-q-v3.18.0) (2024-04-29)
 
 
