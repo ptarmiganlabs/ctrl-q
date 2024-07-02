@@ -35,7 +35,7 @@
         "csv-parse": "^5.5.6",
         "csv-stringify": "^6.5.0",
         "enigma.js": "^2.14.0",
-        "esbuild": "^0.21.4",
+        "esbuild": "^0.23.0",
         "form-data": "^4.0.0",
         "fs-extra": "^11.2.0",
         "handlebars": "^4.7.8",
