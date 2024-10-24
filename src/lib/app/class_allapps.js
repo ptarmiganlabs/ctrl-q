@@ -7,12 +7,12 @@ import fs2 from 'fs';
 import { v4 as uuidv4, validate } from 'uuid';
 import yesno from 'yesno';
 import { logger, execPath, mergeDirFilePath, verifyFileExists, sleep, isPkg } from '../../globals.js';
-import setupQRSConnection from '../util/qrs.js';
-import { getAppColumnPosFromHeaderRow } from '../util/lookups.js';
+import setupQRSConnection from '../util/qseow/qrs.js';
+import { getAppColumnPosFromHeaderRow } from '../util/qseow/lookups.js';
 import QlikSenseApp from './class_app.js';
-import { getTagIdByName } from '../util/tag.js';
-import { getAppById, deleteAppById } from '../util/app.js';
-import { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } from '../util/customproperties.js';
+import { getTagIdByName } from '../util/qseow/tag.js';
+import { getAppById, deleteAppById } from '../util/qseow/app.js';
+import { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } from '../util/qseow/customproperties.js';
 import { catchLog } from '../util/log.js';
 
 class QlikSenseApps {

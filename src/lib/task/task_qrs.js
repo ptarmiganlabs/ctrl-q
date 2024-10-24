@@ -5,7 +5,7 @@ import path from 'path';
 
 import { logger, execPath } from '../../globals.js';
 
-import setupQRSConnection from '../util/qrs.js';
+import setupQRSConnection from '../util/qseow/qrs.js';
 import getCertFilePaths from '../util/cert.js';
 import { catchLog } from '../util/log.js';
 // const { QlikSenseTasks } = require('./class_alltasks');

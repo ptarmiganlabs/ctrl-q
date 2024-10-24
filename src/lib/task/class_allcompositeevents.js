@@ -1,7 +1,7 @@
 import axios from 'axios';
 import path from 'path';
 import { logger, execPath, verifyFileExists } from '../../globals.js';
-import setupQRSConnection from '../util/qrs.js';
+import setupQRSConnection from '../util/qseow/qrs.js';
 import QlikSenseCompositeEvent from './class_compositeevent.js';
 import { catchLog } from '../util/log.js';
 

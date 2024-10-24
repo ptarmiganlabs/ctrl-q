@@ -1,7 +1,7 @@
 import axios from 'axios';
 import path from 'path';
 import { logger, execPath } from '../../globals.js';
-import setupQRSConnection from '../util/qrs.js';
+import setupQRSConnection from '../util/qseow/qrs.js';
 import QlikSenseSchemaEvent from './class_schemaevent.js';
 import { catchLog } from '../util/log.js';
 

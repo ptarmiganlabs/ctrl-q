@@ -1,7 +1,7 @@
 import { Duration } from 'luxon';
 // const { randomWords } = require('random-words');
 import { logger } from '../../globals.js';
-import { mapTaskExecutionStatus } from '../util/lookups.js';
+import { mapTaskExecutionStatus } from '../util/qseow/lookups.js';
 // const randomWords2 = (...args) => import('random-words').then(({ default: randomWords }) => randomWords(...args));
 
 class QlikSenseTask {

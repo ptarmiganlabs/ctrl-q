@@ -2,7 +2,7 @@ import axios from 'axios';
 import path from 'path';
 import { v4 as uuidv4, validate } from 'uuid';
 import { logger, execPath } from '../../globals.js';
-import setupQRSConnection from '../util/qrs.js';
+import setupQRSConnection from '../util/qseow/qrs.js';
 
 import {
     mapTaskType,
@@ -11,15 +11,15 @@ import {
     mapIncrementOption,
     mapRuleState,
     getTaskColumnPosFromHeaderRow,
-} from '../util/lookups.js';
+} from '../util/qseow/lookups.js';
 
 import QlikSenseTask from './class_task.js';
 import QlikSenseSchemaEvents from './class_allschemaevents.js';
 import QlikSenseCompositeEvents from './class_allcompositeevents.js';
-import { getTagIdByName } from '../util/tag.js';
-import { getCustomPropertyIdByName } from '../util/customproperties.js';
-import { getAppById } from '../util/app.js';
-import { taskExistById, getTaskById } from '../util/task.js';
+import { getTagIdByName } from '../util/qseow/tag.js';
+import { getCustomPropertyIdByName } from '../util/qseow/customproperties.js';
+import { getAppById } from '../util/qseow/app.js';
+import { taskExistById, getTaskById } from '../util/qseow/task.js';
 import { catchLog } from '../util/log.js';
 
 class QlikSenseTasks {
