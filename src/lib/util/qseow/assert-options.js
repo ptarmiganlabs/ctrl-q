@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { version as uuidVersion, validate as uuidValidate } from 'uuid';
 import { logger, execPath, verifyFileExists } from '../../../globals.js';
 

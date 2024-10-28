@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import { jest, test, expect, describe } from '@jest/globals';
 
-import importAppFromFile from '../lib/cmd/importapp.js';
-import { appExistById, deleteAppById } from '../lib/util/app.js';
+import importAppFromFile from '../lib/cmd/qseow/importapp.js';
+import { appExistById, deleteAppById } from '../lib/util/qseow/app.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
@@ -64,12 +64,10 @@ describe('import apps from QVF files (cert auth)', () => {
             // console.log(`App ID: ${appId}`);
 
             // Check if app exists
-            // eslint-disable-next-line no-await-in-loop
             const appExists = await appExistById(appId, options);
 
             if (appExists) {
                 // Delete app
-                // eslint-disable-next-line no-await-in-loop
                 const resultDelete = await deleteAppById(appId, options);
                 expect(resultDelete).toBe(true);
             } else {

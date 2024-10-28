@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, appImportAssertOptions } from '../util/qseow/assert-options.js';
-import importAppFromFile from '../cmd/qseow/importtask.js';
+import importAppFromFile from '../cmd/qseow/importapp.js';
 
 export function setupQseowImportAppFromFileCommand(qseow) {
     qseow

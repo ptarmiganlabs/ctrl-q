@@ -1,7 +1,7 @@
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
 import { logger, execPath } from '../../../globals.js';
-import setupQRSConnection from './qrs.js';
+import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
 
 export function getTagsFromQseow(options) {
@@ -16,7 +16,7 @@ export function getTagsFromQseow(options) {
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
             const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
@@ -24,7 +24,7 @@ export function getTagsFromQseow(options) {
                 path: '/qrs/tag/full',
             });
         } else if (options.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 path: '/qrs/tag/full',
             });
@@ -74,7 +74,7 @@ export function getTagIdByName(tagName, tagsExisting) {
 //         logger.debug(`Looking up ID for tag named "${tagName}"`);
 
 //         // const filter = encodeURI(`name eq '👍😎 updateSheetThumbnail'`);
-//         const axiosConfig = setupQRSConnection(options, {
+//         const axiosConfig = setupQrsConnection(options, {
 //             method: 'get',
 //             fileCert,
 //             fileCertKey,

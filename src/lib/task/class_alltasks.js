@@ -1,8 +1,8 @@
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
 import { v4 as uuidv4, validate } from 'uuid';
 import { logger, execPath } from '../../globals.js';
-import setupQRSConnection from '../util/qseow/qrs.js';
+import { setupQrsConnection } from '../util/qseow/qrs.js';
 
 import {
     mapTaskType,
@@ -1297,7 +1297,7 @@ class QlikSenseTasks {
                 const body = newCompositeEvent;
 
                 // Save task to QSEoW
-                const axiosConfig = setupQRSConnection(this.options, {
+                const axiosConfig = setupQrsConnection(this.options, {
                     method: 'post',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -1367,7 +1367,7 @@ class QlikSenseTasks {
                 };
 
                 // Save task to QSEoW
-                const axiosConfig = setupQRSConnection(this.options, {
+                const axiosConfig = setupQrsConnection(this.options, {
                     method: 'post',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -1430,7 +1430,7 @@ class QlikSenseTasks {
                 };
 
                 // Save task to QSEoW
-                const axiosConfig = setupQRSConnection(this.options, {
+                const axiosConfig = setupQrsConnection(this.options, {
                     method: 'post',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -1497,7 +1497,7 @@ class QlikSenseTasks {
                         };
 
                         // Save task to QSEoW
-                        const axiosConfig = setupQRSConnection(this.options, {
+                        const axiosConfig = setupQrsConnection(this.options, {
                             method: 'post',
                             fileCert: this.fileCert,
                             fileCertKey: this.fileCertKey,
@@ -1604,7 +1604,7 @@ class QlikSenseTasks {
             try {
                 // Get reload tasks
                 if (filter === '') {
-                    axiosConfig = setupQRSConnection(this.options, {
+                    axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
@@ -1612,7 +1612,7 @@ class QlikSenseTasks {
                         path: '/qrs/reloadtask/full',
                     });
                 } else {
-                    axiosConfig = setupQRSConnection(this.options, {
+                    axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
@@ -1634,7 +1634,7 @@ class QlikSenseTasks {
             try {
                 // Get external program tasks
                 if (filter === '') {
-                    axiosConfig = setupQRSConnection(this.options, {
+                    axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
@@ -1642,7 +1642,7 @@ class QlikSenseTasks {
                         path: '/qrs/externalprogramtask/full',
                     });
                 } else {
-                    axiosConfig = setupQRSConnection(this.options, {
+                    axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,

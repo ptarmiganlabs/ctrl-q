@@ -11,7 +11,7 @@ export function setupQseowTestConnectionCommand(qseow) {
         .action(async (options) => {
             try {
                 await qseowSharedParamAssertOptions(options);
-                testConnection(options);
+                await testConnection(options);
             } catch (err) {
                 catchLog('CONNECTION TEST', err);
             }
@@ -28,8 +28,8 @@ export function setupQseowTestConnectionCommand(qseow) {
             'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
             true
         )
-        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
-        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
+        .option('--auth-user-dir <directory>', 'user directory for user to connect with')
+        .option('--auth-user-id <userid>', 'user ID for user to connect with')
 
         .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
         .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')

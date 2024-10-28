@@ -1,8 +1,8 @@
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
 import { validate } from 'uuid';
 import { logger, execPath, getCliOptions } from '../../../globals.js';
-import setupQRSConnection from './qrs.js';
+import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
 
 export async function getApps(options, idArray, tagArray) {
@@ -70,7 +70,7 @@ export async function getApps(options, idArray, tagArray) {
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
             const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
@@ -79,7 +79,7 @@ export async function getApps(options, idArray, tagArray) {
                 queryParameters: [{ name: 'filter', value: filter }],
             });
         } else if (options.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 path: '/qrs/app/full',
                 queryParameters: [{ name: 'filter', value: filter }],
@@ -127,7 +127,7 @@ export async function getAppById(appId, optionsParam) {
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
             const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
@@ -135,7 +135,7 @@ export async function getAppById(appId, optionsParam) {
                 path: `/qrs/app/${appId}`,
             });
         } else if (options.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 path: `/qrs/app/${appId}`,
             });
@@ -186,7 +186,7 @@ export async function deleteAppById(appId, options) {
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
             const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'delete',
                 fileCert,
                 fileCertKey,
@@ -194,7 +194,7 @@ export async function deleteAppById(appId, options) {
                 path: `/qrs/app/${appId}`,
             });
         } else if (options.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'delete',
                 path: `/qrs/app/${appId}`,
             });
@@ -235,7 +235,7 @@ export async function appExistById(appId, options) {
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
             const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
@@ -244,7 +244,7 @@ export async function appExistById(appId, options) {
                 queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${appId}`) }],
             });
         } else if (options.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 path: '/qrs/app',
                 queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${appId}`) }],

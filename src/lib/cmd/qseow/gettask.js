@@ -1,6 +1,6 @@
 import tree from 'text-treeview';
 import { table } from 'table';
-import { promises as Fs } from 'fs';
+import { promises as Fs } from 'node:fs';
 import xlsx from 'node-xlsx';
 import { stringify } from 'csv-stringify';
 import yesno from 'yesno';

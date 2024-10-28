@@ -1,11 +1,9 @@
-/* eslint-disable no-console */
-/* eslint-disable no-await-in-loop */
 import enigma from 'enigma.js';
-
 import xlsx from 'node-xlsx';
 import { v4 as uuidCreate } from 'uuid';
-import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma.js';
+
 import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, sleep } from '../../../globals.js';
+import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
 import { catchLog } from '../../util/log.js';
 
 let importCount = 0;
@@ -55,7 +53,7 @@ const createColorMap = async (app, colorMapId, newPerValueColorMap) => {
     // const newColorMapProperties = await newGenericColorMapRefModel.getProperties();
     // const newColorMapPropertiesLayout = await newGenericColorMapRefModel.getLayout();
     // 4. Set properties of created color map
-    const res = await newGenericColorMapRefModel.setProperties(newGenericColorMapRefProp);
+    const _res = await newGenericColorMapRefModel.setProperties(newGenericColorMapRefProp);
 
     // let res = await newGenericColorMapRefModel.setProperties({
     //     qInfo: {

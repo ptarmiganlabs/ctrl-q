@@ -1,12 +1,7 @@
 import xlsx from 'node-xlsx';
 import { parse } from 'csv-parse';
-
-// const { parse } = require('csv-parse/lib/sync');
-import fs from 'fs';
-
-// const fsp = require('fs').promises;
-
-import { finished } from 'stream/promises';
+import fs from 'node:fs';
+import { finished } from 'node:stream/promises';
 
 import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } from '../../../globals.js';
 import QlikSenseTasks from '../../task/class_alltasks.js';

@@ -1,9 +1,9 @@
 import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { validate } from 'uuid';
 import { logger, execPath, getCliOptions } from '../../../globals.js';
-import setupQRSConnection from './qrs.js';
+import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
 
 // Check if a task with a given id exists
@@ -39,7 +39,7 @@ export async function taskExistById(taskId, optionsParam) {
             const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
             // const filter = encodeURI(`name eq '👍😎 updateSheetThumbnail'`);
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
@@ -48,7 +48,7 @@ export async function taskExistById(taskId, optionsParam) {
                 queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
             });
         } else if (options.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 path: '/qrs/task',
                 queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
@@ -108,7 +108,7 @@ export async function getTaskByName(taskName, optionsParam) {
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
             const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
@@ -117,7 +117,7 @@ export async function getTaskByName(taskName, optionsParam) {
                 queryParameters: [{ name: 'filter', value: encodeURI(`name eq '${taskName}'`) }],
             });
         } else if (options.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 path: '/qrs/task/full',
                 queryParameters: [{ name: 'filter', value: encodeURI(`name eq '${taskName}'`) }],
@@ -180,7 +180,7 @@ export async function getTaskById(taskId, optionsParam) {
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
             const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
@@ -189,7 +189,7 @@ export async function getTaskById(taskId, optionsParam) {
                 queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
             });
         } else if (options.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 path: `/qrs/task/full`,
                 queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
@@ -266,7 +266,7 @@ export async function deleteReloadTaskById(taskId, optionsParam) {
                 return false;
             }
 
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'delete',
                 fileCert,
                 fileCertKey,
@@ -274,7 +274,7 @@ export async function deleteReloadTaskById(taskId, optionsParam) {
                 path: `/qrs/reloadtask/${taskId}`,
             });
         } else if (optionsParam.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'delete',
                 path: `/qrs/reloadtask/${taskId}`,
             });
@@ -338,7 +338,7 @@ export async function deleteExternalProgramTaskById(taskId, optionsParam) {
                 return false;
             }
 
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'delete',
                 fileCert,
                 fileCertKey,
@@ -346,7 +346,7 @@ export async function deleteExternalProgramTaskById(taskId, optionsParam) {
                 path: `/qrs/externalprogramtask/${taskId}`,
             });
         } else if (optionsParam.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'delete',
                 path: `/qrs/externalprogramtask/${taskId}`,
             });

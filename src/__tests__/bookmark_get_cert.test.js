@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { jest, test, expect, describe } from '@jest/globals';
 
-import getBookmark from '../lib/cmd/getbookmark.js';
+import getBookmark from '../lib/cmd/qseow/getbookmark.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
@@ -99,8 +99,8 @@ describe('get in-app bookmarks (cert auth)', () => {
         expect(result.length).toBe(2);
 
         // Verify that the bookmarks have the correct IDs
-        expect(result[0].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark1);
-        expect(result[1].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark2);
+        expect(result[0].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark2);
+        expect(result[1].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark1);
     });
 
     /**
@@ -122,8 +122,9 @@ describe('get in-app bookmarks (cert auth)', () => {
         expect(result.length).toBe(2);
 
         // Verify that the bookmarks have the correct IDs
-        expect(result[0].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark1);
-        expect(result[1].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark2);
+        // Compare against all bookmarks in app, i.e. appIdExistsHasBookmarks1Bookmark1 and appIdExistsHasBookmarks1Bookmark2
+        expect(result[0].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark2);
+        expect(result[1].qInfo.qId).toBe(appIdExistsHasBookmarks1Bookmark1);
     });
 
     /**

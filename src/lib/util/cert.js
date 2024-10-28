@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { logger, execPath } from '../../globals.js';
 import { catchLog } from './log.js';
 

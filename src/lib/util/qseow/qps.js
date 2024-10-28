@@ -1,4 +1,4 @@
-import https from 'https';
+import https from 'node:https';
 import { logger, generateXrfKey, readCert } from '../../../globals.js';
 
 const setupQPSConnection = (options, param) => {

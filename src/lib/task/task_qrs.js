@@ -1,11 +1,11 @@
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
 // const { promises: Fs } = require('fs');
 // const yesno = require('yesno');
 
 import { logger, execPath } from '../../globals.js';
 
-import setupQRSConnection from '../util/qseow/qrs.js';
+import { setupQrsConnection } from '../util/qseow/qrs.js';
 import getCertFilePaths from '../util/cert.js';
 import { catchLog } from '../util/log.js';
 // const { QlikSenseTasks } = require('./class_alltasks');
@@ -31,7 +31,7 @@ export const getCustomProperty = async (options) => {
         // Build QRS query string using custom property name
         const filter = encodeURIComponent(`name eq '${options.customPropertyName}'`);
 
-        const axiosConfig = await setupQRSConnection(options, {
+        const axiosConfig = await setupQrsConnection(options, {
             method: 'get',
             fileCert: certFilesFullPath.fileCert,
             fileCertKey: certFilesFullPath.fileCertKey,
@@ -110,7 +110,7 @@ export const getTasksFromQseow = async (options) => {
         }
         logger.debug(`GET TASK: Final QRS query filter: ${filter}`);
 
-        const axiosConfig = await setupQRSConnection(options, {
+        const axiosConfig = await setupQrsConnection(options, {
             method: 'get',
             fileCert,
             fileCertKey,
@@ -142,7 +142,7 @@ export const updateReloadTask = async (options, payload) => {
         // Get cert files
         const certFilesFullPath = await getCertFilePaths(options);
 
-        const axiosConfig = await setupQRSConnection(options, {
+        const axiosConfig = await setupQrsConnection(options, {
             method: 'post',
             fileCert: certFilesFullPath.fileCert,
             fileCertKey: certFilesFullPath.fileCertKey,

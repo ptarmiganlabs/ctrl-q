@@ -1,6 +1,6 @@
 import { Command, Option } from 'commander';
 import { logger, appVersion, setLoggingLevel, setCliOptions } from './globals.js';
-import { catchLog, logStartupInfo } from './lib/util/log.js';
+import { logStartupInfo } from './lib/util/log.js';
 
 // Import command setup functions
 // QSEoW
@@ -25,6 +25,7 @@ import { setupQseowShowVersionCommand } from './lib/cli/qseow-show-version.js';
 import { setupQseowVisualiseTaskCommand } from './lib/cli/qseow-visualise-task.js';
 import { setupQseowGetProxySessionsCommand } from './lib/cli/qseow-get-proxy-session.js';
 import { setupQseowDeleteProxySessionsCommand } from './lib/cli/qseow-delete-proxy-session.js';
+
 // QS Cloud
 import { setupQscloudTestConnectionCommand } from './lib/cli/qscloud-test-connection.js';
 
@@ -61,7 +62,6 @@ program.configureHelp({
 
             // Set log level & show startup info
             setLoggingLevel(options.logLevel);
-            // eslint-disable-next-line no-underscore-dangle
             logStartupInfo(options, actionCommand._name, actionCommand._description);
 
             logger.verbose(`About to call action handler for subcommand: ${actionCommand.name()}`);

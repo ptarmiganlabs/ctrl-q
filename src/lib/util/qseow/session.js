@@ -1,10 +1,10 @@
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
 import { table } from 'table';
 import yesno from 'yesno';
 import { logger, execPath } from '../../../globals.js';
 import setupQPSConnection from './qps.js';
-import setupQRSConnection from './qrs.js';
+import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
 import getProxiesFromQseow from './proxy.js';
 
@@ -89,7 +89,7 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
         // Virtual proxies are specified as an array of strings
         // Filter format is: id eq 'vpName1' or id eq 'vpName2' or id eq 'vpName3'
         const vpFilter = options.sessionVirtualProxy.map((vp) => `prefix eq '${vp}'`).join(' or ');
-        axiosConfig = setupQRSConnection(options, {
+        axiosConfig = setupQrsConnection(options, {
             method: 'get',
             fileCert,
             fileCertKey,
@@ -99,7 +99,7 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
         });
     } else {
         // No virtual proxies specified, get all of them from QRS
-        axiosConfig = setupQRSConnection(options, {
+        axiosConfig = setupQrsConnection(options, {
             method: 'get',
             fileCert,
             fileCertKey,

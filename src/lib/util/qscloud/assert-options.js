@@ -1,8 +1,7 @@
-import path from 'path';
+import path from 'node:path';
 import { version as uuidVersion, validate as uuidValidate } from 'uuid';
 import { logger, execPath, verifyFileExists } from '../../../globals.js';
 
-// eslint-disable-next-line import/prefer-default-export
 export const qscloudSharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all QS Cloud commands are valid
     if (options.authType === undefined || !options.authType) {

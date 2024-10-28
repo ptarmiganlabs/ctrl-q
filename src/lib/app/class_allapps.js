@@ -1,13 +1,13 @@
 import * as rax from 'retry-axios';
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
 import FormData from 'form-data';
-import fs from 'fs/promises';
-import fs2 from 'fs';
+import fs from "node:fs/promises";
+import fs2 from 'node:fs';
 import { v4 as uuidv4, validate } from 'uuid';
 import yesno from 'yesno';
 import { logger, execPath, mergeDirFilePath, verifyFileExists, sleep, isPkg } from '../../globals.js';
-import setupQRSConnection from '../util/qseow/qrs.js';
+import { setupQrsConnection } from '../util/qseow/qrs.js';
 import { getAppColumnPosFromHeaderRow } from '../util/qseow/lookups.js';
 import QlikSenseApp from './class_app.js';
 import { getTagIdByName } from '../util/qseow/tag.js';
@@ -16,7 +16,6 @@ import { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } from 
 import { catchLog } from '../util/log.js';
 
 class QlikSenseApps {
-    // eslint-disable-next-line no-useless-constructor
     constructor() {
         //
     }
@@ -122,7 +121,7 @@ class QlikSenseApps {
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 if (filter === '') {
-                    axiosConfig = await setupQRSConnection(this.options, {
+                    axiosConfig = await setupQrsConnection(this.options, {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
@@ -130,7 +129,7 @@ class QlikSenseApps {
                         path: '/qrs/app/full',
                     });
                 } else {
-                    axiosConfig = await setupQRSConnection(this.options, {
+                    axiosConfig = await setupQrsConnection(this.options, {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
@@ -141,12 +140,12 @@ class QlikSenseApps {
                 }
             } else if (this.options.authType === 'jwt') {
                 if (filter === '') {
-                    axiosConfig = await setupQRSConnection(this.options, {
+                    axiosConfig = await setupQrsConnection(this.options, {
                         method: 'get',
                         path: '/qrs/app/full',
                     });
                 } else {
-                    axiosConfig = await setupQRSConnection(this.options, {
+                    axiosConfig = await setupQrsConnection(this.options, {
                         method: 'get',
                         path: '/qrs/app/full',
                         queryParameters: [{ name: 'filter', value: filter }],
@@ -162,7 +161,6 @@ class QlikSenseApps {
 
             this.clear();
             for (let i = 0; i < apps.length; i += 1) {
-                // eslint-disable-next-line no-await-in-loop
                 await this.addApp(apps[i], apps[i].id);
             }
 
@@ -175,7 +173,6 @@ class QlikSenseApps {
     }
 
     async importAppsFromFiles(appsFromFile, tagsExisting, cpExisting) {
-        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             logger.debug('PARSE APPS FROM EXCEL FILE: Starting get apps from data in file');
 
@@ -263,7 +260,6 @@ class QlikSenseApps {
                         }"`
                     );
 
-                    // eslint-disable-next-line no-await-in-loop
                     const qvfFileExists = await verifyFileExists(currentApp.fullQvfPath);
                     if (!qvfFileExists) {
                         logger.error(
@@ -281,9 +277,7 @@ class QlikSenseApps {
                             .filter((item) => item.trim().length !== 0)
                             .map((item) => item.trim());
 
-                        // eslint-disable-next-line no-restricted-syntax
                         for (const item of tmpTags) {
-                            // eslint-disable-next-line no-await-in-loop
                             const tagId = await getTagIdByName(item, tagsExisting);
                             if (tagId === false) {
                                 // Failed getting tag id, given name. Most likely becuase the tag doesn't exist
@@ -308,7 +302,6 @@ class QlikSenseApps {
                             .filter((item) => item.trim().length !== 0)
                             .map((cp) => cp.trim());
 
-                        // eslint-disable-next-line no-restricted-syntax
                         for (const item of tmpCustomProperties) {
                             const tmpCustomProperty = item
                                 .split('=')
@@ -316,7 +309,6 @@ class QlikSenseApps {
                                 .map((cp) => cp.trim());
 
                             if (tmpCustomProperty?.length === 2) {
-                                // eslint-disable-next-line no-await-in-loop
                                 const customProperty = await getCustomPropertyDefinitionByName('App', tmpCustomProperty[0], cpExisting);
                                 if (customProperty === false) {
                                     // Failed getting custom property id, most likely because the custom property does not exist.
@@ -329,7 +321,6 @@ class QlikSenseApps {
                                 }
 
                                 // Verify custom property value is valid
-                                // eslint-disable-next-line no-await-in-loop
                                 const cpValueExists = await doesCustomPropertyValueExist(
                                     'App',
                                     tmpCustomProperty[0],
@@ -357,7 +348,6 @@ class QlikSenseApps {
                     // Import app to QSEoW
                     if (this.options.dryRun === false || this.options.dryRun === undefined) {
                         // 1. Upload the app specified in the Excel file.
-                        // eslint-disable-next-line no-await-in-loop
                         const uploadedAppId = await this.uploadAppToQseow(currentApp);
 
                         // false returned if the app could not be uploaded to Sense
@@ -370,21 +360,18 @@ class QlikSenseApps {
                         currentApp.createdAppId = uploadedAppId;
 
                         // Update tags, custom properties and owner of uploaded app
-                        // eslint-disable-next-line no-await-in-loop
                         const result = await this.updateUploadedApp(currentApp, uploadedAppId);
 
                         // Should the app be published to a stream?
                         if (currentApp?.appPublishToStream?.length > 0) {
                             // Yes, publish to stream after app upload
 
-                            // eslint-disable-next-line no-await-in-loop
                             const { streamId, streamName } = await this.getStreamInfo(currentApp);
                             let tmpAppId;
 
                             // Do we know which stream to publish to? Publish if so!
                             if (streamId) {
                                 if (currentApp.appPublishToStreamOption === 'publish-replace') {
-                                    // eslint-disable-next-line no-await-in-loop
                                     const result2 = await this.streamAppPublishReplace(
                                         currentApp.appCounter,
                                         uploadedAppId,
@@ -422,10 +409,8 @@ class QlikSenseApps {
                                         this.appCounterIdMap.set(tmpAppId, uploadedAppId);
                                     }
 
-                                    // eslint-disable-next-line no-await-in-loop
                                     await this.addApp(currentApp, tmpAppId);
                                 } else if (currentApp.appPublishToStreamOption === 'publish-another') {
-                                    // eslint-disable-next-line no-await-in-loop
                                     const result2 = await this.streamAppPublishAnother(
                                         currentApp.appCounter,
                                         uploadedAppId,
@@ -461,10 +446,8 @@ class QlikSenseApps {
                                         this.appCounterIdMap.set(tmpAppId, uploadedAppId);
                                     }
 
-                                    // eslint-disable-next-line no-await-in-loop
                                     await this.addApp(currentApp, tmpAppId);
                                 } else if (currentApp.appPublishToStreamOption === 'delete-publish') {
-                                    // eslint-disable-next-line no-await-in-loop
                                     const result2 = await this.streamAppDeletePublish(
                                         currentApp.appCounter,
                                         uploadedAppId,
@@ -503,7 +486,6 @@ class QlikSenseApps {
                                         this.appCounterIdMap.set(tmpAppId, uploadedAppId);
                                     }
 
-                                    // eslint-disable-next-line no-await-in-loop
                                     await this.addApp(currentApp, tmpAppId);
                                 } else {
                                     logger.error(
@@ -528,7 +510,6 @@ class QlikSenseApps {
                                 const tmpAppId = `newapp-${currentApp.appCounter}`;
                                 this.appCounterIdMap.set(tmpAppId, uploadedAppId);
 
-                                // eslint-disable-next-line no-await-in-loop
                                 await this.addApp(currentApp, tmpAppId);
                             }
                         } else {
@@ -546,7 +527,6 @@ class QlikSenseApps {
                             const tmpAppId = `newapp-${currentApp.appCounter}`;
                             this.appCounterIdMap.set(tmpAppId, uploadedAppId);
 
-                            // eslint-disable-next-line no-await-in-loop
                             await this.addApp(currentApp, tmpAppId);
                         }
                     } else {
@@ -566,7 +546,7 @@ class QlikSenseApps {
             let axiosConfigUploadedApp;
             if (this.options.authType === 'cert') {
                 // Get info about just uploaded app
-                axiosConfigUploadedApp = setupQRSConnection(this.options, {
+                axiosConfigUploadedApp = setupQrsConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -574,7 +554,7 @@ class QlikSenseApps {
                     path: `/qrs/app/${uploadedAppId}`,
                 });
             } else if (this.options.authType === 'jwt') {
-                axiosConfigUploadedApp = setupQRSConnection(this.options, {
+                axiosConfigUploadedApp = setupQrsConnection(this.options, {
                     method: 'get',
                     path: `/qrs/app/${uploadedAppId}`,
                 });
@@ -608,7 +588,7 @@ class QlikSenseApps {
                 let axiosConfigUser;
                 if (this.options.authType === 'cert') {
                     // Get info about just uploaded app
-                    axiosConfigUser = setupQRSConnection(this.options, {
+                    axiosConfigUser = setupQrsConnection(this.options, {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
@@ -617,7 +597,7 @@ class QlikSenseApps {
                         queryParameters: [{ name: 'filter', value: filter }],
                     });
                 } else if (this.options.authType === 'jwt') {
-                    axiosConfigUser = setupQRSConnection(this.options, {
+                    axiosConfigUser = setupQrsConnection(this.options, {
                         method: 'get',
                         path: '/qrs/user',
                         queryParameters: [{ name: 'filter', value: filter }],
@@ -657,7 +637,7 @@ class QlikSenseApps {
             let axiosConfig2;
             if (this.options.authType === 'cert') {
                 // Uppdate app with tags, custom properties and app owner
-                axiosConfig2 = setupQRSConnection(this.options, {
+                axiosConfig2 = setupQrsConnection(this.options, {
                     method: 'put',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -666,7 +646,7 @@ class QlikSenseApps {
                     body: app,
                 });
             } else if (this.options.authType === 'jwt') {
-                axiosConfig2 = setupQRSConnection(this.options, {
+                axiosConfig2 = setupQrsConnection(this.options, {
                     method: 'put',
                     path: `/qrs/app/${app.id}`,
                     body: app,
@@ -879,7 +859,7 @@ class QlikSenseApps {
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 // Build QRS query
-                axiosConfig = setupQRSConnection(this.options, {
+                axiosConfig = setupQrsConnection(this.options, {
                     method: 'put',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -888,7 +868,7 @@ class QlikSenseApps {
                     queryParameters,
                 });
             } else if (this.options.authType === 'jwt') {
-                axiosConfig = setupQRSConnection(this.options, {
+                axiosConfig = setupQrsConnection(this.options, {
                     method: 'put',
                     path: `/qrs/app/${appId}/publish`,
                     queryParameters,
@@ -925,7 +905,7 @@ class QlikSenseApps {
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 // Build QRS query
-                axiosConfig = setupQRSConnection(this.options, {
+                axiosConfig = setupQrsConnection(this.options, {
                     method: 'put',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -934,7 +914,7 @@ class QlikSenseApps {
                     queryParameters,
                 });
             } else if (this.options.authType === 'jwt') {
-                axiosConfig = setupQRSConnection(this.options, {
+                axiosConfig = setupQrsConnection(this.options, {
                     method: 'put',
                     path: `/qrs/app/${sourceAppId}/replace`,
                     queryParameters,
@@ -986,7 +966,7 @@ class QlikSenseApps {
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 // Build QRS query
-                axiosConfig = setupQRSConnection(this.options, {
+                axiosConfig = setupQrsConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -995,7 +975,7 @@ class QlikSenseApps {
                     queryParameters: [{ name: 'filter', value: filter }],
                 });
             } else if (this.options.authType === 'jwt') {
-                axiosConfig = setupQRSConnection(this.options, {
+                axiosConfig = setupQrsConnection(this.options, {
                     method: 'get',
                     path: `/qrs/app`,
                     queryParameters: [{ name: 'filter', value: filter }],
@@ -1033,7 +1013,7 @@ class QlikSenseApps {
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 // Build QRS query
-                axiosConfig = setupQRSConnection(this.options, {
+                axiosConfig = setupQrsConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -1042,7 +1022,7 @@ class QlikSenseApps {
                     queryParameters: [{ name: 'filter', value: filter }],
                 });
             } else if (this.options.authType === 'jwt') {
-                axiosConfig = setupQRSConnection(this.options, {
+                axiosConfig = setupQrsConnection(this.options, {
                     method: 'get',
                     path: `/qrs/app`,
                     queryParameters: [{ name: 'filter', value: filter }],
@@ -1096,7 +1076,7 @@ class QlikSenseApps {
                 // Should cerrificates be used for authentication?
                 if (this.options.authType === 'cert') {
                     // Build QRS query
-                    axiosConfigPublish = setupQRSConnection(this.options, {
+                    axiosConfigPublish = setupQrsConnection(this.options, {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
@@ -1104,7 +1084,7 @@ class QlikSenseApps {
                         path: `/qrs/stream/${uploadedAppInfo.appPublishToStream}`,
                     });
                 } else if (this.options.authType === 'jwt') {
-                    axiosConfigPublish = setupQRSConnection(this.options, {
+                    axiosConfigPublish = setupQrsConnection(this.options, {
                         method: 'get',
                         path: `/qrs/stream/${uploadedAppInfo.appPublishToStream}`,
                     });
@@ -1115,7 +1095,6 @@ class QlikSenseApps {
                     // Yes, the GUID represents a stream
                     responsePublish = JSON.parse(resultPublish.data);
 
-                    // eslint-disable-next-line prefer-destructuring
                     return { streamId: responsePublish.id, streamName: responsePublish.name };
                 }
             } else {
@@ -1125,7 +1104,7 @@ class QlikSenseApps {
                 // Should cerrificates be used for authentication?
                 if (this.options.authType === 'cert') {
                     // Build QRS query
-                    axiosConfigPublish = setupQRSConnection(this.options, {
+                    axiosConfigPublish = setupQrsConnection(this.options, {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
@@ -1134,7 +1113,7 @@ class QlikSenseApps {
                         queryParameters: [{ name: 'filter', value: filter }],
                     });
                 } else if (this.options.authType === 'jwt') {
-                    axiosConfigPublish = setupQRSConnection(this.options, {
+                    axiosConfigPublish = setupQrsConnection(this.options, {
                         method: 'get',
                         path: '/qrs/stream',
                         queryParameters: [{ name: 'filter', value: filter }],
@@ -1192,7 +1171,7 @@ class QlikSenseApps {
             form.append('qvfFile', sourceFileBuffer, newApp.qvfName);
 
             // Build Axios config
-            const axiosConfig = setupQRSConnection(this.options, {
+            const axiosConfig = setupQrsConnection(this.options, {
                 method: 'post',
                 fileCert: this.fileCert,
                 fileCertKey: this.fileCertKey,
@@ -1209,8 +1188,9 @@ class QlikSenseApps {
                 ],
             });
 
+            const retryCount = 5;
             axiosConfig.raxConfig = {
-                retry: 8,
+                retry: retryCount,
                 noResponseRetries: 2,
                 httpMethodsToRetry: ['GET', 'HEAD', 'OPTIONS', 'DELETE', 'PUT', 'POST'],
                 statusCodesToRetry: [
@@ -1234,14 +1214,17 @@ class QlikSenseApps {
                     if (status === 429) {
                         logger.warn(`🔄 [${status}] QRS API rate limit reached. Pausing, then retry attempt #${cfg.currentRetryAttempt}`);
                     } else {
-                        logger.warn(`🔄 [${status}] Error from QRS API. Pausing, then retry attempt #${cfg.currentRetryAttempt}`);
+                        logger.warn(
+                            `🔄 [${status}] Error from QRS API. Pausing, then retry attempt #${cfg.currentRetryAttempt} of ${retryCount}. Error message: ${err.message}`
+                        );
+                    }
+
+                    // Message when last attempt has failed
+                    if (cfg.currentRetryAttempt === retryCount) {
+                        logger.warn(`🔄 [${status}] Final attempt failed. Is Qlik Sense responding? Is the QVF file valid?`);
                     }
                 },
             };
-
-            // axiosConfig.baseURL = 'https://httpstat.us';
-            // axiosConfig.url = '/429';
-            // axiosConfig.method = 'get';
 
             const myAxiosInstance = axios.create(axiosConfig);
 
@@ -1287,7 +1270,7 @@ class QlikSenseApps {
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 // Build QRS query
-                axiosConfig = setupQRSConnection(this.options, {
+                axiosConfig = setupQrsConnection(this.options, {
                     method: 'post',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -1296,7 +1279,7 @@ class QlikSenseApps {
                     queryParameters: [{ name: 'skipData', value: excludeData }],
                 });
             } else if (this.options.authType === 'jwt') {
-                axiosConfig = setupQRSConnection(this.options, {
+                axiosConfig = setupQrsConnection(this.options, {
                     method: 'post',
                     path: `/qrs/app/${app.id}/export/${exportToken}`,
                     queryParameters: [{ name: 'skipData', value: excludeData }],
@@ -1400,7 +1383,7 @@ class QlikSenseApps {
                 let axiosConfig;
                 if (this.options.authType === 'cert') {
                     // Build QRS query
-                    axiosConfig = setupQRSConnection(this.options, {
+                    axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
                         fileCert: this.fileCert,
                         fileCertKey: this.fileCertKey,
@@ -1409,7 +1392,7 @@ class QlikSenseApps {
                         queryParameters: [{ name: paramName, value: paramValue }],
                     });
                 } else if (this.options.authType === 'jwt') {
-                    axiosConfig = setupQRSConnection(this.options, {
+                    axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
                         path: urlPath,
                         queryParameters: [{ name: paramName, value: paramValue }],

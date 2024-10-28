@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
 import { jest, test, expect, describe } from '@jest/globals';
 
-import getScript from '../lib/cmd/getscript.js';
+import getScript from '../lib/cmd/qseow/getscript.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
@@ -18,6 +17,7 @@ const options = {
 };
 
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 120000; // 2 minute default timeout
+console.log(`Jest timeout: ${defaultTestTimeout}`);
 jest.setTimeout(defaultTestTimeout);
 
 // Get app script
@@ -41,7 +41,7 @@ describe('get app script (jwt auth)', () => {
 
         expect(result.appId).toBe('a3e0f5d2-000a-464f-998d-33d333b175d7');
         expect(result.appCreatedDate).toBe('2021-06-03T22:04:52.283Z');
-        expect(result.appModifiedDate).toBe('2023-05-05T06:17:05.456Z');
+        expect(result.appModifiedDate).toBe('2024-03-20T08:02:25.153Z');
         expect(result.appScript.length).toBe(1989);
     });
 });

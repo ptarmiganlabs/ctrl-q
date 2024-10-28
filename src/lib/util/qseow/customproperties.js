@@ -1,7 +1,7 @@
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
 import { logger, execPath } from '../../../globals.js';
-import setupQRSConnection from './qrs.js';
+import { setupQrsConnection } from './qrs.js';
 
 export function getCustomPropertiesFromQseow(options) {
     return new Promise((resolve, _reject) => {
@@ -15,7 +15,7 @@ export function getCustomPropertiesFromQseow(options) {
             const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
             const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 fileCert,
                 fileCertKey,
@@ -23,7 +23,7 @@ export function getCustomPropertiesFromQseow(options) {
                 path: '/qrs/custompropertydefinition/full',
             });
         } else if (options.authType === 'jwt') {
-            axiosConfig = setupQRSConnection(options, {
+            axiosConfig = setupQrsConnection(options, {
                 method: 'get',
                 path: '/qrs/custompropertydefinition/full',
             });
@@ -74,7 +74,7 @@ export function getCustomPropertyIdByName(objectType, customPropertyName, cpExis
 //     return new Promise((resolve, reject) => {
 //         logger.debug(`Looking up ID for custom property named "${customPropertyName}" on object type "${objectType}"`);
 
-//         const axiosConfig = setupQRSConnection(options, {
+//         const axiosConfig = setupQrsConnection(options, {
 //             method: 'get',
 //             fileCert,
 //             fileCertKey,
@@ -135,7 +135,7 @@ export function getCustomPropertyDefinitionByName(objectType, customPropertyName
 //     return new Promise((resolve, reject) => {
 //         logger.debug(`Looking up definition for custom property named "${customPropertyName}" on object type "${objectType}"`);
 
-//         const axiosConfig = setupQRSConnection(options, {
+//         const axiosConfig = setupQrsConnection(options, {
 //             method: 'get',
 //             fileCert,
 //             fileCertKey,
@@ -210,7 +210,7 @@ export function doesCustomPropertyValueExist(objectType, customPropertyName, cus
 //             `Checking if value "${customPropertyValue}" is valid for custom property "${customPropertyName}" on object type "${objectType}"`
 //         );
 
-//         const axiosConfig = setupQRSConnection(options, {
+//         const axiosConfig = setupQrsConnection(options, {
 //             method: 'get',
 //             fileCert,
 //             fileCertKey,

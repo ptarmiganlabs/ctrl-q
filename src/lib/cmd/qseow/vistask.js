@@ -1,8 +1,8 @@
-import http from 'http';
-import path from 'path';
-import fs from 'fs';
+import http from 'node:http';
+import path from 'node:path';
+import fs from 'node:fs';
 import handlebars from 'handlebars';
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
 import { appVersion, logger, setLoggingLevel, isPkg, execPath, verifyFileExists } from '../../../globals.js';
 import QlikSenseTasks from '../../task/class_alltasks.js';
 

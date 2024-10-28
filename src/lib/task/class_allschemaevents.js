@@ -1,7 +1,7 @@
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
 import { logger, execPath } from '../../globals.js';
-import setupQRSConnection from '../util/qseow/qrs.js';
+import { setupQrsConnection } from '../util/qseow/qrs.js';
 import QlikSenseSchemaEvent from './class_schemaevent.js';
 import { catchLog } from '../util/log.js';
 
@@ -59,7 +59,7 @@ class QlikSenseSchemaEvents {
             try {
                 logger.debug('GET SCHEMA EVENT: Starting get schema events from QSEoW');
 
-                const axiosConfig = await setupQRSConnection(this.options, {
+                const axiosConfig = await setupQrsConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,

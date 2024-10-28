@@ -1,7 +1,7 @@
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
 import { logger, execPath } from '../../../globals.js';
-import setupQRSConnection from './qrs.js';
+import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
 
 const getProxiesFromQseow = async (options, _sessionCookie) => {
@@ -12,7 +12,7 @@ const getProxiesFromQseow = async (options, _sessionCookie) => {
     const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
     const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
-    const axiosConfig = setupQRSConnection(options, {
+    const axiosConfig = setupQrsConnection(options, {
         method: 'get',
         fileCert,
         fileCertKey,

@@ -1,5 +1,5 @@
 import qrsInteract from 'qrs-interact';
-import path from 'path';
+import path from 'node:path';
 import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
 
 import {
@@ -58,7 +58,6 @@ const createUserActivityCustomProperty = async (options) => {
             'Content-Type': 'application/json',
         };
 
-        // eslint-disable-next-line new-cap
         const qrsInteractInstance = new qrsInteract(configQRS);
         let result;
 
@@ -80,7 +79,6 @@ const createUserActivityCustomProperty = async (options) => {
                     // Same number of custom property values. Are they the same?
                 } else {
                     // Different number of values. Do nothing, unless the --force paramerer equals true
-                    // eslint-disable-next-line no-lonely-if
                     if (options.force === 'false') {
                         // Don't force overwrite the existni custom property.
                         // Show warning and return
@@ -169,7 +167,6 @@ const createUserActivityCustomProperty = async (options) => {
             );
 
             // Assign users to activity buckets
-            // eslint-disable-next-line no-restricted-syntax
             for (const user of usersLastActivity) {
                 // How many days ago was user active? Round down to nearest full day
                 const dateNow = new Date();
@@ -178,7 +175,6 @@ const createUserActivityCustomProperty = async (options) => {
                 // const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 const diffDays = dateDiffInDays(dateUserLastActivity, dateNow);
 
-                // eslint-disable-next-line no-restricted-syntax
                 for (const bucket of options.activityBuckets) {
                     if (diffDays <= bucket) {
                         user.activityBucket = bucket;
@@ -188,7 +184,6 @@ const createUserActivityCustomProperty = async (options) => {
 
                 // Set custom property for user
                 try {
-                    // eslint-disable-next-line no-await-in-loop
                     result = await qrsInteractInstance.Post(
                         'custompropertydefinition',
                         {

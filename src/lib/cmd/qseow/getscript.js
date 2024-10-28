@@ -1,6 +1,7 @@
 import enigma from 'enigma.js';
-import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma.js';
+
 import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
+import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
 import { catchLog } from '../../util/log.js';
 
 /**
@@ -25,7 +26,7 @@ const getScript = async (options) => {
         let configEnigma;
         let session;
         try {
-            configEnigma = await setupEnigmaConnection(options, sessionId);
+            configEnigma = setupEnigmaConnection(options, sessionId);
             session = await enigma.create(configEnigma);
             logger.verbose(`Created session to server ${options.host}.`);
         } catch (err) {

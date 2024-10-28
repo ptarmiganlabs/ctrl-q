@@ -1,8 +1,42 @@
-import https from 'https';
+import https from 'node:https';
+
 import { logger, generateXrfKey, readCert } from '../../../globals.js';
 
-const setupQRSConnection = (options, param) => {
-    // eslint-disable-next-line no-unused-vars
+// Function to sanitize virtual proxy
+export function sanitizeVirtualProxy(virtualProxy) {
+    // - Should always start with a /
+    // - Should never end with a /
+    if (virtualProxy === '') {
+        virtualProxy = '/';
+    } else {
+        if (!virtualProxy.startsWith('/')) {
+            virtualProxy = `/${virtualProxy}`;
+        }
+
+        // Remove all trailing /
+        virtualProxy = virtualProxy.replace(/\/+$/, '');
+    }
+
+    return virtualProxy;
+}
+
+// Function to set up connection to Qlik Sense Repository Service (QRS)
+export function setupQrsConnection(options, param) {
+    // Ensure correct auth info is present
+    if (options.authType === 'cert') {
+        // options.authUserDir and options.authUserId should be set
+        if (!options.authUserDir || !options.authUserId) {
+            logger.error(`Setting up connection to QRS. Missing user directory and/or user ID. Exiting.`);
+            process.exit(1);
+        }
+    } else if (options.authType === 'jwt') {
+        // options.authJwt should be set
+        if (!options.authJwt) {
+            logger.error(`Setting up connection to QRS. Missing JWT. Exiting.`);
+            process.exit(1);
+        }
+    }
+
     // Ensure valid http method
     if (
         !param.method ||
@@ -71,6 +105,7 @@ const setupQRSConnection = (options, param) => {
         logger.verbose(`Using JWT for authentication with QRS`);
 
         const httpsAgent = new https.Agent({
+            // rejectUnauthorized: options.secure !== 'false',
             rejectUnauthorized: false,
         });
 
@@ -101,13 +136,10 @@ const setupQRSConnection = (options, param) => {
 
     // Add parameters (if any)
     if (param.queryParameters?.length > 0) {
-        // eslint-disable-next-line no-restricted-syntax
         for (const queryParam of param.queryParameters) {
             axiosConfig.url += `&${queryParam.name}=${queryParam.value}`;
         }
     }
 
     return axiosConfig;
-};
-
-export default setupQRSConnection;
+}

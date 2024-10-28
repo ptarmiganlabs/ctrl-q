@@ -1,62 +1,89 @@
 import SenseUtilities from 'enigma.js/sense-utilities.js';
 import WebSocket from 'ws';
-import path from 'path';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import upath from 'upath';
+import sea from 'node:sea';
+
 import { logger, execPath, readCert } from '../../../globals.js';
 
-export const setupEnigmaConnection = async (options, sessionId) => {
+// Function to get Enigma.js schema file
+const getEnigmaSchema = (processPkgFlag, seaFlag, options) => {
+    // Array of supported schema versions
+    const supportedSchemaVersions = ['12.170.2', '12.612.0', '12.936.0', '12.1306.0', '12.1477.0', '12.1657.0', '12.1823.0', '12.2015.0'];
+
+    let qixSchemaJson;
+    try {
+        // Check if the specified schema version is supported
+        if (!supportedSchemaVersions.includes(options.schemaVersion)) {
+            logger.error(`Unsupported schema version specified: ${options.schemaVersion}`);
+
+            // Show supported schema versions
+            logger.error(`Supported schema versions: ${supportedSchemaVersions.join(', ')}`);
+
+            logger.error(`Exiting...`);
+            process.exit(1);
+        }
+
+        // Are we running as a packaged app?
+        if (processPkgFlag) {
+            const schemaFile = `./node_modules/enigma.js/schemas/${options.schemaVersion}.json`;
+            logger.debug(`Enigma.js schema file: ${schemaFile}`);
+
+            // Yes, we are running as a packaged app
+            // Get path to JS file const
+            const a = process.pkg.defaultEntrypoint;
+            logger.debug(`APPDUMP schema path a: ${a}`);
+
+            // Strip off the filename
+            const b = upath.dirname(a);
+            logger.debug(`APPDUMP schema path b: ${b}`);
+
+            // Add path to schema file
+            const c = upath.join(b, schemaFile);
+            logger.debug(`APPDUMP schema path c: ${c}`);
+
+            qixSchemaJson = readFileSync(c);
+        } else if (seaFlag) {
+            // Load schema file
+            qixSchemaJson = sea.getAsset(`enigma_schema_${options.schemaVersion}.json`, 'utf8');
+        } else {
+            // No, we are running as native Node.js
+            const schemaFile = `../node_modules/enigma.js/schemas/${options.schemaVersion}.json`;
+            logger.debug(`Enigma.js schema file: ${schemaFile}`);
+
+            // Get path to JS file
+            const a = fileURLToPath(import.meta.url);
+            logger.debug(`APPDUMP schema path a: ${a}`);
+
+            // Strip off the filename
+            const b = upath.dirname(a);
+            logger.debug(`APPDUMP schema path b: ${b}`);
+
+            // Add path to package.json file
+            const c = upath.join(b, '..', '..', '..', schemaFile);
+            logger.debug(`APPDUMP schema path c: ${c}`);
+
+            qixSchemaJson = readFileSync(c);
+        }
+    } catch (err) {
+        logger.error(`Error when getting Enigma schema: ${err}`);
+        process.exit(1);
+    }
+
+    const qixSchema = JSON.parse(qixSchemaJson);
+    logger.debug(`Enigma.js schema: ${qixSchema}`);
+
+    return qixSchema;
+};
+
+export const setupEnigmaConnection = (options, sessionId) => {
     logger.debug('Prepping for Enigma connection...');
 
     // Set up enigma.js configuration
-    let schemaFile;
-    let a;
-    let b;
-    let c;
-
     logger.debug(`Enigma.js schema version: ${options.schemaVersion}`);
-
-    // Are we running as a packaged app?
-    if (process.pkg) {
-        schemaFile = `./node_modules/enigma.js/schemas/${options.schemaVersion}.json`;
-        logger.debug(`Enigma.js schema file: ${schemaFile}`);
-
-        // Yes, we are running as a packaged app
-        // Get path to JS file const
-        a = process.pkg.defaultEntrypoint;
-        logger.debug(`APPDUMP schema path a: ${a}`);
-
-        // Strip off the filename
-        b = upath.dirname(a);
-        logger.debug(`APPDUMP schema path b: ${b}`);
-
-        // Add path to package.json file
-        c = upath.join(b, schemaFile);
-        logger.debug(`APPDUMP schema path c: ${c}`);
-    } else {
-        schemaFile = `../node_modules/enigma.js/schemas/${options.schemaVersion}.json`;
-        logger.debug(`Enigma.js schema file: ${schemaFile}`);
-
-        // No, we are running as native Node.js
-        // Get path to JS file
-        a = fileURLToPath(import.meta.url);
-        logger.debug(`APPDUMP schema path a: ${a}`);
-
-        // Strip off the filename
-        b = upath.dirname(a);
-        logger.debug(`APPDUMP schema path b: ${b}`);
-
-        // Add path to package.json file
-        c = upath.join(b, '..', '..', schemaFile);
-        logger.debug(`APPDUMP schema path c: ${c}`);
-    }
-
-    logger.verbose(`APPDUMP: Using engine schema in file: ${c}`);
-    const qixSchema = JSON.parse(readFileSync(c));
-
-    // eslint-disable-next-line global-require, import/no-dynamic-require
-    // const qixSchema = require(`enigma.js/schemas/${options.schemaVersion}`);
+    const qixSchema = getEnigmaSchema(process.pkg, sea.isSea(), options);
 
     let enigmaConfig;
     // Should certificates be used for authentication?
@@ -66,8 +93,9 @@ export const setupEnigmaConnection = async (options, sessionId) => {
         logger.verbose('Verify that cert files exists');
         const fileCert = path.resolve(execPath, options.authCertFile);
         const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+        const fileCa = path.resolve(execPath, options.authRootCertFile);
 
-        if (!fileCert || !fileCertKey) {
+        if (!fileCert || !fileCertKey || !fileCa) {
             logger.error(`Certificate file(s) not found when setting up Enigma connection`);
             process.exit(1);
         }
@@ -88,8 +116,9 @@ export const setupEnigmaConnection = async (options, sessionId) => {
                 new WebSocket(url, {
                     key: readCert(fileCertKey),
                     cert: readCert(fileCert),
+                    ca: [readCert(fileCa)],
                     headers: {
-                        'X-Qlik-User': `UserDirectory=${options.authUserDir};UserId=${options.authUserId}`,
+                        'X-Qlik-User': `UserDirectory=${encodeURIComponent(options.authUserDir)};UserId=${encodeURIComponent(options.authUserId)}`,
                     },
                     rejectUnauthorized: false,
                 }),

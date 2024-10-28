@@ -1,7 +1,7 @@
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
 import { logger, execPath, verifyFileExists } from '../../globals.js';
-import setupQRSConnection from '../util/qseow/qrs.js';
+import { setupQrsConnection } from '../util/qseow/qrs.js';
 import QlikSenseCompositeEvent from './class_compositeevent.js';
 import { catchLog } from '../util/log.js';
 
@@ -42,7 +42,7 @@ class QlikSenseCompositeEvents {
             try {
                 logger.debug('GET SCHEMAEVENT: Starting get composite events from QSEoW');
 
-                const axiosConfig = await setupQRSConnection(this.options, {
+                const axiosConfig = await setupQrsConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,

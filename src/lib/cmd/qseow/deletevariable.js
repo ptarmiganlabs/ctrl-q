@@ -1,8 +1,6 @@
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable no-await-in-loop */
 import enigma from 'enigma.js';
 
-import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma.js';
+import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
 import { getApps } from '../../util/qseow/app.js';
 import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
 import { catchLog } from '../../util/log.js';
