@@ -30,6 +30,7 @@
     "license": "MIT",
     "type": "module",
     "dependencies": {
+        "@qlik/api": "^1.23.0",
         "axios": "^1.7.7",
         "commander": "^12.1.0",
         "csv-parse": "^5.5.6",

@@ -1,8 +1,8 @@
 import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
-import getAboutFromQseow from '../../util/qseow/about.js';
+import { getQscloudCurrentUser } from '../../util/qscloud/user.js';
 import { catchLog } from '../../util/log.js';
 
-const qscloudTestConnection = async (options) => {
+export async function qscloudTestConnection(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -13,23 +13,23 @@ const qscloudTestConnection = async (options) => {
         logger.info(`Testing connection to Qlik Sense Cloud tenant "${options.tenantUrl}"`);
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
-        const tenantInfo = await getTenantInfoFromQscloud(options);
+        // Get info about user associated with the auth JWT
+        const userInfo = await getQscloudCurrentUser(options);
 
-        if (!tenantInfo) {
-            logger.error(`Could not get tenant info from QS Cloud`);
+        if (userInfo === false) {
+            logger.error(`Could not connect to Qlik Sense Cloud`);
             return false;
         }
 
-        logger.info(`Successfully connected to Qlik Sense server ${options.host} on port ${options.port}`);
-        logger.info(`Qlik Sense repository build version: ${aboutInfo.buildVersion}`);
-        logger.info(`Qlik Sense repository build date: ${aboutInfo.buildDate}`);
-
-        return aboutInfo;
+        logger.info(`Successfully connected to Qlik Sense Cloud tenant "${options.host}"`);
+        logger.info(`Tenant ID  : ${userInfo.tenantId}`);
+        logger.info(`User ID    : ${userInfo.id}`);
+        logger.info(`User name  : ${userInfo.name}`);
+        logger.info(`User email : ${userInfo.email}`);
+        logger.info(`User status: ${userInfo.status}`);
     } catch (err) {
         catchLog(`Error testing connection to Qlik Sense server ${options.host} on port ${options.port}`, err);
         logger.error(`EXPORT APP: ${err.stack}`);
         return false;
     }
-};
-
-export default qscloudTestConnection;
+}
