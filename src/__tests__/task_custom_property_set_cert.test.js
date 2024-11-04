@@ -63,11 +63,14 @@ describe('set custom property on reload task (cert auth)', () => {
 
         // Get task and verify that CPs have been set
         const task = await getTaskById(existingTaskId, options);
-        expect(task.customProperties.length).toBe(2);
+
+        // Find how many values the ctrl_q_unit_test_1 CP has
+        const cp = task.customProperties.filter((item) => item.definition.name === options.customPropertyName);
+        expect(cp.length).toBe(2);
 
         // Verify that CP has the correct values
-        expect(task.customProperties[0].value).toBe('Value 1');
-        expect(task.customProperties[1].value).toBe('Value 2');
+        expect(cp[0].value).toBe('Value 1');
+        expect(cp[1].value).toBe('Value 2');
     });
 
     /**
@@ -90,9 +93,12 @@ describe('set custom property on reload task (cert auth)', () => {
 
         // Get task and verify that CPs have been set
         const task = await getTaskById(existingTaskId, options);
-        expect(task.customProperties.length).toBe(3);
+
+        // Find how many values the ctrl_q_unit_test_1 CP has
+        const cp = task.customProperties.filter((item) => item.definition.name === options.customPropertyName);
+        expect(cp.length).toBe(3);
 
         // Verify that CP has the correct values
-        expect(task.customProperties[2].value).toBe('Value 3');
+        expect(cp[2].value).toBe('Value 3');
     });
 });
