@@ -39,7 +39,7 @@ const consoleTableConfig = {
  *
  * @param {*} options
  */
-const getMasterDimension = async (options) => {
+export async function getMasterDimension(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -267,6 +267,4 @@ const getMasterDimension = async (options) => {
     } catch (err) {
         catchLog(`Error getting master dimensions`, err);
     }
-};
-
-export default getMasterDimension;
+}

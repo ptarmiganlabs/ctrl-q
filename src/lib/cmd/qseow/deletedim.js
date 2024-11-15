@@ -10,7 +10,7 @@ let deleteCount = 0;
  *
  * @param {*} options
  */
-const deleteMasterDimension = async (options) => {
+export async function deleteMasterDimension(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -154,6 +154,4 @@ const deleteMasterDimension = async (options) => {
     } catch (err) {
         catchLog('Error in deleteMasterDimension', err);
     }
-};
-
-export default deleteMasterDimension;
+}
