@@ -1,12 +1,12 @@
 import SenseUtilities from 'enigma.js/sense-utilities.js';
 import WebSocket from 'ws';
-import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import upath from 'upath';
 import sea from 'node:sea';
 
-import { logger, execPath, readCert } from '../../../globals.js';
+import { logger, readCert } from '../../../globals.js';
+import { getCertFilePaths } from '../../util/qseow/cert.js';
 
 // Function to get Enigma.js schema file
 const getEnigmaSchema = (processPkgFlag, seaFlag, options) => {
@@ -90,15 +90,8 @@ export const setupEnigmaConnection = (options, sessionId) => {
     if (options.authType === 'cert') {
         logger.verbose(`Using certificates for authentication with Enigma`);
 
-        logger.verbose('Verify that cert files exists');
-        const fileCert = path.resolve(execPath, options.authCertFile);
-        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-        const fileCa = path.resolve(execPath, options.authRootCertFile);
-
-        if (!fileCert || !fileCertKey || !fileCa) {
-            logger.error(`Certificate file(s) not found when setting up Enigma connection`);
-            process.exit(1);
-        }
+        // Get certificate paths
+        const { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
 
         // Set up Enigma configuration
         // buildUrl docs: https://github.com/qlik-oss/enigma.js/blob/master/docs/api.md#senseutilitiesbuildurlconfig
@@ -116,9 +109,11 @@ export const setupEnigmaConnection = (options, sessionId) => {
                 new WebSocket(url, {
                     key: readCert(fileCertKey),
                     cert: readCert(fileCert),
-                    ca: [readCert(fileCa)],
+                    ca: [readCert(fileCertCA)],
                     headers: {
-                        'X-Qlik-User': `UserDirectory=${encodeURIComponent(options.authUserDir)};UserId=${encodeURIComponent(options.authUserId)}`,
+                        'X-Qlik-User': `UserDirectory=${encodeURIComponent(options.authUserDir)};UserId=${encodeURIComponent(
+                            options.authUserId
+                        )}`,
                     },
                     rejectUnauthorized: false,
                 }),
