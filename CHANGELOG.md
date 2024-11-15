@@ -1,5 +1,39 @@
 # Changelog
 
+## [4.0.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.0.0...ctrl-q-v4.0.0) (2024-11-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **QSEoW:** Add new command prefix for all client-managed related commands
+
+### Features
+
+* **qscloud:** Add connection test command ([61dd4d8](https://github.com/ptarmiganlabs/ctrl-q/commit/61dd4d8a33ddc5670921a82143a21dbf4bdf2dbf))
+* **qseow:** Add command for creating  custom properties acting as user activity buckets ([f8cc30a](https://github.com/ptarmiganlabs/ctrl-q/commit/f8cc30a974ecaa4b906380371ad6a9043505c0a0)), closes [#154](https://github.com/ptarmiganlabs/ctrl-q/issues/154)
+* **QSEoW:** Add new command prefix for all client-managed related commands ([06ab7ca](https://github.com/ptarmiganlabs/ctrl-q/commit/06ab7ca0bfa12027433a637c05e476d465b9a631)), closes [#519](https://github.com/ptarmiganlabs/ctrl-q/issues/519)
+
+
+### Bug Fixes
+
+* **unit-test:** Tests for setting task custom properties now work as intended ([779ee4e](https://github.com/ptarmiganlabs/ctrl-q/commit/779ee4e228882a388701f30cd0cc1fed82afeb1e))
+
+
+### Miscellaneous
+
+* **ci:** Update build process for Windows, macOS, and Linux to target Node.js 23 and improve executable handling ([ab191b6](https://github.com/ptarmiganlabs/ctrl-q/commit/ab191b69a954258e185f5627fbf2b92323392109))
+* **ci:** Update CI workflow to target Node.js 23 and enhance binary signing and notarization process ([ce020ed](https://github.com/ptarmiganlabs/ctrl-q/commit/ce020ed11ecf1437687ea1d86862f68fee965ae8)), closes [#523](https://github.com/ptarmiganlabs/ctrl-q/issues/523)
+* **deps:** Update dependencies ([b74df00](https://github.com/ptarmiganlabs/ctrl-q/commit/b74df004ae6321c96268992b19e7c37da3ea6001))
+* **deps:** update dependencies to latest versions ([84ffc18](https://github.com/ptarmiganlabs/ctrl-q/commit/84ffc189d0249efac4728132574ae3ae29735674))
+* **deps:** Upgrade dependencies ([99362ba](https://github.com/ptarmiganlabs/ctrl-q/commit/99362bab8e4b868cc7855ef600e828e01cc69959))
+* **main:** release ctrl-q 4.0.0 ([77a514f](https://github.com/ptarmiganlabs/ctrl-q/commit/77a514f4c7fa749c95b1ae557b9a100828cda2b5))
+* **test:** Add unit test for user activity custom property ([3131917](https://github.com/ptarmiganlabs/ctrl-q/commit/3131917b732b7216c8b988a9382f288690328c66))
+
+
+### Refactoring
+
+* More consistent handling of QRS calls ([c050445](https://github.com/ptarmiganlabs/ctrl-q/commit/c050445351de431d4872edda1ce3f5c62f7d6416))
+
 ## [4.0.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v3.18.1...ctrl-q-v4.0.0) (2024-11-15)
 
 
