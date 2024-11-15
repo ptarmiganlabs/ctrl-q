@@ -1,12 +1,11 @@
 import axios from 'axios';
-import path from 'path';
 // const { promises: Fs } = require('fs');
 // const yesno = require('yesno');
 
-import { logger, execPath } from '../../globals.js';
+import { logger } from '../../globals.js';
+import { setupQrsConnection } from '../util/qseow/qrs.js';
+import { getCertFilePaths } from '../util/qseow/cert.js';
 
-import setupQRSConnection from '../util/qrs.js';
-import getCertFilePaths from '../util/cert.js';
 import { catchLog } from '../util/log.js';
 // const { QlikSenseTasks } = require('./class_alltasks');
 // const { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } = require('../util/lookups');
@@ -26,12 +25,12 @@ export const getCustomProperty = async (options) => {
 
     try {
         // Get cert files
-        const certFilesFullPath = await getCertFilePaths(options);
+        const certFilesFullPath = getCertFilePaths(options);
 
         // Build QRS query string using custom property name
         const filter = encodeURIComponent(`name eq '${options.customPropertyName}'`);
 
-        const axiosConfig = await setupQRSConnection(options, {
+        const axiosConfig = await setupQrsConnection(options, {
             method: 'get',
             fileCert: certFilesFullPath.fileCert,
             fileCertKey: certFilesFullPath.fileCertKey,
@@ -62,16 +61,11 @@ export const getCustomProperty = async (options) => {
     return cp;
 };
 
+// TODO Should this function support JWT auth too?
 export const getTasksFromQseow = async (options) => {
     let taskList;
 
     try {
-        // Get QRS certificates
-        const fileCert = path.resolve(execPath, options.authCertFile);
-        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-        const fileCertCA = path.resolve(execPath, options.authRootCertFile);
-
-        //
         // Build QRS query string using task IDs
         let filter = '';
         if (options.taskId && options?.taskId.length >= 1) {
@@ -110,11 +104,8 @@ export const getTasksFromQseow = async (options) => {
         }
         logger.debug(`GET TASK: Final QRS query filter: ${filter}`);
 
-        const axiosConfig = await setupQRSConnection(options, {
+        const axiosConfig = await setupQrsConnection(options, {
             method: 'get',
-            fileCert,
-            fileCertKey,
-            fileCertCA,
             path: '/qrs/reloadtask/full',
             queryParameters: [{ name: 'filter', value: filter }],
         });
@@ -139,14 +130,9 @@ export const getTasksFromQseow = async (options) => {
 
 export const updateReloadTask = async (options, payload) => {
     try {
-        // Get cert files
-        const certFilesFullPath = await getCertFilePaths(options);
-
-        const axiosConfig = await setupQRSConnection(options, {
+        // TODO Should be using PUT instead of POST if updating an existing task?
+        const axiosConfig = await setupQrsConnection(options, {
             method: 'post',
-            fileCert: certFilesFullPath.fileCert,
-            fileCertKey: certFilesFullPath.fileCertKey,
-            fileCertCA: certFilesFullPath.fileCertCA,
             path: '/qrs/reloadtask/update',
             body: payload,
         });
@@ -154,6 +140,8 @@ export const updateReloadTask = async (options, payload) => {
         // Update reload task
         const result = await axios.request(axiosConfig);
         logger.debug(`UPDATE RELOAD TASK CUSTOM PROPERTY: Result=${result.status}`);
+
+        // TODO Check if task was updated successfully. Log error and return false if not.
     } catch (err) {
         catchLog(`UPDATE RELOAD TASK`, err);
         return false;

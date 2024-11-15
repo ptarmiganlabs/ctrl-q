@@ -12,8 +12,21 @@ jobs:
         include:
           - os: win-code-sign
             build: |
-              ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --external:axios --external:xdg-open --external:enigma.js --outfile=build.cjs --format=cjs --platform=node --target=node18 --minify  --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
-              pkg --output "./${env:DIST_FILE_NAME}.exe" -t node18-win-x64 ./build.cjs --config package.json --compress GZip
+              ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node23 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
+              node --experimental-sea-config sea-config.json
+              node -e "require('fs').copyFileSync(process.execPath, 'ctrl-q.exe')"
+
+              # Remove the signature from the executable
+              $processOptions1 = @{
+                FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
+                Wait = $true
+                ArgumentList = "remove", "/s", "./${env:DIST_FILE_NAME}.exe"
+                WorkingDirectory = "."
+                NoNewWindow = $true
+              }
+              Start-Process @processOptions1
+
+              npx postject ctrl-q.exe NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
 
               dir
 
@@ -46,48 +59,51 @@ jobs:
               }
 
               Compress-Archive @compress
-              
+
             artifact_insider: ctrl-q--win-x64--${{ github.sha }}.zip
           - os: mac-build1
             build: |
-              ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --external:axios --external:xdg-open --external:enigma.js --outfile=build.cjs --format=cjs --platform=node --target=node18 --minify --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
-              pkg --output "./${DIST_FILE_NAME}" -t node18-macos-x64 ./build.cjs --config package.json --compress GZip
+              # -------------------
+              ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node23 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
+              node --experimental-sea-config sea-config.json
+              cp $(command -v node) ${DIST_FILE_NAME}
+              codesign --remove-signature ${DIST_FILE_NAME}
+              npx postject ctrl-q NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 --macho-segment-name NODE_SEA
 
-              chmod +x "${DIST_FILE_NAME}"
               security delete-keychain build.keychain || true
 
               pwd
               ls -la
 
+              # -------------------
               # Turn our base64-encoded certificate back to a regular .p12 file
-              
               echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
 
+              # -------------------
               # We need to create a new keychain, otherwise using the certificate will prompt
               # with a UI dialog asking for the certificate password, which we can't
               # use in a headless CI environment
-              
+
               security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
               security list-keychains -d user -s build.keychain
               security default-keychain -d user -s build.keychain
               security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
               security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
               security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          
+
               codesign --force -s "$MACOS_CERTIFICATE_NAME" -v "./${DIST_FILE_NAME}" --deep --strict --options=runtime --timestamp --entitlements ./release-config/${DIST_FILE_NAME}.entitlements
 
-
+              # -------------------
               # Notarize
               # Store the notarization credentials so that we can prevent a UI password dialog from blocking the CI
 
               echo "Create keychain profile"
               xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
 
+              # -------------------
               # We can't notarize an app bundle directly, but we need to compress it as an archive.
               # Therefore, we create a zip file containing our app bundle, so that we can send it to the
               # notarization service
-
-
               # Notarize insider binary
               echo "Creating temp notarization archive for insider build"
               ditto -c -k --keepParent "./${DIST_FILE_NAME}" "./${DIST_FILE_NAME}--macos-x64--${{ github.sha }}.zip"
@@ -99,14 +115,20 @@ jobs:
               echo "Notarize insider app"
               xcrun notarytool submit "./${DIST_FILE_NAME}--macos-x64--${{ github.sha }}.zip" --keychain-profile "notarytool-profile" --wait
 
+              # -------------------
+              # Clean up
               # Delete build keychain
               security delete-keychain build.keychain
+              rm build.cjs
+
             artifact_insider: ctrl-q--macos-x64--${{ github.sha }}.zip
 
           - os: ubuntu-latest
             build: |
-              ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --external:axios --external:xdg-open --external:enigma.js --outfile=build.cjs --format=cjs --platform=node --target=node18 --minify --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
-              pkg --output "./${DIST_FILE_NAME}" -t node18-linux-x64 ./build.cjs --config package.json --compress GZip
+              ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node23 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
+              node --experimental-sea-config sea-config.json
+              cp $(command -v node) ${DIST_FILE_NAME}
+              npx postject ctrl-q NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
 
               chmod +x ${DIST_FILE_NAME}
 
@@ -122,7 +144,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 23.x
 
       - name: Install tool for creating stand-alone executables
         run: |
@@ -131,7 +153,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pwd 
+          pwd
           npm ci --include=prod
 
       - name: Run Snyk to check for vulnerabilities
@@ -144,7 +166,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --file=./package.json --sarif-file-output=snyk.sarif
-          
+
       - name: Upload Snyk result to GitHub Code Scanning
         if: |
           github.repository_owner == 'ptarmiganlabs' &&
@@ -156,7 +178,7 @@ jobs:
 
       - name: Create binaries
         env:
-          DIST_FILE_NAME: ctrl-q     
+          DIST_FILE_NAME: ctrl-q
           GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
           MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE_BASE64_CODESIGN }}
           MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_CODESIGN_PWD }}
@@ -175,4 +197,3 @@ jobs:
         with:
           name: ${{ matrix.artifact_insider }}
           path: ${{ matrix.artifact_insider }}
-  

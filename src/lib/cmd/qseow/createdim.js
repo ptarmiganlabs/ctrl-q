@@ -1,0 +1,259 @@
+import enigma from 'enigma.js';
+import setupEnigmaConnection from '../../util/qseow/enigma_util.js';
+import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
+import { catchLog } from '../../util/log.js';
+
+/**
+ *
+ * @param {*} options
+ */
+const createMasterDimension = async (options) => {
+    try {
+        // Set log level
+        setLoggingLevel(options.logLevel);
+
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started from ${execPath}`);
+
+        logger.info('Create master dimension');
+        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+
+        // Configure Enigma.js
+        const configEnigma = await setupEnigmaConnection(options);
+
+        const session = enigma.create(configEnigma);
+        const global = await session.open();
+
+        const engineVersion = await global.engineVersion();
+        logger.verbose(`Created session to server ${options.host}, engine version is ${engineVersion.qComponentVersion}.`);
+
+        const app = await global.openDoc(options.appId, '', '', '', false);
+        logger.verbose(`Opened app ${options.appId}.`);
+
+        // Get master dimensions
+        const dimensionCall = {
+            qInfo: {
+                qId: 'DimensionObjectExt',
+                qType: 'DimensionListExt',
+            },
+            qDimensionListDef: {
+                qType: 'dimension',
+                qData: {
+                    grouping: '/qDim/qGrouping',
+                    info: '/qDimInfos',
+                    title: '/qMetaDef/title',
+                    tags: '/qMetaDef/tags',
+                    expression: '/qDim',
+                    description: '/qMetaDef/description',
+                },
+            },
+        };
+
+        // Not used right now
+        // const appLayout = await app.getAppLayout();
+        // const appProperties = await app.getAppProperties();
+
+        const genericDimObj = await app.createObject(dimensionCall);
+        const dimObj = await genericDimObj.getLayout();
+        if (dimObj) {
+            // var testData1 = {
+            //   qInfo: {
+            //     // qId: 'UPRBXKf',
+            //     qType: 'dimension',
+            //   },
+            //   qMetaDef: {
+            //     title: 'Dimension 2b',
+            //     description: 'Description for dimension 2',
+            //     // createdDate: '2021-06-06T20:28:24.565Z',
+            //     // modifiedDate: '2021-06-06T20:28:24.565Z',
+            //     published: false,
+            //     // publishTime: '1753-01-01T00:00:00.000Z',
+            //     approved: false,
+            //     owner: {
+            //       id: '40cbdd7c-251d-4cce-9dc1-1bd678aa9fa9',
+            //       userId: 'goran',
+            //       userDirectory: 'LAB',
+            //       userDirectoryConnectorName: 'LAB',
+            //       name: 'Göran Sander',
+            //       privileges: null,
+            //     },
+            //     qSize: -1,
+            //     sourceObject: '',
+            //     draftObject: '',
+            //     // privileges: ['read', 'update', 'delete', 'exportdata', 'publish', 'approve'],
+            //     tags: [],
+            //   },
+            //   qDim: {
+            //     // info: [
+            //     //   {
+            //     //     qName: 'Dim2',
+            //     //     // qTags: ['$ascii', '$text'],
+            //     //     qIsSemantic: false,
+            //     //   },
+            //     // ],
+            //     title: 'Dimension 2b',
+            //     // coloring: { changeHash: '0.03484771814318943' },
+            //     // grouping: 'N',
+            //     tags: [],
+            //     // expression: {
+            //     qGrouping: 'N',
+            //     qFieldDefs: ['Dim2'],
+            //     qFieldLabels: ['Dimension 2b'],
+            //     qLabelExpression: "'label expression for dimension 2'",
+            //     // title: 'Dimension 2b',
+            //     // coloring: { changeHash: '0.03484771814318943' },
+            //     // },
+            //     description: 'Description for dimension 2',
+            //   },
+            // };
+
+            // testData1 = {
+            //   qInfo: {
+            //     qId: 'Dimension01',
+            //     qType: 'Dimension',
+            //   },
+            //   qDim: {
+            //     title: 'something',
+            //     qGrouping: 'N',
+            //     qFieldDefs: ['Country'],
+            //     qFieldLabels: ['Country label'],
+            //   },
+            //   qMetaDef: {
+            //     title: 'something',
+            //   },
+            // };
+
+            // var testData1 = {
+            //   qInfo: {
+            //     qType: 'dimension',
+            //   },
+            //   qDim: {
+            //     qGrouping: 'N',
+            //     qFieldDefs: ['AsciiNum'],
+            //     title: 'AsciiNum',
+            //     coloring: {
+            //       changeHash: '0.13870465115802433',
+            //     },
+            //     qFieldLabels: ['AsciiNum'],
+            //   },
+            //   qMetaDef: {
+            //     title: 'AsciiNum',
+            //     description: '',
+            //     tags: [],
+            //     owner: {
+            //       userId: 'goran',
+            //       userDirectory: 'LAB',
+            //     },
+            //   },
+            // };
+
+            // var testData1 = {
+            //   qInfo: { qId: '0064e480-6e12-4871-be1f-3652f05ca21c', qType: 'dimension' },
+            //   qMetaDef: {
+            //     title: 'Dimension 2c',
+            //     description: 'Description for dimension 2',
+            //     owner: {
+            //       id: '40cbdd7c-251d-4cce-9dc1-1bd678aa9fa9',
+            //       userId: 'goran',
+            //       userDirectory: 'LAB',
+            //       userDirectoryConnectorName: 'LAB',
+            //       name: 'Göran Sander',
+            //       privileges: null,
+            //     },
+            //     qSize: -1,
+            //     sourceObject: '',
+            //     draftObject: '',
+            //     privileges: ['read', 'update', 'delete', 'exportdata', 'publish', 'approve'],
+            //     tags: [],
+            //   },
+            //   qDim: {
+            //     info: [{ qName: 'Dim2', qTags: ['$ascii', '$text'], qIsSemantic: false }],
+            //     title: 'Dimension 2c',
+            //     tags: [],
+            //     description: 'Description for dimension 2',
+            //     grouping: 'N',
+            //     expression: {
+            //       qGrouping: 'N',
+            //       qFieldDefs: ['Dim2'],
+            //       qFieldLabels: ['Dimension 2c'],
+            //       qLabelExpression: "'label expression for dimension 2'",
+            //       title: 'Dimension 2c',
+            //       tags: [],
+            //       description: 'Description for dimension 2',
+            //     },
+            //   },
+            // };
+
+            const testData1 = {
+                qInfo: {
+                    qType: 'dimension',
+                },
+                qDim: {
+                    title: 'abc123',
+                    qGrouping: 'N',
+                    qFieldDefs: [],
+                    qFieldLabels: [],
+                },
+                qMetaDef: {
+                    title: 'abc123',
+                    tags: [],
+                    owner: {
+                        // id: '40cbdd7c-251d-4cce-9dc1-1bd678aa9fa9',
+                        userId: 'goran',
+                        userDirectory: 'LAB',
+                        // userDirectoryConnectorName: 'LAB',
+                        // name: 'Göran Sander',
+                        // privileges: null,
+                    },
+                },
+            };
+
+            const a = await app.createDimension(testData1);
+
+            const b = await app.saveObjects();
+
+            // const genericDimObj = await app.createObject(dimensionCall);
+            // // const a = await dimObj.getInfo();
+            // // const b = await dimObj.getListObjectData();
+            // const dimObj = await genericDimObj.getLayout();
+            // if (dimObj) {
+            //   const dimensions = dimObj.qDimensionList.qItems;
+            //   // const d = await dimObj.getProperties();
+
+            //   for (const dimension of dimensions) {
+            //     if (options.itemid === undefined || options.itemid === dimension.qInfo.qId) {
+            //       dimensionTable.push([
+            //         dimension.qInfo.qId,
+            //         dimension.qInfo.qType,
+            //         dimension.qMeta.title,
+            //         dimension.qData.description,
+            //         dimension.qData.descriptionExpression !== undefined ? dimension.qData.descriptionExpression : '',
+            //         dimension.qData.expression.descriptionExpression ? dimension.qData.expression.descriptionExpression.qStringExpression.qExpr : '',
+            //         dimension.qData.expression.qFieldDefs.length,
+            //         dimension.qData.expression.qFieldDefs.join('\n'),
+
+            //         dimension.qMeta.approved,
+            //         dimension.qData.grouping,
+            //         dimension.qMeta.published,
+            //         dimension.qMeta.publishTime,
+            //         dimension.qMeta.createdDate,
+            //         dimension.qMeta.modifiedDate,
+            //         dimension.qMeta.owner.authUserDirectory + '\\' + dimension.qMeta.owner.authUserId,
+            //         dimension.qMeta.tags,
+            //       ]);
+            //     }
+            //   }
+            // }
+        }
+
+        if ((await session.close()) === true) {
+            logger.verbose(`Closed session after managing master items in app ${options.appId} on host ${options.host}`);
+        } else {
+            logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+        }
+    } catch (err) {
+        catchLog('Error creating master dimension', err);
+    }
+};
+
+export default createMasterDimension;

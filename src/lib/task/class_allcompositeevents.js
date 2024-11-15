@@ -1,12 +1,13 @@
 import axios from 'axios';
-import path from 'path';
+import path from 'node:path';
+
 import { logger, execPath, verifyFileExists } from '../../globals.js';
-import setupQRSConnection from '../util/qrs.js';
+import { setupQrsConnection } from '../util/qseow/qrs.js';
 import QlikSenseCompositeEvent from './class_compositeevent.js';
 import { catchLog } from '../util/log.js';
+import { getCertFilePaths } from '../util/qseow/cert.js';
 
 class QlikSenseCompositeEvents {
-    // eslint-disable-next-line no-useless-constructor
     constructor() {
         //
     }
@@ -16,11 +17,14 @@ class QlikSenseCompositeEvents {
             this.compositeEventList = [];
             this.options = options;
 
+            // Should certificates be used for authentication?
             if (this.options.authType === 'cert') {
-                // Make sure certificates exist
-                this.fileCert = path.resolve(execPath, options.authCertFile);
-                this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-                this.fileCertCA = path.resolve(execPath, options.authRootCertFile);
+                // Get certificate paths
+                const { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
+
+                this.fileCert = fileCert;
+                this.fileCertKey = fileCertKey;
+                this.fileCertCA = fileCertCA;
             }
         } catch (err) {
             catchLog(`GET COMPOSITE EVENT`, err);
@@ -42,7 +46,7 @@ class QlikSenseCompositeEvents {
             try {
                 logger.debug('GET SCHEMAEVENT: Starting get composite events from QSEoW');
 
-                const axiosConfig = await setupQRSConnection(this.options, {
+                const axiosConfig = await setupQrsConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,

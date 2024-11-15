@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 import { jest, test, expect, describe } from '@jest/globals';
 
-import { getApps, getAppById, appExistById, deleteAppById } from '../lib/util/app.js';
-import importAppFromFile from '../lib/cmd/importapp.js';
+import { getApps, getAppById, appExistById, deleteAppById } from '../lib/util/qseow/app.js';
+import importAppFromFile from '../lib/cmd/qseow/importapp.js';
 import { sleep } from '../globals.js';
 
 const options = {
@@ -103,12 +103,10 @@ describe('deleteAppById (JWT auth)', () => {
             // console.log(`App ID: ${appId}`);
 
             // Check if app exists
-            // eslint-disable-next-line no-await-in-loop
             const appExists = await appExistById(appId, options);
 
             if (appExists) {
                 // Delete app
-                // eslint-disable-next-line no-await-in-loop
                 const resultDelete = await deleteAppById(appId, options);
                 expect(resultDelete).toBe(true);
             } else {

@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
 import { jest, test, expect, describe } from '@jest/globals';
 
-import testConnection from '../lib/cmd/testconnection.js';
+import testConnection from '../lib/cmd/qseow/testconnection.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

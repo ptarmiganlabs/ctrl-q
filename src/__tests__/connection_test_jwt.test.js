@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
 import { jest, test, expect, describe } from '@jest/globals';
 
-import testConnection from '../lib/cmd/testconnection.js';
+import testConnection from '../lib/cmd/qseow/testconnection.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
@@ -25,10 +24,13 @@ describe('connection test (JWT auth)', () => {
     options.authType = 'jwt';
     options.port = '443';
     options.virtualProxy = 'jwt';
+    options.secure = false;
 
     test('Verify parameters', async () => {
+        expect(options.authType).toBe('jwt');
         expect(options.host).not.toHaveLength(0);
         expect(options.port).not.toHaveLength(0);
+        expect(options.port).toBe('443');
         expect(options.authJwt).not.toHaveLength(0);
     });
 
@@ -38,8 +40,6 @@ describe('connection test (JWT auth)', () => {
      * Should succeed
      */
     test('do connection test (virtual proxy=jwt)', async () => {
-        options.virtualProxy = 'jwt';
-
         const result = await testConnection(options);
 
         // Result should be a JSON object

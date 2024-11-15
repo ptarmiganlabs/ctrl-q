@@ -1,12 +1,11 @@
 import axios from 'axios';
-import path from 'path';
-import { logger, execPath } from '../../globals.js';
-import setupQRSConnection from '../util/qrs.js';
+import { logger } from '../../globals.js';
+import { setupQrsConnection } from '../util/qseow/qrs.js';
 import QlikSenseSchemaEvent from './class_schemaevent.js';
 import { catchLog } from '../util/log.js';
+import { getCertFilePaths } from '../util/qseow/cert.js';
 
 class QlikSenseSchemaEvents {
-    // eslint-disable-next-line no-useless-constructor
     constructor() {
         //
     }
@@ -17,10 +16,12 @@ class QlikSenseSchemaEvents {
             this.options = options;
 
             if (this.options.authType === 'cert') {
-                // Make sure certificates exist
-                this.fileCert = path.resolve(execPath, options.authCertFile);
-                this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-                this.fileCertCA = path.resolve(execPath, options.authRootCertFile);
+                // Get certificate paths
+                const { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
+
+                this.fileCert = fileCert;
+                this.fileCertKey = fileCertKey;
+                this.fileCertCA = fileCertCA;
             }
         } catch (err) {
             catchLog(`GET SCHEMA EVENT INIT`, err);
@@ -38,7 +39,6 @@ class QlikSenseSchemaEvents {
     }
 
     getSchemaEventsFromFile(schemaEvent) {
-        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 logger.debug('GET SCHEMA EVENT: Starting get schema events from QSEoW');
@@ -54,12 +54,11 @@ class QlikSenseSchemaEvents {
     }
 
     getSchemaEventsFromQseow() {
-        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 logger.debug('GET SCHEMA EVENT: Starting get schema events from QSEoW');
 
-                const axiosConfig = await setupQRSConnection(this.options, {
+                const axiosConfig = await setupQrsConnection(this.options, {
                     method: 'get',
                     fileCert: this.fileCert,
                     fileCertKey: this.fileCertKey,
@@ -75,7 +74,6 @@ class QlikSenseSchemaEvents {
                         logger.verbose(`GET SCHEMA EVENT: Total number of schema events: ${schemaEvents.length}`);
 
                         this.clear();
-                        // eslint-disable-next-line no-plusplus
                         for (let i = 0; i < schemaEvents.length; i++) {
                             this.addSchemaEvent(schemaEvents[i]);
                         }

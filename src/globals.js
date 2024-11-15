@@ -1,15 +1,17 @@
 import winston from 'winston';
 import upath from 'upath';
-import { fileURLToPath } from 'url';
-import { readFileSync, promises as Fs } from 'fs';
+import { fileURLToPath } from 'node:url';
+import { readFileSync, promises as Fs } from 'node:fs';
 import 'winston-daily-rotate-file';
+import sea from 'node:sea';
 
-// Get app version from package.json file
 // Get app version from package.json file
 const filenamePackage = `./package.json`;
 let a;
 let b;
 let c;
+export let appVersion;
+
 // Are we running as a packaged app?
 if (process.pkg) {
     // Get path to JS file
@@ -20,6 +22,15 @@ if (process.pkg) {
 
     // Add path to package.json file
     c = upath.join(b, filenamePackage);
+
+    const { version } = JSON.parse(readFileSync(c));
+    appVersion = version;
+} else if (sea.isSea()) {
+    // Get contents of package.json file
+    packageJson = sea.getAsset('package.json', 'utf8');
+    const version = JSON.parse(packageJson).version;
+
+    appVersion = version;
 } else {
     // Get path to JS file
     a = fileURLToPath(import.meta.url);
@@ -29,10 +40,10 @@ if (process.pkg) {
 
     // Add path to package.json file
     c = upath.join(b, '..', filenamePackage);
-}
 
-const { version } = JSON.parse(readFileSync(c));
-export const appVersion = version;
+    const { version } = JSON.parse(readFileSync(c));
+    appVersion = version;
+}
 
 // Set up logger with timestamps and colors, and optional logging to disk file
 const logTransports = [];
@@ -122,7 +133,7 @@ export const mergeDirFilePath = (pathElements) => {
 
 export const generateXrfKey = () => {
     let xrfString = '';
-    // eslint-disable-next-line no-plusplus
+
     for (let i = 0; i < 16; i++) {
         if (Math.floor(Math.random() * 2) === 0) {
             xrfString += Math.floor(Math.random() * 10).toString();
@@ -156,7 +167,6 @@ export function isNumeric(str) {
 }
 
 export function sleep(ms) {
-    // eslint-disable-next-line no-promise-executor-return
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
