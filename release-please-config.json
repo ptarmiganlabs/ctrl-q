@@ -1,4 +1,6 @@
 {
+    "last-release-sha": "7b1d7a8f1b05f8b3b9d56f79abae725016a0ee82",
+    "release-as": "4.0.0",
     "draft": true,
     "release-search-depth": 10,
     "commit-search-depth": 200,
