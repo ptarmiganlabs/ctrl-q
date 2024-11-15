@@ -1,5 +1,7 @@
 import { Option } from 'commander';
 
+import { appVersion, logger } from '../../globals.js';
+
 export function setupQseowShowVersionCommand(qseow) {
     qseow
         .command('version')
@@ -8,6 +10,6 @@ export function setupQseowShowVersionCommand(qseow) {
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .action(async (options) => {
-            logger.verbose(`Version: ${appVersion}`);
+            logger.info(`Version: ${appVersion}`);
         });
 }
