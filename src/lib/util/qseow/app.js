@@ -57,34 +57,17 @@ export async function getApps(options, idArray, tagArray) {
         }
         logger.debug(`GET APPS: QRS query filter (incl ids, tags): ${filter}`);
 
-        let axiosConfig;
         if (filter === '') {
             // No apps matching the provided app IDs and tags. Error!
             logger.error('GET APPS: No apps matching the provided app IDs and and tags. Exiting.');
             process.exit(1);
         }
-        // Should cerrificates be used for authentication?
-        else if (options.authType === 'cert') {
-            // Make sure certificates exist
-            const fileCert = path.resolve(execPath, options.authCertFile);
-            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
-                path: '/qrs/app/full',
-                queryParameters: [{ name: 'filter', value: filter }],
-            });
-        } else if (options.authType === 'jwt') {
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                path: '/qrs/app/full',
-                queryParameters: [{ name: 'filter', value: filter }],
-            });
-        }
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'get',
+            path: '/qrs/app/full',
+            queryParameters: [{ name: 'filter', value: filter }],
+        });
 
         const result = await axios.request(axiosConfig);
         logger.debug(`GET APPS BY TAG: Result=result.status`);
@@ -119,27 +102,11 @@ export async function getAppById(appId, optionsParam) {
             return false;
         }
 
-        // Should cerrificates be used for authentication?
-        let axiosConfig;
-        if (options.authType === 'cert') {
-            // Make sure certificates exist
-            const fileCert = path.resolve(execPath, options.authCertFile);
-            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
-
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
-                path: `/qrs/app/${appId}`,
-            });
-        } else if (options.authType === 'jwt') {
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                path: `/qrs/app/${appId}`,
-            });
-        }
+        // Should certificates be used for authentication?
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'get',
+            path: `/qrs/app/${appId}`,
+        });
 
         const result = await axios.request(axiosConfig);
         logger.debug(`GET APP BY ID: Result=${result.status}`);
@@ -175,31 +142,10 @@ export async function deleteAppById(appId, options) {
     try {
         logger.debug(`DELETE APP: Starting delete app from QSEoW for app id ${appId}`);
 
-        // Get CLI options
-        // const cliOptions = getCliOptions();
-
-        // Should cerrificates be used for authentication?
-        let axiosConfig;
-        if (options.authType === 'cert') {
-            // Make sure certificates exist
-            const fileCert = path.resolve(execPath, options.authCertFile);
-            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
-
-            axiosConfig = setupQrsConnection(options, {
-                method: 'delete',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
-                path: `/qrs/app/${appId}`,
-            });
-        } else if (options.authType === 'jwt') {
-            axiosConfig = setupQrsConnection(options, {
-                method: 'delete',
-                path: `/qrs/app/${appId}`,
-            });
-        }
-
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'delete',
+            path: `/qrs/app/${appId}`,
+        });
         const result = await axios.request(axiosConfig);
         logger.debug(`DELETE APP: Result=result.status`);
 
@@ -227,29 +173,11 @@ export async function appExistById(appId, options) {
             return false;
         }
 
-        // Should cerrificates be used for authentication?
-        let axiosConfig;
-        if (options.authType === 'cert') {
-            // Make sure certificates exist
-            const fileCert = path.resolve(execPath, options.authCertFile);
-            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
-
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
-                path: '/qrs/app',
-                queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${appId}`) }],
-            });
-        } else if (options.authType === 'jwt') {
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                path: '/qrs/app',
-                queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${appId}`) }],
-            });
-        }
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'get',
+            path: '/qrs/app',
+            queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${appId}`) }],
+        });
 
         const result = await axios.request(axiosConfig);
         logger.debug(`APP EXIST BY ID: Result=${result.status}`);

@@ -1,8 +1,7 @@
 import axios from 'axios';
 import fs from 'node:fs';
-import path from 'node:path';
 import { validate } from 'uuid';
-import { logger, execPath, getCliOptions } from '../../../globals.js';
+import { logger, getCliOptions } from '../../../globals.js';
 import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
 
@@ -30,30 +29,11 @@ export async function taskExistById(taskId, optionsParam) {
             return false;
         }
 
-        // Should cerrificates be used for authentication?
-        let axiosConfig;
-        if (options.authType === 'cert') {
-            // Make sure certificates exist
-            const fileCert = path.resolve(execPath, options.authCertFile);
-            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
-
-            // const filter = encodeURI(`name eq '👍😎 updateSheetThumbnail'`);
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
-                path: '/qrs/task',
-                queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
-            });
-        } else if (options.authType === 'jwt') {
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                path: '/qrs/task',
-                queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
-            });
-        }
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'get',
+            path: '/qrs/task',
+            queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
+        });
 
         const result = await axios.request(axiosConfig);
         logger.debug(`TASK EXIST BY ID: Result=${result.status}`);
@@ -101,28 +81,11 @@ export async function getTaskByName(taskName, optionsParam) {
             options = optionsParam;
         }
 
-        let axiosConfig;
-        if (options.authType === 'cert') {
-            // Make sure certificates exist
-            const fileCert = path.resolve(execPath, options.authCertFile);
-            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
-
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
-                path: '/qrs/task/full',
-                queryParameters: [{ name: 'filter', value: encodeURI(`name eq '${taskName}'`) }],
-            });
-        } else if (options.authType === 'jwt') {
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                path: '/qrs/task/full',
-                queryParameters: [{ name: 'filter', value: encodeURI(`name eq '${taskName}'`) }],
-            });
-        }
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'get',
+            path: '/qrs/task/full',
+            queryParameters: [{ name: 'filter', value: encodeURI(`name eq '${taskName}'`) }],
+        });
 
         const result = await axios.request(axiosConfig);
         logger.debug(`GET TASK BY NAME: Result=${result.status}`);
@@ -173,28 +136,11 @@ export async function getTaskById(taskId, optionsParam) {
 
         logger.verbose(`GET TASK BY ID: Task ID ${taskId} is a valid GUID. Get associated task from QSEoW.`);
 
-        let axiosConfig;
-        if (options.authType === 'cert') {
-            // Make sure certificates exist
-            const fileCert = path.resolve(execPath, options.authCertFile);
-            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
-
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
-                path: `/qrs/task/full`,
-                queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
-            });
-        } else if (options.authType === 'jwt') {
-            axiosConfig = setupQrsConnection(options, {
-                method: 'get',
-                path: `/qrs/task/full`,
-                queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
-            });
-        }
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'get',
+            path: `/qrs/task/full`,
+            queryParameters: [{ name: 'filter', value: encodeURI(`id eq ${taskId}`) }],
+        });
 
         const result = await axios.request(axiosConfig);
         logger.debug(`GET TASK BY ID: Result=${result.status}`);
@@ -247,38 +193,10 @@ export async function deleteReloadTaskById(taskId, optionsParam) {
 
         logger.verbose(`DELETE RELOAD TASK BY ID: Task ID ${taskId} is a valid GUID. Delete associated task from QSEoW.`);
 
-        let axiosConfig;
-
-        if (optionsParam.authType === 'cert') {
-            // Expand cert file paths
-            const fileCert = path.resolve(execPath, options.authCertFile);
-            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
-
-            // Make sure certificate files exist on disk
-            if (!fs.existsSync(fileCert)) {
-                logger.error(`DELETE RELOAD TASK BY ID: Certificate file ${fileCert} does not exist.`);
-                return false;
-            }
-
-            if (!fs.existsSync(fileCertKey)) {
-                logger.error(`DELETE RELOAD TASK BY ID: Certificate key file ${fileCertKey} does not exist.`);
-                return false;
-            }
-
-            axiosConfig = setupQrsConnection(options, {
-                method: 'delete',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
-                path: `/qrs/reloadtask/${taskId}`,
-            });
-        } else if (optionsParam.authType === 'jwt') {
-            axiosConfig = setupQrsConnection(options, {
-                method: 'delete',
-                path: `/qrs/reloadtask/${taskId}`,
-            });
-        }
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'delete',
+            path: `/qrs/reloadtask/${taskId}`,
+        });
 
         const result = await axios.request(axiosConfig);
         logger.debug(`DELETE RELOAD TASK BY ID: Result=${result.status}`);
@@ -319,38 +237,10 @@ export async function deleteExternalProgramTaskById(taskId, optionsParam) {
 
         logger.verbose(`DELETE EXT PGM TASK BY ID: Task ID ${taskId} is a valid GUID. Delete associated task from QSEoW.`);
 
-        let axiosConfig;
-
-        if (optionsParam.authType === 'cert') {
-            // Expand cert file paths
-            const fileCert = path.resolve(execPath, options.authCertFile);
-            const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-            const fileCertCA = path.resolve(execPath, options.authRootCertFile);
-
-            // Make sure certificate files exist on disk
-            if (!fs.existsSync(fileCert)) {
-                logger.error(`DELETE EXT PGM TASK BY ID: Certificate file ${fileCert} does not exist.`);
-                return false;
-            }
-
-            if (!fs.existsSync(fileCertKey)) {
-                logger.error(`DELETE EXT PGM TASK BY ID: Certificate key file ${fileCertKey} does not exist.`);
-                return false;
-            }
-
-            axiosConfig = setupQrsConnection(options, {
-                method: 'delete',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
-                path: `/qrs/externalprogramtask/${taskId}`,
-            });
-        } else if (optionsParam.authType === 'jwt') {
-            axiosConfig = setupQrsConnection(options, {
-                method: 'delete',
-                path: `/qrs/externalprogramtask/${taskId}`,
-            });
-        }
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'delete',
+            path: `/qrs/externalprogramtask/${taskId}`,
+        });
 
         const result = await axios.request(axiosConfig);
         logger.debug(`DELETE TASK BY ID: Result=${result.status}`);

@@ -66,16 +66,11 @@ const consoleProxiesTableConfig = {
 export const getSessionsFromQseow = async (options, sessionCookie) => {
     logger.verbose(`Getting sessions from QSEoW...`);
 
-    // Only cerrificates allowed for authentication
+    // Only certificates allowed for authentication
     if (options.authType !== 'cert') {
         logger.error(`Only certificates allowed for authentication with Qlik Proxy Service (QPS)`);
         return false;
     }
-
-    // Make sure certificates exist
-    const fileCert = path.resolve(execPath, options.authCertFile);
-    const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-    const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
     let axiosConfig;
     let virtualProxiesToProcess = [];
@@ -91,9 +86,6 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
         const vpFilter = options.sessionVirtualProxy.map((vp) => `prefix eq '${vp}'`).join(' or ');
         axiosConfig = setupQrsConnection(options, {
             method: 'get',
-            fileCert,
-            fileCertKey,
-            fileCertCA,
             path: '/qrs/virtualproxyconfig/full',
             queryParameters: [{ name: 'filter', value: encodeURI(vpFilter) }],
         });
@@ -101,9 +93,6 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
         // No virtual proxies specified, get all of them from QRS
         axiosConfig = setupQrsConnection(options, {
             method: 'get',
-            fileCert,
-            fileCertKey,
-            fileCertCA,
             path: '/qrs/virtualproxyconfig/full',
         });
     }
@@ -191,7 +180,6 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
 
     let sessions = [];
     // Loop over virtual proxies and get sessions for each, but only if the linked proxy is in the list of proxies to process
-    // eslint-disable-next-line no-restricted-syntax
     for (const vp of virtualProxiesToProcess) {
         // Is this virtual proxy linked to at least one proxy?
         const proxiesVirtualProxy = proxiesAvailable.filter((p) => p.settings.virtualProxies.find((q) => q.id === vp.id));
@@ -209,7 +197,6 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
 
         let sessionPerVirtualProxy = 0;
         // Loop over all proxies linked to this virtual proxy, get the proxy sessions for each one
-        // eslint-disable-next-line no-restricted-syntax
         for (const proxy of proxiesVirtualProxy) {
             // Is this proxy in list of proxies to process?
             if (proxiesToProcess.length > 0 && !proxiesToProcess.includes(proxy.serverNodeConfiguration.hostName)) {
@@ -231,7 +218,6 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
             });
 
             try {
-                // eslint-disable-next-line no-await-in-loop
                 const result = await axios.request(axiosConfig);
 
                 if (result.status === 200) {
@@ -268,16 +254,11 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
 export const deleteSessionsFromQSEoWIds = async (options) => {
     logger.verbose(`Deleting proxy sessions from QSEoW...`);
 
-    // Only cerrificates allowed for authentication
+    // Only certificates allowed for authentication
     if (options.authType !== 'cert') {
         logger.error(`Only certificates allowed for authentication with Qlik Proxy Service (QPS)`);
         return false;
     }
-
-    // Make sure certificates exist
-    const fileCert = path.resolve(execPath, options.authCertFile);
-    const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-    const fileCertCA = path.resolve(execPath, options.authRootCertFile);
 
     try {
         const sessionDelete = [];
@@ -320,9 +301,7 @@ export const deleteSessionsFromQSEoWIds = async (options) => {
             }
         } else {
             // Use session IDs specified on command line
-            // eslint-disable-next-line no-restricted-syntax
             for (const s of options.sessionId) {
-                // eslint-disable-next-line no-restricted-syntax
                 for (const vp of vpWithSessions) {
                     if (vp.sessions.find((x) => x.SessionId === s)) {
                         const sessionObject = {
@@ -350,7 +329,6 @@ export const deleteSessionsFromQSEoWIds = async (options) => {
         let deleteCounter = 0;
 
         // Loop over all session IDs and delete each one
-        // eslint-disable-next-line no-restricted-syntax
         for (const s of sessionDelete) {
             logger.verbose(
                 `Deleting session ID "${s.sessionId}" on proxy "${options.hostProxy}", virtual proxy "${options.sessionVirtualProxy}"...`
@@ -361,14 +339,10 @@ export const deleteSessionsFromQSEoWIds = async (options) => {
                 const axiosConfig = setupQPSConnection(options, {
                     hostProxy: options.hostProxy,
                     method: 'delete',
-                    fileCert,
-                    fileCertKey,
-                    fileCertCA,
                     path: `/qps/${options.sessionVirtualProxy}/session/${s.sessionId}`,
                     sessionCookie: null,
                 });
 
-                // eslint-disable-next-line no-await-in-loop
                 const result = await axios.request(axiosConfig);
 
                 if (result.status === 200) {

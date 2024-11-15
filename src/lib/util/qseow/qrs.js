@@ -1,6 +1,7 @@
 import https from 'node:https';
 
 import { logger, generateXrfKey, readCert } from '../../../globals.js';
+import { getCertFilePaths } from '../qseow/cert.js';
 
 // Function to sanitize virtual proxy
 export function sanitizeVirtualProxy(virtualProxy) {
@@ -75,17 +76,34 @@ export function setupQrsConnection(options, param) {
     }
 
     let axiosConfig;
-    // Should cerrificates be used for authentication?
+    // Should certificates be used for authentication?
     if (options.authType === 'cert') {
         logger.debug(`Using certificates for authentication with QRS`);
         logger.debug(`QRS host: ${options.host}`);
         logger.debug(`Reject unauthorized certificate: ${options.secure}`);
 
+        // Get certificate paths
+        // If specified in the param object, use those paths
+        // Otherwise, use the paths from the command line options
+        let { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
+
+        if (param.fileCert) {
+            fileCert = param.fileCert;
+        }
+
+        if (param.fileCertKey) {
+            fileCertKey = param.fileCertKey;
+        }
+
+        if (param.fileCertCA) {
+            fileCertCA = param.fileCertCA;
+        }
+
         const httpsAgent = new https.Agent({
             rejectUnauthorized: options.secure !== 'false',
-            cert: readCert(param.fileCert),
-            key: readCert(param.fileCertKey),
-            ca: readCert(param.fileCertCA),
+            cert: readCert(fileCert),
+            key: readCert(fileCertKey),
+            ca: readCert(fileCertCA),
         });
 
         axiosConfig = {

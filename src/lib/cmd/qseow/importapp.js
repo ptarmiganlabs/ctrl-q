@@ -1,5 +1,3 @@
-// import { csvParse } from 'csv-parse';
-
 import xlsx from 'node-xlsx';
 
 import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } from '../../../globals.js';
@@ -25,6 +23,7 @@ const importAppFromFile = async (options) => {
 
         // Get all custom properties
         const cpExisting = await getCustomPropertiesFromQseow(options);
+        logger.info(`Successfully retrieved ${cpExisting.length} custom properties from QSEoW`);
 
         // Verify file exists
         const appFileExists = await verifyFileExists(options.fileName);

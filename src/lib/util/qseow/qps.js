@@ -2,7 +2,6 @@ import https from 'node:https';
 import { logger, generateXrfKey, readCert } from '../../../globals.js';
 
 const setupQPSConnection = (options, param) => {
-    // eslint-disable-next-line no-unused-vars
     // Ensure valid http method
     if (!param.method || (param.method.toLowerCase() !== 'get' && param.method.toLowerCase() !== 'delete')) {
         logger.error(`Setting up connection to QPS. Invalid http method '${param.method}'. Exiting.`);
@@ -17,7 +16,7 @@ const setupQPSConnection = (options, param) => {
 
     let axiosConfig;
 
-    // Use cerrificates be used for authentication
+    // Use certificates be used for authentication
     if (options.authType === 'cert') {
         logger.debug(`Using certificates for authentication with QPS`);
         logger.debug(`QPS host: ${options.hostProxy}`);
@@ -68,7 +67,6 @@ const setupQPSConnection = (options, param) => {
 
     // Add parameters (if any)
     if (param.queryParameters?.length > 0) {
-        // eslint-disable-next-line no-restricted-syntax
         for (const queryParam of param.queryParameters) {
             axiosConfig.url += `&${queryParam.name}=${queryParam.value}`;
         }

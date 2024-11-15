@@ -1,7 +1,6 @@
 import xlsx from 'node-xlsx';
 import { parse } from 'csv-parse';
 import fs from 'node:fs';
-import { finished } from 'node:stream/promises';
 
 import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } from '../../../globals.js';
 import QlikSenseTasks from '../../task/class_alltasks.js';
@@ -22,7 +21,6 @@ const getHeaders = async (options) => {
     );
 
     // Get the header row
-    // eslint-disable-next-line no-restricted-syntax
     for await (const record of parser) {
         if (record.info.lines === 1) {
             // Header row
@@ -39,7 +37,6 @@ const processCsvFile = async (options) => {
     const headerRow = [];
 
     // Push all column headers to array
-    // eslint-disable-next-line no-restricted-syntax
     for (const record of headers[0]) {
         // Get each column header text
         headerRow.push(record);
@@ -284,7 +281,6 @@ const processCsvFile = async (options) => {
         })
     );
 
-    // eslint-disable-next-line no-restricted-syntax
     for await (const record of parser) {
         // ALways add the header line
         if (record.info.lines === 1) {
@@ -319,6 +315,7 @@ const importTaskFromFile = async (options) => {
 
         // Get all custom properties
         const cpExisting = await getCustomPropertiesFromQseow(options);
+        logger.info(`Successfully retrieved ${cpExisting.length} custom properties from QSEoW`);
 
         // Verify task definitions file exists
         const taskFileExists = await verifyFileExists(options.fileName);
@@ -343,7 +340,6 @@ const importTaskFromFile = async (options) => {
                     data: [],
                 };
 
-                // eslint-disable-next-line no-restricted-syntax
                 for (const item of tmpTasksFromFile) {
                     tasksFromFile.data.push(item);
                 }

@@ -1,7 +1,6 @@
 import axios from 'axios';
-import path from 'node:path';
 import { v4 as uuidv4, validate } from 'uuid';
-import { logger, execPath } from '../../globals.js';
+import { logger } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
 
 import {
@@ -21,9 +20,9 @@ import { getCustomPropertyIdByName } from '../util/qseow/customproperties.js';
 import { getAppById } from '../util/qseow/app.js';
 import { taskExistById, getTaskById } from '../util/qseow/task.js';
 import { catchLog } from '../util/log.js';
+import { getCertFilePaths } from '../util/qseow/cert.js';
 
 class QlikSenseTasks {
-    // eslint-disable-next-line no-useless-constructor
     constructor() {
         //
     }
@@ -43,10 +42,12 @@ class QlikSenseTasks {
             this.taskTreeCyclicVisited = new Set();
 
             if (options.authType === 'cert') {
-                // Make sure certificates exist
-                this.fileCert = path.resolve(execPath, options.authCertFile);
-                this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-                this.fileCertCA = path.resolve(execPath, options.authRootCertFile);
+                // Get certificate paths
+                const { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
+
+                this.fileCert = fileCert;
+                this.fileCertKey = fileCertKey;
+                this.fileCertCA = fileCertCA;
             }
 
             this.qlikSenseSchemaEvents = new QlikSenseSchemaEvents();
@@ -166,7 +167,6 @@ class QlikSenseTasks {
                 process.exit(1);
             }
 
-            // eslint-disable-next-line no-await-in-loop
             const app = await getAppById(appId, param?.options);
 
             if (!app) {
@@ -178,7 +178,6 @@ class QlikSenseTasks {
         } else if (validate(appIdRaw)) {
             // App ID is a proper UUID. We don't know if the app actually exists though.
 
-            // eslint-disable-next-line no-await-in-loop
             const app = await getAppById(appIdRaw, param?.options);
 
             if (!app) {
@@ -244,9 +243,7 @@ class QlikSenseTasks {
                 .filter((item) => item.trim().length !== 0)
                 .map((item) => item.trim());
 
-            // eslint-disable-next-line no-restricted-syntax
             for (const item of tmpTags) {
-                // eslint-disable-next-line no-await-in-loop
                 const tagId = await getTagIdByName(item, param.tagsExisting);
                 currentTask.tags.push({
                     id: tagId,
@@ -262,7 +259,6 @@ class QlikSenseTasks {
                 .filter((item) => item.trim().length !== 0)
                 .map((cp) => cp.trim());
 
-            // eslint-disable-next-line no-restricted-syntax
             for (const item of tmpCustomProperties) {
                 const tmpCustomProperty = item
                     .split('=')
@@ -271,8 +267,7 @@ class QlikSenseTasks {
 
                 // Do we have two items in the array? First is the custom property name, second is the value
                 if (tmpCustomProperty?.length === 2) {
-                    // eslint-disable-next-line no-await-in-loop
-                    const customPropertyId = await getCustomPropertyIdByName('ReloadTask', tmpCustomProperty[0], param.cpExisting);
+                    const customPropertyId = getCustomPropertyIdByName('ReloadTask', tmpCustomProperty[0], param.cpExisting);
 
                     // If previous call returned false, it means the custom property does not exist in Sense
                     // or cannot be used with this task type. In that case, skip it.
@@ -387,9 +382,7 @@ class QlikSenseTasks {
                 .filter((item) => item.trim().length !== 0)
                 .map((item) => item.trim());
 
-            // eslint-disable-next-line no-restricted-syntax
             for (const item of tmpTags) {
-                // eslint-disable-next-line no-await-in-loop
                 const tagId = await getTagIdByName(item, param.tagsExisting);
                 currentTask.tags.push({
                     id: tagId,
@@ -405,7 +398,6 @@ class QlikSenseTasks {
                 .filter((item) => item.trim().length !== 0)
                 .map((cp) => cp.trim());
 
-            // eslint-disable-next-line no-restricted-syntax
             for (const item of tmpCustomProperties) {
                 const tmpCustomProperty = item
                     .split('=')
@@ -414,8 +406,7 @@ class QlikSenseTasks {
 
                 // Do we have two items in the array? First is the custom property name, second is the value
                 if (tmpCustomProperty?.length === 2) {
-                    // eslint-disable-next-line no-await-in-loop
-                    const customPropertyId = await getCustomPropertyIdByName('ExternalProgramTask', tmpCustomProperty[0], param.cpExisting);
+                    const customPropertyId = getCustomPropertyIdByName('ExternalProgramTask', tmpCustomProperty[0], param.cpExisting);
 
                     // If previous call returned false, it means the custom property does not exist in Sense
                     // or cannot be used with this task type. In that case, skip it.
@@ -486,7 +477,6 @@ class QlikSenseTasks {
             );
 
             // Add schema edges and start/trigger nodes
-            // eslint-disable-next-line no-restricted-syntax
             for (const schemaEventRow of schemaEventRows) {
                 // Create object using same format that Sense uses for schema events
                 const schemaEvent = {
@@ -605,7 +595,6 @@ class QlikSenseTasks {
             );
 
             // Loop over all composite events, adding them and their event rules
-            // eslint-disable-next-line no-restricted-syntax
             for (const compositeEventRow of compositeEventRows) {
                 // Get value in "Event counter" column for this composite event, then get array of all associated event rules
                 const compositeEventCounter = compositeEventRow[param.taskFileColumnHeaders.eventCounter.pos];
@@ -645,7 +634,6 @@ class QlikSenseTasks {
                 }
 
                 // Add rules
-                // eslint-disable-next-line no-restricted-syntax
                 for (const rule of compositeEventRules) {
                     // Does the upstream task pointed to by the composite rule exist?
                     // If it *does* exist it means it's a real, existing task in QSEoW that should be used.
@@ -654,7 +642,6 @@ class QlikSenseTasks {
                     if (validate(rule[param.taskFileColumnHeaders.ruleTaskId.pos])) {
                         // The rule points to an valid UUID. It should exist, otherwise it's an error
 
-                        // eslint-disable-next-line no-await-in-loop
                         const taskExists = await taskExistById(rule[param.taskFileColumnHeaders.ruleTaskId.pos], this.options);
 
                         if (taskExists) {
@@ -711,7 +698,6 @@ class QlikSenseTasks {
 
                         upstreamTaskExistence = 'exists-in-source-file';
                     } else {
-                        // eslint-disable-next-line no-await-in-loop
                         upstreamTask = await getTaskById(rule[param.taskFileColumnHeaders.ruleTaskId.pos], param?.options);
 
                         // Save upstream task in shared task list
@@ -810,7 +796,6 @@ class QlikSenseTasks {
                     param.nodesWithEvents.add(nodeId);
 
                     // Add edges from upstream tasks to the new meta node
-                    // eslint-disable-next-line no-restricted-syntax
                     for (const rule of compositeEvent.compositeRules) {
                         this.taskNetwork.edges.push({
                             from: rule.task.id,
@@ -850,7 +835,6 @@ class QlikSenseTasks {
     // - cpExisting: Array of existing custom properties in QSEoW
     // - options: Options object passed on the command line
     async getTaskModelFromFile(tasksFromFile, tagsExisting, cpExisting, options) {
-        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 logger.debug('PARSE TASKS FROM FILE: Starting get tasks from data in file');
@@ -947,7 +931,6 @@ class QlikSenseTasks {
                         // Create a fake ID for this task. Used to associate task with schema/composite events
                         const fakeTaskId = `reload-task-${uuidv4()}`;
 
-                        // eslint-disable-next-line no-await-in-loop
                         const res = await this.parseReloadTask({
                             taskRows,
                             taskFileColumnHeaders,
@@ -963,7 +946,6 @@ class QlikSenseTasks {
                         // NB: A top level node is defined as:
                         // 1. A task whose taskID does not show up in the "to" field of any edge.
 
-                        // eslint-disable-next-line no-restricted-syntax
                         this.taskNetwork.nodes.push({
                             id: res.currentTask.id,
                             metaNode: false,
@@ -1007,7 +989,6 @@ class QlikSenseTasks {
                         if (this.options.updateMode === 'create') {
                             // Create new task
                             if (this.options.dryRun === false || this.options.dryRun === undefined) {
-                                // eslint-disable-next-line no-await-in-loop
                                 const newTaskId = await this.createReloadTaskInQseow(res.currentTask, taskCounter);
                                 logger.info(
                                     `(${taskCounter}) Created new reload task "${res.currentTask.name}", new task id: ${newTaskId}.`
@@ -1024,7 +1005,6 @@ class QlikSenseTasks {
                                 res.currentTask.idRef = res.currentTask.id;
                                 res.currentTask.id = newTaskId;
 
-                                // eslint-disable-next-line no-await-in-loop
                                 await this.addTask('from_file', res.currentTask, false);
                             } else {
                                 logger.info(`(${taskCounter}) DRY RUN: Creating reload task in QSEoW "${res.currentTask.name}"`);
@@ -1078,7 +1058,6 @@ class QlikSenseTasks {
                         // Create a fake ID for this task. Used to associate task with schema/composite events
                         const fakeTaskId = `ext-pgm-task-${uuidv4()}`;
 
-                        // eslint-disable-next-line no-await-in-loop
                         const res = await this.parseExternalProgramTask({
                             taskRows,
                             taskFileColumnHeaders,
@@ -1094,7 +1073,6 @@ class QlikSenseTasks {
                         // NB: A top level node is defined as:
                         // 1. A task whose taskID does not show up in the "to" field of any edge.
 
-                        // eslint-disable-next-line no-restricted-syntax
                         this.taskNetwork.nodes.push({
                             id: res.currentTask.id,
                             metaNode: false,
@@ -1123,7 +1101,6 @@ class QlikSenseTasks {
                         if (this.options.updateMode === 'create') {
                             // Create new task
                             if (this.options.dryRun === false || this.options.dryRun === undefined) {
-                                // eslint-disable-next-line no-await-in-loop
                                 const newTaskId = await this.createExternalProgramTaskInQseow(res.currentTask, taskCounter);
                                 logger.info(
                                     `(${taskCounter}) Created new external program task "${res.currentTask.name}", new task id: ${newTaskId}.`
@@ -1140,7 +1117,6 @@ class QlikSenseTasks {
                                 res.currentTask.idRef = res.currentTask.id;
                                 res.currentTask.id = newTaskId;
 
-                                // eslint-disable-next-line no-await-in-loop
                                 await this.addTask('from_file', res.currentTask, false);
                             } else {
                                 logger.info(`(${taskCounter}) DRY RUN: Creating external program task in QSEoW "${res.currentTask.name}"`);
@@ -1211,7 +1187,6 @@ class QlikSenseTasks {
                                 taskType = task.taskType;
                                 // const { taskType } = this.taskNetwork.nodes.find((node) => node.id === id).completeTaskObject;
                             } else if (b.upstreamTaskExistence === 'exists-in-sense') {
-                                // eslint-disable-next-line no-await-in-loop
                                 const task = this.compositeEventUpstreamTask.find((item4) => item4.id === b.task.id);
 
                                 // Ensure we got a task back
@@ -1256,10 +1231,8 @@ class QlikSenseTasks {
                 logger.info('-------------------------------------------------------------------');
                 logger.info('Creating composite events for the just created tasks...');
 
-                // eslint-disable-next-line no-restricted-syntax
                 for (const { compositeEvent } of this.qlikSenseCompositeEvents.compositeEventList) {
                     if (this.options.dryRun === false || this.options.dryRun === undefined) {
-                        // eslint-disable-next-line no-await-in-loop
                         await this.createCompositeEventInQseow(compositeEvent);
                     } else {
                         logger.info(`DRY RUN: Creating composite event "${compositeEvent.name}"`);
@@ -1288,7 +1261,6 @@ class QlikSenseTasks {
     }
 
     createCompositeEventInQseow(newCompositeEvent) {
-        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 logger.debug('CREATE COMPOSITE EVENT IN QSEOW: Starting');
@@ -1341,7 +1313,6 @@ class QlikSenseTasks {
 
     // Function to create new reload task in QSEoW
     createReloadTaskInQseow(newTask, taskCounter) {
-        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 logger.debug(`(${taskCounter}) CREATE RELOAD TASK IN QSEOW: Starting`);
@@ -1407,7 +1378,6 @@ class QlikSenseTasks {
     // - newTask: Object containing task data
     // - taskCounter: Task counter, unique for each task in the source file
     createExternalProgramTaskInQseow(newTask, taskCounter) {
-        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 logger.debug(`(${taskCounter}) CREATE EXTERNAL PROGRAM TASK IN QSEOW: Starting`);
@@ -1466,14 +1436,11 @@ class QlikSenseTasks {
     }
 
     saveTaskModelToQseow() {
-        // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve, reject) => {
             try {
                 logger.debug('SAVE TASKS TO QSEOW: Starting save tasks to QSEoW');
 
-                // eslint-disable-next-line no-restricted-syntax
                 for (const task of this.taskList) {
-                    // eslint-disable-next-line no-await-in-loop
                     await new Promise((resolve2, reject2) => {
                         // Build a body for the API call
                         const body = {
@@ -1533,7 +1500,6 @@ class QlikSenseTasks {
     }
 
     async getTasksFromQseow() {
-        // eslint-disable-next-line no-async-promise-executor, no-unused-vars
         return new Promise(async (resolve, reject) => {
             // try {
             logger.debug('GET TASKS FROM QSEOW: Starting get reload tasks from QSEoW');
@@ -1702,7 +1668,6 @@ class QlikSenseTasks {
             const downstreamTasks = self.taskNetwork.edges.filter((edge) => edge.from === task.id);
 
             let kids = [];
-            // eslint-disable-next-line no-restricted-syntax
             for (const downstreamTask of downstreamTasks) {
                 logger.debug(
                     `GET TASK SUBTREE: Processing downstream task: ${downstreamTask.to}. Current/source task: ${downstreamTask.from}`
@@ -1722,7 +1687,6 @@ class QlikSenseTasks {
                         ];
                     } else {
                         // Check for cyclic task tree
-                        // eslint-disable-next-line no-lonely-if
                         if (this.isTaskTreeCyclic(tmp)) {
                             if (parentTask) {
                                 logger.warn(
@@ -1896,7 +1860,6 @@ class QlikSenseTasks {
             const downstreamTasks = self.taskNetwork.edges.filter((edge) => edge.from === task.id);
             // console.log('downStreamTasks 1: ' + JSON.stringify(downstreamTasks));
             let kids = [];
-            // eslint-disable-next-line no-restricted-syntax
             for (const downstreamTask of downstreamTasks) {
                 if (downstreamTask.to !== undefined) {
                     // Get downstream task object
@@ -2019,7 +1982,6 @@ class QlikSenseTasks {
 
         // Add schema edges and start/trigger nodes
         logger.verbose('GET TASK MODEL FROM QSEOW: Adding schema edges and start/trigger nodes to internal task model');
-        // eslint-disable-next-line no-restricted-syntax
         for (const schemaEvent of this.qlikSenseSchemaEvents.schemaEventList) {
             logger.silly(`Schema event contents: ${JSON.stringify(schemaEvent, null, 2)}`);
             // Schedule is associated with a reload task
@@ -2081,7 +2043,6 @@ class QlikSenseTasks {
 
         // Add composite events
         logger.verbose('GET TASK MODEL FROM QSEOW: Adding composite events to internal task model');
-        // eslint-disable-next-line no-restricted-syntax
         for (const compositeEvent of this.qlikSenseCompositeEvents.compositeEventList) {
             logger.silly(`Composite event contents: ${JSON.stringify(compositeEvent, null, 2)}`);
 
@@ -2178,7 +2139,6 @@ class QlikSenseTasks {
                     nodesWithEvents.add(nodeId);
 
                     // Add edges from upstream tasks to the new meta node
-                    // eslint-disable-next-line no-restricted-syntax
                     for (const rule of compositeEvent.compositeEvent.compositeRules) {
                         if (validate(rule?.reloadTask?.id)) {
                             // Upstream task is a reload task
@@ -2315,7 +2275,6 @@ class QlikSenseTasks {
                     nodesWithEvents.add(nodeId);
 
                     // Add edges from upstream tasks to the new meta node
-                    // eslint-disable-next-line no-restricted-syntax
                     for (const rule of compositeEvent.compositeEvent.compositeRules) {
                         if (validate(rule?.reloadTask?.id)) {
                             // Upstream task is a reload task
@@ -2380,7 +2339,6 @@ class QlikSenseTasks {
         // NB: A top level node is defined as:
         // 1. A task whose taskID does not show up in the "to" field of any edge.
 
-        // eslint-disable-next-line no-restricted-syntax
         for (const node of this.taskList) {
             if (node.completeTaskObject.schemaPath === 'ReloadTask') {
                 this.taskNetwork.nodes.push({

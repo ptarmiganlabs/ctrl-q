@@ -2,11 +2,12 @@ import * as rax from 'retry-axios';
 import axios from 'axios';
 import path from 'node:path';
 import FormData from 'form-data';
-import fs from "node:fs/promises";
+import fs from 'node:fs/promises';
 import fs2 from 'node:fs';
 import { v4 as uuidv4, validate } from 'uuid';
 import yesno from 'yesno';
-import { logger, execPath, mergeDirFilePath, verifyFileExists, sleep, isPkg } from '../../globals.js';
+
+import { logger, execPath, mergeDirFilePath, verifyFileExists, sleep } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
 import { getAppColumnPosFromHeaderRow } from '../util/qseow/lookups.js';
 import QlikSenseApp from './class_app.js';
@@ -14,6 +15,7 @@ import { getTagIdByName } from '../util/qseow/tag.js';
 import { getAppById, deleteAppById } from '../util/qseow/app.js';
 import { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } from '../util/qseow/customproperties.js';
 import { catchLog } from '../util/log.js';
+import { getCertFilePaths } from '../util/qseow/cert.js';
 
 class QlikSenseApps {
     constructor() {
@@ -25,12 +27,14 @@ class QlikSenseApps {
             this.appList = [];
             this.options = options;
 
-            // Should cerrificates be used for authentication?
+            // Should certificates be used for authentication?
             if (options.authType === 'cert') {
-                // Make sure certificates exist
-                this.fileCert = path.resolve(execPath, options.authCertFile);
-                this.fileCertKey = path.resolve(execPath, options.authCertKeyFile);
-                this.fileCertCA = path.resolve(execPath, options.authRootCertFile);
+                // Get certificate paths
+                const { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
+
+                this.fileCert = fileCert;
+                this.fileCertKey = fileCertKey;
+                this.fileCertCA = fileCertCA;
             }
 
             // Map that will connect app counter from Excel file with ID an app gets after import to QSEoW
@@ -117,7 +121,7 @@ class QlikSenseApps {
                 }
             }
 
-            // Should cerrificates be used for authentication?
+            // Should certificates be used for authentication?
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 if (filter === '') {
@@ -309,7 +313,7 @@ class QlikSenseApps {
                                 .map((cp) => cp.trim());
 
                             if (tmpCustomProperty?.length === 2) {
-                                const customProperty = await getCustomPropertyDefinitionByName('App', tmpCustomProperty[0], cpExisting);
+                                const customProperty = getCustomPropertyDefinitionByName('App', tmpCustomProperty[0], cpExisting);
                                 if (customProperty === false) {
                                     // Failed getting custom property id, most likely because the custom property does not exist.
                                     logger.error(
@@ -321,7 +325,7 @@ class QlikSenseApps {
                                 }
 
                                 // Verify custom property value is valid
-                                const cpValueExists = await doesCustomPropertyValueExist(
+                                const cpValueExists = doesCustomPropertyValueExist(
                                     'App',
                                     tmpCustomProperty[0],
                                     tmpCustomProperty[1],
@@ -542,7 +546,7 @@ class QlikSenseApps {
     // Function to update tags, custom properties and owner of uploaded app
     async updateUploadedApp(newApp, uploadedAppId) {
         try {
-            // Should cerrificates be used for authentication?
+            // Should certificates be used for authentication?
             let axiosConfigUploadedApp;
             if (this.options.authType === 'cert') {
                 // Get info about just uploaded app
@@ -584,7 +588,7 @@ class QlikSenseApps {
                     `userDirectory eq '${newApp.appOwnerUserDirectory}' and userId eq '${newApp.appOwnerUserId}'`
                 );
 
-                // Should cerrificates be used for authentication?
+                // Should certificates be used for authentication?
                 let axiosConfigUser;
                 if (this.options.authType === 'cert') {
                     // Get info about just uploaded app
@@ -633,7 +637,7 @@ class QlikSenseApps {
             // Pause for a while to let Sense repository catch up
             await sleep(1000);
 
-            // Should cerrificates be used for authentication?
+            // Should certificates be used for authentication?
             let axiosConfig2;
             if (this.options.authType === 'cert') {
                 // Uppdate app with tags, custom properties and app owner
@@ -855,7 +859,7 @@ class QlikSenseApps {
                 { name: 'name', value: appName },
             ];
 
-            // Should cerrificates be used for authentication?
+            // Should certificates be used for authentication?
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 // Build QRS query
@@ -901,7 +905,7 @@ class QlikSenseApps {
             // Define query parameters
             const queryParameters = [{ name: 'app', value: targetAppId }];
 
-            // Should cerrificates be used for authentication?
+            // Should certificates be used for authentication?
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 // Build QRS query
@@ -962,7 +966,7 @@ class QlikSenseApps {
                 filter = encodeURIComponent(`stream.name eq '${streamName}' and name eq '${appName}'`);
             }
 
-            // Should cerrificates be used for authentication?
+            // Should certificates be used for authentication?
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 // Build QRS query
@@ -1009,7 +1013,7 @@ class QlikSenseApps {
             // Build QRS query
             const filter = encodeURIComponent(`stream.name eq '${streamName}' and name eq '${appName}'`);
 
-            // Should cerrificates be used for authentication?
+            // Should certificates be used for authentication?
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 // Build QRS query
@@ -1073,7 +1077,7 @@ class QlikSenseApps {
             if (validate(uploadedAppInfo.appPublishToStream)) {
                 // It's a valid GUID
 
-                // Should cerrificates be used for authentication?
+                // Should certificates be used for authentication?
                 if (this.options.authType === 'cert') {
                     // Build QRS query
                     axiosConfigPublish = setupQrsConnection(this.options, {
@@ -1101,7 +1105,7 @@ class QlikSenseApps {
                 // Provided stream name is not a GUID, make sure only one stream exists with this name, then get its GUID
                 const filter = encodeURIComponent(`name eq '${uploadedAppInfo.appPublishToStream}'`);
 
-                // Should cerrificates be used for authentication?
+                // Should certificates be used for authentication?
                 if (this.options.authType === 'cert') {
                     // Build QRS query
                     axiosConfigPublish = setupQrsConnection(this.options, {
@@ -1266,7 +1270,7 @@ class QlikSenseApps {
             const exportToken = uuidv4();
             const excludeData = this.options.excludeAppData === 'true' ? 'true' : 'false';
 
-            // Should cerrificates be used for authentication?
+            // Should certificates be used for authentication?
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 // Build QRS query
@@ -1379,7 +1383,7 @@ class QlikSenseApps {
             } else {
                 writer = fs2.createWriteStream(fileName);
 
-                // Should cerrificates be used for authentication?
+                // Should certificates be used for authentication?
                 let axiosConfig;
                 if (this.options.authType === 'cert') {
                     // Build QRS query
