@@ -1,6 +1,7 @@
-import path from 'node:path';
 import { version as uuidVersion, validate as uuidValidate } from 'uuid';
+
 import { logger, execPath, verifyFileExists } from '../../../globals.js';
+import { getCertFilePaths } from '../qseow/cert.js';
 
 export const qseowSharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
@@ -18,8 +19,9 @@ export const qseowSharedParamAssertOptions = async (options) => {
     // If certificate authentication is used: certs and user dir/id must be present.
     if (options.authType === 'cert') {
         // Verify that certificate files exists (if specified)
-        const fileCert = path.resolve(execPath, options.authCertFile);
-        const fileCertKey = path.resolve(execPath, options.authCertKeyFile);
+
+        // Get certificate paths
+        const { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
 
         const fileCertExists = await verifyFileExists(fileCert);
         if (fileCertExists === false) {
@@ -35,6 +37,12 @@ export const qseowSharedParamAssertOptions = async (options) => {
             process.exit(1);
         } else {
             logger.verbose(`Certificate key file ${fileCertKey} found`);
+        }
+
+        const fileCertCAExists = await verifyFileExists(fileCertCA);
+        if (fileCertCAExists === false) {
+            logger.error(`Missing certificate CA file ${fileCertCA}. Aborting`);
+            process.exit(1);
         }
     } else if (options.authType === 'jwt') {
         // Verify that --auth-jwt parameter is specified
@@ -124,22 +132,18 @@ export const masterItemDimDeleteAssertOptions = (options) => {
     }
 };
 
-// eslint-disable-next-line no-unused-vars
 export const masterItemGetAssertOptions = (options) => {
     //
 };
 
-// eslint-disable-next-line no-unused-vars
 export const getScriptAssertOptions = (options) => {
     //
 };
 
-// eslint-disable-next-line no-unused-vars
 export const getBookmarkAssertOptions = (options) => {
     //
 };
 
-// eslint-disable-next-line no-unused-vars
 export const getTaskAssertOptions = (options) => {
     // ---task-id and --task-tag only allowed for task tables, not trees
     if (options.taskId || options.taskTag) {
@@ -150,7 +154,6 @@ export const getTaskAssertOptions = (options) => {
 
         // Verify all task IDs are valid uuids
         if (options.taskId) {
-            // eslint-disable-next-line no-restricted-syntax
             for (const taskId of options.taskId) {
                 if (!uuidValidate(taskId)) {
                     logger.error(`Invalid format of task ID parameter "${taskId}". Exiting.`);
@@ -201,12 +204,10 @@ export const getTaskAssertOptions = (options) => {
     }
 };
 
-// eslint-disable-next-line no-unused-vars
 export const setTaskCustomPropertyAssertOptions = (options) => {
     //
 };
 
-// eslint-disable-next-line no-unused-vars
 export const taskImportAssertOptions = (options) => {
     // If --import-app is specified, the import file type must be Excel
     if (options.importApp && options.fileType !== 'excel') {
@@ -231,7 +232,6 @@ export const taskImportAssertOptions = (options) => {
     }
 };
 
-// eslint-disable-next-line no-unused-vars
 export const appImportAssertOptions = (options) => {
     //
 };
@@ -241,7 +241,6 @@ export const appImportAssertExcelSheet = (options) => {
     //
 };
 
-// eslint-disable-next-line no-unused-vars
 export const appExportAssertOptions = async (options) => {
     // Verify output directory exists
     // const outputDir = mergeDirFilePath([options.outputDir]);
@@ -293,12 +292,18 @@ export const variableDeleteAssertOptions = (options) => {
     }
 };
 
-// eslint-disable-next-line no-unused-vars
 export const getSessionsAssertOptions = (options) => {
     //
 };
 
-// eslint-disable-next-line no-unused-vars
 export const deleteSessionsAssertOptions = (options) => {
     //
+};
+
+export const userActivityBucketsCustomPropertyAssertOptions = (options) => {
+    // Verify that custom property name only contains letters, numbers and underscores
+    if (!/^[a-zA-Z0-9_]+$/.test(options.customPropertyName)) {
+        logger.error(`Invalid custom property name "${options.customPropertyName}". Only letters, numbers and underscores are allowed.`);
+        process.exit(1);
+    }
 };
