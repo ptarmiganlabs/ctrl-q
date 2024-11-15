@@ -1,0 +1,16 @@
+{ 
+    "main": "build.cjs", 
+    "output": "sea-prep.blob",
+    "disableExperimentalSEAWarning": true,
+    "assets": { 
+        "package.json": "./package.json",
+        "enigma_schema_12.170.2.json": "./node_modules/enigma.js/schemas/12.170.2.json",
+        "enigma_schema_12.612.0.json": "./node_modules/enigma.js/schemas/12.612.0.json",
+        "enigma_schema_12.936.0.json": "./node_modules/enigma.js/schemas/12.936.0.json",
+        "enigma_schema_12.1306.0.json": "./node_modules/enigma.js/schemas/12.1306.0.json",
+        "enigma_schema_12.1477.0.json": "./node_modules/enigma.js/schemas/12.1477.0.json",
+        "enigma_schema_12.1657.0.json": "./node_modules/enigma.js/schemas/12.1657.0.json",
+        "enigma_schema_12.1823.0.json": "./node_modules/enigma.js/schemas/12.1823.0.json",
+        "enigma_schema_12.2015.0.json": "./node_modules/enigma.js/schemas/12.2015.0.json"
+    }    
+}
