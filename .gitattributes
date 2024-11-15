@@ -15,11 +15,11 @@ src/.prettierignore export-ignore
 src/.prettierrc.yaml export-ignore
 src/.snyk export-ignore
 src/Dockerfile export-ignore
-src/jest.config.js export-ignore 
-release-config/* export-ignore 
-release-config export-ignore 
-src/scriptlog export-ignore 
-scriptlog export-ignore 
+src/jest.config.js export-ignore
+release-config/* export-ignore
+release-config export-ignore
+src/scriptlog export-ignore
+scriptlog export-ignore
 
 .codeclimate.yml export-ignore
 .jshintrc export-ignore

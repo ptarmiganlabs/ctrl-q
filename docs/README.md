@@ -5,7 +5,7 @@
 
 ## Process for creating terminal captures
 
-Note: This process only works on macOS and Linux.  
+Note: This process only works on macOS and Linux.
 The tools used do not support Windows.
 
 The steps on macOS are

@@ -133,7 +133,7 @@ function getSchemaText(incrementOption, incrementDescription) {
         "2: daily",
             incrementDescription: Repeat after each '0 0 days 0 '
         "3: weekly",
-        "4: monthly" 
+        "4: monthly"
      */
 
     if (incrementOption === 0) {

@@ -24,11 +24,11 @@ jobs:
     steps:
       - name: Show github.ref
         run: echo "$GITHUB_REF"
-        
+
       - uses: googleapis/release-please-action@v4
         id: release
         if: |
-          github.repository_owner == 'ptarmiganlabs' 
+          github.repository_owner == 'ptarmiganlabs'
         with:
           token: ${{ secrets.RELEASE_PLEASE_PAT }}
           # optional. customize path to release-please-config.json
@@ -68,7 +68,7 @@ jobs:
       - macos
       - sp53
       # timeout-minutes: 15
-      
+
     if: needs.release-please.outputs.releases_created == 'true'
     env:
       DIST_FILE_NAME: ctrl-q
@@ -79,32 +79,32 @@ jobs:
       MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
       PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
       PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-      PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}    
+      PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
     steps:
       - name: Release tag and upload url from previous job
         run: |
           echo "tag_name   : ${{ needs.release-please.outputs.release_tag_name }}"
           echo "version    : ${{ needs.release-please.outputs.release_version }}"
           echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
-        
+
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          
+
       - name: Install tool for creating stand-alone executables
         run: |
           npm install pkg --location=global
           npm install --save-exact esbuild
-          
+
       - name: Install dependencies
         run: |
-          pwd 
+          pwd
           npm ci --include=prod
-          
+
       - name: Build binaries
         run: |
           pwd
@@ -115,42 +115,42 @@ jobs:
           security delete-keychain build.keychain || true
 
           # Turn our base64-encoded certificate back to a regular .p12 file
-          
+
           echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-          
+
           # We need to create a new keychain, otherwise using the certificate will prompt
           # with a UI dialog asking for the certificate password, which we can't
           # use in a headless CI environment
-          
+
           security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security list-keychains -d user -s build.keychain
           security default-keychain -d user -s build.keychain
           security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          
+
           codesign --force -s "$MACOS_CERTIFICATE_NAME" -v "./${DIST_FILE_NAME}" --deep --strict --options=runtime --timestamp --entitlements ./release-config/${DIST_FILE_NAME}.entitlements
-          
-          
+
+
           # We can't notarize an app bundle directly, but we need to compress it as an archive.
           # Therefore, we create a zip file containing our app bundle, so that we can send it to the
           # notarization service
-          
+
           # Notarize release binary
           echo "Creating temp notarization archive for release binary"
           # ditto -c -k --keepParent "./${DIST_FILE_NAME}" "./${DIST_FILE_NAME}.zip"
           ditto -c -k --keepParent "./${DIST_FILE_NAME}" "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-macos.zip"
-          
+
           # Here we send the notarization request to the Apple's Notarization service, waiting for the result.
           # This typically takes a few seconds inside a CI environment, but it might take more depending on the App
           # characteristics. Visit the Notarization docs for more information and strategies on how to optimize it if
           # you're curious
           echo "Notarize release app"
           xcrun notarytool submit "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-macos.zip" --keychain-profile "notarytool-profile" --wait
-          
+
           # Delete build keychain
           security delete-keychain build.keychain
-          
+
       - name: Upload to existing release
         uses: ncipollo/release-action@v1
         with:
@@ -163,15 +163,15 @@ jobs:
           tag: ${{ needs.release-please.outputs.release_tag_name }}
           artifacts: ./ctrl-q-${{ needs.release-please.outputs.release_version }}-macos.zip
           token: ${{ github.token }}
-        
+
       - name: Tidy up before existing
         run: |
           pwd
-          ls -la 
+          ls -la
           rm build.cjs
           rm "./${DIST_FILE_NAME}"
           rm "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-macos.zip"
-        
+
   #####################
   release-win64:
     needs: release-please
@@ -196,22 +196,22 @@ jobs:
           Write-Output 'tag_name        : ${{ needs.release-please.outputs.release_tag_name }}'
           Write-Output 'version         : ${{ needs.release-please.outputs.release_version }}'
           Write-Output 'upload_url      : ${{ needs.release-please.outputs.release_upload_url }}'
-      
+
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-        
+
       - name: Install tool for creating stand-alone executables
         run: |
           npm install pkg --location=global
-        
+
       - name: Install dependencies
         run: |
-          pwd 
+          pwd
           npm ci --include=prod
 
       - name: Build binaries
@@ -299,7 +299,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pwd 
+          pwd
           npm ci
 
       - name: Build binaries
