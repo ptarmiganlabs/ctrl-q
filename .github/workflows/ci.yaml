@@ -163,7 +163,6 @@ jobs:
           # Clean up
           # Delete build keychain
           security delete-keychain build.keychain
-          rm build.cjs
 
       - name: Upload to existing release
         uses: ncipollo/release-action@v1
