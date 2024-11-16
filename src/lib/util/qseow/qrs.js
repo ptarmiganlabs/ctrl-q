@@ -87,6 +87,7 @@ export function setupQrsConnection(options, param) {
         // Otherwise, use the paths from the command line options
         let { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
 
+        // If the paths are specified in the param object, use those paths
         if (param.fileCert) {
             fileCert = param.fileCert;
         }

@@ -30,7 +30,7 @@ export const getCustomProperty = async (options) => {
         // Build QRS query string using custom property name
         const filter = encodeURIComponent(`name eq '${options.customPropertyName}'`);
 
-        const axiosConfig = await setupQrsConnection(options, {
+        const axiosConfig = setupQrsConnection(options, {
             method: 'get',
             fileCert: certFilesFullPath.fileCert,
             fileCertKey: certFilesFullPath.fileCertKey,
@@ -104,7 +104,7 @@ export const getTasksFromQseow = async (options) => {
         }
         logger.debug(`GET TASK: Final QRS query filter: ${filter}`);
 
-        const axiosConfig = await setupQrsConnection(options, {
+        const axiosConfig = setupQrsConnection(options, {
             method: 'get',
             path: '/qrs/reloadtask/full',
             queryParameters: [{ name: 'filter', value: filter }],
@@ -131,7 +131,7 @@ export const getTasksFromQseow = async (options) => {
 export const updateReloadTask = async (options, payload) => {
     try {
         // TODO Should be using PUT instead of POST if updating an existing task?
-        const axiosConfig = await setupQrsConnection(options, {
+        const axiosConfig = setupQrsConnection(options, {
             method: 'post',
             path: '/qrs/reloadtask/update',
             body: payload,

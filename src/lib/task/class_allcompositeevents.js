@@ -46,11 +46,8 @@ class QlikSenseCompositeEvents {
             try {
                 logger.debug('GET SCHEMAEVENT: Starting get composite events from QSEoW');
 
-                const axiosConfig = await setupQrsConnection(this.options, {
+                const axiosConfig = setupQrsConnection(this.options, {
                     method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: '/qrs/compositeevent/full',
                 });
 

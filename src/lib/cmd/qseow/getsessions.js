@@ -36,7 +36,7 @@ const consoleTableConfig = {
  *
  * @param {*} options
  */
-const getSessions = async (options) => {
+export async function getSessions(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -188,6 +188,4 @@ const getSessions = async (options) => {
 
         return false;
     }
-};
-
-export default getSessions;
+}

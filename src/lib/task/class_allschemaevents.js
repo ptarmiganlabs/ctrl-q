@@ -58,11 +58,8 @@ class QlikSenseSchemaEvents {
             try {
                 logger.debug('GET SCHEMA EVENT: Starting get schema events from QSEoW');
 
-                const axiosConfig = await setupQrsConnection(this.options, {
+                const axiosConfig = setupQrsConnection(this.options, {
                     method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: '/qrs/schemaevent/full',
                 });
 
