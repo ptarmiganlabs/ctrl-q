@@ -1,5 +1,7 @@
 import https from 'node:https';
+
 import { logger, generateXrfKey, readCert } from '../../../globals.js';
+import { getCertFilePaths } from './cert.js';
 
 export function setupQpsConnection(options, param) {
     // Ensure correct auth info is present

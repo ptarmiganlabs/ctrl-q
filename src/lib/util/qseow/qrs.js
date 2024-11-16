@@ -1,7 +1,7 @@
 import https from 'node:https';
 
 import { logger, generateXrfKey, readCert } from '../../../globals.js';
-import { getCertFilePaths } from '../qseow/cert.js';
+import { getCertFilePaths } from './cert.js';
 
 // Function to sanitize virtual proxy
 export function sanitizeVirtualProxy(virtualProxy) {

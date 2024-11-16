@@ -32,9 +32,6 @@ export const getCustomProperty = async (options) => {
 
         const axiosConfig = setupQrsConnection(options, {
             method: 'get',
-            fileCert: certFilesFullPath.fileCert,
-            fileCertKey: certFilesFullPath.fileCertKey,
-            fileCertCA: certFilesFullPath.fileCertCA,
             path: '/qrs/CustomPropertyDefinition/full',
             queryParameters: [{ name: 'filter', value: filter }],
         });

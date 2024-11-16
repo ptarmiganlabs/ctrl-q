@@ -210,9 +210,6 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
             axiosConfig = setupQpsConnection(options, {
                 hostProxy: proxy.serverNodeConfiguration.hostName,
                 method: 'get',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
                 path: `/qps/${vp.prefix}/session`,
                 sessionCookie: null,
             });
