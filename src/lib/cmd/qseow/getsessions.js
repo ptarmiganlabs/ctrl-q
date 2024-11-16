@@ -160,7 +160,6 @@ export async function getSessions(options) {
             }
 
             // Add to table that will be printed to console
-            // eslint-disable-next-line no-restricted-syntax
             for (const s of sessionsTabular) {
                 sessionsTable.push([
                     s.vpDescription,
