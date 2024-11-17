@@ -1271,7 +1271,7 @@ export class QlikSenseApps {
         }
     }
 
-    async exportAppStep2(resultStep1) {
+    async exportAppStep2(resultStep1, appCounter, appCountTotal) {
         // resultStep.downloadPath has format
         // /tempcontent/d989fffd-5310-43b5-b028-f313b53bb8e2/User%20retention.qvf?serverNodeId=80db9b97-8ea2-4208-a79a-c46b7e16c38c
 
@@ -1364,7 +1364,9 @@ export class QlikSenseApps {
                 axiosConfig.responseType = 'stream';
 
                 logger.info('------------------------------------');
-                logger.info(`App [${resultStep2.appId}] "${resultStep2.appName}.qvf", download starting`);
+                logger.info(
+                    `${appCounter} of ${appCountTotal}: App [${resultStep2.appId}] "${resultStep2.appName}.qvf", download starting`
+                );
                 const result = await axios.request(axiosConfig);
 
                 result.data.pipe(writer);

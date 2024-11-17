@@ -61,14 +61,14 @@ export async function exportAppToFile(options) {
 
             for (const app of appsToExport) {
                 try {
+                    appCounter += 1;
                     const exportAppData = await qlikSenseApps.exportAppStep1(app);
 
-                    const resultDownloadApp = await qlikSenseApps.exportAppStep2(exportAppData);
+                    const resultDownloadApp = await qlikSenseApps.exportAppStep2(exportAppData, appCounter, appsToExport.length);
 
                     await sleep(options.sleepAppExport);
 
                     // keep track of app metadata
-                    appCounter += 1;
                     appMetadata.push([
                         appCounter,
                         app.name,
