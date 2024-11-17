@@ -205,7 +205,7 @@ const updateDimension = async (
         [existingColorMapModel] = await Promise.all([existingColorMapPromise]);
         existingColorMapLayout = await existingColorMapModel.getLayout();
     } catch (err) {
-        catchLog(`No per-value color map exists for existing dimension "${existingDimensionLayout.qMeta.title}"`, err);
+        logger.verbose(`No per-value color map exists for existing dimension "${existingDimensionLayout.qMeta.title}"`);
     }
 
     // Do we have new per-value color data?
