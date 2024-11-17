@@ -1,6 +1,6 @@
 import { table } from 'table';
 import { getSessionsFromQseow } from '../../util/qseow/session.js';
-import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
+import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { catchLog } from '../../util/log.js';
 
 const consoleTableConfig = {
@@ -41,7 +41,7 @@ export async function getSessions(options) {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Get Qlik Sense proxy sessions');

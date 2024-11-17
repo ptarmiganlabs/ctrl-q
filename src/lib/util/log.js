@@ -1,4 +1,4 @@
-import { logger, appVersion, isPkg, execPath } from '../../globals.js';
+import { logger, appVersion, isSea, execPath } from '../../globals.js';
 
 export const logStartupInfo = (options, cmd, cmdDesc) => {
     logger.info('-----------------------------------------------------------');
@@ -15,7 +15,7 @@ export const logStartupInfo = (options, cmd, cmdDesc) => {
     logger.info(`| https://github.com/ptarmiganlabs/ctrl-q`);
     logger.info('----------------------------------------------------------');
     logger.info(``);
-    logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+    logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
     logger.verbose(`Ctrl-Q was started from ${execPath}`);
     logger.verbose(`Options: ${JSON.stringify(options, null, 2)}`);
     logger.verbose(``);
@@ -23,7 +23,7 @@ export const logStartupInfo = (options, cmd, cmdDesc) => {
 
 // Function used to provide consistent logging to all try-catch blocks
 export const catchLog = (msgContext, err) => {
-    if (isPkg) {
+    if (isSea) {
         if (err.message) {
             logger.error(`${msgContext}: ${err.message}`);
         } else {

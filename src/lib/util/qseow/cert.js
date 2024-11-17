@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { logger, execPath, verifyFileExists } from '../../../globals.js';
+import { execPath } from '../../../globals.js';
 import { catchLog } from '../log.js';
 
 export function getCertFilePaths(options) {

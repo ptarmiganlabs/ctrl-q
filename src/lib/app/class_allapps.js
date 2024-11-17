@@ -7,7 +7,7 @@ import fs2 from 'node:fs';
 import { v4 as uuidv4, validate } from 'uuid';
 import yesno from 'yesno';
 
-import { logger, execPath, mergeDirFilePath, verifyFileExists, sleep } from '../../globals.js';
+import { logger, execPath, mergeDirFilePath, verifyFileSystemExists, sleep } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
 import { getAppColumnPosFromHeaderRow } from '../util/qseow/lookups.js';
 import QlikSenseApp from './class_app.js';
@@ -258,7 +258,7 @@ class QlikSenseApps {
                         }"`
                     );
 
-                    const qvfFileExists = await verifyFileExists(currentApp.fullQvfPath);
+                    const qvfFileExists = await verifyFileSystemExists(currentApp.fullQvfPath);
                     if (!qvfFileExists) {
                         logger.error(
                             `Import of app file ${appRow[0][appFileColumnHeaders.appCounter.pos]} failed. QVF file does not exist: "${
@@ -1319,7 +1319,7 @@ class QlikSenseApps {
 
         // Check if destination QVF file already exists
         // 2nd parameter controls whether to log info or not about file's existence
-        const fileExists = await verifyFileExists(fileName, true);
+        const fileExists = await verifyFileSystemExists(fileName, true);
         let fileSkipped = false;
         let writer;
 

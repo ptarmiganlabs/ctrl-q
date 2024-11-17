@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { logger, setLoggingLevel, isPkg, execPath, sleep } from '../../../globals.js';
+import { logger, setLoggingLevel, isSea, execPath, sleep } from '../../../globals.js';
 import { setupQrsConnection } from '../../util/qseow/qrs.js';
 import { catchLog } from '../../util/log.js';
 import {
@@ -68,7 +68,7 @@ export async function createUserActivityBucketsCustomProperty(options) {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('== Step 1: Create custom property for tracking user activity in QMC');

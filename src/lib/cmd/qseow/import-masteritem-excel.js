@@ -2,7 +2,7 @@ import enigma from 'enigma.js';
 import xlsx from 'node-xlsx';
 import { v4 as uuidCreate } from 'uuid';
 
-import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, sleep } from '../../../globals.js';
+import { logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists, sleep } from '../../../globals.js';
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
 import { catchLog } from '../../util/log.js';
 
@@ -960,14 +960,14 @@ const importMasterItemFromExcel = async (options) => {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info(`Import master items from definitions in Excel file "${options.file}"`);
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
         // Verify Master items Excel file exists
-        const excelFileExists = await verifyFileExists(options.file);
+        const excelFileExists = await verifyFileSystemExists(options.file);
         if (excelFileExists === false) {
             logger.error(`Missing master item Excel file ${options.file}. Aborting`);
             process.exit(1);

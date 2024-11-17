@@ -1,6 +1,5 @@
-import path from 'node:path';
 import { version as uuidVersion, validate as uuidValidate } from 'uuid';
-import { logger, execPath, verifyFileExists } from '../../../globals.js';
+import { logger, execPath } from '../../../globals.js';
 
 export const qscloudSharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all QS Cloud commands are valid

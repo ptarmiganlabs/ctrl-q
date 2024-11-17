@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yesno from 'yesno';
 
-import { logger, setLoggingLevel, isPkg, execPath, mergeDirFilePath, verifyFileExists, isNumeric, sleep } from '../../../globals.js';
+import { logger, setLoggingLevel, isSea, execPath, mergeDirFilePath, verifyFileSystemExists, sleep } from '../../../globals.js';
 import QlikSenseApps from '../../app/class_allapps.js';
 import { catchLog } from '../../util/log.js';
 
@@ -12,7 +12,7 @@ const exportAppToFile = async (options) => {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         // Verify output directory exists. Create if not.
@@ -23,22 +23,8 @@ const exportAppToFile = async (options) => {
             await fs.promises.mkdir(outputDir);
         }
 
-        // const appFileExists = await verifyFileExists(options.fileName);
-        // if (appFileExists === false) {
-        //     logger.error(`Missing apps definition file "${options.fileName}". Aborting`);
-        //     process.exit(1);
-        // } else {
-        //     logger.verbose(`Apps definition file "${options.fileName}" found`);
-        // }
-
         logger.info(`Export apps to directory "${outputDir}"`);
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
-
-        // Get all tags
-        // const tagsExisting = await getTagsFromQseow(options);
-
-        // Get all custom properties
-        // const cpExisting = await getCustomPropertiesFromQseow(options);
 
         // Set up app structure
         const qlikSenseApps = new QlikSenseApps();
@@ -121,7 +107,7 @@ const exportAppToFile = async (options) => {
 
                 // Check if app metadata file already exists
                 // 2nd parameter = true => don't output anything to log
-                const fileExists = await verifyFileExists(fileName, true);
+                const fileExists = await verifyFileSystemExists(fileName, true);
 
                 logger.info('------------------------------------');
 

@@ -1,6 +1,6 @@
 import { version as uuidVersion, validate as uuidValidate } from 'uuid';
 
-import { logger, execPath, verifyFileExists } from '../../../globals.js';
+import { logger, execPath, verifyFileSystemExists } from '../../../globals.js';
 import { getCertFilePaths } from '../qseow/cert.js';
 
 export const qseowSharedParamAssertOptions = async (options) => {
@@ -23,7 +23,7 @@ export const qseowSharedParamAssertOptions = async (options) => {
         // Get certificate paths
         const { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
 
-        const fileCertExists = await verifyFileExists(fileCert);
+        const fileCertExists = await verifyFileSystemExists(fileCert);
         if (fileCertExists === false) {
             logger.error(`Missing certificate file ${fileCert}. Aborting`);
             process.exit(1);
@@ -31,7 +31,7 @@ export const qseowSharedParamAssertOptions = async (options) => {
             logger.verbose(`Certificate file ${fileCert} found`);
         }
 
-        const fileCertKeyExists = await verifyFileExists(fileCertKey);
+        const fileCertKeyExists = await verifyFileSystemExists(fileCertKey);
         if (fileCertKeyExists === false) {
             logger.error(`Missing certificate key file ${fileCertKey}. Aborting`);
             process.exit(1);
@@ -39,7 +39,7 @@ export const qseowSharedParamAssertOptions = async (options) => {
             logger.verbose(`Certificate key file ${fileCertKey} found`);
         }
 
-        const fileCertCAExists = await verifyFileExists(fileCertCA);
+        const fileCertCAExists = await verifyFileSystemExists(fileCertCA);
         if (fileCertCAExists === false) {
             logger.error(`Missing certificate CA file ${fileCertCA}. Aborting`);
             process.exit(1);
