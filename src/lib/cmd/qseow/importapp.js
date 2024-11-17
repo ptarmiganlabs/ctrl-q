@@ -1,7 +1,7 @@
 import xlsx from 'node-xlsx';
 
 import { logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists } from '../../../globals.js';
-import QlikSenseApps from '../../app/class_allapps.js';
+import { QlikSenseApps } from '../../app/class_allapps.js';
 import { getAppColumnPosFromHeaderRow } from '../../util/qseow/lookups.js';
 import { getTagsFromQseow } from '../../util/qseow/tag.js';
 import { getCustomPropertiesFromQseow } from '../../util/qseow/customproperties.js';

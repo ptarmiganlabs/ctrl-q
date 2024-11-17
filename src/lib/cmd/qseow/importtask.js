@@ -4,7 +4,7 @@ import fs from 'node:fs';
 
 import { logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists, isNumeric } from '../../../globals.js';
 import QlikSenseTasks from '../../task/class_alltasks.js';
-import QlikSenseApps from '../../app/class_allapps.js';
+import { QlikSenseApps } from '../../app/class_allapps.js';
 import { getTaskColumnPosFromHeaderRow } from '../../util/qseow/lookups.js';
 import { getTagsFromQseow } from '../../util/qseow/tag.js';
 import { getCustomPropertiesFromQseow } from '../../util/qseow/customproperties.js';

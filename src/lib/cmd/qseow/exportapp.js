@@ -4,10 +4,10 @@ import path from 'node:path';
 import yesno from 'yesno';
 
 import { logger, setLoggingLevel, isSea, execPath, mergeDirFilePath, verifyFileSystemExists, sleep } from '../../../globals.js';
-import QlikSenseApps from '../../app/class_allapps.js';
+import { QlikSenseApps } from '../../app/class_allapps.js';
 import { catchLog } from '../../util/log.js';
 
-const exportAppToFile = async (options) => {
+export async function exportAppToFile(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -59,39 +59,39 @@ const exportAppToFile = async (options) => {
             logger.info(`Number of apps to export: ${appsToExport.length}`);
             let exportCount = 0;
 
-            // eslint-disable-next-line no-restricted-syntax
             for (const app of appsToExport) {
-                // eslint-disable-next-line no-await-in-loop
-                const exportAppData = await qlikSenseApps.exportAppStep1(app);
+                try {
+                    const exportAppData = await qlikSenseApps.exportAppStep1(app);
 
-                // eslint-disable-next-line no-await-in-loop
-                const resultDownloadApp = await qlikSenseApps.exportAppStep2(exportAppData);
+                    const resultDownloadApp = await qlikSenseApps.exportAppStep2(exportAppData);
 
-                // eslint-disable-next-line no-await-in-loop
-                await sleep(options.sleepAppExport);
+                    await sleep(options.sleepAppExport);
 
-                // keep track of app metadata
-                appCounter += 1;
-                appMetadata.push([
-                    appCounter,
-                    app.name,
-                    app.id,
-                    options.outputDir,
-                    resultDownloadApp.qvfFileName,
-                    options.excludeAppData,
-                    app.tags.map((item) => item.name).join(' / '),
-                    app.customProperties.map((item) => `${item.definition.name}=${item.value}`).join(' / '),
-                    app.owner.userDirectory,
-                    app.owner.userId,
-                    app.stream ? app.stream.name : '',
-                ]);
+                    // keep track of app metadata
+                    appCounter += 1;
+                    appMetadata.push([
+                        appCounter,
+                        app.name,
+                        app.id,
+                        options.outputDir,
+                        resultDownloadApp.qvfFileName,
+                        options.excludeAppData,
+                        app.tags.map((item) => item.name).join(' / '),
+                        app.customProperties.map((item) => `${item.definition.name}=${item.value}`).join(' / '),
+                        app.owner.userDirectory,
+                        app.owner.userId,
+                        app.stream ? app.stream.name : '',
+                    ]);
 
-                exportCount += 1;
-                if (exportCount === parseInt(options.limitExportCount, 10)) {
-                    logger.warn(
-                        `Exported ${options.limitExportCount} app(s), which is the limit set by the --limit-export-count parameter.`
-                    );
-                    break;
+                    exportCount += 1;
+                    if (exportCount === parseInt(options.limitExportCount, 10)) {
+                        logger.warn(
+                            `Exported ${options.limitExportCount} app(s), which is the limit set by the --limit-export-count parameter.`
+                        );
+                        break;
+                    }
+                } catch (error) {
+                    logger.error(`Failed to export app ${app.name} (${app.id}): ${error.message}`);
                 }
             }
 
@@ -141,6 +141,4 @@ const exportAppToFile = async (options) => {
     } catch (err) {
         catchLog('Export app', err);
     }
-};
-
-export default exportAppToFile;
+}

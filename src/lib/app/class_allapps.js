@@ -10,14 +10,14 @@ import yesno from 'yesno';
 import { logger, execPath, mergeDirFilePath, verifyFileSystemExists, sleep } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
 import { getAppColumnPosFromHeaderRow } from '../util/qseow/lookups.js';
-import QlikSenseApp from './class_app.js';
+import { QlikSenseApp } from './class_app.js';
 import { getTagIdByName } from '../util/qseow/tag.js';
 import { getAppById, deleteAppById } from '../util/qseow/app.js';
 import { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } from '../util/qseow/customproperties.js';
 import { catchLog } from '../util/log.js';
 import { getCertFilePaths } from '../util/qseow/cert.js';
 
-class QlikSenseApps {
+export class QlikSenseApps {
     constructor() {
         //
     }
@@ -1393,5 +1393,3 @@ class QlikSenseApps {
         });
     }
 }
-
-export default QlikSenseApps;
