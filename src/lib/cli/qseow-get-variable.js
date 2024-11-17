@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, variableGetAssertOptions } from '../util/qseow/assert-options.js';
-import getVariable from '../cmd/qseow/getvariable.js';
+import { getVariable } from '../cmd/qseow/getvariable.js';
 
 export function setpQseowGetVariableCommand(qseow) {
     qseow

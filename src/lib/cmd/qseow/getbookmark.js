@@ -37,7 +37,7 @@ const consoleTableConfig = {
  *
  * @param {*} options
  */
-const getBookmark = async (options) => {
+export async function getBookmark(options) {
     let session;
 
     try {
@@ -217,6 +217,4 @@ const getBookmark = async (options) => {
         }
         return false;
     }
-};
-
-export default getBookmark;
+}

@@ -1,8 +1,8 @@
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
-import getAboutFromQseow from '../../util/qseow/about.js';
+import { getAboutFromQseow } from '../../util/qseow/about.js';
 import { catchLog } from '../../util/log.js';
 
-const testConnection = async (options) => {
+export async function testConnection(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -30,6 +30,4 @@ const testConnection = async (options) => {
         logger.error(`EXPORT APP: ${err.stack}`);
         return false;
     }
-};
-
-export default testConnection;
+}

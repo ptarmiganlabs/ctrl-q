@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, getBookmarkAssertOptions } from '../util/qseow/assert-options.js';
-import getBookmark from '../cmd/qseow/getbookmark.js';
+import { getBookmark } from '../cmd/qseow/getbookmark.js';
 
 export function setupQseowGetBookmarkCommand(qseow) {
     qseow

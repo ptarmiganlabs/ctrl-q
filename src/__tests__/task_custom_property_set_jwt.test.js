@@ -1,6 +1,6 @@
 import { jest, test, expect, describe } from '@jest/globals';
 
-import setTaskCustomProperty from '../lib/cmd/qseow/settaskcp.js';
+import { setTaskCustomProperty } from '../lib/cmd/qseow/settaskcp.js';
 import { getTaskById } from '../lib/util/qseow/task.js';
 
 const options = {

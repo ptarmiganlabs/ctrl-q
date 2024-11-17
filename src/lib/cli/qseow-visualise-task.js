@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions } from '../util/qseow/assert-options.js';
-import visTask from '../cmd/qseow/vistask.js';
+import { visTask } from '../cmd/qseow/vistask.js';
 
 export function setupQseowVisualiseTaskCommand(qseow) {
     qseow

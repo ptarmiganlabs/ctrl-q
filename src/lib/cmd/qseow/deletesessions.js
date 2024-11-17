@@ -6,7 +6,7 @@ import { catchLog } from '../../util/log.js';
  *  Delete Qlik Sense proxy sessions
  * @param {object} options - Options object
  */
-const deleteSessions = async (options) => {
+export async function deleteSessions(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -31,6 +31,4 @@ const deleteSessions = async (options) => {
 
         return false;
     }
-};
-
-export default deleteSessions;
+}

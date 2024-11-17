@@ -9,7 +9,7 @@ import { catchLog } from '../../util/log.js';
  *
  * @param {*} options
  */
-const deleteVariable = async (options) => {
+export async function deleteVariable(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -183,5 +183,3 @@ const deleteVariable = async (options) => {
         catchLog('Error in deleteVariable', err);
     }
 };
-
-export default deleteVariable;

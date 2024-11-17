@@ -3,11 +3,11 @@ import path from 'node:path';
 
 import { logger } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
-import QlikSenseCompositeEvent from './class_compositeevent.js';
+import { QlikSenseCompositeEvent } from './class_compositeevent.js';
 import { catchLog } from '../util/log.js';
 import { getCertFilePaths } from '../util/qseow/cert.js';
 
-class QlikSenseCompositeEvents {
+export class QlikSenseCompositeEvents {
     constructor() {
         //
     }
@@ -76,5 +76,3 @@ class QlikSenseCompositeEvents {
         });
     }
 }
-
-export default QlikSenseCompositeEvents;

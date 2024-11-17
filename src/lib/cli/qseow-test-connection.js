@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions } from '../util/qseow/assert-options.js';
-import testConnection from '../cmd/qseow/testconnection.js';
+import { testConnection } from '../cmd/qseow/testconnection.js';
 
 export function setupQseowTestConnectionCommand(qseow) {
     qseow

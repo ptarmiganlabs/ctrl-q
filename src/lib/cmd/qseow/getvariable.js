@@ -39,7 +39,7 @@ const consoleTableConfig = {
  *
  * @param {*} options
  */
-const getVariable = async (options) => {
+export async function getVariable(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -279,6 +279,4 @@ const getVariable = async (options) => {
     } catch (err) {
         catchLog(`Error in getVariable`, err);
     }
-};
-
-export default getVariable;
+}

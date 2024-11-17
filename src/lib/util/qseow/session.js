@@ -6,7 +6,7 @@ import { logger, execPath } from '../../../globals.js';
 import { setupQpsConnection } from './qps.js';
 import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
-import getProxiesFromQseow from './proxy.js';
+import { getProxiesFromQseow } from './proxy.js';
 
 const consoleProxiesTableConfig = {
     border: {

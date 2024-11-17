@@ -138,7 +138,7 @@ const updateTask = async (options, customPropertyDef, task) =>
         }
     });
 
-const setTaskCustomProperty = async (options) => {
+export async function setTaskCustomProperty(options) {
     try {
         // == Meta code ==
         // - Get definition for the custom property that should be updated
@@ -201,6 +201,4 @@ const setTaskCustomProperty = async (options) => {
         catchLog(`SET RELOAD TASK CP`, err);
         return false;
     }
-};
-
-export default setTaskCustomProperty;
+}

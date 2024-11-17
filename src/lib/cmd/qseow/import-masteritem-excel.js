@@ -1141,11 +1141,9 @@ const importMasterItemFromExcel = async (options) => {
     }
 };
 
-const importMasterItemFromFile = async (options) => {
+export async function importMasterItemFromFile(options) {
     if (options.fileType === 'excel') {
         // Source file type is Excel
         await importMasterItemFromExcel(options);
     }
-};
-
-export default importMasterItemFromFile;
+}

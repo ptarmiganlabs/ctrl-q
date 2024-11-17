@@ -3,7 +3,7 @@ import { parse } from 'csv-parse';
 import fs from 'node:fs';
 
 import { logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists, isNumeric } from '../../../globals.js';
-import QlikSenseTasks from '../../task/class_alltasks.js';
+import { QlikSenseTasks } from '../../task/class_alltasks.js';
 import { QlikSenseApps } from '../../app/class_allapps.js';
 import { getTaskColumnPosFromHeaderRow } from '../../util/qseow/lookups.js';
 import { getTagsFromQseow } from '../../util/qseow/tag.js';
@@ -299,7 +299,7 @@ const processCsvFile = async (options) => {
     return records;
 };
 
-const importTaskFromFile = async (options) => {
+export async function importTaskFromFile(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -415,6 +415,4 @@ const importTaskFromFile = async (options) => {
     } catch (err) {
         catchLog('IMPORT TASK 2', err);
     }
-};
-
-export default importTaskFromFile;
+}

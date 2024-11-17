@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, setTaskCustomPropertyAssertOptions } from '../util/qseow/assert-options.js';
-import setTaskCustomProperty from '../cmd/qseow/settaskcp.js';
+import { setTaskCustomProperty } from '../cmd/qseow/settaskcp.js';
 
 export function setupQseowSetTaskCustomPropertyCommand(qseow) {
     qseow

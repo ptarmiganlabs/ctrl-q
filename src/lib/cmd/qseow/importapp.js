@@ -7,7 +7,7 @@ import { getTagsFromQseow } from '../../util/qseow/tag.js';
 import { getCustomPropertiesFromQseow } from '../../util/qseow/customproperties.js';
 import { catchLog } from '../../util/log.js';
 
-const importAppFromFile = async (options) => {
+export async function importAppFromFile(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -85,6 +85,4 @@ const importAppFromFile = async (options) => {
         catchLog('IMPORT APP', err);
         return false;
     }
-};
-
-export default importAppFromFile;
+}

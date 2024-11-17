@@ -6,7 +6,7 @@ import { Readable } from 'node:stream';
 import sea from 'node:sea';
 
 import { appVersion, logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists, verifySeaAssetExists } from '../../../globals.js';
-import QlikSenseTasks from '../../task/class_alltasks.js';
+import { QlikSenseTasks } from '../../task/class_alltasks.js';
 
 // js: 'application/javascript',
 const MIME_TYPES = {
@@ -415,7 +415,7 @@ const startHttpServer = async (options) => {
     });
 };
 
-const visTask = async (options) => {
+export async function visTask(options) {
     // Set log level
     setLoggingLevel(options.logLevel);
 
@@ -508,6 +508,4 @@ const visTask = async (options) => {
 
     startHttpServer(optionsNew);
     return true;
-};
-
-export default visTask;
+}

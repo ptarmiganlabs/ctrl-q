@@ -7,7 +7,7 @@ import { catchLog } from '../../util/log.js';
  *
  * @param {*} options
  */
-const scrambleField = async (options) => {
+export async function scrambleField(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -89,6 +89,4 @@ const scrambleField = async (options) => {
     } catch (err) {
         catchLog('Error in scrambleField', err);
     }
-};
-
-export default scrambleField;
+}

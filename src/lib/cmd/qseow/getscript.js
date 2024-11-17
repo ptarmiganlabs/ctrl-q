@@ -8,7 +8,7 @@ import { catchLog } from '../../util/log.js';
  *
  * @param {*} options
  */
-const getScript = async (options) => {
+export async function getScript(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -92,6 +92,4 @@ const getScript = async (options) => {
     } catch (err) {
         catchLog('Error in getScript', err);
     }
-};
-
-export default getScript;
+}

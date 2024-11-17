@@ -38,7 +38,7 @@ const consoleTableConfig = {
  *
  * @param {*} options
  */
-const getMasterMeasure = async (options) => {
+export async function getMasterMeasure(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -242,6 +242,4 @@ const getMasterMeasure = async (options) => {
     } catch (err) {
         catchLog('Error in getMasterMeasure', err);
     }
-};
-
-export default getMasterMeasure;
+}

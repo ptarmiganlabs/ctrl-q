@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, masterItemGetAssertOptions } from '../util/qseow/assert-options.js';
-import getMasterMeasure from '../cmd/qseow/getmeasure.js';
+import { getMasterMeasure } from '../cmd/qseow/getmeasure.js';
 
 export function setupQseowGetMasterMeasureCommand(qseow) {
     qseow

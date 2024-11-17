@@ -7,7 +7,7 @@ import { catchLog } from '../../util/log.js';
  *
  * @param {*} options
  */
-const createMasterDimension = async (options) => {
+export async function createMasterDimension(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
@@ -254,6 +254,4 @@ const createMasterDimension = async (options) => {
     } catch (err) {
         catchLog('Error creating master dimension', err);
     }
-};
-
-export default createMasterDimension;
+}

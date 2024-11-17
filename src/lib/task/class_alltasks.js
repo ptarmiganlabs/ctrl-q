@@ -12,9 +12,9 @@ import {
     getTaskColumnPosFromHeaderRow,
 } from '../util/qseow/lookups.js';
 
-import QlikSenseTask from './class_task.js';
-import QlikSenseSchemaEvents from './class_allschemaevents.js';
-import QlikSenseCompositeEvents from './class_allcompositeevents.js';
+import { QlikSenseTask } from './class_task.js';
+import { QlikSenseSchemaEvents } from './class_allschemaevents.js';
+import { QlikSenseCompositeEvents } from './class_allcompositeevents.js';
 import { getTagIdByName } from '../util/qseow/tag.js';
 import { getCustomPropertyIdByName } from '../util/qseow/customproperties.js';
 import { getAppById } from '../util/qseow/app.js';
@@ -22,7 +22,7 @@ import { taskExistById, getTaskById } from '../util/qseow/task.js';
 import { catchLog } from '../util/log.js';
 import { getCertFilePaths } from '../util/qseow/cert.js';
 
-class QlikSenseTasks {
+export class QlikSenseTasks {
     constructor() {
         //
     }
@@ -2376,5 +2376,3 @@ class QlikSenseTasks {
         return this.taskNetwork;
     }
 }
-
-export default QlikSenseTasks;

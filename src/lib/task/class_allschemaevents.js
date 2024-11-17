@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { logger } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
-import QlikSenseSchemaEvent from './class_schemaevent.js';
+import { QlikSenseSchemaEvent } from './class_schemaevent.js';
 import { catchLog } from '../util/log.js';
 import { getCertFilePaths } from '../util/qseow/cert.js';
 
-class QlikSenseSchemaEvents {
+export class QlikSenseSchemaEvents {
     constructor() {
         //
     }
@@ -87,5 +87,3 @@ class QlikSenseSchemaEvents {
         });
     }
 }
-
-export default QlikSenseSchemaEvents;

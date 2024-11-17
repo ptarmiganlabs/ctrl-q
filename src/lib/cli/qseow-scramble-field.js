@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions } from '../util/qseow/assert-options.js';
-import scrambleField from '../cmd/qseow/scramblefield.js';
+import { scrambleField } from '../cmd/qseow/scramblefield.js';
 
 export function setupQseowScrambleFieldCommand(qseow) {
     qseow
