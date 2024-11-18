@@ -123,7 +123,12 @@ export async function createUserActivityBucketsCustomProperty(options) {
                         // Update existing custom property
                         // First copy existing custom property to a new object, then replace the choiceValues with the new ones
                         const customPropertyDefinition = JSON.parse(JSON.stringify(customPropertyExisting));
+
+                        // Add activity buckets to custom property definition as choice values
                         customPropertyDefinition.choiceValues = activityBucketsSorted;
+
+                        // Add default bucket to choice values. This is the last one in the list + "+" sign
+                        customPropertyDefinition.choiceValues.push(`${activityBucketsSorted[activityBucketsSorted.length - 1]}+`);
 
                         // Is it a dry run?
                         if (options.dryRun) {
@@ -456,6 +461,11 @@ export async function createUserActivityBucketsCustomProperty(options) {
                     user.activityBucket = bucket;
                     break;
                 }
+            }
+
+            // If user is not assigned to a bucket, assign to the default bucket (last one in the list + "+" sign)
+            if (!user.activityBucket) {
+                user.activityBucket = `${activityBucketsSorted[activityBucketsSorted.length - 1]}+`;
             }
         }
         logger.verbose(`  Assigned activity buckets to users via custom property ${options.customPropertyName}`);
