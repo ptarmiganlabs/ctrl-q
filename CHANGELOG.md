@@ -1,5 +1,30 @@
 # Changelog
 
+## [4.1.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.0.0...ctrl-q-v4.1.0) (2024-11-19)
+
+
+### Features
+
+* **qseow:** Add new, default user activity bucket to `qseow user-activity-bucket-cp-create` command ([efaa81c](https://github.com/ptarmiganlabs/ctrl-q/commit/efaa81ce142ff2dc735be2becde107d33250481b)), closes [#546](https://github.com/ptarmiganlabs/ctrl-q/issues/546)
+* **qseow:** Show app counter when exporting apps to QVF files ([ff90297](https://github.com/ptarmiganlabs/ctrl-q/commit/ff90297a8c4ceb0aeab3411e3a4db191b5ff8f2c))
+
+
+### Bug Fixes
+
+* **qseow:** Delete master dimension works again ([610b969](https://github.com/ptarmiganlabs/ctrl-q/commit/610b969f4e09b6660e8910537c3680f9279bbf1a)), closes [#537](https://github.com/ptarmiganlabs/ctrl-q/issues/537)
+* **qseow:** Deleting proxy sessions works again, caused by regression in 4.0.0 ([2bb820e](https://github.com/ptarmiganlabs/ctrl-q/commit/2bb820ec7a012aa7380c6d61f6b12fdd336d251c)), closes [#539](https://github.com/ptarmiganlabs/ctrl-q/issues/539)
+* **qseow:** Don't throw unwarranted errors when importing master dimensions ([c61409e](https://github.com/ptarmiganlabs/ctrl-q/commit/c61409ecde8f997f10e0e2beec359362229ccb8e)), closes [#542](https://github.com/ptarmiganlabs/ctrl-q/issues/542)
+* **qseow:** Exporting apps to QVF files works again ([8b45d85](https://github.com/ptarmiganlabs/ctrl-q/commit/8b45d854da78905d56ab0067f3f2b33d9558fa01)), closes [#541](https://github.com/ptarmiganlabs/ctrl-q/issues/541)
+* **qseow:** Getting proxy sessions works again, caused by regression in 4.0.0 ([c756c8f](https://github.com/ptarmiganlabs/ctrl-q/commit/c756c8f177d1e2f4cc3b6d1958093b91869fa9bf)), closes [#538](https://github.com/ptarmiganlabs/ctrl-q/issues/538)
+* **qseow:** Implement missing --dry-run feature for `qseow user-activity-bucket-cp-create` command ([473dde3](https://github.com/ptarmiganlabs/ctrl-q/commit/473dde3334057ce17c58caba8db17c18afa3fc88)), closes [#543](https://github.com/ptarmiganlabs/ctrl-q/issues/543)
+* **qseow:** Visualisation tasks in network diagram works again ([338152d](https://github.com/ptarmiganlabs/ctrl-q/commit/338152d5991778ce76da58f70e66116f6f59c099)), closes [#540](https://github.com/ptarmiganlabs/ctrl-q/issues/540)
+* Version command works again ([af26171](https://github.com/ptarmiganlabs/ctrl-q/commit/af26171ce541ef75b964cbc721a00af13f4551d5)), closes [#536](https://github.com/ptarmiganlabs/ctrl-q/issues/536)
+
+
+### Miscellaneous
+
+* **deps:** update @qlik/api and eslint to latest versions ([38ae154](https://github.com/ptarmiganlabs/ctrl-q/commit/38ae15496bca28536d3d271dd74c198cdd3cb919))
+
 ## [4.0.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.0.0...ctrl-q-v4.0.0) (2024-11-15)
 
 
