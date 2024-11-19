@@ -1,13 +1,13 @@
 import axios from 'axios';
 import path from 'node:path';
 
-import { logger, execPath, verifyFileExists } from '../../globals.js';
+import { logger } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
-import QlikSenseCompositeEvent from './class_compositeevent.js';
+import { QlikSenseCompositeEvent } from './class_compositeevent.js';
 import { catchLog } from '../util/log.js';
 import { getCertFilePaths } from '../util/qseow/cert.js';
 
-class QlikSenseCompositeEvents {
+export class QlikSenseCompositeEvents {
     constructor() {
         //
     }
@@ -46,11 +46,8 @@ class QlikSenseCompositeEvents {
             try {
                 logger.debug('GET SCHEMAEVENT: Starting get composite events from QSEoW');
 
-                const axiosConfig = await setupQrsConnection(this.options, {
+                const axiosConfig = setupQrsConnection(this.options, {
                     method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: '/qrs/compositeevent/full',
                 });
 
@@ -79,5 +76,3 @@ class QlikSenseCompositeEvents {
         });
     }
 }
-
-export default QlikSenseCompositeEvents;

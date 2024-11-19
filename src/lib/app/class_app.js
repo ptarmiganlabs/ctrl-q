@@ -1,5 +1,4 @@
-class QlikSenseApp {
-    // eslint-disable-next-line no-useless-constructor
+export class QlikSenseApp {
     constructor() {
         //
     }
@@ -34,5 +33,3 @@ class QlikSenseApp {
         this.options = options;
     }
 }
-
-export default QlikSenseApp;

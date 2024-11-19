@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions } from '../util/qseow/assert-options.js';
-import getMasterDimension from '../cmd/qseow/getdim.js';
+import { getMasterDimension } from '../cmd/qseow/getdim.js';
 
 export function setupQseowGetMasterDimensionCommand(qseow) {
     qseow

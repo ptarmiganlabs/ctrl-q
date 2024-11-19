@@ -1,6 +1,6 @@
 import { table } from 'table';
 import { getSessionsFromQseow } from '../../util/qseow/session.js';
-import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
+import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { catchLog } from '../../util/log.js';
 
 const consoleTableConfig = {
@@ -36,12 +36,12 @@ const consoleTableConfig = {
  *
  * @param {*} options
  */
-const getSessions = async (options) => {
+export async function getSessions(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Get Qlik Sense proxy sessions');
@@ -160,7 +160,6 @@ const getSessions = async (options) => {
             }
 
             // Add to table that will be printed to console
-            // eslint-disable-next-line no-restricted-syntax
             for (const s of sessionsTabular) {
                 sessionsTable.push([
                     s.vpDescription,
@@ -188,6 +187,4 @@ const getSessions = async (options) => {
 
         return false;
     }
-};
-
-export default getSessions;
+}

@@ -1,6 +1,6 @@
 import enigma from 'enigma.js';
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
-import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
+import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { catchLog } from '../../util/log.js';
 
 // Variable to keep track of how many measures have been deleted
@@ -10,12 +10,12 @@ let deleteCount = 0;
  *
  * @param {*} options
  */
-const deleteMasterMeasure = async (options) => {
+export async function deleteMasterMeasure(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Delete master measures');
@@ -85,7 +85,6 @@ const deleteMasterMeasure = async (options) => {
             deleteMasterItems = deleteMasterItems.concat(measureObj.qMeasureList.qItems);
         } else {
             // Loop over all master items (identified by name or ID) we should get data for
-            // eslint-disable-next-line no-restricted-syntax
             for (const masterItem of options.masterItem) {
                 // Can we find this master item in the list retrieved from the app?
                 if (options.idType === 'name') {
@@ -115,10 +114,8 @@ const deleteMasterMeasure = async (options) => {
         if (deleteMasterItems.length === 0) {
             logger.warn(`No matching master item measures found`);
         } else {
-            // eslint-disable-next-line no-restricted-syntax
             for (const item of deleteMasterItems) {
                 if (options.dryRun === undefined || options.dryRun === false) {
-                    // eslint-disable-next-line no-await-in-loop
                     const res = await app.destroyMeasure(item.qInfo.qId);
                     if (res !== true) {
                         logger.error(`Failed deleting measure "${item.qMeta.title}", id=${item.qInfo.qId} in app "${item.qInfo.qId}"`);
@@ -148,6 +145,4 @@ const deleteMasterMeasure = async (options) => {
     } catch (err) {
         catchLog('Error in deleteMasterMeasure', err);
     }
-};
-
-export default deleteMasterMeasure;
+}

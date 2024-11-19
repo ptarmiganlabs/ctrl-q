@@ -1,6 +1,6 @@
 import { logger } from '../../globals.js';
 
-class QlikSenseSchemaEvent {
+export class QlikSenseSchemaEvent {
     constructor(schemaEvent) {
         this.schemaEvent = schemaEvent;
     }
@@ -9,5 +9,3 @@ class QlikSenseSchemaEvent {
 
     // Other methods
 }
-
-export default QlikSenseSchemaEvent;

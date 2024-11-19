@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, getScriptAssertOptions } from '../util/qseow/assert-options.js';
-import getScript from '../cmd/qseow/getscript.js';
+import { getScript } from '../cmd/qseow/getscript.js';
 
 export function setupGetScriptCommand(qseow) {
     qseow

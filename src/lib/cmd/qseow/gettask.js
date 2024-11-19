@@ -4,8 +4,8 @@ import { promises as Fs } from 'node:fs';
 import xlsx from 'node-xlsx';
 import { stringify } from 'csv-stringify';
 import yesno from 'yesno';
-import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists } from '../../../globals.js';
-import QlikSenseTasks from '../../task/class_alltasks.js';
+import { logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists } from '../../../globals.js';
+import { QlikSenseTasks } from '../../task/class_alltasks.js';
 import { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } from '../../util/qseow/lookups.js';
 import { getTagsFromQseow } from '../../util/qseow/tag.js';
 import { catchLog } from '../../util/log.js';
@@ -85,12 +85,12 @@ function compareTable(a, b) {
 
 // get-task command
 // Options are assumed to be verified before calling this function
-const getTask = async (options) => {
+export async function getTask(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.verbose('Get tasks');
@@ -257,7 +257,7 @@ const getTask = async (options) => {
                 }
 
                 // Check if file exists
-                if ((await verifyFileExists(options.outputFileName, true)) === false) {
+                if ((await verifyFileSystemExists(options.outputFileName, true)) === false) {
                     // File doesn't exist
                 } else if (!options.outputFileOverwrite) {
                     // Target file exist. Ask if user wants to overwrite
@@ -746,7 +746,7 @@ const getTask = async (options) => {
                 }
 
                 // Check if file exists
-                if ((await verifyFileExists(options.outputFileName, true)) === false) {
+                if ((await verifyFileSystemExists(options.outputFileName, true)) === false) {
                     // File doesn't exist
                 } else if (!options.outputFileOverwrite) {
                     // Target file exist. Ask if user wants to overwrite
@@ -773,6 +773,4 @@ const getTask = async (options) => {
         catchLog('Get task', err);
         return false;
     }
-};
-
-export default getTask;
+}

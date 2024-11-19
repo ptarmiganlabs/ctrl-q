@@ -1,7 +1,18 @@
 import https from 'node:https';
-import { logger, generateXrfKey, readCert } from '../../../globals.js';
 
-const setupQPSConnection = (options, param) => {
+import { logger, generateXrfKey, readCert } from '../../../globals.js';
+import { getCertFilePaths } from './cert.js';
+
+export function setupQpsConnection(options, param) {
+    // Ensure correct auth info is present
+    if (options.authType === 'cert') {
+        // options.authUserDir and options.authUserId should be set
+        if (!options.authUserDir || !options.authUserId) {
+            logger.error(`Setting up connection to QRS. Missing user directory and/or user ID. Exiting.`);
+            process.exit(1);
+        }
+    }
+
     // Ensure valid http method
     if (!param.method || (param.method.toLowerCase() !== 'get' && param.method.toLowerCase() !== 'delete')) {
         logger.error(`Setting up connection to QPS. Invalid http method '${param.method}'. Exiting.`);
@@ -22,11 +33,29 @@ const setupQPSConnection = (options, param) => {
         logger.debug(`QPS host: ${options.hostProxy}`);
         logger.debug(`Reject unauthorized certificate: ${!!options.secure}`);
 
+        // Get certificate paths
+        // If specified in the param object, use those paths
+        // Otherwise, use the paths from the command line options
+        let { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
+
+        // If the paths are specified in the param object, use those paths
+        if (param.fileCert) {
+            fileCert = param.fileCert;
+        }
+
+        if (param.fileCertKey) {
+            fileCertKey = param.fileCertKey;
+        }
+
+        if (param.fileCertCA) {
+            fileCertCA = param.fileCertCA;
+        }
+
         const httpsAgent = new https.Agent({
             rejectUnauthorized: options.secure !== 'false',
-            cert: readCert(param.fileCert),
-            key: readCert(param.fileCertKey),
-            ca: readCert(param.fileCertCA),
+            cert: readCert(fileCert),
+            key: readCert(fileCertKey),
+            ca: readCert(fileCertCA),
         });
 
         axiosConfig = {
@@ -73,6 +102,4 @@ const setupQPSConnection = (options, param) => {
     }
 
     return axiosConfig;
-};
-
-export default setupQPSConnection;
+}

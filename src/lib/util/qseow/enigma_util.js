@@ -5,11 +5,11 @@ import { fileURLToPath } from 'node:url';
 import upath from 'upath';
 import sea from 'node:sea';
 
-import { logger, readCert } from '../../../globals.js';
+import { logger, readCert, isSea } from '../../../globals.js';
 import { getCertFilePaths } from '../../util/qseow/cert.js';
 
 // Function to get Enigma.js schema file
-const getEnigmaSchema = (processPkgFlag, seaFlag, options) => {
+const getEnigmaSchema = (options) => {
     // Array of supported schema versions
     const supportedSchemaVersions = ['12.170.2', '12.612.0', '12.936.0', '12.1306.0', '12.1477.0', '12.1657.0', '12.1823.0', '12.2015.0'];
 
@@ -27,25 +27,7 @@ const getEnigmaSchema = (processPkgFlag, seaFlag, options) => {
         }
 
         // Are we running as a packaged app?
-        if (processPkgFlag) {
-            const schemaFile = `./node_modules/enigma.js/schemas/${options.schemaVersion}.json`;
-            logger.debug(`Enigma.js schema file: ${schemaFile}`);
-
-            // Yes, we are running as a packaged app
-            // Get path to JS file const
-            const a = process.pkg.defaultEntrypoint;
-            logger.debug(`APPDUMP schema path a: ${a}`);
-
-            // Strip off the filename
-            const b = upath.dirname(a);
-            logger.debug(`APPDUMP schema path b: ${b}`);
-
-            // Add path to schema file
-            const c = upath.join(b, schemaFile);
-            logger.debug(`APPDUMP schema path c: ${c}`);
-
-            qixSchemaJson = readFileSync(c);
-        } else if (seaFlag) {
+        if (isSea) {
             // Load schema file
             qixSchemaJson = sea.getAsset(`enigma_schema_${options.schemaVersion}.json`, 'utf8');
         } else {
@@ -83,7 +65,7 @@ export const setupEnigmaConnection = (options, sessionId) => {
 
     // Set up enigma.js configuration
     logger.debug(`Enigma.js schema version: ${options.schemaVersion}`);
-    const qixSchema = getEnigmaSchema(process.pkg, sea.isSea(), options);
+    const qixSchema = getEnigmaSchema(options);
 
     let enigmaConfig;
     // Should certificates be used for authentication?

@@ -1,18 +1,18 @@
 import enigma from 'enigma.js';
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
-import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
+import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { catchLog } from '../../util/log.js';
 
 /**
  *
  * @param {*} options
  */
-const scrambleField = async (options) => {
+export async function scrambleField(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Scramble field');
@@ -89,6 +89,4 @@ const scrambleField = async (options) => {
     } catch (err) {
         catchLog('Error in scrambleField', err);
     }
-};
-
-export default scrambleField;
+}

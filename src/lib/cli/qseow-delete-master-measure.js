@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, masterItemMeasureDeleteAssertOptions } from '../util/qseow/assert-options.js';
-import deleteMasterMeasure from '../cmd/qseow/deletemeasure.js';
+import { deleteMasterMeasure } from '../cmd/qseow/deletemeasure.js';
 
 export function setupQseowDeleteMasterMeasureCommand(qseow) {
     qseow

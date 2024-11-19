@@ -13,19 +13,7 @@ let c;
 export let appVersion;
 
 // Are we running as a packaged app?
-if (process.pkg) {
-    // Get path to JS file
-    a = process.pkg.defaultEntrypoint;
-
-    // Strip off the filename
-    b = upath.dirname(a);
-
-    // Add path to package.json file
-    c = upath.join(b, filenamePackage);
-
-    const { version } = JSON.parse(readFileSync(c));
-    appVersion = version;
-} else if (sea.isSea()) {
+if (sea.isSea()) {
     // Get contents of package.json file
     packageJson = sea.getAsset('package.json', 'utf8');
     const version = JSON.parse(packageJson).version;
@@ -75,8 +63,8 @@ export const logger = winston.createLogger({
 });
 
 // Are we running as standalone app or not?
-export const isPkg = typeof process.pkg !== 'undefined';
-export const execPath = isPkg ? upath.dirname(process.execPath) : process.cwd();
+export const isSea = sea.isSea();
+export const execPath = isSea ? upath.dirname(process.execPath) : process.cwd();
 
 // Functions to get/set current console logging level
 export const getLoggingLevel = () => logTransports.find((transport) => transport.name === 'console').level;
@@ -85,25 +73,16 @@ export const setLoggingLevel = (newLevel) => {
     logTransports.find((transport) => transport.name === 'console').level = newLevel;
 };
 
-export const verifyFileExists = async (file, silent = false) => {
+// Separate handling is needed depending on if we are running as a packaged SEA app or not
+// SEA apps cannot list bundled assets as directories, so we need to use a different approach
+export async function verifyFileSystemExists(file, silent = false) {
     let exists = false;
     try {
         await Fs.stat(file);
         exists = true;
     } catch (err) {
         if (!silent) {
-            if (isPkg) {
-                if (err.message) {
-                    // Make message a bit nicer than what's returned from stat()
-                    if (err.message.includes('no such file or directory')) {
-                        logger.error(`File "${file}" does not exist.`);
-                    } else {
-                        logger.error(`Error while checking if file ${file} exists: ${err.message}`);
-                    }
-                } else {
-                    logger.error(`Error while checking if file ${file} exists: ${err}`);
-                }
-            } else if (err.message) {
+            if (err.message) {
                 if (err.message.includes('no such file or directory')) {
                     logger.error(`File "${file}" does not exist.`);
                 } else {
@@ -116,13 +95,33 @@ export const verifyFileExists = async (file, silent = false) => {
             }
         }
     }
-
     return exists;
-};
+}
+
+export function verifySeaAssetExists(file, silent = false) {
+    let exists = false;
+    try {
+        sea.getAsset(file, 'utf8');
+        exists = true;
+    } catch (err) {
+        if (!silent) {
+            if (err.message) {
+                if (err.message.includes('no such file or directory')) {
+                    logger.error(`Asset "${file}" does not exist.`);
+                } else {
+                    logger.error(`Error while checking if asset ${file} exists: ${err.message}`);
+                }
+            } else {
+                logger.error(`Error while checking if asset ${file} exists: ${err}`);
+            }
+        }
+    }
+    return exists;
+}
 
 export const mergeDirFilePath = (pathElements) => {
     let fullPath = '';
-    if (isPkg) {
+    if (isSea) {
         fullPath = upath.resolve(upath.dirname(process.execPath), ...pathElements);
     } else {
         // fullPath = upath.resolve(__dirname, ...pathElements);
@@ -179,20 +178,3 @@ export const setCliOptions = (options) => {
 
 // Function to get CLI options
 export const getCliOptions = () => cliOptions;
-
-// export default {
-//     logger,
-//     appVersion,
-//     getLoggingLevel,
-//     setLoggingLevel,
-//     execPath,
-//     isPkg,
-//     verifyFileExists,
-//     generateXrfKey,
-//     readCert,
-//     isNumeric,
-//     mergeDirFilePath,
-//     sleep,
-//     getCliOptions,
-//     setCliOptions,
-// };

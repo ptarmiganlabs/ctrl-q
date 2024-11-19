@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, variableDeleteAssertOptions } from '../util/qseow/assert-options.js';
-import deleteVariable from '../cmd/qseow/deletevariable.js';
+import { deleteVariable } from '../cmd/qseow/deletevariable.js';
 
 export function setupQseowDeleteVariableCommand(qseow) {
     qseow

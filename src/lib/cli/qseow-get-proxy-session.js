@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, getSessionsAssertOptions } from '../util/qseow/assert-options.js';
-import getSessions from '../cmd/qseow/getsessions.js';
+import { getSessions } from '../cmd/qseow/getsessions.js';
 
 export function setupQseowGetProxySessionsCommand(qseow) {
     qseow

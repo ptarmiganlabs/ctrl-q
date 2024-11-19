@@ -1,6 +1,6 @@
 import { logger } from '../../globals.js';
 
-class QlikSenseCompositeEvent {
+export class QlikSenseCompositeEvent {
     constructor(compositeEvent) {
         this.compositeEvent = compositeEvent;
     }
@@ -9,5 +9,3 @@ class QlikSenseCompositeEvent {
 
     // Other methods
 }
-
-export default QlikSenseCompositeEvent;

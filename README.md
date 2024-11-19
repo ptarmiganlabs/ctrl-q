@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/ctrl-q_2.png"><p>
+<p align="center"><img src="docs/ctrl-q.png"><p>
 
 <h1 align="center">Ctrl-Q makes life easier for Qlik Sense admins and developers.<br><br>
 

@@ -1,6 +1,6 @@
 import enigma from 'enigma.js';
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
-import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
+import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { catchLog } from '../../util/log.js';
 
 // Variable to keep track of how many dimensions have been deleted
@@ -10,12 +10,12 @@ let deleteCount = 0;
  *
  * @param {*} options
  */
-const deleteMasterDimension = async (options) => {
+export async function deleteMasterDimension(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Delete master dimensions');
@@ -154,6 +154,4 @@ const deleteMasterDimension = async (options) => {
     } catch (err) {
         catchLog('Error in deleteMasterDimension', err);
     }
-};
-
-export default deleteMasterDimension;
+}

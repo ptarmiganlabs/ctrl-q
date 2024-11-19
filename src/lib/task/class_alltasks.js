@@ -12,9 +12,9 @@ import {
     getTaskColumnPosFromHeaderRow,
 } from '../util/qseow/lookups.js';
 
-import QlikSenseTask from './class_task.js';
-import QlikSenseSchemaEvents from './class_allschemaevents.js';
-import QlikSenseCompositeEvents from './class_allcompositeevents.js';
+import { QlikSenseTask } from './class_task.js';
+import { QlikSenseSchemaEvents } from './class_allschemaevents.js';
+import { QlikSenseCompositeEvents } from './class_allcompositeevents.js';
 import { getTagIdByName } from '../util/qseow/tag.js';
 import { getCustomPropertyIdByName } from '../util/qseow/customproperties.js';
 import { getAppById } from '../util/qseow/app.js';
@@ -22,7 +22,7 @@ import { taskExistById, getTaskById } from '../util/qseow/task.js';
 import { catchLog } from '../util/log.js';
 import { getCertFilePaths } from '../util/qseow/cert.js';
 
-class QlikSenseTasks {
+export class QlikSenseTasks {
     constructor() {
         //
     }
@@ -1271,9 +1271,6 @@ class QlikSenseTasks {
                 // Save task to QSEoW
                 const axiosConfig = setupQrsConnection(this.options, {
                     method: 'post',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: '/qrs/compositeevent',
                     body,
                 });
@@ -1340,9 +1337,6 @@ class QlikSenseTasks {
                 // Save task to QSEoW
                 const axiosConfig = setupQrsConnection(this.options, {
                     method: 'post',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: '/qrs/reloadtask/create',
                     body,
                 });
@@ -1402,9 +1396,6 @@ class QlikSenseTasks {
                 // Save task to QSEoW
                 const axiosConfig = setupQrsConnection(this.options, {
                     method: 'post',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: '/qrs/externalprogramtask/create',
                     body,
                 });
@@ -1466,9 +1457,6 @@ class QlikSenseTasks {
                         // Save task to QSEoW
                         const axiosConfig = setupQrsConnection(this.options, {
                             method: 'post',
-                            fileCert: this.fileCert,
-                            fileCertKey: this.fileCertKey,
-                            fileCertCA: this.fileCertCA,
                             path: '/qrs/reloadtask/create',
                             body,
                         });
@@ -1572,17 +1560,11 @@ class QlikSenseTasks {
                 if (filter === '') {
                     axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        fileCertCA: this.fileCertCA,
                         path: '/qrs/reloadtask/full',
                     });
                 } else {
                     axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        fileCertCA: this.fileCertCA,
                         path: '/qrs/reloadtask/full',
                         queryParameters: [{ name: 'filter', value: filter }],
                     });
@@ -1602,17 +1584,11 @@ class QlikSenseTasks {
                 if (filter === '') {
                     axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        fileCertCA: this.fileCertCA,
                         path: '/qrs/externalprogramtask/full',
                     });
                 } else {
                     axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        fileCertCA: this.fileCertCA,
                         path: '/qrs/externalprogramtask/full',
                         queryParameters: [{ name: 'filter', value: filter }],
                     });
@@ -2400,5 +2376,3 @@ class QlikSenseTasks {
         return this.taskNetwork;
     }
 }
-
-export default QlikSenseTasks;

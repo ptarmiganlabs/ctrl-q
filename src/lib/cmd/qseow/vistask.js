@@ -3,8 +3,10 @@ import path from 'node:path';
 import fs from 'node:fs';
 import handlebars from 'handlebars';
 import { Readable } from 'node:stream';
-import { appVersion, logger, setLoggingLevel, isPkg, execPath, verifyFileExists } from '../../../globals.js';
-import QlikSenseTasks from '../../task/class_alltasks.js';
+import sea from 'node:sea';
+
+import { appVersion, logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists, verifySeaAssetExists } from '../../../globals.js';
+import { QlikSenseTasks } from '../../task/class_alltasks.js';
 
 // js: 'application/javascript',
 const MIME_TYPES = {
@@ -20,12 +22,11 @@ const MIME_TYPES = {
 
 // Get path to static html files
 let STATIC_PATH = '';
-if (isPkg) {
-    // Running as standalone app
-    STATIC_PATH = path.join(__dirname, 'src/static');
-    // STATIC_PATH = path.resolve(`${__dirname}/../../static`);
+if (isSea) {
+    // Running as standalone SEA app
+    STATIC_PATH = '';
 } else {
-    // Running packaged app
+    // Running Node.js script
     STATIC_PATH = path.join(execPath, './src/static');
 }
 
@@ -152,39 +153,87 @@ function getSchemaText(incrementOption, incrementDescription) {
 }
 
 const prepareFile = async (url) => {
+    logger.verbose('-----------------------------------');
+    logger.verbose(`==> Preparing file for url: ${url}`);
+
     const paths = [STATIC_PATH, url];
     if (url.endsWith('/')) paths.push('index.html');
 
-    const filePath = path.join(...paths);
+    logger.verbose(`Paths: ${paths}`);
+
+    let filePath = path.join(...paths);
     logger.verbose(`Serving file ${filePath}`);
 
     const pathTraversal = !filePath.startsWith(STATIC_PATH);
     logger.verbose(`Path traversal: ${pathTraversal}`);
 
-    // Verify file filePath exists. Do not use fs.access() as it does not work with pkg.
-    // let exists = false;
-    // try {
-    //     await fs.promises.stat(filePath);
-    //     exists = true;
-    // } catch (error) {
-    //     logger.verbose(`File does not exist: ${filePath}`);
-    // }
-    // const exists = await fs.promises.access(filePath).then(...toBool);
-    const exists = await verifyFileExists(filePath);
-    logger.verbose(`File exists: ${exists}`);
+    let exists, streamPath, ext, stream;
 
-    const found = !pathTraversal && exists;
-    logger.verbose(`File found: ${found}`);
+    if (isSea) {
+        // Prepend with STATIC_PATH
+        logger.verbose(`url: ${url}`);
+        logger.verbose(`STATIC_PATH: ${STATIC_PATH}`);
+        logger.verbose(`filePath: ${filePath}`);
+        try {
+            exists = verifySeaAssetExists(filePath);
+            logger.verbose(`SEA file exists: ${exists}`);
+            if (exists) {
+                ext = path.extname(filePath).substring(1).toLowerCase();
+                logger.verbose(`SEA file extension: ${ext}`);
 
-    const streamPath = found ? filePath : `${STATIC_PATH}/404.html`;
+                if (ext === 'html' || ext === 'js' || ext === 'css') {
+                    const asset = sea.getAsset(filePath, 'utf8');
+                    logger.verbose(`Asset type: ${typeof asset}`);
+
+                    stream = Readable.from([asset]);
+                } else if (ext === 'png' || ext === 'jpg' || ext === 'gif' || ext === 'ico') {
+                    let asset = sea.getAsset(filePath);
+
+                    if (asset instanceof ArrayBuffer) {
+                        asset = Buffer.from(asset);
+                    }
+                    stream = Readable.from([asset]);
+                } else {
+                    logger.warn(`File extension not supported: ${ext}`);
+                    exists = false;
+                }
+
+                streamPath = filePath;
+            } else {
+                logger.error(`Asset not found: ${filePath}`);
+                throw new Error('Asset not found');
+            }
+        } catch (error) {
+            logger.error(`Error while getting SEA asset: ${error}`);
+            exists = false;
+            streamPath = `${STATIC_PATH}/404.html`;
+            ext = 'html';
+            stream = Readable.from(['<h1>404 Not Found in SEA app</h1>']);
+        }
+    } else {
+        exists = await verifyFileSystemExists(filePath);
+        logger.verbose(`File system file exists: ${exists}`);
+
+        streamPath = exists ? filePath : `${STATIC_PATH}/404.html`;
+        ext = path.extname(streamPath).substring(1).toLowerCase();
+        stream = fs.createReadStream(streamPath);
+    }
+
+    logger.verbose(`File exists (2): ${exists}`);
+    logger.verbose(`File found: ${exists && !pathTraversal}`);
     logger.verbose(`Stream path: ${streamPath}`);
-
-    const ext = path.extname(streamPath).substring(1).toLowerCase();
     logger.verbose(`File extension: ${ext}`);
 
-    let stream;
     if (ext === 'html') {
-        const file = await fs.promises.readFile(streamPath, 'utf8');
+        logger.verbose(`Serving html file ${streamPath}`);
+        let file;
+
+        if (!isSea) {
+            file = await fs.promises.readFile(streamPath, 'utf8');
+        } else if (isSea) {
+            file = sea.getAsset(streamPath, 'utf8');
+        }
+
         const template = handlebars.compile(file, { noEscape: true });
 
         // Get task network model
@@ -289,18 +338,61 @@ const prepareFile = async (url) => {
 
         const result = template(templateData);
         stream = Readable.from([result]);
-    } else {
-        stream = fs.createReadStream(streamPath);
+    } else if (ext === 'js' || ext === 'css' || ext === 'svg') {
+        logger.verbose(`Serving js, css or svg file ${streamPath}`);
+
+        let asset;
+        if (!isSea) {
+            asset = await fs.promises.readFile(streamPath, 'utf8');
+        } else if (isSea) {
+            asset = sea.getAsset(streamPath, 'utf8');
+        }
+
+        stream = Readable.from([asset]);
+    } else if (ext === 'png' || ext === 'jpg' || ext === 'gif' || ext === 'ico') {
+        logger.verbose(`Serving image file ${streamPath}`);
+
+        let asset;
+        if (!isSea) {
+            asset = await fs.promises.readFile(streamPath);
+        } else if (isSea) {
+            asset = sea.getAsset(streamPath);
+        }
+
+        if (asset instanceof ArrayBuffer) {
+            asset = Buffer.from(asset);
+
+            // Show new type of asset
+            if (asset instanceof Uint8Array) {
+                logger.verbose('asset is Uint8Array');
+            } else if (asset instanceof ArrayBuffer) {
+                logger.verbose('asset is ArrayBuffer');
+            } else if (asset instanceof Buffer) {
+                logger.verbose('asset is Buffer');
+            }
+        }
+
+        stream = Readable.from([asset]);
     }
 
-    return { found, ext, stream };
+    return { found: exists && !pathTraversal, ext, stream };
 };
 
 // Request handler for http server
 const requestHandler = async (req, res) => {
     const file = await prepareFile(req.url);
+
+    // console.log('File:');
+    // console.log(file);
+
+    logger.verbose(`File found: ${file.found}`);
+    logger.verbose(`File extension: ${file.ext}`);
+
     const statusCode = file.found ? 200 : 404;
     const mimeType = MIME_TYPES[file.ext] || MIME_TYPES.default;
+
+    logger.verbose(`Serving file ${req.url} with status code ${statusCode} and mime type ${mimeType}`);
+
     res.writeHead(statusCode, { 'Content-Type': mimeType });
     file.stream.pipe(res);
 
@@ -323,42 +415,63 @@ const startHttpServer = async (options) => {
     });
 };
 
-const visTask = async (options) => {
+export async function visTask(options) {
     // Set log level
     setLoggingLevel(options.logLevel);
 
-    logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+    logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
     logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
     logger.verbose('Visulise tasks');
     logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
-    // List all files in __dirname directory if log level is debug
     logger.verbose(`Path to html files: ${STATIC_PATH}`);
-    fs.readdir(STATIC_PATH, (err, files) => {
-        if (err) {
-            return logger.error(`Unable to scan html directory: ${err}`);
-        }
-        files.forEach((file) => {
-            logger.debug(file);
-            const stats = fs.statSync(`${STATIC_PATH}/${file}`);
-            const fileSizeInBytes = stats.size;
-            logger.debug(`File size: ${fileSizeInBytes}`);
-            logger.debug('-------------------');
-        });
 
-        return true;
-    });
+    // List all files in __dirname directory if log level is debug and not SEA app
+    if (!isSea) {
+        fs.readdir(STATIC_PATH, (err, files) => {
+            if (err) {
+                return logger.error(`Unable to scan html directory: ${err}`);
+            }
+            files.forEach((file) => {
+                logger.debug(file);
+                const stats = fs.statSync(`${STATIC_PATH}/${file}`);
+                const fileSizeInBytes = stats.size;
+                logger.debug(`File size: ${fileSizeInBytes}`);
+                logger.debug('-------------------');
+            });
+
+            return true;
+        });
+    }
+
+    // NOTE: If running as SEA app, it is not possible to list files in the static directory
 
     // Verify files used by http server exist
-    let fileExists = await verifyFileExists(`${STATIC_PATH}/index.html`);
-    if (!fileExists) {
+    logger.verbose(`Verifying that files used by http server exist`);
+    let fileExists;
+    if (isSea) {
+        fileExists = verifySeaAssetExists(`/index.html`);
+    } else {
+        fileExists = await verifyFileSystemExists(`${STATIC_PATH}/index.html`);
+    }
+    if (!fileExists && isSea) {
+        logger.error(`File /index.html does not exist`);
+        return false;
+    } else if (!fileExists && !isSea) {
         logger.error(`File ${STATIC_PATH}/index.html does not exist`);
         return false;
     }
 
-    fileExists = await verifyFileExists(`${STATIC_PATH}/404.html`);
-    if (!fileExists) {
+    if (isSea) {
+        fileExists = verifySeaAssetExists(`/404.html`);
+    } else {
+        fileExists = await verifyFileSystemExists(`${STATIC_PATH}/404.html`);
+    }
+    if (!fileExists && isSea) {
+        logger.error(`File /404.html does not exist`);
+        return false;
+    } else if (!fileExists && !isSea) {
         logger.error(`File ${STATIC_PATH}/404.html does not exist`);
         return false;
     }
@@ -395,6 +508,4 @@ const visTask = async (options) => {
 
     startHttpServer(optionsNew);
     return true;
-};
-
-export default visTask;
+}

@@ -3,16 +3,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yesno from 'yesno';
 
-import { logger, setLoggingLevel, isPkg, execPath, mergeDirFilePath, verifyFileExists, isNumeric, sleep } from '../../../globals.js';
-import QlikSenseApps from '../../app/class_allapps.js';
+import { logger, setLoggingLevel, isSea, execPath, mergeDirFilePath, verifyFileSystemExists, sleep } from '../../../globals.js';
+import { QlikSenseApps } from '../../app/class_allapps.js';
 import { catchLog } from '../../util/log.js';
 
-const exportAppToFile = async (options) => {
+export async function exportAppToFile(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         // Verify output directory exists. Create if not.
@@ -23,22 +23,8 @@ const exportAppToFile = async (options) => {
             await fs.promises.mkdir(outputDir);
         }
 
-        // const appFileExists = await verifyFileExists(options.fileName);
-        // if (appFileExists === false) {
-        //     logger.error(`Missing apps definition file "${options.fileName}". Aborting`);
-        //     process.exit(1);
-        // } else {
-        //     logger.verbose(`Apps definition file "${options.fileName}" found`);
-        // }
-
         logger.info(`Export apps to directory "${outputDir}"`);
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
-
-        // Get all tags
-        // const tagsExisting = await getTagsFromQseow(options);
-
-        // Get all custom properties
-        // const cpExisting = await getCustomPropertiesFromQseow(options);
 
         // Set up app structure
         const qlikSenseApps = new QlikSenseApps();
@@ -73,39 +59,39 @@ const exportAppToFile = async (options) => {
             logger.info(`Number of apps to export: ${appsToExport.length}`);
             let exportCount = 0;
 
-            // eslint-disable-next-line no-restricted-syntax
             for (const app of appsToExport) {
-                // eslint-disable-next-line no-await-in-loop
-                const exportAppData = await qlikSenseApps.exportAppStep1(app);
+                try {
+                    appCounter += 1;
+                    const exportAppData = await qlikSenseApps.exportAppStep1(app);
 
-                // eslint-disable-next-line no-await-in-loop
-                const resultDownloadApp = await qlikSenseApps.exportAppStep2(exportAppData);
+                    const resultDownloadApp = await qlikSenseApps.exportAppStep2(exportAppData, appCounter, appsToExport.length);
 
-                // eslint-disable-next-line no-await-in-loop
-                await sleep(options.sleepAppExport);
+                    await sleep(options.sleepAppExport);
 
-                // keep track of app metadata
-                appCounter += 1;
-                appMetadata.push([
-                    appCounter,
-                    app.name,
-                    app.id,
-                    options.outputDir,
-                    resultDownloadApp.qvfFileName,
-                    options.excludeAppData,
-                    app.tags.map((item) => item.name).join(' / '),
-                    app.customProperties.map((item) => `${item.definition.name}=${item.value}`).join(' / '),
-                    app.owner.userDirectory,
-                    app.owner.userId,
-                    app.stream ? app.stream.name : '',
-                ]);
+                    // keep track of app metadata
+                    appMetadata.push([
+                        appCounter,
+                        app.name,
+                        app.id,
+                        options.outputDir,
+                        resultDownloadApp.qvfFileName,
+                        options.excludeAppData,
+                        app.tags.map((item) => item.name).join(' / '),
+                        app.customProperties.map((item) => `${item.definition.name}=${item.value}`).join(' / '),
+                        app.owner.userDirectory,
+                        app.owner.userId,
+                        app.stream ? app.stream.name : '',
+                    ]);
 
-                exportCount += 1;
-                if (exportCount === parseInt(options.limitExportCount, 10)) {
-                    logger.warn(
-                        `Exported ${options.limitExportCount} app(s), which is the limit set by the --limit-export-count parameter.`
-                    );
-                    break;
+                    exportCount += 1;
+                    if (exportCount === parseInt(options.limitExportCount, 10)) {
+                        logger.warn(
+                            `Exported ${options.limitExportCount} app(s), which is the limit set by the --limit-export-count parameter.`
+                        );
+                        break;
+                    }
+                } catch (error) {
+                    logger.error(`Failed to export app ${app.name} (${app.id}): ${error.message}`);
                 }
             }
 
@@ -121,7 +107,7 @@ const exportAppToFile = async (options) => {
 
                 // Check if app metadata file already exists
                 // 2nd parameter = true => don't output anything to log
-                const fileExists = await verifyFileExists(fileName, true);
+                const fileExists = await verifyFileSystemExists(fileName, true);
 
                 logger.info('------------------------------------');
 
@@ -155,6 +141,4 @@ const exportAppToFile = async (options) => {
     } catch (err) {
         catchLog('Export app', err);
     }
-};
-
-export default exportAppToFile;
+}

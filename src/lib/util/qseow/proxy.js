@@ -4,7 +4,7 @@ import { logger, execPath } from '../../../globals.js';
 import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
 
-const getProxiesFromQseow = async (options, _sessionCookie) => {
+export async function getProxiesFromQseow(options, _sessionCookie) {
     logger.verbose(`Getting all proxies from QSEoW...`);
 
     // TODO Should support JWTs here too?
@@ -30,6 +30,4 @@ const getProxiesFromQseow = async (options, _sessionCookie) => {
     }
 
     return proxies;
-};
-
-export default getProxiesFromQseow;
+}

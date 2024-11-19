@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, deleteSessionsAssertOptions } from '../util/qseow/assert-options.js';
-import deleteSessions from '../cmd/qseow/deletesessions.js';
+import { deleteSessions } from '../cmd/qseow/deletesessions.js';
 
 export function setupQseowDeleteProxySessionsCommand(qseow) {
     qseow

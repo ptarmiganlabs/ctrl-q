@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, masterItemImportAssertOptions } from '../util/qseow/assert-options.js';
-import importMasterItemFromFile from '../cmd/qseow/import-masteritem-excel.js';
+import { importMasterItemFromFile } from '../cmd/qseow/import-masteritem-excel.js';
 
 export function setupQseowMasterItemImportCommand(qseow) {
     qseow

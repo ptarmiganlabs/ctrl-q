@@ -2,9 +2,9 @@ import xlsx from 'node-xlsx';
 import { parse } from 'csv-parse';
 import fs from 'node:fs';
 
-import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } from '../../../globals.js';
-import QlikSenseTasks from '../../task/class_alltasks.js';
-import QlikSenseApps from '../../app/class_allapps.js';
+import { logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists, isNumeric } from '../../../globals.js';
+import { QlikSenseTasks } from '../../task/class_alltasks.js';
+import { QlikSenseApps } from '../../app/class_allapps.js';
 import { getTaskColumnPosFromHeaderRow } from '../../util/qseow/lookups.js';
 import { getTagsFromQseow } from '../../util/qseow/tag.js';
 import { getCustomPropertiesFromQseow } from '../../util/qseow/customproperties.js';
@@ -299,12 +299,12 @@ const processCsvFile = async (options) => {
     return records;
 };
 
-const importTaskFromFile = async (options) => {
+export async function importTaskFromFile(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info(`Import tasks from definitions in file "${options.fileName}"`);
@@ -318,7 +318,7 @@ const importTaskFromFile = async (options) => {
         logger.info(`Successfully retrieved ${cpExisting.length} custom properties from QSEoW`);
 
         // Verify task definitions file exists
-        const taskFileExists = await verifyFileExists(options.fileName);
+        const taskFileExists = await verifyFileSystemExists(options.fileName);
         if (taskFileExists === false) {
             logger.error(`Missing task file "${options.fileName}". Aborting`);
             process.exit(1);
@@ -415,6 +415,4 @@ const importTaskFromFile = async (options) => {
     } catch (err) {
         catchLog('IMPORT TASK 2', err);
     }
-};
-
-export default importTaskFromFile;
+}

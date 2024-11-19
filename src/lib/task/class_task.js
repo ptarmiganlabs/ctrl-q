@@ -4,8 +4,7 @@ import { logger } from '../../globals.js';
 import { mapTaskExecutionStatus } from '../util/qseow/lookups.js';
 // const randomWords2 = (...args) => import('random-words').then(({ default: randomWords }) => randomWords(...args));
 
-class QlikSenseTask {
-    // eslint-disable-next-line no-useless-constructor
+export class QlikSenseTask {
     constructor() {
         //
     }
@@ -184,5 +183,3 @@ class QlikSenseTask {
         }
     }
 }
-
-export default QlikSenseTask;

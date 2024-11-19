@@ -3,7 +3,7 @@ import { jest, test, expect, describe } from '@jest/globals';
 
 import fs from 'node:fs';
 import path from 'node:path';
-import exportAppToFile from '../lib/cmd/qseow/exportapp.js';
+import { exportAppToFile } from '../lib/cmd/qseow/exportapp.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

@@ -1,18 +1,18 @@
 import xlsx from 'node-xlsx';
 
-import { logger, setLoggingLevel, isPkg, execPath, verifyFileExists, isNumeric } from '../../../globals.js';
-import QlikSenseApps from '../../app/class_allapps.js';
+import { logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists } from '../../../globals.js';
+import { QlikSenseApps } from '../../app/class_allapps.js';
 import { getAppColumnPosFromHeaderRow } from '../../util/qseow/lookups.js';
 import { getTagsFromQseow } from '../../util/qseow/tag.js';
 import { getCustomPropertiesFromQseow } from '../../util/qseow/customproperties.js';
 import { catchLog } from '../../util/log.js';
 
-const importAppFromFile = async (options) => {
+export async function importAppFromFile(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info(`Import apps from definitions in file "${options.fileName}"`);
@@ -26,7 +26,7 @@ const importAppFromFile = async (options) => {
         logger.info(`Successfully retrieved ${cpExisting.length} custom properties from QSEoW`);
 
         // Verify file exists
-        const appFileExists = await verifyFileExists(options.fileName);
+        const appFileExists = await verifyFileSystemExists(options.fileName);
         if (appFileExists === false) {
             logger.error(`Missing apps definition file "${options.fileName}". Aborting`);
             process.exit(1);
@@ -85,6 +85,4 @@ const importAppFromFile = async (options) => {
         catchLog('IMPORT APP', err);
         return false;
     }
-};
-
-export default importAppFromFile;
+}

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { logger, setLoggingLevel, isPkg, execPath, sleep } from '../../../globals.js';
+import { logger, setLoggingLevel, isSea, execPath, sleep } from '../../../globals.js';
 import { setupQrsConnection } from '../../util/qseow/qrs.js';
 import { catchLog } from '../../util/log.js';
 import {
@@ -68,7 +68,7 @@ export async function createUserActivityBucketsCustomProperty(options) {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('== Step 1: Create custom property for tracking user activity in QMC');
@@ -123,18 +123,30 @@ export async function createUserActivityBucketsCustomProperty(options) {
                         // Update existing custom property
                         // First copy existing custom property to a new object, then replace the choiceValues with the new ones
                         const customPropertyDefinition = JSON.parse(JSON.stringify(customPropertyExisting));
+
+                        // Add activity buckets to custom property definition as choice values
                         customPropertyDefinition.choiceValues = activityBucketsSorted;
 
-                        const result = await updateCustomProperty(options, customPropertyDefinition);
-                        if (result) {
-                            logger.verbose(
-                                `  Updated existing custom property "${options.customPropertyName}" with new allowed values passed in via command line.`
+                        // Add default bucket to choice values. This is the last one in the list + "+" sign
+                        customPropertyDefinition.choiceValues.push(`${activityBucketsSorted[activityBucketsSorted.length - 1]}+`);
+
+                        // Is it a dry run?
+                        if (options.dryRun) {
+                            logger.info(
+                                `(${importCount}/${importLimit}) Dry run: Would have updated custom property "${options.customPropertyName}" with activity info`
                             );
                         } else {
-                            logger.error(
-                                `Failed to update existing custom property "${options.customPropertyName}" with new allowed values.`
-                            );
-                            return false;
+                            const result = await updateCustomProperty(options, customPropertyDefinition);
+                            if (result) {
+                                logger.verbose(
+                                    `  Updated existing custom property "${options.customPropertyName}" with new allowed values passed in via command line.`
+                                );
+                            } else {
+                                logger.error(
+                                    `Failed to update existing custom property "${options.customPropertyName}" with new allowed values.`
+                                );
+                                return false;
+                            }
                         }
                     } else {
                         // Don't force overwrite the existing custom property.
@@ -163,14 +175,23 @@ export async function createUserActivityBucketsCustomProperty(options) {
                     const customPropertyDefinition = JSON.parse(JSON.stringify(customPropertyExisting));
                     customPropertyDefinition.choiceValues = activityBucketsSorted;
 
-                    const result = await updateCustomProperty(options, customPropertyDefinition);
-                    if (result) {
-                        logger.verbose(
-                            `  Updated existing custom property "${options.customPropertyName}" with new allowed values passed in via command line.`
+                    // Is it a dry run?
+                    if (options.dryRun) {
+                        logger.info(
+                            `(${importCount}/${importLimit}) Dry run: Would have updated custom property "${options.customPropertyName}" to have new activity bucket values.`
                         );
                     } else {
-                        logger.error(`Failed to update existing custom property "${options.customPropertyName}" with new allowed values.`);
-                        return false;
+                        const result = await updateCustomProperty(options, customPropertyDefinition);
+                        if (result) {
+                            logger.verbose(
+                                `  Updated existing custom property "${options.customPropertyName}" with new allowed values passed in via command line.`
+                            );
+                        } else {
+                            logger.error(
+                                `Failed to update existing custom property "${options.customPropertyName}" with new allowed values.`
+                            );
+                            return false;
+                        }
                     }
                 }
             }
@@ -187,12 +208,17 @@ export async function createUserActivityBucketsCustomProperty(options) {
                 choiceValues: activityBucketsSorted,
             };
 
-            const result = await createCustomProperty(options, customPropertyDefinition);
-            if (result) {
-                logger.verbose(`  Created custom property "${options.customPropertyName}"`);
+            // Is it a dry run?
+            if (options.dryRun) {
+                logger.info(`(${importCount}/${importLimit}) Dry run: Would have created custom property "${options.customPropertyName}"`);
             } else {
-                logger.error(`Failed to create custom property "${options.customPropertyName}"`);
-                return false;
+                const result = await createCustomProperty(options, customPropertyDefinition);
+                if (result) {
+                    logger.verbose(`  Created custom property "${options.customPropertyName}"`);
+                } else {
+                    logger.error(`Failed to create custom property "${options.customPropertyName}"`);
+                    return false;
+                }
             }
         }
 
@@ -436,6 +462,11 @@ export async function createUserActivityBucketsCustomProperty(options) {
                     break;
                 }
             }
+
+            // If user is not assigned to a bucket, assign to the default bucket (last one in the list + "+" sign)
+            if (!user.activityBucket) {
+                user.activityBucket = `${activityBucketsSorted[activityBucketsSorted.length - 1]}+`;
+            }
         }
         logger.verbose(`  Assigned activity buckets to users via custom property ${options.customPropertyName}`);
 
@@ -554,23 +585,32 @@ export async function createUserActivityBucketsCustomProperty(options) {
 
             // Loop over the users in the batch, writing the user activity custom property to QRS
             for (const user of usersBatch) {
-                // Payload: array of user objects
-                const axiosConfig = setupQrsConnection(options, {
-                    method: 'put',
-                    path: `qrs/user/${user.id}`,
-                    body: user,
-                });
-
-                const result = await axios.request(axiosConfig);
-                if (result.status === 200) {
+                // Is it a dry run?
+                if (options.dryRun) {
                     logger.info(
-                        `    Updated user ${userCounter} of ${outputUserArray.length}, "${user.userDirectory}\\${user.userId}" in batch ${
+                        `(${importCount}/${importLimit}) Dry run: Would have updated ${userCounter} of ${outputUserArray.length}, "${user.userDirectory}\\${user.userId}" in batch ${
                             i + 1
                         } of ${totalBatches}`
                     );
                 } else {
-                    logger.error(`Error ${result.status} updating user activity custom property for batch ${i + 1} of ${totalBatches}`);
-                    return false;
+                    // Payload: array of user objects
+                    const axiosConfig = setupQrsConnection(options, {
+                        method: 'put',
+                        path: `qrs/user/${user.id}`,
+                        body: user,
+                    });
+
+                    const result = await axios.request(axiosConfig);
+                    if (result.status === 200) {
+                        logger.info(
+                            `    Updated user ${userCounter} of ${outputUserArray.length}, "${user.userDirectory}\\${user.userId}" in batch ${
+                                i + 1
+                            } of ${totalBatches}`
+                        );
+                    } else {
+                        logger.error(`Error ${result.status} updating user activity custom property for batch ${i + 1} of ${totalBatches}`);
+                        return false;
+                    }
                 }
                 userCounter++;
 

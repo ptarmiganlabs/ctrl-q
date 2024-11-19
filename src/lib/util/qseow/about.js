@@ -4,7 +4,7 @@ import { logger, execPath } from '../../../globals.js';
 import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
 
-async function getAboutFromQseow(options) {
+export async function getAboutFromQseow(options) {
     logger.verbose(`Getting about info from QSEoW...`);
 
     try {
@@ -29,5 +29,3 @@ async function getAboutFromQseow(options) {
         return false;
     }
 }
-
-export default getAboutFromQseow;

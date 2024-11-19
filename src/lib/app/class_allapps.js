@@ -7,17 +7,17 @@ import fs2 from 'node:fs';
 import { v4 as uuidv4, validate } from 'uuid';
 import yesno from 'yesno';
 
-import { logger, execPath, mergeDirFilePath, verifyFileExists, sleep } from '../../globals.js';
+import { logger, execPath, mergeDirFilePath, verifyFileSystemExists, sleep } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
 import { getAppColumnPosFromHeaderRow } from '../util/qseow/lookups.js';
-import QlikSenseApp from './class_app.js';
+import { QlikSenseApp } from './class_app.js';
 import { getTagIdByName } from '../util/qseow/tag.js';
 import { getAppById, deleteAppById } from '../util/qseow/app.js';
 import { getCustomPropertyDefinitionByName, doesCustomPropertyValueExist } from '../util/qseow/customproperties.js';
 import { catchLog } from '../util/log.js';
 import { getCertFilePaths } from '../util/qseow/cert.js';
 
-class QlikSenseApps {
+export class QlikSenseApps {
     constructor() {
         //
     }
@@ -125,31 +125,25 @@ class QlikSenseApps {
             let axiosConfig;
             if (this.options.authType === 'cert') {
                 if (filter === '') {
-                    axiosConfig = await setupQrsConnection(this.options, {
+                    axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        fileCertCA: this.fileCertCA,
                         path: '/qrs/app/full',
                     });
                 } else {
-                    axiosConfig = await setupQrsConnection(this.options, {
+                    axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        fileCertCA: this.fileCertCA,
                         path: '/qrs/app/full',
                         queryParameters: [{ name: 'filter', value: filter }],
                     });
                 }
             } else if (this.options.authType === 'jwt') {
                 if (filter === '') {
-                    axiosConfig = await setupQrsConnection(this.options, {
+                    axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
                         path: '/qrs/app/full',
                     });
                 } else {
-                    axiosConfig = await setupQrsConnection(this.options, {
+                    axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
                         path: '/qrs/app/full',
                         queryParameters: [{ name: 'filter', value: filter }],
@@ -264,7 +258,7 @@ class QlikSenseApps {
                         }"`
                     );
 
-                    const qvfFileExists = await verifyFileExists(currentApp.fullQvfPath);
+                    const qvfFileExists = await verifyFileSystemExists(currentApp.fullQvfPath);
                     if (!qvfFileExists) {
                         logger.error(
                             `Import of app file ${appRow[0][appFileColumnHeaders.appCounter.pos]} failed. QVF file does not exist: "${
@@ -552,9 +546,6 @@ class QlikSenseApps {
                 // Get info about just uploaded app
                 axiosConfigUploadedApp = setupQrsConnection(this.options, {
                     method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app/${uploadedAppId}`,
                 });
             } else if (this.options.authType === 'jwt') {
@@ -594,9 +585,6 @@ class QlikSenseApps {
                     // Get info about just uploaded app
                     axiosConfigUser = setupQrsConnection(this.options, {
                         method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        fileCertCA: this.fileCertCA,
                         path: '/qrs/user',
                         queryParameters: [{ name: 'filter', value: filter }],
                     });
@@ -643,9 +631,6 @@ class QlikSenseApps {
                 // Uppdate app with tags, custom properties and app owner
                 axiosConfig2 = setupQrsConnection(this.options, {
                     method: 'put',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app/${app.id}`,
                     body: app,
                 });
@@ -865,9 +850,6 @@ class QlikSenseApps {
                 // Build QRS query
                 axiosConfig = setupQrsConnection(this.options, {
                     method: 'put',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app/${appId}/publish`,
                     queryParameters,
                 });
@@ -911,9 +893,6 @@ class QlikSenseApps {
                 // Build QRS query
                 axiosConfig = setupQrsConnection(this.options, {
                     method: 'put',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app/${sourceAppId}/replace`,
                     queryParameters,
                 });
@@ -972,9 +951,6 @@ class QlikSenseApps {
                 // Build QRS query
                 axiosConfig = setupQrsConnection(this.options, {
                     method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app`,
                     queryParameters: [{ name: 'filter', value: filter }],
                 });
@@ -1019,9 +995,6 @@ class QlikSenseApps {
                 // Build QRS query
                 axiosConfig = setupQrsConnection(this.options, {
                     method: 'get',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app`,
                     queryParameters: [{ name: 'filter', value: filter }],
                 });
@@ -1082,9 +1055,6 @@ class QlikSenseApps {
                     // Build QRS query
                     axiosConfigPublish = setupQrsConnection(this.options, {
                         method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        fileCertCA: this.fileCertCA,
                         path: `/qrs/stream/${uploadedAppInfo.appPublishToStream}`,
                     });
                 } else if (this.options.authType === 'jwt') {
@@ -1110,9 +1080,6 @@ class QlikSenseApps {
                     // Build QRS query
                     axiosConfigPublish = setupQrsConnection(this.options, {
                         method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        fileCertCA: this.fileCertCA,
                         path: '/qrs/stream',
                         queryParameters: [{ name: 'filter', value: filter }],
                     });
@@ -1177,9 +1144,6 @@ class QlikSenseApps {
             // Build Axios config
             const axiosConfig = setupQrsConnection(this.options, {
                 method: 'post',
-                fileCert: this.fileCert,
-                fileCertKey: this.fileCertKey,
-                fileCertCA: this.fileCertCA,
                 path: '/qrs/app/upload',
                 body: form,
                 headers: {
@@ -1276,9 +1240,6 @@ class QlikSenseApps {
                 // Build QRS query
                 axiosConfig = setupQrsConnection(this.options, {
                     method: 'post',
-                    fileCert: this.fileCert,
-                    fileCertKey: this.fileCertKey,
-                    fileCertCA: this.fileCertCA,
                     path: `/qrs/app/${app.id}/export/${exportToken}`,
                     queryParameters: [{ name: 'skipData', value: excludeData }],
                 });
@@ -1310,7 +1271,7 @@ class QlikSenseApps {
         }
     }
 
-    async exportAppStep2(resultStep1) {
+    async exportAppStep2(resultStep1, appCounter, appCountTotal) {
         // resultStep.downloadPath has format
         // /tempcontent/d989fffd-5310-43b5-b028-f313b53bb8e2/User%20retention.qvf?serverNodeId=80db9b97-8ea2-4208-a79a-c46b7e16c38c
 
@@ -1358,7 +1319,7 @@ class QlikSenseApps {
 
         // Check if destination QVF file already exists
         // 2nd parameter controls whether to log info or not about file's existence
-        const fileExists = await verifyFileExists(fileName, true);
+        const fileExists = await verifyFileSystemExists(fileName, true);
         let fileSkipped = false;
         let writer;
 
@@ -1389,9 +1350,6 @@ class QlikSenseApps {
                     // Build QRS query
                     axiosConfig = setupQrsConnection(this.options, {
                         method: 'get',
-                        fileCert: this.fileCert,
-                        fileCertKey: this.fileCertKey,
-                        fileCertCA: this.fileCertCA,
                         path: urlPath,
                         queryParameters: [{ name: paramName, value: paramValue }],
                     });
@@ -1406,7 +1364,9 @@ class QlikSenseApps {
                 axiosConfig.responseType = 'stream';
 
                 logger.info('------------------------------------');
-                logger.info(`App [${resultStep2.appId}] "${resultStep2.appName}.qvf", download starting`);
+                logger.info(
+                    `${appCounter} of ${appCountTotal}: App [${resultStep2.appId}] "${resultStep2.appName}.qvf", download starting`
+                );
                 const result = await axios.request(axiosConfig);
 
                 result.data.pipe(writer);
@@ -1435,5 +1395,3 @@ class QlikSenseApps {
         });
     }
 }
-
-export default QlikSenseApps;

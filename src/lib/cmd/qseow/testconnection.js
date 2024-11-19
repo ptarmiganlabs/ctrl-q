@@ -1,13 +1,13 @@
-import { logger, setLoggingLevel, isPkg, execPath } from '../../../globals.js';
-import getAboutFromQseow from '../../util/qseow/about.js';
+import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
+import { getAboutFromQseow } from '../../util/qseow/about.js';
 import { catchLog } from '../../util/log.js';
 
-const testConnection = async (options) => {
+export async function testConnection(options) {
     try {
         // Set log level
         setLoggingLevel(options.logLevel);
 
-        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isPkg}`);
+        logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info(`Testing connection to Qlik Sense server ${options.host} on port ${options.port}`);
@@ -30,6 +30,4 @@ const testConnection = async (options) => {
         logger.error(`EXPORT APP: ${err.stack}`);
         return false;
     }
-};
-
-export default testConnection;
+}

@@ -3,10 +3,10 @@ import path from 'node:path';
 import { table } from 'table';
 import yesno from 'yesno';
 import { logger, execPath } from '../../../globals.js';
-import setupQPSConnection from './qps.js';
+import { setupQpsConnection } from './qps.js';
 import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
-import getProxiesFromQseow from './proxy.js';
+import { getProxiesFromQseow } from './proxy.js';
 
 const consoleProxiesTableConfig = {
     border: {
@@ -207,12 +207,9 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
             }
 
             // Get sessions for this virtual proxy
-            axiosConfig = setupQPSConnection(options, {
+            axiosConfig = setupQpsConnection(options, {
                 hostProxy: proxy.serverNodeConfiguration.hostName,
                 method: 'get',
-                fileCert,
-                fileCertKey,
-                fileCertCA,
                 path: `/qps/${vp.prefix}/session`,
                 sessionCookie: null,
             });
@@ -336,7 +333,7 @@ export const deleteSessionsFromQSEoWIds = async (options) => {
             logger.debug(`Session metadata: ${JSON.stringify(s, null, 2)}`);
 
             try {
-                const axiosConfig = setupQPSConnection(options, {
+                const axiosConfig = setupQpsConnection(options, {
                     hostProxy: options.hostProxy,
                     method: 'delete',
                     path: `/qps/${options.sessionVirtualProxy}/session/${s.sessionId}`,

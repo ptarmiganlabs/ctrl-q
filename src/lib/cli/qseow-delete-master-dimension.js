@@ -2,7 +2,7 @@ import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, masterItemDimDeleteAssertOptions } from '../util/qseow/assert-options.js';
-import deleteMasterDimension from '../cmd/qseow/getdim.js';
+import { deleteMasterDimension } from '../cmd/qseow/deletedim.js';
 
 export function setupQseowDeleteMasterDimensionCommand(qseow) {
     qseow

@@ -1,7 +1,7 @@
 import https from 'node:https';
 
 import { logger, generateXrfKey, readCert } from '../../../globals.js';
-import { getCertFilePaths } from '../qseow/cert.js';
+import { getCertFilePaths } from './cert.js';
 
 // Function to sanitize virtual proxy
 export function sanitizeVirtualProxy(virtualProxy) {
@@ -87,6 +87,7 @@ export function setupQrsConnection(options, param) {
         // Otherwise, use the paths from the command line options
         let { fileCert, fileCertKey, fileCertCA } = getCertFilePaths(options);
 
+        // If the paths are specified in the param object, use those paths
         if (param.fileCert) {
             fileCert = param.fileCert;
         }
