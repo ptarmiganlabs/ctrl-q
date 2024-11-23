@@ -1,7 +1,7 @@
 import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
-import { qseowSharedParamAssertOptions } from '../util/qseow/assert-options.js';
+import { qseowSharedParamAssertOptions, qseowScrambleFieldAssertOptions } from '../util/qseow/assert-options.js';
 import { scrambleField } from '../cmd/qseow/scramblefield.js';
 
 export function setupQseowScrambleFieldCommand(qseow) {
@@ -10,6 +10,7 @@ export function setupQseowScrambleFieldCommand(qseow) {
         .description('scramble one or more fields in an app. A new app with the scrambled data is created.')
         .action(async (options) => {
             await qseowSharedParamAssertOptions(options);
+            await qseowScrambleFieldAssertOptions(options);
 
             scrambleField(options);
         })
@@ -17,7 +18,8 @@ export function setupQseowScrambleFieldCommand(qseow) {
             new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
         )
         .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
+        .option('--engine-port <port>', 'Qlik Sense server engine port (usually 4747 for cert auth, 443 for jwt auth)', '4747')
+        .option('--qrs-port <port>', 'Qlik Sense server QRS port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
         .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
         .requiredOption('--app-id <id>', 'Qlik Sense app ID')
         .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
@@ -36,5 +38,30 @@ export function setupQseowScrambleFieldCommand(qseow) {
         .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
 
         .requiredOption('--field-name <names...>', 'name of field(s) to be scrambled')
-        .requiredOption('--new-app-name <name>', 'name of new app that will contain scrambled data');
+        .requiredOption('--new-app-name <name>', 'name of new app that will contain scrambled data')
+
+        .addOption(new Option('--new-app-publish', 'publish scrambled app to a stream'))
+        .addOption(new Option('--new-app-publish-stream-id <id>', 'stream ID to publish scrambled app to').default(''))
+        .addOption(new Option('--new-app-publish-stream-name <name>', 'stream name to publish scrambled app to').default(''))
+
+        .addOption(new Option('--new-app-publish-replace', 'publish-replace an existing, published app'))
+        .addOption(
+            new Option(
+                '--new-app-publish-replace-app-id <id>',
+                'ID of published app that should be replaced by the new scrambled app'
+            ).default('')
+        )
+        .addOption(
+            new Option(
+                '--new-app-publish-replace-app-name <name>',
+                'Name of published app that should be replaced by the new scrambled app'
+            ).default('')
+        )
+
+        .addOption(
+            new Option('--new-app-delete-existing-unpublished', 'delete any already existing apps with same name as new scrambled app')
+        )
+        .addOption(new Option('--new-app-delete', 'delete the new scrambled app after all other operations are done'))
+
+        .addOption(new Option('--force', 'force delete and replace operations to proceed without asking for confirmation'));
 }

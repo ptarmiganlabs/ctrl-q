@@ -307,3 +307,108 @@ export const userActivityBucketsCustomPropertyAssertOptions = (options) => {
         process.exit(1);
     }
 };
+
+export async function qseowScrambleFieldAssertOptions(options) {
+    // Rules for options:
+    // - --new-app-publish: Publish the scrambled app to a stream. Optional.
+    //   - If true, --new-app-publish-stream-id and --new-app-publish-stream-name options are used to determine which stream to publish to. Exactly one of those options must be present in this case.
+    // --new-app-publish-stream-id: Stream to which the scrambled app will be published. Default is ''.
+    // --new-app-publish-stream-name: Stream to which the scrambled app will be published. Default is ''. If more than one stream matches this name an error is returned.
+    // --new-app-publish-replace: Do a publish-replace using the scrambled app as source. Optional.
+    //   - If true, The --new-app-publish-replace-app-id and --new-app-publish-replace-app-name options are used to determine which published app should be replaced. Exactly one of those two options must be present in this case.
+    // - --new-app-publish-replace-app-id: App ID for published app that will be replaced by newly created scrambled app. Default is ''.
+    // - --new-app-publish-replace-app-name: App name of published app that will be replaced by newly created scrambled app. Default is ''. If more than one published app matches this name an error is returned.
+    // - --new-app-delete-existing-unpublished:
+    //   - If true, all unpublished apps (irrespective of owner) matching the app name passed in --new-app-name will be deleted before the source app is copied and scrambled.
+    // - --new-app-delete: Once all other activities are done, delete the newly created scrambled app.
+    // - --force: Do not ask for acknowledgment before deleting or replacing existing apps.
+
+    // --new-app-publish: Publish the scrambled app to a stream. Optional.
+
+    // Variable to keep track of whether options are valid
+    let validOptions = true;
+
+    if (options.newAppPublish) {
+        // Neither of --new-app-publish-stream-id or --new-app-publish-stream-name are non-empty strings, exit
+        if (options.newAppPublishStreamId === '' && options.newAppPublishStreamName === '') {
+            logger.error(
+                'When --new-app-publish is true, exactly one of --new-app-publish-stream-id or --new-app-publish-stream-name must be present.'
+            );
+            validOptions = false;
+        }
+
+        // If both --new-app-publish-stream-id and --new-app-publish-stream-name are non-empty strings, exit
+        if (options.newAppPublishStreamId !== '' && options.newAppPublishStreamName !== '') {
+            logger.error(
+                'When --new-app-publish is true, exactly one of --new-app-publish-stream-id or --new-app-publish-stream-name must be present.'
+            );
+            validOptions = false;
+        }
+
+        // If --new-app-publish-stream-id is a non-empty string, it must be a valid uuid
+        if (options.newAppPublishStreamId !== '' && !uuidValidate(options.newAppPublishStreamId)) {
+            logger.error(`Invalid format of stream ID "${options.newAppPublishStreamId}".`);
+            validOptions = false;
+        }
+
+        // If --new-app-publish-stream-name is a non-empty string, it must not contain any special characters
+        if (options.newAppPublishStreamName !== '' && !/^[a-zA-Z0-9_]+$/.test(options.newAppPublishStreamName)) {
+            logger.error(`Invalid stream name "${options.newAppPublishStreamName}". Only letters, numbers and underscores are allowed.`);
+            validOptions = false;
+        }
+
+        // If --new-app-publish-stream-name is a non-empty string, it must exist in the Qlik Sense environment
+        if (options.newAppPublishStreamName !== '') {
+            // TODO: Implement this check
+            //     const stream = await global.getStream(options.newAppPublishStreamName);
+            //     if (stream === null) {
+            //         logger.error(`Stream "${options.newAppPublishStreamName}" does not exist in the Qlik Sense environment.`);
+            //         validOptions = false;
+            //     }
+        }
+    }
+
+    // --new-app-publish-replace: Do a publish-replace using the scrambled app as source. Optional.
+    if (options.newAppPublishReplace) {
+        // Neither of --new-app-publish-replace-app-id or --new-app-publish-replace-app-name are non-empty strings, exit
+        if (options.newAppPublishReplaceAppId === '' && options.newAppPublishReplaceAppName === '') {
+            logger.error(
+                'When --new-app-publish-replace is true, exactly one of --new-app-publish-replace-app-id or --new-app-publish-replace-app-name must be present.'
+            );
+            validOptions = false;
+        }
+
+        // If both --new-app-publish-replace-app-id and --new-app-publish-replace-app-name are non-empty strings, exit
+        if (options.newAppPublishReplaceAppId !== '' && options.newAppPublishReplaceAppName !== '') {
+            logger.error(
+                'When --new-app-publish-replace is true, exactly one of --new-app-publish-replace-app-id or --new-app-publish-replace-app-name must be present.'
+            );
+            validOptions = false;
+        }
+
+        // If --new-app-publish-replace-app-id is a non-empty string, it must be a valid uuid
+        if (options.newAppPublishReplaceAppId !== '' && !uuidValidate(options.newAppPublishReplaceAppId)) {
+            logger.error(`Invalid format of app ID "${options.newAppPublishReplaceAppId}".`);
+            validOptions = false;
+        }
+
+        // If --new-app-publish-replace-app-name is a non-empty string, that app must exist in the Qlik Sense environment and be published
+        if (options.newAppPublishReplaceAppName !== '') {
+            // TODO: Implement this check
+        }
+    }
+
+    // --new-app-delete-existing-unpublished: If true, all unpublished apps (irrespective of owner) matching the app name passed in --new-app-name will be deleted before the source app is copied and scrambled.
+    if (options.newAppDeleteExistingUnpublished) {
+        // --new-app-delete-existing-unpublished is true, but --new-app-name is not a non-empty string
+        if (options.newAppName === '') {
+            logger.error('When --new-app-delete-existing-unpublished is true, --new-app-name must be a non-empty string.');
+            validOptions = false;
+        }
+    }
+
+    if (validOptions === false) {
+        logger.error('Invalid options, exiting.');
+        process.exit(1);
+    }
+}

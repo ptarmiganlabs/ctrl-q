@@ -1,7 +1,10 @@
 import enigma from 'enigma.js';
+import yesno from 'yesno';
+
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { catchLog } from '../../util/log.js';
+import { deleteAppById, publishApp } from '../../util/qseow/app.js';
 
 /**
  *
@@ -15,7 +18,6 @@ export async function scrambleField(options) {
         logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
-        logger.info('Scramble field');
         logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
 
         // Session ID to use when connecting to the Qlik Sense server
@@ -60,15 +62,13 @@ export async function scrambleField(options) {
 
         if (options.fieldName.length === 0) {
             // No fields specified
-            logger.warn('No fields specified, no scrambling of data will be done');
+            logger.warn('No fields specified, no scrambling of data will be done, no new app will be created.');
         } else {
-            // eslint-disable-next-line no-restricted-syntax
             for (const field of options.fieldName) {
                 // TODO make sure field exists before trying to scramble it
 
                 // Scramble field
                 try {
-                    // eslint-disable-next-line no-await-in-loop
                     const res = await app.scramble(field);
                     logger.info(`Scrambled field "${field}"`);
                 } catch (err) {
@@ -81,9 +81,106 @@ export async function scrambleField(options) {
             logger.info(`Scrambled data written to new app "${options.newAppName}" with app ID: ${newAppId}`);
 
             if ((await session.close()) === true) {
-                logger.verbose(`Closed session after managing master items in app ${options.appId} on host ${options.host}`);
+                logger.verbose(`Closed session after scrambling fields in app ${options.appId} on host ${options.host}`);
             } else {
                 logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
+            }
+
+            // We now have a new app with scrambled data
+            // Proceed with other operations on the new app, e.g. publish, publish-replace, delete, etc.
+            if (options.newAppPublish) {
+                // Publish the new app to stream specified in options.newAppPublishStreamId or options.newAppPublishStreamName
+
+                // Is stream ID or stream name specified?
+                let resultPublish;
+                if (options.newAppPublishStreamId) {
+                    // Publish to stream by stream ID
+                    resultPublish = await publishApp(newAppId, options.newAppName, options.newAppPublishStreamId, options);
+                } else if (options.newAppPublishStreamName) {
+                    // Publish to stream by stream name
+                    // First look up stream ID by name
+                    // If there are multiple streams with the same name, report error and skip publishing
+                    // If no stream with the specified name is found, report error and skip publishing
+                    // If one stream is found, publish to that stream
+                    const streamArray = await app.getStreamByName(options.newAppPublishStreamName, options);
+
+                    if (streamArray.length === 1) {
+                        logger.verbose(`Found stream with name "${options.newAppPublishStreamName}" with ID: ${streamArray[0].id}`);
+                        resultPublish = await publishApp(newAppId, options.newAppName, streamArray[0].id, options);
+                    } else if (streamArray.length > 1) {
+                        logger.error(`More than one stream with name "${options.newAppPublishStreamName}" found. Skipping publish.`);
+                    } else {
+                        logger.error(`No stream with name "${options.newAppPublishStreamName}" found. Skipping publish.`);
+                    }
+                }
+
+                if (resultPublish) {
+                    logger.info(
+                        `Published new app "${options.newAppName}" with app ID: ${newAppId} to stream "${options.newAppPublishStreamName}"`
+                    );
+                } else {
+                    logger.error(`Error publishing new app "${options.newAppName}" with app ID: ${newAppId} to stream.`);
+                }
+            }
+
+            if (options.newAppPublishReplace) {
+                // Publish-replace the new app with an existing published app
+                // If app ID is specified, use that
+                // If app name is specified, look up app ID by name
+                // If no app is found, report error and skip publish-replace
+                // If more than one app is found, report error and skip publish-replace
+                // If one app is found, publish-replace
+                let resultPublishReplace;
+                if (options.newAppPublishReplaceAppId) {
+                    // Publish-replace by app ID
+                    resultPublishReplace = await replaceApp(newAppId, options.newAppName, options.newAppPublishReplaceAppId, options);
+                } else if (options.newAppPublishReplaceAppName) {
+                    // Publish-replace by app name
+                    // First look up app ID by name
+                    // If there are multiple apps with the same name, report error and skip publish-replace
+                    // If no app with the specified name is found, report error and skip publish-replace
+                    // If one app is found, publish-replace
+                    const appArray = await app.getAppByName(options.newAppPublishReplaceAppName, options);
+
+                    if (appArray.length === 1) {
+                        logger.verbose(`Found app with name "${options.newAppPublishReplaceAppName}" with ID: ${appArray[0].id}`);
+                        resultPublishReplace = await replaceApp(newAppId, options.newAppName, appArray[0].id, options);
+                    } else if (appArray.length > 1) {
+                        logger.error(
+                            `More than one app with name "${options.newAppPublishReplaceAppName}" found. Skipping publish-replace.`
+                        );
+                    } else {
+                        logger.error(`No app with name "${options.newAppPublishReplaceAppName}" found. Skipping publish-replace.`);
+                    }
+                }
+            }
+
+            if (options.newAppDeleteExistingUnpublished) {
+                // Delete any already existing apps with the same name as the new app
+            }
+
+            if (options.newAppDelete) {
+                // Delete the new app after all other operations are done
+                // Ask user for confirmation unless --force option is set
+                if (options.force) {
+                    await deleteAppById(newAppId, options);
+                    logger.info(`Deleted new app "${options.newAppName}" with app ID: ${newAppId}`);
+                } else {
+                    const answer = await yesno({
+                        question: `Do you want to delete the new app "${options.newAppName}" with app ID: ${newAppId}? (y/n)`,
+                    });
+
+                    if (answer) {
+                        try {
+                            await deleteAppById(newAppId, options);
+                            logger.info(`Deleted new, scrambled app "${options.newAppName}" with app ID: ${newAppId}`);
+                        } catch (err) {
+                            catchLog(`Error deleting new app "${options.newAppName}" with app ID: ${newAppId}`, err);
+                        }
+                    } else {
+                        logger.info(`Did not delete new app "${options.newAppName}" with app ID: ${newAppId}`);
+                    }
+                }
             }
         }
     } catch (err) {
