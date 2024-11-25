@@ -33,7 +33,7 @@
         "@qlik/api": "^1.25.0",
         "axios": "^1.7.7",
         "commander": "^12.1.0",
-        "csv-parse": "^5.5.6",
+        "csv-parse": "^5.6.0",
         "csv-stringify": "^6.5.1",
         "enigma.js": "^2.14.0",
         "esbuild": "^0.24.0",
