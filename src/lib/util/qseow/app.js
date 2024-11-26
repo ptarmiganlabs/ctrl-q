@@ -1,5 +1,4 @@
 import axios from 'axios';
-import path from 'node:path';
 import { validate } from 'uuid';
 import { logger, execPath, getCliOptions } from '../../../globals.js';
 import { setupQrsConnection } from './qrs.js';
@@ -82,6 +81,42 @@ export async function getApps(options, idArray, tagArray) {
     }
 }
 
+// Function to get app(s) from QRS, given app name
+// Returns array of zero or more app objects, or false if error
+export async function getAppByName(appName, options) {
+    try {
+        logger.debug(`GET APP BY NAME: Starting get app from QSEoW for app name ${appName}`);
+
+        // Did we get an app name?
+        if (!appName) {
+            logger.error(`GET APP BY NAME: No app name provided.`);
+            return false;
+        }
+
+        // Set up connection to QRS
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'get',
+            path: '/qrs/app/full',
+            queryParameters: [{ name: 'filter', value: encodeURI(`name eq '${appName}'`) }],
+        });
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`GET APP BY NAME: Result=${result.status}`);
+
+        if (result.status === 200) {
+            const apps = JSON.parse(result.data);
+            logger.debug(`GET APP BY NAME: App details: ${apps}`);
+
+            return apps;
+        }
+
+        return false;
+    } catch (err) {
+        catchLog('GET APP BY NAME', err);
+        return false;
+    }
+}
+
 // Function to get app info from QRS, given app ID
 export async function getAppById(appId, optionsParam) {
     try {
@@ -102,7 +137,7 @@ export async function getAppById(appId, optionsParam) {
             return false;
         }
 
-        // Should certificates be used for authentication?
+        // Set up connection to QRS
         const axiosConfig = setupQrsConnection(options, {
             method: 'get',
             path: `/qrs/app/${appId}`,
@@ -157,6 +192,80 @@ export async function deleteAppById(appId, options) {
         return true;
     } catch (err) {
         catchLog('DELETE APP', err);
+        return false;
+    }
+}
+
+// Function to replace app
+// If the replaced app is published, only the sheets that were originally published with the app are replaced.
+// If the replaced app is not published, the entire app is replaced.
+// Parameters:
+// - appIdSource: ID of source app
+// - appIdTarget: ID of app that will be replaced (=target) app
+// - options: Command line options
+//
+// Returns:
+// - true if app was replaced
+// - false if app was not replaced
+export async function replaceApp(appIdSource, appIdTarget, options) {
+    try {
+        logger.debug(`REPLACE APP: Starting replace app id ${appIdTarget} with app id ${appIdSource}`);
+
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'put',
+            path: `/qrs/app/${appIdSource}/replace`,
+            queryParameters: [{ name: 'app', value: appIdTarget }],
+        });
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`REPLACE APP: Result=${result.status}`);
+
+        if (result.status === 200) {
+            logger.verbose(`App replaced: ID=${appIdTarget}.`);
+            return true;
+        }
+
+        return false;
+    } catch (err) {
+        catchLog('REPLACE APP', err);
+        return false;
+    }
+}
+
+// Function to publish app
+// Parameters:
+// - appId: ID of app to publish
+// - appName: Name the published app will get in the stream
+// - streamId: ID of stream to publish app to
+// - options: Command line options
+//
+// Returns:
+// - true if app was published
+// - false if app was not published
+export async function publishApp(appId, appName, streamId, options) {
+    try {
+        logger.debug(`PUBLISH APP: Starting publish app from QSEoW for app id ${appId}`);
+
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'put',
+            path: `/qrs/app/${appId}/publish`,
+            queryParameters: [
+                { name: 'stream', value: streamId },
+                { name: 'name', value: appName },
+            ],
+        });
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`PUBLISH APP: Result=${result.status}`);
+
+        if (result.status === 200) {
+            logger.verbose(`App published: ID=${appId}. App name="${appName}"`);
+            return true;
+        }
+
+        return false;
+    } catch (err) {
+        catchLog('PUBLISH APP', err);
         return false;
     }
 }

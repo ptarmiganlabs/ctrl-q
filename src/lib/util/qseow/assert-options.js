@@ -307,3 +307,63 @@ export const userActivityBucketsCustomPropertyAssertOptions = (options) => {
         process.exit(1);
     }
 };
+
+export async function qseowScrambleFieldAssertOptions(options) {
+    // Rules for options:
+    // - --new-app-cmd: Either "publish" or "replace". Optional. If not specified, the new app will be placed in My Work.
+    //     - If true, --new-app-cmd-id and --new-app-cmd-name options are used to determine which stream to publish to. Exactly one of those options must be present in this case.
+    // - --new-app-cmd-id: Stream/app to which the scrambled app will be published. Default is ''.
+    // - --new-app-cmd-name: Stream/app to which the scrambled app will be published. Default is ''. If more than one stream/app matches this name an error is returned.
+    // - --force: Do not ask for acknowledgment before replacing existing app.
+
+    // Variable to keep track of whether options are valid
+    let validOptions = true;
+
+    if (options.newAppCmd === 'publish' || options.newAppCmd === 'replace') {
+        // Neither of --new-app-cmd-id or --new-app-cmd-name are empty strings, exit
+        if (options.newAppCmdId === '' && options.newAppCmdName === '') {
+            logger.error(
+                'When --new-app-cmd is either "publish" or "replace", exactly one of --new-app-cmd-id and --new-app-cmd-name must be present.'
+            );
+            validOptions = false;
+        }
+
+        // If both --new-app-cmd-id and --new-app-cmd-name are non-empty strings, exit
+        if (options.newAppCmdId !== '' && options.newAppCmdName !== '') {
+            logger.error('When --new-app-cmd is true, exactly one of --new-app-cmd-id or --new-app-cmd-name must be present.');
+            validOptions = false;
+        }
+
+        // If --new-app-cmd-id is a non-empty string, it must be a valid uuid
+        if (options.newAppCmdId !== '' && !uuidValidate(options.newAppCmdId)) {
+            logger.error(`Invalid format of --new-app-cmd-id (not a valid ID): "${options.newAppCmdId}".`);
+            validOptions = false;
+        }
+
+        // If --new-app-cmd-name is a non-empty string, it must exist in the Qlik Sense environment
+        if (options.newAppCmdName !== '') {
+            // TODO: Implement this check
+            //     const stream = await global.getStream(options.newAppCmdStreamName);
+            //     if (stream === null) {
+            //         logger.error(`Stream "${options.newAppCmdStreamName}" does not exist in the Qlik Sense environment.`);
+            //         validOptions = false;
+            //     }
+        }
+
+        // If --new-app-cmd-id is a non-empty string, it must exist in the Qlik Sense environment
+        if (options.newAppCmdId !== '') {
+            // TODO: Implement this check
+        }
+    }
+
+    // If publishing to a stream, --new-app-cmd-name must be a non-empty string
+    if (options.newAppCmd === 'publish' && options.newAppCmdName === '') {
+        logger.error('When --new-app-cmd is "publish", --new-app-cmd-name must be a non-empty string.');
+        validOptions = false;
+    }
+
+    if (validOptions === false) {
+        logger.error('Invalid options, exiting.');
+        process.exit(1);
+    }
+}

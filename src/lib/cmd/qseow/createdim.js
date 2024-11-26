@@ -247,7 +247,7 @@ export async function createMasterDimension(options) {
         }
 
         if ((await session.close()) === true) {
-            logger.verbose(`Closed session after managing master items in app ${options.appId} on host ${options.host}`);
+            logger.verbose(`Closed session after managing master dimension(s) in app ${options.appId} on host ${options.host}`);
         } else {
             logger.error(`Error closing session for app ${options.appId} on host ${options.host}`);
         }
