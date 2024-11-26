@@ -338,6 +338,42 @@ export async function scrambleField(options) {
                     }
                 }
             }
+
+            // Finally, should the new app be deleted?
+            // This is specified with the --new-app-delete option
+            if (options.newAppDelete) {
+                // Delete the new app
+                if (!options.force) {
+                    const answer = await yesno({
+                        question: `Do you want to delete the new, scrambled app "${options.newAppName}" with app ID ${newAppId}? (y/n)`,
+                    });
+
+                    if (answer) {
+                        const resultDelete = await deleteAppById(newAppId, options);
+                        if (resultDelete) {
+                            logger.info(`Deleted new, scrambled app "${options.newAppName}" with app ID ${newAppId}`);
+                            scrambleResult.status = 'success';
+                        } else {
+                            logger.error(`Error deleting new, scrambled app "${options.newAppName}" with app ID ${newAppId}`);
+                            scrambleResult.status = 'error';
+                        }
+                    } else {
+                        logger.warn(
+                            `Did not delete new, scrambled app "${options.newAppName}" with app ID ${newAppId}. The app is still available in My Work.`
+                        );
+                        scrambleResult.status = 'aborted';
+                    }
+                } else {
+                    const resultDelete = await deleteAppById(newAppId, options);
+                    if (resultDelete) {
+                        logger.info(`Deleted new, scrambled app "${options.newAppName}" with app ID ${newAppId}`);
+                        scrambleResult.status = 'success';
+                    } else {
+                        logger.error(`Error deleting new, scrambled app "${options.newAppName}" with app ID ${newAppId}`);
+                        scrambleResult.status = 'error';
+                    }
+                }
+            }
         }
 
         // Return the result of the scramble operation

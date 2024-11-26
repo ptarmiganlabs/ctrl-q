@@ -161,7 +161,7 @@ export async function getAppById(appId, optionsParam) {
 
         return false;
     } catch (err) {
-        catchLog('GET APP BY ID', err);
+        // catchLog('GET APP BY ID', err);
         return false;
     }
 }
