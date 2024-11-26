@@ -274,6 +274,19 @@ export async function scrambleField(options) {
                         resultReplace = await replaceApp(newAppId, options.newAppCmdId, options);
                         scrambleResult.status = 'success';
                     }
+
+                    if (resultReplace) {
+                        logger.info(
+                            `Replaced existing app "${options.newAppCmdId}" with new, scrambled app "${options.newAppName}" (app ID: ${newAppId})`
+                        );
+                        scrambleResult.cmdDone = 'replace';
+                        scrambleResult.status = 'success';
+                    } else {
+                        logger.error(
+                            `Error replacing existing app "${options.newAppCmdName}" with new, scrambled app "${options.newAppName}"`
+                        );
+                        scrambleResult.status = 'error';
+                    }
                 } else if (options.newAppCmdName) {
                     // Replace by app name
                     // First look up app ID by name
