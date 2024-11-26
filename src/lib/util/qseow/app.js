@@ -81,6 +81,42 @@ export async function getApps(options, idArray, tagArray) {
     }
 }
 
+// Function to get app(s) from QRS, given app name
+// Returns array of zero or more app objects, or false if error
+export async function getAppByName(appName, options) {
+    try {
+        logger.debug(`GET APP BY NAME: Starting get app from QSEoW for app name ${appName}`);
+
+        // Did we get an app name?
+        if (!appName) {
+            logger.error(`GET APP BY NAME: No app name provided.`);
+            return false;
+        }
+
+        // Set up connection to QRS
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'get',
+            path: '/qrs/app/full',
+            queryParameters: [{ name: 'filter', value: encodeURI(`name eq '${appName}'`) }],
+        });
+
+        const result = await axios.request(axiosConfig);
+        logger.debug(`GET APP BY NAME: Result=${result.status}`);
+
+        if (result.status === 200) {
+            const apps = JSON.parse(result.data);
+            logger.debug(`GET APP BY NAME: App details: ${apps}`);
+
+            return apps;
+        }
+
+        return false;
+    } catch (err) {
+        catchLog('GET APP BY NAME', err);
+        return false;
+    }
+}
+
 // Function to get app info from QRS, given app ID
 export async function getAppById(appId, optionsParam) {
     try {
