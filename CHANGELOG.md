@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.2.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.1.0...ctrl-q-v4.2.0) (2024-11-26)
+
+
+### Features
+
+* **qseow:** Add publish and replace options to field scramble command ([8cbfe64](https://github.com/ptarmiganlabs/ctrl-q/commit/8cbfe640132627a197b8cc79b50e138c4fab6545)), closes [#522](https://github.com/ptarmiganlabs/ctrl-q/issues/522)
+
+
+### Miscellaneous
+
+* **deps:** Update dependencies ([1756166](https://github.com/ptarmiganlabs/ctrl-q/commit/175616641e03e18f69e9bb584370ea281001fd59))
+
 ## [4.1.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.0.0...ctrl-q-v4.1.0) (2024-11-19)
 
 
