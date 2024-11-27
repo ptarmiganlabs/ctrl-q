@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.3.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.2.0...ctrl-q-v4.3.0) (2024-11-26)
+
+
+### Features
+
+* **qseow:** Add `--new-app-delete` option to `qseow field-scramble` command ([996df4f](https://github.com/ptarmiganlabs/ctrl-q/commit/996df4fd3277c27066bf7f446f86a33fa3aba022))
+
 ## [4.2.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.1.0...ctrl-q-v4.2.0) (2024-11-26)
 
 
