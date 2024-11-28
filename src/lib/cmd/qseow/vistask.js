@@ -162,7 +162,7 @@ const prepareFile = async (url) => {
     logger.verbose(`Paths: ${paths}`);
 
     let filePath = path.join(...paths);
-    logger.verbose(`Serving file ${filePath}`);
+    logger.verbose(`Joined path ${filePath}`);
 
     const pathTraversal = !filePath.startsWith(STATIC_PATH);
     logger.verbose(`Path traversal: ${pathTraversal}`);
@@ -170,6 +170,10 @@ const prepareFile = async (url) => {
     let exists, streamPath, ext, stream;
 
     if (isSea) {
+        // Change any backslashes to forward slashes, as embedded assets in SEA app are stored with forward slashes
+        filePath = filePath.replace(/\\/g, '/');
+        logger.verbose(`Forward slashes path ${filePath}`);
+
         // Prepend with STATIC_PATH
         logger.verbose(`url: ${url}`);
         logger.verbose(`STATIC_PATH: ${STATIC_PATH}`);
