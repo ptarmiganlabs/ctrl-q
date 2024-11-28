@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.3.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.3.0...ctrl-q-v4.3.1) (2024-11-28)
+
+
+### Bug Fixes
+
+* **qseow:** Fix broken task visualisation on Windows ([5d9c9b4](https://github.com/ptarmiganlabs/ctrl-q/commit/5d9c9b4369cd06f0d801e5c19bfbf20c993d455c)), closes [#551](https://github.com/ptarmiganlabs/ctrl-q/issues/551)
+
 ## [4.3.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.2.0...ctrl-q-v4.3.0) (2024-11-26)
 
 
