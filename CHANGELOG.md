@@ -1,5 +1,22 @@
 # Changelog
 
+## [4.4.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.3.1...ctrl-q-v4.4.0) (2024-11-29)
+
+
+### Features
+
+* Add environment variables linked to all commands' options ([e3e969b](https://github.com/ptarmiganlabs/ctrl-q/commit/e3e969b9b43bc95ad8d8bfd4cb73d0f25ab09d9b)), closes [#568](https://github.com/ptarmiganlabs/ctrl-q/issues/568)
+
+
+### Bug Fixes
+
+* **docs:** Fix broken Ctrl-Q logo in readme file ([c5b0f45](https://github.com/ptarmiganlabs/ctrl-q/commit/c5b0f454c54ce3b6dd33a44e108f58fd588c39e8))
+
+
+### Documentation
+
+* Add screen capture of task and app import to README file ([f1333f1](https://github.com/ptarmiganlabs/ctrl-q/commit/f1333f1919bc0356260546498b4a1ba322f369b8))
+
 ## [4.3.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.3.0...ctrl-q-v4.3.1) (2024-11-28)
 
 
