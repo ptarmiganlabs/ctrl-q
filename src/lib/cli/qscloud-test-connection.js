@@ -18,10 +18,16 @@ export function setupQscloudTestConnectionCommand(qsCloud) {
             }
         })
         .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+            new Option('--log-level <level>', 'log level')
+                .choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly'])
+                .default('info')
+                .env('CTRLQ_LOG_LEVEL')
         )
-
-        .requiredOption('--tenant-host <host>', 'Host of Qlik Sense cloud tenant. Example: "tenant.eu.qlikcloud.com"')
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['apikey']).default('apikey'))
-        .requiredOption('--apikey <key>', 'API key used to access the Sense APIs');
+        .addOption(
+            new Option('--tenant-host <host>', 'Host of Qlik Sense cloud tenant. Example: "tenant.eu.qlikcloud.com"')
+                .makeOptionMandatory()
+                .env('CTRLQ_TENANT_HOST')
+        )
+        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['apikey']).default('apikey').env('CTRLQ_AUTH_TYPE'))
+        .addOption(new Option('--apikey <key>', 'API key used to access the Sense APIs').makeOptionMandatory().env('CTRLQ_API_KEY'));
 }

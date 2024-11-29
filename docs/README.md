@@ -1,7 +1,7 @@
 # Things related to documentation of Ctrl-Q
 
--   [Things related to documentation of Ctrl-Q](#things-related-to-documentation-of-ctrl-q)
-    -   [Process for creating terminal captures](#process-for-creating-terminal-captures)
+- [Things related to documentation of Ctrl-Q](#things-related-to-documentation-of-ctrl-q)
+  - [Process for creating terminal captures](#process-for-creating-terminal-captures)
 
 ## Process for creating terminal captures
 

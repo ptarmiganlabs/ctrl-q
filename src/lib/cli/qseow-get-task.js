@@ -28,45 +28,101 @@ export function setupGetTaskCommand(qseow) {
             getTask(newOptions);
         })
         .addOption(
-            new Option('--log-level <level>', 'log level').choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly']).default('info')
+            new Option('--log-level <level>', 'log level')
+                .choices(['error', 'warn', 'info', 'verbose', 'debug', 'silly'])
+                .default('info')
+                .env('CTRLQ_LOG_LEVEL')
         )
-        .requiredOption('--host <host>', 'Qlik Sense server IP/FQDN')
-        .option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)', '4242')
-        .option('--schema-version <string>', 'Qlik Sense engine schema version', '12.612.0')
-        .requiredOption('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix', '')
-        .requiredOption(
-            '--secure <true|false>',
-            'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.',
-            true
+        .addOption(new Option('--host <host>', 'Qlik Sense server IP/FQDN').makeOptionMandatory().env('CTRLQ_HOST'))
+        .addOption(
+            new Option('--port <port>', 'Qlik Sense repository service (QRS) port (usually 4242 for cert auth, 443 for jwt auth)')
+                .default('4242')
+                .env('CTRLQ_PORT')
         )
-        .requiredOption('--auth-user-dir <directory>', 'user directory for user to connect with')
-        .requiredOption('--auth-user-id <userid>', 'user ID for user to connect with')
-
-        .addOption(new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert'))
-        .option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)', './cert/client.pem')
-        .option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)', './cert/client_key.pem')
-        .option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)', './cert/root.pem')
-        .option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server')
-
-        .addOption(new Option('--task-type <type...>', 'type of tasks to include').choices(['reload', 'ext-program']))
-        .option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve. Only allowed when --output-format=table')
-        .option('--task-tag <tags...>', 'use tags to select which tasks to retrieve. Only allowed when --output-format=table')
-
-        .addOption(new Option('--output-format <format>', 'output format').choices(['table', 'tree']).default('tree'))
-        .addOption(new Option('--output-dest <dest>', 'where to send task info').choices(['screen', 'file']).default('screen'))
-        .addOption(new Option('--output-file-name <name>', 'file name to store task info in').default(''))
-        .addOption(new Option('--output-file-format <format>', 'file type/format').choices(['excel', 'csv', 'json']).default('excel'))
-        .option('--output-file-overwrite', 'overwrite output file without asking')
-
-        .addOption(new Option('--text-color <show>', 'use colored text in task views').choices(['yes', 'no']).default('yes'))
-
-        .option('--tree-icons', 'display task status icons in tree view')
+        .addOption(
+            new Option('--schema-version <string>', 'Qlik Sense engine schema version').default('12.612.0').env('CTRLQ_SCHEMA_VERSION')
+        )
+        .addOption(
+            new Option('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix')
+                .makeOptionMandatory()
+                .default('')
+                .env('CTRLQ_VIRTUAL_PROXY')
+        )
+        .addOption(
+            new Option(
+                '--secure <true|false>',
+                'https connection to Qlik Sense must use correct certificate. Invalid certificates will result in rejected/failed connection.'
+            )
+                .makeOptionMandatory()
+                .default(true)
+                .env('CTRLQ_SECURE')
+        )
+        .addOption(
+            new Option('--auth-user-dir <directory>', 'user directory for user to connect with').makeOptionMandatory().env('CTRLQ_USER_DIR')
+        )
+        .addOption(new Option('--auth-user-id <userid>', 'user ID for user to connect with').makeOptionMandatory().env('CTRLQ_USER_ID'))
+        .addOption(
+            new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert').env('CTRLQ_AUTH_TYPE')
+        )
+        .addOption(
+            new Option('--auth-cert-file <file>', 'Qlik Sense certificate file (exported from QMC)')
+                .default('./cert/client.pem')
+                .env('CTRLQ_CERT_FILE')
+        )
+        .addOption(
+            new Option('--auth-cert-key-file <file>', 'Qlik Sense certificate key file (exported from QMC)')
+                .default('./cert/client_key.pem')
+                .env('CTRLQ_CERT_KEY_FILE')
+        )
+        .addOption(
+            new Option('--auth-root-cert-file <file>', 'Qlik Sense root certificate file (exported from QMC)')
+                .default('./cert/root.pem')
+                .env('CTRLQ_ROOT_CERT_FILE')
+        )
+        .addOption(new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_JWT'))
+        .addOption(
+            new Option('--task-type <type...>', 'type of tasks to include').choices(['reload', 'ext-program']).env('CTRLQ_TASK_TYPE')
+        )
+        .addOption(
+            new Option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve. Only allowed when --output-format=table').env(
+                'CTRLQ_TASK_ID'
+            )
+        )
+        .addOption(
+            new Option('--task-tag <tags...>', 'use tags to select which tasks to retrieve. Only allowed when --output-format=table').env(
+                'CTRLQ_TASK_TAG'
+            )
+        )
+        .addOption(
+            new Option('--output-format <format>', 'output format').choices(['table', 'tree']).default('tree').env('CTRLQ_OUTPUT_FORMAT')
+        )
+        .addOption(
+            new Option('--output-dest <dest>', 'where to send task info')
+                .choices(['screen', 'file'])
+                .default('screen')
+                .env('CTRLQ_OUTPUT_DEST')
+        )
+        .addOption(new Option('--output-file-name <name>', 'file name to store task info in').default('').env('CTRLQ_OUTPUT_FILE_NAME'))
+        .addOption(
+            new Option('--output-file-format <format>', 'file type/format')
+                .choices(['excel', 'csv', 'json'])
+                .default('excel')
+                .env('CTRLQ_OUTPUT_FILE_FORMAT')
+        )
+        .addOption(new Option('--output-file-overwrite', 'overwrite output file without asking').env('CTRLQ_OUTPUT_FILE_OVERWRITE'))
+        .addOption(
+            new Option('--text-color <show>', 'use colored text in task views')
+                .choices(['yes', 'no'])
+                .default('yes')
+                .env('CTRLQ_TEXT_COLOR')
+        )
+        .addOption(new Option('--tree-icons', 'display task status icons in tree view').env('CTRLQ_TREE_ICONS'))
         .addOption(
             new Option('--tree-details [detail...]', 'display details for each task in tree view')
                 .choices(['taskid', 'laststart', 'laststop', 'nextstart', 'appname', 'appstream'])
                 .default('')
+                .env('CTRLQ_TREE_DETAILS')
         )
-
         .addOption(
             new Option(
                 '--table-details [detail...]',
@@ -74,5 +130,6 @@ export function setupGetTaskCommand(qseow) {
             )
                 .choices(['common', 'lastexecution', 'tag', 'customproperty', 'schematrigger', 'compositetrigger'])
                 .default('')
+                .env('CTRLQ_TABLE_DETAILS')
         );
 }
