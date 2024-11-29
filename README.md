@@ -5,7 +5,9 @@
 It is a cross platform, command line tool for interacting with client-managed Qlik Sense Enterprise on Windows.</h2>
 
 <p align="center">
-<img src="./docs/terminal_captures/ctrl-q_demo_1.gif" width="800">
+Here Ctrl-Q imports Sense apps from .qvf files and creates reload tasks based on definitions in an Excel file:
+
+<img src="docs/terminal_captures/ctrl-q_qseow-task-import_apps-1.gif" width="800">
 </p>
 <h2 align="center">Ctrl-Q is designed to be easily extensible if/when additional features are needed.<br>
 It is open source with a permissive MIT license.<br>
