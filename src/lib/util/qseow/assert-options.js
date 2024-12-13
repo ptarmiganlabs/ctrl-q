@@ -2,6 +2,8 @@ import { version as uuidVersion, validate as uuidValidate } from 'uuid';
 
 import { logger, execPath, verifyFileSystemExists } from '../../../globals.js';
 import { getCertFilePaths } from '../qseow/cert.js';
+import { getStreamById, getStreamByName } from '../qseow/stream.js';
+import { getAppById, getAppByName } from '../qseow/app.js';
 
 export const qseowSharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
@@ -319,40 +321,117 @@ export async function qseowScrambleFieldAssertOptions(options) {
     // Variable to keep track of whether options are valid
     let validOptions = true;
 
-    if (options.newAppCmd === 'publish' || options.newAppCmd === 'replace') {
-        // Neither of --new-app-cmd-id or --new-app-cmd-name are empty strings, exit
+    if (options.newAppCmd === 'publish') {
+        // If --new-app-cmd is "publish"
+        // - --new-app-cmd-id OR --new-app-cmd-name must be present, but not both
+        //   - --new-app-cmd-name must be an existing stream name
+        //   - --new-app-cmd-id must be an existing stream ID
+
+        // If both --new-app-cmd-id and --new-app-cmd-name are empty strings, return error
         if (options.newAppCmdId === '' && options.newAppCmdName === '') {
+            logger.error('When --new-app-cmd is either "publish", exactly one of --new-app-cmd-id and --new-app-cmd-name must be present.');
+            validOptions = false;
+        }
+
+        // If both --new-app-cmd-id and --new-app-cmd-name are non-empty strings, return error
+        if (options.newAppCmdId !== '' && options.newAppCmdName !== '') {
+            logger.error('When --new-app-cmd is "publish", exactly one of --new-app-cmd-id or --new-app-cmd-name must be present.');
+            validOptions = false;
+        }
+
+        // If --new-app-cmd-id is a non-empty string, it must be
+        // - a valid uuid, and
+        // - exist in the Qlik Sense environment as an existing stream
+        if (options.newAppCmdId !== '') {
+            if (!uuidValidate(options.newAppCmdId)) {
+                logger.error(`Invalid format of --new-app-cmd-id (not a valid GUID): "${options.newAppCmdId}".`);
+                validOptions = false;
+            }
+
+            // Check if stream exists
+            // Returns array of exactly one object if stream exists
+            const stream = await getStreamById(options.newAppCmdId, options);
+            if (stream === false || stream.length === 0) {
+                logger.error(`Stream "${options.newAppCmdId}" does not exist in the Qlik Sense environment.`);
+                validOptions = false;
+            }
+        }
+
+        // If --new-app-cmd-name is a non-empty string, it must
+        // - exist in the Qlik Sense environment, either as a stream or an app
+        //   - If --new-app-cmd is "publish", --new-app-cmd-name must be an existing stream
+        //     - If none or more than one stream matches the name, an error is returned
+        if (options.newAppCmdName !== '') {
+            // Check if stream exists
+            // Returns array of one or more objects if stream exists
+            const stream = await getStreamByName(options.newAppCmdName, options);
+            if (stream === false || stream.length === 0) {
+                logger.error(`Stream "${options.newAppCmdName}" does not exist in the Qlik Sense environment.`);
+                validOptions = false;
+            } else if (stream.length > 1) {
+                logger.error(`More than one stream with name "${options.newAppCmdName}" exists in the Qlik Sense environment.`);
+                validOptions = false;
+            }
+        }
+    } else if (options.newAppCmd === 'replace') {
+        // If --new-app-cmd is "replace"
+        // - --new-app-cmd-id OR --new-app-cmd-name must be present, but not both
+        //   - --new-app-cmd-name must be an existing app name
+        //     - There must be exactly one app with this name, otherwise return error
+        //   - --new-app-cmd-id must be an existing app ID
+        //     - --new-app-cmd-id must be a valid uuid
+        if (options.newAppCmdId === '' && options.newAppCmdName === '') {
+            logger.error('When --new-app-cmd is "replace", exactly one of --new-app-cmd-id and --new-app-cmd-name must be present.');
+            validOptions = false;
+        }
+
+        if (options.newAppCmdId !== '' && options.newAppCmdName !== '') {
+            logger.error('When --new-app-cmd is "replace", exactly one of --new-app-cmd-id or --new-app-cmd-name must be present.');
+            validOptions = false;
+        }
+
+        // If --new-app-cmd-id is a non-empty string, it must be
+        // - a valid uuid, and
+        // - exist in the Qlik Sense environment as an existing app
+        if (options.newAppCmdId !== '') {
+            if (!uuidValidate(options.newAppCmdId)) {
+                logger.error(`Invalid format of --new-app-cmd-id (not a valid GUID): "${options.newAppCmdId}".`);
+                validOptions = false;
+            }
+
+            // Check if app exists
+            // Returns array of exactly one object if app exists
+            const app = await getAppById(options.newAppCmdId, options);
+            if (app === false || app.length === 0) {
+                logger.error(`App "${options.newAppCmdId}" does not exist in the Qlik Sense environment.`);
+                validOptions = false;
+            }
+        }
+
+        // If --new-app-cmd-name is a non-empty string, it must
+        // - exist in the Qlik Sense environment as an existing app
+        //   - If none or more than one app matches the name, an error is returned
+        if (options.newAppCmdName !== '') {
+            // Check if app exists
+            // Returns array of exactly one object if app exists
+            const app = await getAppByName(options.newAppCmdName, options);
+            if (app === false || app.length === 0) {
+                logger.error(`App "${options.newAppCmdName}" does not exist in the Qlik Sense environment.`);
+                validOptions = false;
+            } else if (app.length > 1) {
+                logger.error(`More than one app with name "${options.newAppCmdName}" exists in the Qlik Sense environment.`);
+                validOptions = false;
+            }
+        }
+    } else {
+        // Do nothing after data scrambling. The new app remains in My Work.
+
+        // Neither --new-app-cmd-id nor --new-app-cmd-name should be present
+        if (options.newAppCmdId !== '' || options.newAppCmdName !== '') {
             logger.error(
-                'When --new-app-cmd is either "publish" or "replace", exactly one of --new-app-cmd-id and --new-app-cmd-name must be present.'
+                'When --new-app-cmd is not specified or empty string, neither --new-app-cmd-id nor --new-app-cmd-name should be present.'
             );
             validOptions = false;
-        }
-
-        // If both --new-app-cmd-id and --new-app-cmd-name are non-empty strings, exit
-        if (options.newAppCmdId !== '' && options.newAppCmdName !== '') {
-            logger.error('When --new-app-cmd is true, exactly one of --new-app-cmd-id or --new-app-cmd-name must be present.');
-            validOptions = false;
-        }
-
-        // If --new-app-cmd-id is a non-empty string, it must be a valid uuid
-        if (options.newAppCmdId !== '' && !uuidValidate(options.newAppCmdId)) {
-            logger.error(`Invalid format of --new-app-cmd-id (not a valid ID): "${options.newAppCmdId}".`);
-            validOptions = false;
-        }
-
-        // If --new-app-cmd-name is a non-empty string, it must exist in the Qlik Sense environment, either as a stream or an app
-        if (options.newAppCmdName !== '') {
-            // TODO: Implement this check
-            //     const stream = await global.getStream(options.newAppCmdStreamName);
-            //     if (stream === null) {
-            //         logger.error(`Stream "${options.newAppCmdStreamName}" does not exist in the Qlik Sense environment.`);
-            //         validOptions = false;
-            //     }
-        }
-
-        // If --new-app-cmd-id is a non-empty string, it must exist in the Qlik Sense environment
-        if (options.newAppCmdId !== '') {
-            // TODO: Implement this check
         }
     }
 
