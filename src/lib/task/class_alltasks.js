@@ -1635,7 +1635,6 @@ export class QlikSenseTasks {
             const newTreeLevel = parentTreeLevel + 1;
             let subTree = [];
 
-            // Debug
             logger.debug(
                 `GET TASK SUBTREE: Meta node type: ${task.metaNodeType}, task type: ${task.taskType}, tree level: ${newTreeLevel}, task name: ${task.taskName}`
             );
@@ -1644,6 +1643,7 @@ export class QlikSenseTasks {
             const downstreamTasks = self.taskNetwork.edges.filter((edge) => edge.from === task.id);
 
             let kids = [];
+            const validDownstreamTasks = [];
             for (const downstreamTask of downstreamTasks) {
                 logger.debug(
                     `GET TASK SUBTREE: Processing downstream task: ${downstreamTask.to}. Current/source task: ${downstreamTask.from}`
@@ -1662,28 +1662,110 @@ export class QlikSenseTasks {
                             },
                         ];
                     } else {
-                        // Check for cyclic task tree
-                        if (this.isTaskTreeCyclic(tmp)) {
-                            if (parentTask) {
-                                logger.warn(
-                                    `Cyclic dependency detected in task tree, from task "${parentTask.taskName}" to "${task.taskName}". Won't go deeper.`
-                                );
+                        // Keep track of this downstream task
+                        validDownstreamTasks.push({ sourceTask: task, downstreamTask: tmp });
 
-                                // Add node indicating cyclic dependency
-                                kids = kids.concat([
-                                    {
-                                        id: task.id,
-                                        text: ` ==> !!! Cyclic dependency detected from task "${task.taskName}" to "${tmp.taskName}"`,
-                                    },
-                                ]);
-                            } else {
-                                logger.warn(`Cyclic dependency detected in task tree. Can't find task names. Won't go deeper.`);
-                            }
-                        } else {
-                            const tmp3 = self.getTaskSubTree(tmp, newTreeLevel, task);
-                            kids = kids.concat(tmp3);
-                        }
+                        // Don't check for cyclic task relationships yet, as that could trigger if two or more sibling tasks are triggered from the same source task.
                     }
+                }
+            }
+
+            // Now that all downstream tasks have been retrieved, we can check if there are any general issues with those tasks
+            // Examples are cyclic task tree relationships, multiple downstream tasks with the same ID etc.
+
+            // Check for downstream tasks with the same ID and same relationship with parent task (e.g. on-success or on-failure)
+            // downstreamTasks is an array of all downstream tasks from the current task. Properties are (the ones relevant here)
+            // - from: Source task/node ID
+            // - fromTaskType: Source task/node type. "Reload" or "ExternalProgram"
+            // - to: Destination task/node ID
+            // - toTaskType: Destination task/node type. "Reload", "ExternalProgram" or "Composite"
+            // - rule: Array of rules for the relationship between source and destination task. "on-success", "on-failure" etc. Properties for each object are
+            //   - id: Rule ID
+            //   - ruleState: Rule state/type. 1 = TaskSuccessful, 2 = TaskFail. mapRuleState.get(ruleState) gives the string representation of the rule state, given the number.
+
+            // Check if there are multiple downstream tasks with the same ID and same relationship with the parent task.
+            // The relationship is the same if rule.ruleState is the same for two downstream tasks with the same ID.
+            // If there are, log a warning.
+            const duplicateDownstreamTasks = [];
+            for (const downstreamTask of downstreamTasks) {
+                // Are there any rules?
+                // downstreamTask.rule is an array of rules. Properties are
+                // - id: Rule ID
+                // - ruleState: Rule state/type. 1 = TaskSuccessful, 2 = TaskFail. mapRuleState.get(ruleState) gives the string representation of the rule state, given the number.
+                if (downstreamTask.rule) {
+                    // Filter out downstream tasks with the same ID and the same rule state
+                    const tmp = downstreamTasks.filter((el) => {
+                        const sameDest = el.to === downstreamTask.to;
+
+                        // Same rule state?
+                        // el.rule can be either an array or an object. If it's an object, convert it to an array.
+                        if (!Array.isArray(el.rule)) {
+                            el.rule = [el.rule];
+                        }
+
+                        // Is one of the rule's ruleState properties the same as one or more of downstreamTask.rule[].ruleState?
+                        const sameRuleState = el.rule.some((rule) => {
+                            return downstreamTask.rule.some((rule2) => {
+                                return rule.ruleState === rule2.ruleState;
+                            });
+                        });
+
+                        return sameDest && sameRuleState;
+                    });
+
+                    if (tmp.length > 1) {
+                        // Look up current and downstream task objects
+                        const currentTask = self.taskNetwork.nodes.find((el) => el.id === task.id);
+                        const downstreamTask = self.taskNetwork.nodes.find((el) => el.id === tmp[0].to);
+
+                        // Get the rule state that is shared between the downstream tasks and the parent task
+                        const ruleState = mapRuleState.get(tmp[0].rule[0].ruleState);
+
+                        // Log warning unless this parent/child relationship is already in the list of duplicate downstream tasks
+                        if (
+                            !duplicateDownstreamTasks.some(
+                                (el) => el[0].to === tmp[0].to && el[0].rule[0].ruleState === tmp[0].rule[0].ruleState
+                            )
+                        ) {
+                            logger.warn(
+                                `Multiple downstream tasks (${tmp.length}) with the same ID and the same trigger relationship "${ruleState}" with the parent task.`
+                            );
+                            logger.warn(`   Parent task     : ${currentTask.completeTaskObject.name}`);
+                            logger.warn(`   Downstream task : ${downstreamTask.completeTaskObject.name}`);
+                        }
+
+                        duplicateDownstreamTasks.push(tmp);
+                    }
+                }
+            }
+
+            // Check if there are any cyclic task tree relationships
+            // If there are none, we can add the downstream tasks to the tree
+            // First make sure all downstream task IDs are unique. Remove duplicates.
+            const uniqueDownstreamTasks = Array.from(new Set(validDownstreamTasks.map((a) => a.downstreamTask.id))).map((id) => {
+                return validDownstreamTasks.find((a) => a.downstreamTask.id === id);
+            });
+
+            for (const validDownstreamTask of uniqueDownstreamTasks) {
+                if (this.isTaskTreeCyclic(validDownstreamTask.downstreamTask)) {
+                    if (parentTask) {
+                        logger.warn(`Cyclic dependency detected in task tree. Won't go deeper.`);
+                        logger.warn(`   From task : ${validDownstreamTask.sourceTask.taskName}`);
+                        logger.warn(`   To task   : ${validDownstreamTask.downstreamTask.taskName}`);
+
+                        // Add node indicating cyclic dependency
+                        kids = kids.concat([
+                            {
+                                id: task.id,
+                                text: ` ==> !!! Cyclic dependency detected from task "${validDownstreamTask.sourceTask.taskName}" to "${validDownstreamTask.downstreamTask.taskName}"`,
+                            },
+                        ]);
+                    } else {
+                        logger.warn(`Cyclic dependency detected in task tree. No parent task detected. Won't go deeper.`);
+                    }
+                } else {
+                    const tmp3 = self.getTaskSubTree(validDownstreamTask.downstreamTask, newTreeLevel, validDownstreamTask.sourceTask);
+                    kids = kids.concat(tmp3);
                 }
             }
 

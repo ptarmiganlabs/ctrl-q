@@ -340,7 +340,7 @@ export async function qseowScrambleFieldAssertOptions(options) {
             validOptions = false;
         }
 
-        // If --new-app-cmd-name is a non-empty string, it must exist in the Qlik Sense environment
+        // If --new-app-cmd-name is a non-empty string, it must exist in the Qlik Sense environment, either as a stream or an app
         if (options.newAppCmdName !== '') {
             // TODO: Implement this check
             //     const stream = await global.getStream(options.newAppCmdStreamName);

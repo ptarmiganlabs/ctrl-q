@@ -43,10 +43,8 @@ const consoleTableConfig = {
 // Only keep "text" and "children" properties
 function cleanupTaskTree(taskTree) {
     taskTree.forEach((element) => {
-        // eslint-disable-next-line no-restricted-syntax
         for (const prop in element) {
             if (prop !== 'text' && prop !== 'children') {
-                // eslint-disable-next-line no-param-reassign
                 delete element[prop];
             } else if (typeof element[prop] === 'object') {
                 cleanupTaskTree(element[prop]);
@@ -83,7 +81,7 @@ function compareTable(a, b) {
     return 0;
 }
 
-// get-task command
+// CLI command: qseow get-task
 // Options are assumed to be verified before calling this function
 export async function getTask(options) {
     try {
@@ -109,6 +107,9 @@ export async function getTask(options) {
             logger.error('Failed to get task model from QSEoW');
             return false;
         }
+
+        logger.info('');
+        logger.info(`Parsing ${qlikSenseTasks.taskNetwork.nodes.length} tasks in task model...`);
 
         // What should we do with the retrieved task data?
         if (options.outputFormat === 'tree') {
@@ -187,7 +188,6 @@ export async function getTask(options) {
                 return 0;
             });
 
-            // eslint-disable-next-line no-restricted-syntax
             for (const task of topLevelTasksWithSchemaTriggersUnique) {
                 if (task.metaNode && task.metaNodeType === 'schedule') {
                     const subTree = qlikSenseTasks.getTaskSubTree(task, 0, null);
@@ -229,7 +229,6 @@ export async function getTask(options) {
                 return 0;
             });
 
-            // eslint-disable-next-line no-restricted-syntax
             for (const task of unscheduledTasks) {
                 const subTree = qlikSenseTasks.getTaskSubTree(task, 0, null);
                 subTree[0].isTopLevelNode = true;
@@ -239,6 +238,7 @@ export async function getTask(options) {
 
             // Output task tree to correct destination
             if (options.outputDest === 'screen') {
+                logger.info(``);
                 logger.info(`# top-level rows in tree: ${taskTree.length}`);
                 logger.info(`\n${tree(taskTree)}`);
                 returnValue = true;
@@ -323,7 +323,6 @@ export async function getTask(options) {
                 ),
             };
 
-            // eslint-disable-next-line no-restricted-syntax
             for (const task of tasks) {
                 if (
                     (options.taskType?.find((item) => item === 'reload') && task.completeTaskObject.schemaPath === 'ReloadTask') ||
@@ -445,7 +444,6 @@ export async function getTask(options) {
 
                     // Write schema events to table
                     if (columnBlockShow.schematrigger) {
-                        // eslint-disable-next-line no-restricted-syntax
                         for (const event of schemaEventsForThisTask) {
                             row = [taskCount, ''];
 
@@ -503,7 +501,6 @@ export async function getTask(options) {
 
                     // Write composite events to table
                     if (columnBlockShow.compositetrigger) {
-                        // eslint-disable-next-line no-restricted-syntax
                         for (const event of compositeEventsForThisTask) {
                             row = [taskCount, ''];
 
@@ -567,7 +564,6 @@ export async function getTask(options) {
                             // Add all composite rules to table
                             let ruleCount = 1;
 
-                            // eslint-disable-next-line no-restricted-syntax
                             for (const rule of event.compositeEvent.compositeRules) {
                                 row = [taskCount, ''];
 
