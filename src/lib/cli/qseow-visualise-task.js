@@ -26,7 +26,10 @@ export function setupQseowVisualiseTaskCommand(qseow) {
                 .env('CTRLQ_PORT')
         )
         .addOption(
-            new Option('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix').makeOptionMandatory().env('CTRLQ_VIRTUAL_PROXY')
+            new Option('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix')
+                .default('')
+                .makeOptionMandatory()
+                .env('CTRLQ_VIRTUAL_PROXY')
         )
         .addOption(
             new Option(

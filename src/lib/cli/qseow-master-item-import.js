@@ -34,7 +34,10 @@ export function setupQseowMasterItemImportCommand(qseow) {
         )
         .addOption(new Option('--app-id <id>', 'Qlik Sense app ID').makeOptionMandatory().env('CTRLQ_APP_ID'))
         .addOption(
-            new Option('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix').makeOptionMandatory().env('CTRLQ_VIRTUAL_PROXY')
+            new Option('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix')
+                .default('')
+                .makeOptionMandatory()
+                .env('CTRLQ_VIRTUAL_PROXY')
         )
         .addOption(
             new Option(
