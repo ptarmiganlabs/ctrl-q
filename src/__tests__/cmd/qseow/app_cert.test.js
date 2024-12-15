@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { jest, test, expect, describe } from '@jest/globals';
 
-import { getApps, getAppById } from '../../lib/util/qseow/app.js';
+import { getApps, getAppById } from '../../../lib/util/qseow/app.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

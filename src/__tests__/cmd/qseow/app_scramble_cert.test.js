@@ -1,7 +1,7 @@
 import { jest, test, expect, describe } from '@jest/globals';
 import { validate as uuidValidate } from 'uuid';
 
-import { scrambleField } from '../../lib/cmd/qseow/scramblefield.js';
+import { scrambleField } from '../../../lib/cmd/qseow/scramblefield.js';
 
 let options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
