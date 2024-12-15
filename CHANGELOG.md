@@ -1,5 +1,26 @@
 # Changelog
 
+## [4.4.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.4.0...ctrl-q-v4.4.1) (2024-12-15)
+
+
+### Bug Fixes
+
+* **field-scramble:** Better verification of command line options ([d59a010](https://github.com/ptarmiganlabs/ctrl-q/commit/d59a01072c246ce87105a5445b205d64404de617))
+* **qscloud:** Log correct tenant name when testing connection to QS Cloud ([e78fabc](https://github.com/ptarmiganlabs/ctrl-q/commit/e78fabc51f7bd6ae089d476ccfd5b655d0e96899)), closes [#535](https://github.com/ptarmiganlabs/ctrl-q/issues/535)
+* **qseow:** Set default virtual proxy value for all QSEoW commands ([38490de](https://github.com/ptarmiganlabs/ctrl-q/commit/38490deb4c99d4d4ab7f70f0b120d66ade6b957d)), closes [#580](https://github.com/ptarmiganlabs/ctrl-q/issues/580)
+* **task-get:** Correctly detect circular and duplicate task chains ([0d56b7a](https://github.com/ptarmiganlabs/ctrl-q/commit/0d56b7a9364f36ceefda31a855fa3bbeacecfb7b)), closes [#583](https://github.com/ptarmiganlabs/ctrl-q/issues/583)
+
+
+### Miscellaneous
+
+* Add unit test for `qscloud connection-test` command ([5e53a96](https://github.com/ptarmiganlabs/ctrl-q/commit/5e53a965739c121981d4fbf926ea55bba76c6e00))
+* **deps:** Update dependencies and remove undici dependency ([6719be5](https://github.com/ptarmiganlabs/ctrl-q/commit/6719be56d1c4ef02741f8e61ac944795f70d6d63))
+
+
+### Refactoring
+
+* Add unit tests and in-code documentation to improve maintanability ([1e16135](https://github.com/ptarmiganlabs/ctrl-q/commit/1e16135a750632e6ea55fec2622e86e3499cdd63))
+
 ## [4.4.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.3.1...ctrl-q-v4.4.0) (2024-11-29)
 
 
