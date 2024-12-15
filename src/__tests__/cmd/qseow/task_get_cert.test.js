@@ -2,7 +2,7 @@ import { jest, test, expect, describe } from '@jest/globals';
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { getTask } from '../lib/cmd/qseow/gettask.js';
+import { getTask } from '../../../lib/cmd/qseow/gettask.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

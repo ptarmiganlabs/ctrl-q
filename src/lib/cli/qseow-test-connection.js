@@ -28,7 +28,10 @@ export function setupQseowTestConnectionCommand(qseow) {
             new Option('--schema-version <string>', 'Qlik Sense engine schema version').default('12.612.0').env('CTRLQ_SCHEMA_VERSION')
         )
         .addOption(
-            new Option('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix').makeOptionMandatory().env('CTRLQ_VIRTUAL_PROXY')
+            new Option('--virtual-proxy <prefix>', 'Qlik Sense virtual proxy prefix')
+                .default('')
+                .makeOptionMandatory()
+                .env('CTRLQ_VIRTUAL_PROXY')
         )
         .addOption(
             new Option(

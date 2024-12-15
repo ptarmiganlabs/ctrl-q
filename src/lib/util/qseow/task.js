@@ -112,8 +112,13 @@ export async function getTaskByName(taskName, optionsParam) {
     }
 }
 
-// Function to get task metadata, given a task ID
-// If the task ID is a valid GUID it is assumed to be a task ID that exists in Sense. Report an error if not.
+/**
+ * Get task metadata, given a task ID
+ * If the task ID is a valid GUID it is assumed to be a task ID that exists in Sense. Report an error if not.
+ * @param {string} taskId Qlik Sense task ID
+ * @param {object} [optionsParam] Options object
+ * @returns {object} Task metadata if task exists, otherwise false
+ */
 export async function getTaskById(taskId, optionsParam) {
     try {
         logger.debug(`Get task with ID ${taskId}`);
