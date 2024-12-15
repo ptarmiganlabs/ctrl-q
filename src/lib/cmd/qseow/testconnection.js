@@ -2,6 +2,12 @@ import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { getAboutFromQseow } from '../../util/qseow/about.js';
 import { catchLog } from '../../util/log.js';
 
+/**
+ * Tests a connection to a client-managed Qlik Sense Enterprise (QSEoW) server.
+ *
+ * @param {object} options - The options to use for the connection test.
+ * @returns {Promise<boolean|object>} - A promise that resolves to `true` if the connection test succeeded, or an object with the Qlik Sense repository version and build date if the `--json` option was supplied.
+ */
 export async function testConnection(options) {
     try {
         // Set log level
