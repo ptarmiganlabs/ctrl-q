@@ -1,6 +1,6 @@
 import { jest, test, expect, describe } from '@jest/globals';
 
-import { taskExistById, getTaskByName, getTaskById } from '../lib/util/qseow/task.js';
+import { taskExistById, getTaskByName, getTaskById } from '../../lib/util/qseow/task.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

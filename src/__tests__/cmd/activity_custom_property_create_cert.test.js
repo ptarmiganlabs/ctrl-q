@@ -1,6 +1,6 @@
 import { jest, test, expect, describe } from '@jest/globals';
 
-import { createUserActivityBucketsCustomProperty } from '../lib/cmd/qseow/createuseractivitycp.js';
+import { createUserActivityBucketsCustomProperty } from '../../lib/cmd/qseow/createuseractivitycp.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

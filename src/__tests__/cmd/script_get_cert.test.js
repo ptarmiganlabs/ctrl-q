@@ -1,6 +1,6 @@
 import { jest, test, expect, describe } from '@jest/globals';
 
-import { getScript } from '../lib/cmd/qseow/getscript.js';
+import { getScript } from '../../lib/cmd/qseow/getscript.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

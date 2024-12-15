@@ -1,6 +1,6 @@
 import { jest, test, expect, describe } from '@jest/globals';
 
-import { getBookmark } from '../lib/cmd/qseow/getbookmark.js';
+import { getBookmark } from '../../lib/cmd/qseow/getbookmark.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

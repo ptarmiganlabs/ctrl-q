@@ -8,7 +8,16 @@ import sea from 'node:sea';
 import { logger, readCert, isSea } from '../../../globals.js';
 import { getCertFilePaths } from '../../util/qseow/cert.js';
 
-// Function to get Enigma.js schema file
+/**
+ * Retrieves the Enigma.js schema JSON based on the provided options.
+ *
+ * @param {Object} options - Configuration options.
+ *   - `schemaVersion`: The desired schema version to load.
+ *
+ * @returns {Object} The parsed Enigma.js schema JSON.
+ *
+ * @throws Will terminate the process with an error message if the schema version is unsupported or if an error occurs during file retrieval.
+ */
 const getEnigmaSchema = (options) => {
     // Array of supported schema versions
     const supportedSchemaVersions = ['12.170.2', '12.612.0', '12.936.0', '12.1306.0', '12.1477.0', '12.1657.0', '12.1823.0', '12.2015.0'];
@@ -60,6 +69,27 @@ const getEnigmaSchema = (options) => {
     return qixSchema;
 };
 
+/**
+ * Set up an Enigma connection.
+ *
+ * @param {Object} options - Global options. Properties used:
+ *   - `host`: Qlik Sense server host.
+ *   - `port`: Qlik Sense server port.
+ *   - `enginePort`: Qlik Sense engine port.
+ *   - `virtualProxy`: Qlik Sense virtual proxy.
+ *   - `secure`: Whether to use SSL/TLS.
+ *   - `appId`: Qlik Sense app ID.
+ *   - `authType`: Authentication type, either 'cert' or 'jwt'.
+ *   - `authUserDir`: User directory for authentication.
+ *   - `authUserId`: User ID for authentication.
+ *   - `authCertFile`: Path to client certificate file.
+ *   - `authCertKeyFile`: Path to client certificate key file.
+ *   - `authCertCAFile`: Path to CA certificate file.
+ *   - `authJwt`: JWT for authentication.
+ *   - `schemaVersion`: Enigma.js schema version.
+ * @param {string} [sessionId] - Session ID for JWT authentication.
+ * @returns {Object} Enigma.js configuration.
+ */
 export const setupEnigmaConnection = (options, sessionId) => {
     logger.debug('Prepping for Enigma connection...');
 
@@ -139,7 +169,13 @@ export const setupEnigmaConnection = (options, sessionId) => {
     return enigmaConfig;
 };
 
-// Function to add logging of session's websocket traffic
+/**
+ * Add websocket traffic logging to an Enigma.js session.
+ *
+ * @param {Object} session - Enigma.js session.
+ * @param {Object} options - Global options. Properties used:
+ *   - `logLevel`: Log level.
+ */
 export const addTrafficLogging = (session, options) => {
     session.on('notification:*', (eventName, data) => {
         // console.log(`SESSION EVENT=${eventName}: `, data);

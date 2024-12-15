@@ -1,14 +1,15 @@
 /* eslint-disable no-console */
 import { jest, test, expect, describe } from '@jest/globals';
 
-import { importAppFromFile } from '../lib/cmd/qseow/importapp.js';
-import { appExistById, deleteAppById } from '../lib/util/qseow/app.js';
+import { importAppFromFile } from '../../lib/cmd/qseow/importapp.js';
+import { appExistById, deleteAppById } from '../../lib/util/qseow/app.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
     authType: process.env.CTRL_Q_AUTH_TYPE || 'cert',
     authCertFile: process.env.CTRL_Q_AUTH_CERT_FILE || './cert/client.pem',
     authCertKeyFile: process.env.CTRL_Q_AUTH_CERT_KEY_FILE || './cert/client_key.pem',
+    authRootCertFile: process.env.CTRL_Q_AUTH_ROOT_CERT_FILE || './cert/root.pem',
     host: process.env.CTRL_Q_HOST || '',
     port: process.env.CTRL_Q_PORT || '4242',
     schemaVersion: process.env.CTRL_Q_SCHEMA_VERSION || '12.612.0',
@@ -19,8 +20,6 @@ const options = {
 
     sleepAppUpload: process.env.CTRL_Q_SLEEP_APP_UPLOAD || '500',
     limitExportCount: process.env.CTRL_Q_LIMIT_EXPORT_COUNT || '0',
-
-    authJwt: process.env.CTRL_Q_AUTH_JWT || '',
 };
 
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minute default timeout
@@ -29,13 +28,14 @@ jest.setTimeout(defaultTestTimeout);
 options.fileType = 'excel';
 options.fileName = `./testdata/tasks.xlsx`;
 options.sheetName = 'App import';
-options.authType = 'jwt';
-options.port = '443';
-options.virtualProxy = 'jwt';
+options.port = '4242';
 
 // Test suite for app export
 describe('import apps from QVF files (cert auth)', () => {
     test('get tasks (verify parameters)', async () => {
+        expect(options.authCertFile).not.toHaveLength(0);
+        expect(options.authCertKeyFile).not.toHaveLength(0);
+        expect(options.authRootCertFile).not.toHaveLength(0);
         expect(options.host).not.toHaveLength(0);
         expect(options.authUserDir).not.toHaveLength(0);
         expect(options.authUserId).not.toHaveLength(0);
@@ -73,7 +73,6 @@ describe('import apps from QVF files (cert auth)', () => {
             } else {
                 // App does not exist
                 expect(appExists).toBe(false);
-                // console.log(`App ${appId} does not exist in Sense. Skipping delete.`);
             }
             i += 1;
         }

@@ -69,12 +69,24 @@ export const execPath = isSea ? upath.dirname(process.execPath) : process.cwd();
 // Functions to get/set current console logging level
 export const getLoggingLevel = () => logTransports.find((transport) => transport.name === 'console').level;
 
+/**
+ * Sets the logging level for the console transport.
+ *
+ * @param {string} newLevel - The new logging level to set (e.g., 'info', 'debug').
+ */
+
 export const setLoggingLevel = (newLevel) => {
     logTransports.find((transport) => transport.name === 'console').level = newLevel;
 };
 
-// Separate handling is needed depending on if we are running as a packaged SEA app or not
-// SEA apps cannot list bundled assets as directories, so we need to use a different approach
+/**
+ * Asynchronously checks if a specified file exists in the file system.
+ *
+ * @param {string} file - The path of the file to check.
+ * @param {boolean} [silent=false] - If true, suppresses logging of errors.
+ * @returns {Promise<boolean>} A promise that resolves to true if the file exists, false otherwise.
+ */
+
 export async function verifyFileSystemExists(file, silent = false) {
     let exists = false;
     try {
@@ -98,6 +110,13 @@ export async function verifyFileSystemExists(file, silent = false) {
     return exists;
 }
 
+/**
+ * Check if a bundled SEA asset exists in a packaged Ctrl-Q app.
+ *
+ * @param {string} file - Name of file to check.
+ * @param {boolean} [silent=false] - If true, do not log errors.
+ * @returns {boolean} True if file exists, false otherwise.
+ */
 export function verifySeaAssetExists(file, silent = false) {
     let exists = false;
     try {
@@ -119,17 +138,35 @@ export function verifySeaAssetExists(file, silent = false) {
     return exists;
 }
 
+/**
+ * Merge an array of path elements to a single path.
+ * If running as a packaged SEA app, the path is resolved relative to the directory
+ * containing the executable. Otherwise, the path is resolved relative to the current
+ * working directory.
+ *
+ * @param {string[]} pathElements - Path elements to merge.
+ * @returns {string} - Merged path.
+ */
 export const mergeDirFilePath = (pathElements) => {
     let fullPath = '';
     if (isSea) {
         fullPath = upath.resolve(upath.dirname(process.execPath), ...pathElements);
     } else {
-        // fullPath = upath.resolve(__dirname, ...pathElements);
+        // Return empty string if pathElements is empty
+        if (pathElements.length === 0) {
+            return fullPath;
+        }
         fullPath = upath.resolve(upath.join(...pathElements));
     }
     return fullPath;
 };
 
+/**
+ * Generates a random X-XSS-Protection header value, which is a string of 16
+ * characters that is a mix of numbers and uppercase and lowercase letters.
+ *
+ * @returns {string} The generated X-XSS-Protection header value.
+ */
 export const generateXrfKey = () => {
     let xrfString = '';
 
@@ -150,13 +187,20 @@ export const generateXrfKey = () => {
 };
 
 /**
- * Helper function to read the contents of the certificate files:
- * @param {*} filename
- * @returns
+ * Reads the contents of a certificate file.
+ *
+ * @param {string} filename - Path to certificate file to read.
+ * @returns {string} The contents of the certificate file.
  */
-export const readCert = (filename) => readFileSync(filename);
+export const readCert = (filename) => readFileSync(filename, 'utf8');
 
-// https://stackoverflow.com/questions/175739/how-can-i-check-if-a-string-is-a-valid-number
+/**
+ * Returns true if the input string is numeric, false otherwise.
+ * Strings that contain whitespace or non-numeric characters will return false.
+ * https://stackoverflow.com/questions/175739/how-can-i-check-if-a-string-is-a-valid-number
+ * @param {string} str The string to check if it is numeric.
+ * @returns {boolean} True if the string is numeric, false otherwise.
+ */
 export function isNumeric(str) {
     if (typeof str !== 'string') return false; // we only process strings!
     return (
@@ -165,8 +209,23 @@ export function isNumeric(str) {
     ); // ...and ensure strings of whitespace fail
 }
 
+/**
+ * A Promise-based sleep function. Returns a Promise that resolves after the given number
+ * of milliseconds. The ms parameter may be a number or a string that can be converted to a number.
+ * Throw an error if the input is not a positive number, or cannot be converted to such a number.
+ *
+ * @param {number|string} ms The number of milliseconds to sleep. Can be a number or a string that can be converted to a number.
+ * @returns {Promise<void>} A Promise that resolves after the given number of milliseconds.
+ */
 export function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve, reject) => {
+        const sleepTime = parseInt(ms, 10);
+        if (Number.isNaN(sleepTime) || sleepTime <= 0) {
+            reject(new Error('Invalid sleep time'));
+        } else {
+            setTimeout(resolve, sleepTime);
+        }
+    });
 }
 
 // Function to set CLI options. Clear any existing options first.

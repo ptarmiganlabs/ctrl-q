@@ -1,8 +1,8 @@
 import { jest, test, expect, describe } from '@jest/globals';
 
-import { importTaskFromFile } from '../lib/cmd/qseow/importtask.js';
-import { getTaskById, deleteExternalProgramTaskById, deleteReloadTaskById } from '../lib/util/qseow/task.js';
-import { mapTaskType } from '../lib/util/qseow/lookups.js';
+import { importTaskFromFile } from '../../lib/cmd/qseow/importtask.js';
+import { getTaskById, deleteExternalProgramTaskById, deleteReloadTaskById } from '../../lib/util/qseow/task.js';
+import { mapTaskType } from '../../lib/util/qseow/lookups.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
