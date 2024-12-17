@@ -83,16 +83,8 @@ export function setupGetTaskCommand(qseow) {
         .addOption(
             new Option('--task-type <type...>', 'type of tasks to include').choices(['reload', 'ext-program']).env('CTRLQ_TASK_TYPE')
         )
-        .addOption(
-            new Option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve. Only allowed when --output-format=table').env(
-                'CTRLQ_TASK_ID'
-            )
-        )
-        .addOption(
-            new Option('--task-tag <tags...>', 'use tags to select which tasks to retrieve. Only allowed when --output-format=table').env(
-                'CTRLQ_TASK_TAG'
-            )
-        )
+        .addOption(new Option('--task-id <ids...>', 'use task IDs to select which tasks to retrieve.').env('CTRLQ_TASK_ID'))
+        .addOption(new Option('--task-tag <tags...>', 'use tags to select which tasks to retrieve.').env('CTRLQ_TASK_TAG'))
         .addOption(
             new Option('--output-format <format>', 'output format').choices(['table', 'tree']).default('tree').env('CTRLQ_OUTPUT_FORMAT')
         )

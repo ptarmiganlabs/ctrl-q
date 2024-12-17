@@ -147,22 +147,14 @@ export const getBookmarkAssertOptions = (options) => {
 };
 
 export const getTaskAssertOptions = (options) => {
-    // ---task-id and --task-tag only allowed for task tables, not trees
-    if (options.taskId || options.taskTag) {
-        if (options.outputFormat === 'tree') {
-            logger.error('Task tree view is not supported when using --task-id or --task-tag. Exiting.');
-            process.exit(1);
-        }
-
-        // Verify all task IDs are valid uuids
-        if (options.taskId) {
-            for (const taskId of options.taskId) {
-                if (!uuidValidate(taskId)) {
-                    logger.error(`Invalid format of task ID parameter "${taskId}". Exiting.`);
-                    process.exit(1);
-                } else {
-                    logger.verbose(`Task id "${taskId}" is a valid uuid version ${uuidVersion(taskId)}`);
-                }
+    // Verify all task IDs are valid uuids
+    if (options.taskId) {
+        for (const taskId of options.taskId) {
+            if (!uuidValidate(taskId)) {
+                logger.error(`Invalid format of task ID parameter "${taskId}". Exiting.`);
+                process.exit(1);
+            } else {
+                logger.verbose(`Task id "${taskId}" is a valid uuid version ${uuidVersion(taskId)}`);
             }
         }
     }

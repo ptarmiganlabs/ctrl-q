@@ -61,6 +61,7 @@ export class QlikSenseTasks {
     }
 
     // Function to determine if a task tree is cyclic
+    // Uses a depth-first search algorithm to determine if a task tree is cyclic
     isTaskTreeCyclic(task) {
         if (this.taskTreeCyclicVisited.has(task)) {
             return true;
