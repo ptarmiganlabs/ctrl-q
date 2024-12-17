@@ -1,6 +1,5 @@
 import axios from 'axios';
-import path from 'node:path';
-import { logger, execPath } from '../../../globals.js';
+import { logger } from '../../../globals.js';
 import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
 

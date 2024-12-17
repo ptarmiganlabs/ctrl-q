@@ -750,7 +750,13 @@ async function parseTree(options, qlikSenseTasks, tags) {
 
     for (const task of topLevelTasksWithSchemaTriggersUnique) {
         if (task.metaNode && task.metaNodeType === 'schedule') {
-            const subTree = qlikSenseTasks.getTaskSubTree(task, 0, null);
+            const subTree = await qlikSenseTasks.getTaskSubTree(task, 0, null);
+            // Ensure subTree is not empty or null
+            if (!subTree || subTree.length === 0) {
+                logger.error(`Failed to get sub tree for task "${task.taskName}"`);
+                return false;
+            }
+
             subTree[0].isTopLevelNode = true;
             subTree[0].isScheduled = true;
             taskTree = taskTree.concat(subTree);
@@ -790,7 +796,13 @@ async function parseTree(options, qlikSenseTasks, tags) {
     });
 
     for (const task of unscheduledTasks) {
-        const subTree = qlikSenseTasks.getTaskSubTree(task, 0, null);
+        const subTree = await qlikSenseTasks.getTaskSubTree(task, 0, null);
+        // Ensure subTree is not empty or null
+        if (!subTree || subTree.length === 0) {
+            logger.error(`Failed to get sub tree for task "${task.taskName}"`);
+            return false;
+        }
+
         subTree[0].isTopLevelNode = true;
         subTree[0].isScheduled = false;
         taskTree = taskTree.concat(subTree);

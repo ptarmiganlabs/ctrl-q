@@ -261,3 +261,169 @@ export async function deleteExternalProgramTaskById(taskId, optionsParam) {
         return false;
     }
 }
+
+// Function to create new external program task in QSEoW
+// Parameters:
+// - newTask: Object containing task data
+// - taskCounter: Task counter, unique for each task in the source file
+export function createExternalProgramTaskInQseow(newTask, taskCounter, options) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            logger.debug(`(${taskCounter}) CREATE EXTERNAL PROGRAM TASK IN QSEOW: Starting`);
+
+            // Build a body for the API call
+            const body = {
+                task: {
+                    name: newTask.name,
+                    taskType: 1,
+                    enabled: newTask.enabled,
+                    taskSessionTimeout: newTask.taskSessionTimeout,
+                    maxRetries: newTask.maxRetries,
+                    path: newTask.path,
+                    parameters: newTask.parameters,
+                    tags: newTask.tags,
+                    customProperties: newTask.customProperties,
+                    schemaPath: 'ExternalProgramTask',
+                },
+                schemaEvents: newTask.schemaEvents,
+            };
+
+            // Save task to QSEoW
+            const axiosConfig = setupQrsConnection(options, {
+                method: 'post',
+                path: '/qrs/externalprogramtask/create',
+                body,
+            });
+
+            axios
+                .request(axiosConfig)
+                .then((result) => {
+                    const response = JSON.parse(result.data);
+
+                    logger.debug(
+                        `(${taskCounter}) CREATE EXTERNAL PROGRAM TASK IN QSEOW: "${newTask.name}", new task id: ${response.id}. Result: ${result.status}/${result.statusText}.`
+                    );
+
+                    if (result.status === 201) {
+                        resolve(response.id);
+                    } else {
+                        reject();
+                    }
+                })
+                .catch((err) => {
+                    catchLog('CREATE EXTERNAL PROGRAM TASK IN QSEOW 1', err);
+                    reject(err);
+                });
+        } catch (err) {
+            catchLog('CREATE EXTERNAL PROGRAM TASK IN QSEOW 2', err);
+            reject(err);
+        }
+    });
+}
+
+// Function to create new reload task in QSEoW
+export function createReloadTaskInQseow(newTask, taskCounter, options) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            logger.debug(`(${taskCounter}) CREATE RELOAD TASK IN QSEOW: Starting`);
+
+            // Build a body for the API call
+            const body = {
+                task: {
+                    app: {
+                        id: newTask.app.id,
+                    },
+                    name: newTask.name,
+                    isManuallyTriggered: newTask.isManuallyTriggered,
+                    isPartialReload: newTask.isPartialReload,
+                    taskType: 0,
+                    enabled: newTask.enabled,
+                    taskSessionTimeout: newTask.taskSessionTimeout,
+                    maxRetries: newTask.maxRetries,
+                    tags: newTask.tags,
+                    customProperties: newTask.customProperties,
+                    schemaPath: 'ReloadTask',
+                },
+                schemaEvents: newTask.schemaEvents,
+            };
+
+            // Save task to QSEoW
+            const axiosConfig = setupQrsConnection(options, {
+                method: 'post',
+                path: '/qrs/reloadtask/create',
+                body,
+            });
+
+            axios
+                .request(axiosConfig)
+                .then((result) => {
+                    const response = JSON.parse(result.data);
+
+                    logger.debug(
+                        `(${taskCounter}) CREATE RELOAD TASK IN QSEOW: "${newTask.name}", new task id: ${response.id}. Result: ${result.status}/${result.statusText}.`
+                    );
+
+                    if (result.status === 201) {
+                        resolve(response.id);
+                    } else {
+                        reject();
+                    }
+                })
+                .catch((err) => {
+                    catchLog('CREATE RELOAD TASK IN QSEOW 1', err);
+                    reject(err);
+                });
+        } catch (err) {
+            catchLog('CREATE RELOAD TASK IN QSEOW 2', err);
+            reject(err);
+        }
+    });
+}
+
+export function createCompositeEventInQseow(newCompositeEvent, options) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            logger.debug('CREATE COMPOSITE EVENT IN QSEOW: Starting');
+
+            // Build a body for the API call
+            const body = newCompositeEvent;
+
+            // Save task to QSEoW
+            const axiosConfig = setupQrsConnection(options, {
+                method: 'post',
+                path: '/qrs/compositeevent',
+                body,
+            });
+
+            logger.debug(`/qrs/compositevent body: ${JSON.stringify(body, null, 2)}`);
+
+            axios
+                .request(axiosConfig)
+                .then((result) => {
+                    if (result.status === 201) {
+                        const response = JSON.parse(result.data);
+
+                        if (response?.reloadTask) {
+                            logger.info(
+                                `CREATE COMPOSITE EVENT IN QSEOW: Event name="${newCompositeEvent.name}" for task ID ${response.reloadTask.id}. Result: ${result.status}/${result.statusText}.`
+                            );
+                        } else if (response?.externalProgramTask) {
+                            logger.info(
+                                `CREATE COMPOSITE EVENT IN QSEOW: Event name="${newCompositeEvent.name}" for task ID ${response.externalProgramTask.id}. Result: ${result.status}/${result.statusText}.`
+                            );
+                        }
+
+                        resolve(response.id);
+                    } else {
+                        reject();
+                    }
+                })
+                .catch((err) => {
+                    catchLog('CREATE COMPOSITE EVENT IN QSEOW 1', err);
+                });
+        } catch (err) {
+            catchLog('CREATE COMPOSITE EVENT IN QSEOW 2', err);
+            reject(err);
+        }
+    });
+}
