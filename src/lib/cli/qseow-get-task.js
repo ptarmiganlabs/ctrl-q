@@ -18,7 +18,7 @@ export function setupGetTaskCommand(qseow) {
             }
 
             await qseowSharedParamAssertOptions(newOptions);
-            getTaskAssertOptions(newOptions);
+            await getTaskAssertOptions(newOptions);
 
             // If --output-format=table and --task-type is not specified, default to ['reload', 'ext-program']
             if (newOptions.outputFormat === 'table' && !newOptions.taskType) {

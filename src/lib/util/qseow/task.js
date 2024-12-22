@@ -1,5 +1,4 @@
 import axios from 'axios';
-import fs from 'node:fs';
 import { validate } from 'uuid';
 import { logger, getCliOptions } from '../../../globals.js';
 import { setupQrsConnection } from './qrs.js';
@@ -19,8 +18,6 @@ export async function taskExistById(taskId, optionsParam) {
         } else {
             options = optionsParam;
         }
-
-        logger.debug(`Auth type: ${options.authType}`);
 
         // Is the task ID a valid GUID?
         if (!validate(taskId)) {

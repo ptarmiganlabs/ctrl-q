@@ -3,6 +3,8 @@ import { jest, test, expect, describe } from '@jest/globals';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getTask } from '../../../lib/cmd/qseow/gettask.js';
+import { getTaskAssertOptions } from '../../../lib/util/qseow/assert-options.js';
+import { logger } from '../../../globals.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
@@ -24,6 +26,8 @@ const options = {
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minute default timeout
 console.log(`Jest timeout: ${defaultTestTimeout}`);
 jest.setTimeout(defaultTestTimeout);
+
+const validTaskIdDoesNotExist = '123e4567-e89b-12d3-a456-426614174000';
 
 test('get tasks (verify parameters) ', async () => {
     expect(options.authCertFile).not.toHaveLength(0);
@@ -65,6 +69,32 @@ describe('get tasks as table (cert auth)', () => {
 
 // Test suite for task tree
 describe('get tasks as tree (cert auth)', () => {
+    test('get tasks as tree on screen, valid task ID that does not exist in Sense', async () => {
+        // Test assertion:
+        options.taskId = [validTaskIdDoesNotExist];
+        options.outputFormat = 'tree';
+        options.outputDest = 'screen';
+
+        // Remove taskType option if it exists
+        if (options.taskType) {
+            delete options.taskType;
+        }
+
+        // Mock logger.warn to capture console output
+        const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
+
+        // Should succeed, but with warning in console
+        const result = await getTaskAssertOptions(options);
+        expect(result).toBe(true);
+
+        // Was there a warning logged by the Winston logger?
+        expect(warnSpy).toHaveBeenCalled();
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Task with ID'));
+
+        // Restore the original implementation
+        warnSpy.mockRestore();
+    });
+
     test('get tasks as tree on screen, no detail columns, colored text', async () => {
         options.outputFormat = 'tree';
         options.outputDest = 'screen';
