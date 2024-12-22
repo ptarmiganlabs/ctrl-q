@@ -5,6 +5,7 @@ import { getCertFilePaths } from '../qseow/cert.js';
 import { getStreamById, getStreamByName } from '../qseow/stream.js';
 import { getAppById, getAppByName } from '../qseow/app.js';
 import { taskExistById } from './task.js';
+import { tagExistByName } from './tag.js';
 
 export const qseowSharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
@@ -186,7 +187,7 @@ export async function getTaskAssertOptions(options) {
             // Check if task tag exists
             const tagExists = await tagExistByName(taskTag, options);
             if (!tagExists) {
-                logger.warn(`Task tag "${taskTag}" does not exist in the Qlik Sense environment.`);
+                logger.warn(`Tag does not exist in the Qlik Sense environment:  "${taskTag}" `);
             }
         }
     }

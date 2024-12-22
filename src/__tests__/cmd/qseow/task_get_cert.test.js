@@ -95,6 +95,32 @@ describe('get tasks as tree (cert auth)', () => {
         warnSpy.mockRestore();
     });
 
+    test('get tasks as tree on screen, task tag that does not exist in Sense', async () => {
+        // Test assertion:
+        options.taskTag = ['tag_does_not_exist'];
+        options.outputFormat = 'tree';
+        options.outputDest = 'screen';
+
+        // Remove taskType option if it exists
+        if (options.taskType) {
+            delete options.taskType;
+        }
+
+        // Mock logger.warn to capture console output
+        const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
+
+        // Should succeed, but with warning in console
+        const result = await getTaskAssertOptions(options);
+        expect(result).toBe(true);
+
+        // Was there a warning logged by the Winston logger?
+        expect(warnSpy).toHaveBeenCalled();
+        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('Tag does not exist in the Qlik Sense environment'));
+
+        // Restore the original implementation
+        warnSpy.mockRestore();
+    });
+
     test('get tasks as tree on screen, no detail columns, colored text', async () => {
         options.outputFormat = 'tree';
         options.outputDest = 'screen';
