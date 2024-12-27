@@ -121,12 +121,49 @@ describe('get tasks as tree (cert auth)', () => {
         warnSpy.mockRestore();
     });
 
-    test('get tasks as tree on screen, no detail columns, colored text', async () => {
+    test('get all tasks as tree on screen, no detail columns, colored text', async () => {
         options.outputFormat = 'tree';
         options.outputDest = 'screen';
         options.treeDetails = '';
         options.treeIcons = true;
         options.textColor = 'yes';
+
+        const result = await getTask(options);
+        expect(result).toBe(true);
+    });
+
+    test('get some tasks (filtered by task id) as tree on screen, no detail columns, colored text', async () => {
+        options.outputFormat = 'tree';
+        options.outputDest = 'screen';
+        options.treeDetails = '';
+        options.treeIcons = true;
+        options.textColor = 'yes';
+        options.taskId = ['4174b1ec-0fd1-4cbe-8d47-0afe545d69bd'];
+
+        const result = await getTask(options);
+        expect(result).toBe(true);
+    });
+
+    test('get some tasks (filtered by task tag) as tree on screen, no detail columns, colored text', async () => {
+        options.outputFormat = 'tree';
+        options.outputDest = 'screen';
+        options.treeDetails = '';
+        options.treeIcons = true;
+        options.textColor = 'yes';
+        options.taskTag = ['Test data'];
+
+        const result = await getTask(options);
+        expect(result).toBe(true);
+    });
+
+    test('get some tasks (filtered by task id and tag) as tree on screen, no detail columns, colored text', async () => {
+        options.outputFormat = 'tree';
+        options.outputDest = 'screen';
+        options.treeDetails = '';
+        options.treeIcons = true;
+        options.textColor = 'yes';
+        options.taskTag = ['Test data'];
+        options.taskId = ['4174b1ec-0fd1-4cbe-8d47-0afe545d69bd'];
 
         const result = await getTask(options);
         expect(result).toBe(true);

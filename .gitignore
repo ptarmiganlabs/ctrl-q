@@ -133,25 +133,23 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Project specific files
 tasktree.json
 tasktable.csv
 task-chain.csv
 .vscode/launch.json
-.vscode/launch.json
+sea-prep.blob
 build.cjs
+build-sea.sh
+build
 ctrl-q
 a.json
 a1.csv
-build-sea.sh
-build
 certtest.js
 logcertfile
-sea-prep.blob
-.vscode/launch.json
-.vscode/launch.json
 certificate.p12
-.vscode/launch.json
 ctrl-q.exe
-.vscode/launch.json
 .test.env
-.vscode/launch.json
+src/lib/task/parse_reload_task copy.js
+testdata/~$tasks.xlsx

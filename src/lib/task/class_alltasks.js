@@ -3,18 +3,9 @@ import { v4 as uuidv4, validate } from 'uuid';
 
 import { logger } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
-import {
-    mapTaskType,
-    mapDaylightSavingTime,
-    mapEventType,
-    mapIncrementOption,
-    mapRuleState,
-    getTaskColumnPosFromHeaderRow,
-} from '../util/qseow/lookups.js';
 import { QlikSenseTask } from './class_task.js';
 import { QlikSenseSchemaEvents } from './class_allschemaevents.js';
 import { QlikSenseCompositeEvents } from './class_allcompositeevents.js';
-import { taskExistById, getTaskById } from '../util/qseow/task.js';
 import { catchLog } from '../util/log.js';
 import { getCertFilePaths } from '../util/qseow/cert.js';
 import { extParseReloadTask } from './parse_reload_task.js';
@@ -97,6 +88,55 @@ export class QlikSenseTasks {
         const newTask = new QlikSenseTask();
         await newTask.init(source, task, anonymizeTaskNames, this.options, this.fileCert, this.fileCertKey);
         this.taskList.push(newTask);
+    }
+
+    /**
+     * Recursively find root nodes in a node tree.
+     * Each node may have one or more upstream nodes.
+     * When there are no more upstream nodes, the node is a root node.
+     *
+     * Upstream nodes are found by following the edges in the task network.
+     * edge.to === node.id, then look at edge.from to find the upstream node id.
+     *
+     * After the final call to this function, the rootNodes array will contain all root nodes.
+     * There may be duplicates in the array, as the function does not check for duplicates.
+     * De-deplication should be done after the function has been called.
+     *
+     * @param {object} node - Node to start the search from.
+     * @returns {Array} Array of found root nodes.
+     */
+    findRootNodes(node) {
+        const rootNodes = [];
+        this.tmp = node;
+
+        try {
+            if (node.isTopLevelNode) {
+                rootNodes.push(node);
+            } else {
+                // This node is not a root node.
+                // Investigate upstream nodes.
+                const upstreamEdges = this.taskNetwork.edges.filter((edge) => edge.to === node.id);
+
+                for (const upstreamEdge of upstreamEdges) {
+                    const upstreamNode = this.taskNetwork.nodes.find((n) => n.id === upstreamEdge.from);
+                    // If the task network is correctly defined in nodes and edges, the upstream node should always be found.
+                    // If not, there is an error in the task network definition.
+                    if (upstreamNode === undefined) {
+                        logger.error(`UPSTREAM NODE NOT FOUND: ${upstreamEdge.from}`);
+                        continue;
+                    }
+
+                    const result = this.findRootNodes(upstreamNode);
+                    if (result.length > 0) {
+                        rootNodes.push(...result);
+                    }
+                }
+            }
+        } catch (err) {
+            catchLog('FIND ROOT NODES', err);
+        }
+
+        return rootNodes;
     }
 
     // Function to parse the rows associated with a specific reload task in the source file

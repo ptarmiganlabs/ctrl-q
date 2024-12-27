@@ -14,6 +14,9 @@ export async function extGetTasksFromQseow(_, logger) {
         if (_.options.getAllTasks === true) {
             // No task filters specified
             filter = '';
+        } else if (_.options.outputFormat === 'tree') {
+            // When visualising tasks as a tree, we need to get all tasks
+            filter = '';
         } else if (_.options.outputFormat !== 'tree') {
             // Are there any task filters specified?
             // If so, build a query string

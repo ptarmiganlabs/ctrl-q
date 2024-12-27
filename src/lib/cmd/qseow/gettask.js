@@ -121,7 +121,7 @@ export async function getTask(options) {
     // return outputTaskData(options, qlikSenseTasks, tags);
     let returnValue = false;
     if (options.outputFormat === 'tree') {
-        returnValue = await parseTree(options, qlikSenseTasks, tags);
+        returnValue = await parseTree(options, qlikSenseTasks);
     } else if (options.outputFormat === 'table') {
         returnValue = await parseTable(options, qlikSenseTasks, tags);
     }
@@ -670,21 +670,175 @@ async function parseTable(options, qlikSenseTasks, tags) {
  *
  * @param {object} options - CLI options that control the output and formatting.
  * @param {QlikSenseTasks} qlikSenseTasks - An instance of QlikSenseTasks containing task data.
- * @param {Array} tags - Array of tags associated with tasks.
- * @returns {Promise<boolean>} - Returns true if the task tree was successfully generated and output.
+ * @returns {Promise<boolean>} - Returns true if the task tree was successfully generated
+ * and output, false otherwise.
  */
 
-async function parseTree(options, qlikSenseTasks, tags) {
+async function parseTree(options, qlikSenseTasks) {
     let returnValue = false;
+
+    // Array to keep track of which nodes in task model to visualize
+    const nodesToVisualize = [];
 
     const taskModel = qlikSenseTasks.taskNetwork;
     let taskTree = [];
+
+    // Array to keep track of root nodes of task chains
+    let rootNodes = [];
+
+    // Are any task id filters specified?
+    // If so get all task chains the tasks are part of,
+    // then get the root nodes of each chain. They will be the starting points for the task tree.
+
+    // Start by checking if any task id filters are specified
+    if (options.taskId) {
+        // options.taskId is an array of task ids
+        // Get all matching tasks in task model
+        logger.verbose(`Task id filters specified: ${options.taskId}`);
+
+        const nodesFiltered = taskModel.nodes.filter((node) => {
+            if (options.taskId.includes(node.id)) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        // Method:
+        // 1. For each node in nodesFiltered, find its root node.
+        try {
+            // Did task filters result in any actual tasks/nodes?
+            if (nodesFiltered.length > 0) {
+                for (const node of nodesFiltered) {
+                    // node can be isolated, i.e. not part of a chain, or part of a chain
+                    // If isolated, it is by definition a root node
+                    // If part of a chain, it may or may not be a root node
+
+                    // Method to find root node:
+                    // 1. Check if node is a top level/root node. isTopLevelNode property is true for root nodes.
+                    // 2. Check if node has any upstream nodes.
+                    //    1. Recursively investigate upstream nodes until a root node is found.
+                    // 3. Save all found root nodes.
+
+                    // Is the node a root node?
+                    if (node.isTopLevelNode) {
+                        // Add the node to rootNodes
+                        rootNodes.push(node);
+                    } else {
+                        const tmpRootNodes = qlikSenseTasks.findRootNodes(node);
+                        rootNodes.push(...tmpRootNodes);
+                    }
+                }
+
+                // Set nodesToVisualize to root nodes
+                nodesToVisualize.push(...rootNodes);
+
+                logger.verbose(`Found ${rootNodes.length} root nodes in task model`);
+                // Log root node type, id and if available name
+                rootNodes.forEach((node) => {
+                    if (node.taskName) {
+                        logger.debug(`Root task: [${node.id}] - "${node.taskName}"`);
+                    } else if (node.metaNodeType) {
+                        logger.debug(`Root meta task: [${node.id}] - "${node.metaNodeType}"`);
+                    }
+                });
+            } else {
+                logger.warn('No tasks found matching the specified task id(s)/tag(s). Exiting.');
+                return false;
+            }
+        } catch (error) {
+            console.error(error);
+            console.error('Error in parseTree()');
+        }
+    }
+
+    // Any task tag filters specified?
+    if (options.taskTag) {
+        // Get all matching tasks in task model
+        logger.verbose(`Task tag filters specified: ${options.taskTag}`);
+
+        rootNodes = []; // Reset rootNodes array
+
+        const nodesFiltered = taskModel.nodes.filter((node) => {
+            // Are there any tags in this node?
+            if (!node.taskTags) {
+                return false;
+            }
+
+            if (node.taskTags.some((tag) => options.taskTag.includes(tag))) {
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        // Method:
+        // 1. For each node in nodesFiltered, find its root node.
+        try {
+            // Did task filters result in any actual tasks/nodes?
+            if (nodesFiltered.length > 0) {
+                for (const node of nodesFiltered) {
+                    // node can be isolated, i.e. not part of a chain, or part of a chain
+                    // If isolated, it is by definition a root node
+                    // If part of a chain, it may or may not be a root node
+
+                    // Method to find root node:
+                    // 1. Check if node is a top level/root node. isTopLevelNode property is true for root nodes.
+                    // 2. Check if node has any upstream nodes.
+                    //    1. Recursively investigate upstream nodes until a root node is found.
+                    // 3. Save all found root nodes.
+
+                    // Is the node a root node?
+                    if (node.isTopLevelNode) {
+                        // Add the node to rootNodes
+                        rootNodes.push(node);
+                    } else {
+                        const tmpRootNodes = qlikSenseTasks.findRootNodes(node);
+                        rootNodes.push(...tmpRootNodes);
+                    }
+                }
+
+                // Set nodesToVisualize to root nodes
+                nodesToVisualize.push(...rootNodes);
+
+                logger.verbose(`Found ${rootNodes.length} root nodes in task model`);
+                // Log root node type, id and if available name
+                rootNodes.forEach((node) => {
+                    if (node.taskName) {
+                        logger.debug(`Root task: [${node.id}] - "${node.taskName}"`);
+                    } else if (node.metaNodeType) {
+                        logger.debug(`Root meta task: [${node.id}] - "${node.metaNodeType}"`);
+                    }
+                });
+            } else {
+                logger.warn('No tasks found matching the specified task id(s)/tag(s). Exiting.');
+                return false;
+            }
+        } catch (error) {
+            console.error(error);
+            console.error('Error in parseTree()');
+        }
+    }
+
+    // If no task id or tag filters specified, visualize all nodes in task model
+    if (!options.taskId && !options.taskTag) {
+        // No task id filters specified
+        // Visualize all nodes in task model
+        logger.verbose('No task id or tag filters specified. Visualizing all nodes in task model.');
+
+        nodesToVisualize.push(...taskModel.nodes);
+    }
+
+    // De-duplicate nodesToVisualize array, using id as the key
+    const nodesToVisualizeUnique = nodesToVisualize.filter((node, index, self) => {
+        return index === self.findIndex((n) => n.id === node.id);
+    });
 
     // Get all tasks that have a schedule associated with them
     // Schedules are represented by "meta nodes" that are linked to the task node in Ctrl-Q's internal data model
     // There is one meta-node per schema trigger, meaning that a task with several schema triggers will have several top-level meta nodes.
     // We only want the task to show up once in the tree, so we have do de-duplicate the top level task nodes.
-    const topLevelTasksWithSchemaTriggers = taskModel.nodes.filter((node) => {
+    const topLevelTasksWithSchemaTriggers = nodesToVisualizeUnique.filter((node) => {
         if (node.metaNode && node.metaNodeType === 'schedule') {
             return true;
         }
@@ -765,13 +919,13 @@ async function parseTree(options, qlikSenseTasks, tags) {
 
     // Add new top level node with clock/scheduler emoji, if tree icons are enabled
     if (options.treeIcons) {
-        taskTree = [{ text: '⏰ --==| Scheduled tasks |==--', children: taskTree }];
+        taskTree = [{ text: '⏰ --==| Scheduled tasks |==--', children: taskTree, isTreeLabel: true }];
     } else {
-        taskTree = [{ text: '--==| Scheduled tasks |==--', children: taskTree }];
+        taskTree = [{ text: '--==| Scheduled tasks |==--', children: taskTree, isTreeLabel: true }];
     }
 
     // Add unscheduled tasks that are also top level tasks.
-    const unscheduledTasks = qlikSenseTasks.taskNetwork.nodes.filter((node) => {
+    const unscheduledTasks = nodesToVisualizeUnique.filter((node) => {
         if (!node.metaNode && node.isTopLevelNode) {
             const a = !taskTree.some((el) => {
                 const b = el.taskId === node.id;
@@ -811,7 +965,18 @@ async function parseTree(options, qlikSenseTasks, tags) {
     // Output task tree to correct destination
     if (options.outputDest === 'screen') {
         logger.info(``);
-        logger.info(`# top-level rows in tree: ${taskTree.length}`);
+        // Calculate number of top-level nodes in tree. This is the sum of:
+        // - For all nodes where isTreeLabel is true, count number of children
+        // - Number of root nodes where isTreeLabel is false or undefined
+        let topLevelNodeCount = 0;
+        for (const node of taskTree) {
+            if (node.isTreeLabel) {
+                topLevelNodeCount += node.children.length;
+            } else {
+                topLevelNodeCount += 1;
+            }
+        }
+        logger.info(`# top-level rows in tree: ${topLevelNodeCount}`);
         logger.info(`\n${tree(taskTree)}`);
         returnValue = true;
     } else if (options.outputDest === 'file') {
