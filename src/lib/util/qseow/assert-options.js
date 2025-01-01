@@ -3,7 +3,7 @@ import { version as uuidVersion, validate as uuidValidate } from 'uuid';
 import { logger, execPath, verifyFileSystemExists } from '../../../globals.js';
 import { getCertFilePaths } from '../qseow/cert.js';
 import { getStreamById, getStreamByName } from '../qseow/stream.js';
-import { getAppById, getAppByName } from '../qseow/app.js';
+import { getAppById, getAppByName, appExistById } from '../qseow/app.js';
 import { taskExistById } from './task.js';
 import { tagExistByName } from './tag.js';
 
@@ -149,6 +149,81 @@ export const getBookmarkAssertOptions = (options) => {
 };
 
 /**
+ * Assert options for qseow task-vis command.
+ *
+ * @param {object} options - Command line options
+ *
+ * @returns {boolean} - True if options are valid, false otherwise.
+ */
+export async function visTaskAssertOptions(options) {
+    // Verify all task IDs are valid uuids
+    // Warn if they do not exist in the Qlik Sense environment
+    if (options.taskId) {
+        for (const taskId of options.taskId) {
+            if (!uuidValidate(taskId)) {
+                logger.warn(`Invalid format of task ID parameter "${taskId}".`);
+                return false;
+            } else {
+                logger.verbose(`Task id "${taskId}" is a valid uuid version ${uuidVersion(taskId)}`);
+            }
+
+            // Check if task exists as any task type
+            // Warn if task with given ID does not exist, but do not return false
+            const task = await taskExistById(taskId, options);
+            if (!task) {
+                logger.warn(`Task with ID ${taskId} does not exist in the Qlik Sense environment.`);
+            }
+        }
+    }
+
+    // Verify all task tags are valid
+    // Warn if they do not exist in the Qlik Sense environment
+    if (options.taskTag) {
+        for (const taskTag of options.taskTag) {
+            // Check if task tag exists
+            const tagExists = await tagExistByName(taskTag, options);
+            if (!tagExists) {
+                logger.warn(`Tag does not exist in the Qlik Sense environment: "${taskTag}" `);
+            }
+        }
+    }
+
+    // Verify all app IDs are valid uuids
+    // Warn if they do not exist in the Qlik Sense environment
+    if (options.appId) {
+        for (const appId of options.appId) {
+            if (!uuidValidate(appId)) {
+                logger.warn(`Invalid format of app ID parameter "${appId}".`);
+                return false;
+            } else {
+                logger.verbose(`App id "${appId}" is a valid uuid version ${uuidVersion(appId)}`);
+            }
+
+            // Check if app exists
+            // Warn if app with given ID does not exist, but do not return false
+            const app = await appExistById(appId, options);
+            if (!app) {
+                logger.warn(`App with ID "${appId}" does not exist in the Qlik Sense environment.`);
+            }
+        }
+    }
+
+    // Verify all app tags are valid
+    // Warn if they do not exist in the Qlik Sense environment
+    if (options.appTag) {
+        for (const appTag of options.appTag) {
+            // Check if app tag exists
+            const tagExists = await tagExistByName(appTag, options);
+            if (!tagExists) {
+                logger.warn(`Tag does not exist in the Qlik Sense environment: "${appTag}" `);
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
  * Assert options for qseow get-task command.
  *
  * @param {object} options - CLI options that control the output and formatting.
@@ -163,17 +238,16 @@ export async function getTaskAssertOptions(options) {
     if (options.taskId) {
         for (const taskId of options.taskId) {
             if (!uuidValidate(taskId)) {
-                logger.error(`Invalid format of task ID parameter "${taskId}". Exiting.`);
-                process.exit(1);
+                logger.warn(`Invalid format of task ID parameter "${taskId}".`);
+                return false;
             } else {
                 logger.verbose(`Task id "${taskId}" is a valid uuid version ${uuidVersion(taskId)}`);
             }
 
             // Check if task exists as any task type
-            // Returns true if task exists, false if it does not or an error occurred
-            // Warn if task with given ID does not exist
+            // Warn if task with given ID does not exist, but do not return false
             const task = await taskExistById(taskId, options);
-            if (task === false) {
+            if (!task) {
                 logger.warn(`Task with ID "${taskId}" does not exist in the Qlik Sense environment.`);
             }
         }
@@ -187,7 +261,7 @@ export async function getTaskAssertOptions(options) {
             // Check if task tag exists
             const tagExists = await tagExistByName(taskTag, options);
             if (!tagExists) {
-                logger.warn(`Tag does not exist in the Qlik Sense environment:  "${taskTag}" `);
+                logger.warn(`Tag does not exist in the Qlik Sense environment: "${taskTag}" `);
             }
         }
     }

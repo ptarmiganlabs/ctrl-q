@@ -1,13 +1,17 @@
 import { catchLog } from '../util/log.js';
-import {
-    mapTaskType,
-    mapDaylightSavingTime,
-    mapEventType,
-    mapIncrementOption,
-    mapRuleState,
-    getTaskColumnPosFromHeaderRow,
-} from '../util/qseow/lookups.js';
+import { mapRuleState } from '../util/qseow/lookups.js';
 
+/**
+ * Function to get a subtree of a task tree from a given task.
+ *
+ * @param {object} _ - QlikSenseTasks object. Corresponds to the 'this' keyword in a class.
+ * @param {object} task - Task object
+ * @param {number} parentTreeLevel - Tree level of the parent task
+ * @param {object} parentTask - Parent task object
+ * @param {object} logger - Logger object
+ *
+ * @returns {array} Array of task objects in the subtree
+ */
 export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) {
     try {
         const self = _;
@@ -19,8 +23,8 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
         // Were we called from top-level?
         if (parentTreeLevel === 0) {
             // Set up new data structure for detecting cicrular task trees
-            _.taskTreeCyclicVisited = new Set();
-            _.taskTreeStack = new Set();
+            _.taskCyclicVisited = new Set();
+            _.taskCyclicStack = new Set();
         }
 
         const newTreeLevel = parentTreeLevel + 1;
@@ -135,21 +139,22 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
             return validDownstreamTasks.find((a) => a.downstreamTask.id === id);
         });
 
-        for (const validDownstreamTask of uniqueDownstreamTasks) {
-            //
-            if (_.taskTreeStack.has(validDownstreamTask.downstreamTask.id)) {
+        for (const uniqueDownstreamTask of uniqueDownstreamTasks) {
+            if (_.taskCyclicStack.has(uniqueDownstreamTask.downstreamTask.id)) {
                 // Cyclic dependency detected
                 if (parentTask) {
                     // Log warning
                     logger.warn(`Cyclic dependency detected in task tree. Won't go deeper.`);
-                    logger.warn(`   From task : ${validDownstreamTask.sourceTask.taskName}`);
-                    logger.warn(`   To task   : ${validDownstreamTask.downstreamTask.taskName}`);
+                    logger.warn(`   From task : [${uniqueDownstreamTask.sourceTask.id}] "${uniqueDownstreamTask.sourceTask.taskName}"`);
+                    logger.warn(
+                        `   To task   : [${uniqueDownstreamTask.downstreamTask.id}] "${uniqueDownstreamTask.downstreamTask.taskName}"`
+                    );
 
                     // Add node indicating cyclic dependency
                     kids = kids.concat([
                         {
                             id: task.id,
-                            text: ` ==> !!! Cyclic dependency detected from task "${validDownstreamTask.sourceTask.taskName}" to "${validDownstreamTask.downstreamTask.taskName}"`,
+                            text: ` ==> !!! Cyclic dependency detected from task "${uniqueDownstreamTask.sourceTask.taskName}" to "${uniqueDownstreamTask.downstreamTask.taskName}"`,
                         },
                     ]);
                 } else {
@@ -157,9 +162,15 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
                     logger.warn(`Cyclic dependency detected in task tree. No parent task detected. Won't go deeper.`);
                 }
             } else {
-                _.taskTreeStack.add(validDownstreamTask.downstreamTask.id);
-                const tmp3 = extGetTaskSubTree(_, validDownstreamTask.downstreamTask, newTreeLevel, validDownstreamTask.sourceTask, logger);
-                _.taskTreeStack.delete(validDownstreamTask.downstreamTask.id);
+                _.taskCyclicStack.add(uniqueDownstreamTask.downstreamTask.id);
+                const tmp3 = extGetTaskSubTree(
+                    _,
+                    uniqueDownstreamTask.downstreamTask,
+                    newTreeLevel,
+                    uniqueDownstreamTask.sourceTask,
+                    logger
+                );
+                _.taskCyclicStack.delete(uniqueDownstreamTask.downstreamTask.id);
                 kids = kids.concat(tmp3);
             }
         }

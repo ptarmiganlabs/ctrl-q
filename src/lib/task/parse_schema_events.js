@@ -1,3 +1,5 @@
+import { mapIncrementOption, mapEventType, mapDaylightSavingTime } from '../util/qseow/lookups.js';
+
 export function extParseSchemaEvents(_, param, logger) {
     // Get schema events for this task, storing the info using the same structure as returned from QRS API
     const prelSchemaEvents = [];

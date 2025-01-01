@@ -138,7 +138,7 @@ export async function extGetTaskModelFromQseow(_, logger) {
                 // This trigger has exactly ONE upstream task
                 // For triggers with >1 upstream task we want an extra meta node to represent the waiting of all upstream tasks to finish
                 if (validate(compositeEvent.compositeEvent.compositeRules[0]?.reloadTask?.id)) {
-                    logger.verbose(
+                    logger.debug(
                         `Composite event "${compositeEvent.compositeEvent.name}" has a reload task triggered by reload task with ID=${compositeEvent.compositeEvent.compositeRules[0].reloadTask.id}.`
                     );
 
@@ -162,7 +162,7 @@ export async function extGetTaskModelFromQseow(_, logger) {
                     nodesWithEvents.add(compositeEvent.compositeEvent.compositeRules[0].reloadTask.id);
                     nodesWithEvents.add(compositeEvent.compositeEvent.reloadTask.id);
                 } else if (validate(compositeEvent.compositeEvent.compositeRules[0]?.externalProgramTask?.id)) {
-                    logger.verbose(
+                    logger.debug(
                         `Composite event "${compositeEvent?.compositeEvent?.name}" has a reload task triggered by external program task with ID=${compositeEvent.compositeEvent.compositeRules[0]?.externalProgramTask?.id}.`
                     );
 
@@ -189,7 +189,7 @@ export async function extGetTaskModelFromQseow(_, logger) {
             } else {
                 // There are more than one task involved in triggering a downstream task.
                 // Insert a proxy node that represents a Qlik Sense composite event
-                logger.verbose(
+                logger.debug(
                     `Composite event "${compositeEvent?.compositeEvent?.name}" is triggerer by ${compositeEvent?.compositeEvent?.compositeRules.length} upstream tasks.`
                 );
 
@@ -269,10 +269,10 @@ export async function extGetTaskModelFromQseow(_, logger) {
             } else if (compositeEvent.compositeEvent.compositeRules.length === 1) {
                 // This trigger has exactly ONE upstream task
                 // For triggers with >1 upstream task we want an extra meta node to represent the waiting of all upstream tasks to finish
-                logger.verbose(`Composite event "${compositeEvent.compositeEvent.name}" has exactly one upstream task.`);
+                logger.debug(`Composite event "${compositeEvent.compositeEvent.name}" has exactly one upstream task.`);
 
                 if (validate(compositeEvent.compositeEvent.compositeRules[0]?.reloadTask?.id)) {
-                    logger.verbose(
+                    logger.debug(
                         `Composite event "${compositeEvent?.compositeEvent?.name}" has an external program task triggered by reload task with ID=${compositeEvent.compositeEvent.compositeRules[0]?.reloadTask?.id}.`
                     );
 
@@ -295,7 +295,7 @@ export async function extGetTaskModelFromQseow(_, logger) {
                     nodesWithEvents.add(compositeEvent.compositeEvent.compositeRules[0].reloadTask.id);
                     nodesWithEvents.add(compositeEvent.compositeEvent.externalProgramTask.id);
                 } else if (validate(compositeEvent.compositeEvent.compositeRules[0]?.externalProgramTask?.id)) {
-                    logger.verbose(
+                    logger.debug(
                         `Composite event "${compositeEvent.compositeEvent.name}" has an external program task triggered by external program task with ID=${compositeEvent.compositeEvent.compositeRules[0].externalProgramTask.id}.`
                     );
 

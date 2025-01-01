@@ -270,7 +270,20 @@ export async function publishApp(appId, appName, streamId, options) {
     }
 }
 
-// Check if an app with a given id exists
+/**
+ * Checks if an app exists in QSEoW by its ID.
+ *
+ * Validates the provided app ID and queries the QSEoW to check if an app
+ * with the specified ID exists. If the app exists and is unique, returns true.
+ * If the app ID is not valid or if more than one app is found with the same ID,
+ * an error is logged and false is returned. If an error occurs during the process,
+ * it is caught, logged, and false is returned.
+ *
+ * @param {string} appId - The ID of the app to check.
+ * @param {object} options - Command line options for QSEoW connection.
+ * @returns {Promise<boolean>} - True if the app exists and is unique, false otherwise or if an error occured.
+ */
+
 export async function appExistById(appId, options) {
     try {
         logger.debug(`Checking if app with id ${appId} exists in QSEoW`);

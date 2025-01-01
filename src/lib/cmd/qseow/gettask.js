@@ -683,143 +683,6 @@ async function parseTree(options, qlikSenseTasks) {
     const taskModel = qlikSenseTasks.taskNetwork;
     let taskTree = [];
 
-    // Array to keep track of root nodes of task chains
-    let rootNodes = [];
-
-    // Are any task id filters specified?
-    // If so get all task chains the tasks are part of,
-    // then get the root nodes of each chain. They will be the starting points for the task tree.
-
-    // Start by checking if any task id filters are specified
-    if (options.taskId) {
-        // options.taskId is an array of task ids
-        // Get all matching tasks in task model
-        logger.verbose(`Task id filters specified: ${options.taskId}`);
-
-        const nodesFiltered = taskModel.nodes.filter((node) => {
-            if (options.taskId.includes(node.id)) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-
-        // Method:
-        // 1. For each node in nodesFiltered, find its root node.
-        try {
-            // Did task filters result in any actual tasks/nodes?
-            if (nodesFiltered.length > 0) {
-                for (const node of nodesFiltered) {
-                    // node can be isolated, i.e. not part of a chain, or part of a chain
-                    // If isolated, it is by definition a root node
-                    // If part of a chain, it may or may not be a root node
-
-                    // Method to find root node:
-                    // 1. Check if node is a top level/root node. isTopLevelNode property is true for root nodes.
-                    // 2. Check if node has any upstream nodes.
-                    //    1. Recursively investigate upstream nodes until a root node is found.
-                    // 3. Save all found root nodes.
-
-                    // Is the node a root node?
-                    if (node.isTopLevelNode) {
-                        // Add the node to rootNodes
-                        rootNodes.push(node);
-                    } else {
-                        const tmpRootNodes = qlikSenseTasks.findRootNodes(node);
-                        rootNodes.push(...tmpRootNodes);
-                    }
-                }
-
-                // Set nodesToVisualize to root nodes
-                nodesToVisualize.push(...rootNodes);
-
-                logger.verbose(`Found ${rootNodes.length} root nodes in task model`);
-                // Log root node type, id and if available name
-                rootNodes.forEach((node) => {
-                    if (node.taskName) {
-                        logger.debug(`Root task: [${node.id}] - "${node.taskName}"`);
-                    } else if (node.metaNodeType) {
-                        logger.debug(`Root meta task: [${node.id}] - "${node.metaNodeType}"`);
-                    }
-                });
-            } else {
-                logger.warn('No tasks found matching the specified task id(s)/tag(s). Exiting.');
-                return false;
-            }
-        } catch (error) {
-            console.error(error);
-            console.error('Error in parseTree()');
-        }
-    }
-
-    // Any task tag filters specified?
-    if (options.taskTag) {
-        // Get all matching tasks in task model
-        logger.verbose(`Task tag filters specified: ${options.taskTag}`);
-
-        rootNodes = []; // Reset rootNodes array
-
-        const nodesFiltered = taskModel.nodes.filter((node) => {
-            // Are there any tags in this node?
-            if (!node.taskTags) {
-                return false;
-            }
-
-            if (node.taskTags.some((tag) => options.taskTag.includes(tag))) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-
-        // Method:
-        // 1. For each node in nodesFiltered, find its root node.
-        try {
-            // Did task filters result in any actual tasks/nodes?
-            if (nodesFiltered.length > 0) {
-                for (const node of nodesFiltered) {
-                    // node can be isolated, i.e. not part of a chain, or part of a chain
-                    // If isolated, it is by definition a root node
-                    // If part of a chain, it may or may not be a root node
-
-                    // Method to find root node:
-                    // 1. Check if node is a top level/root node. isTopLevelNode property is true for root nodes.
-                    // 2. Check if node has any upstream nodes.
-                    //    1. Recursively investigate upstream nodes until a root node is found.
-                    // 3. Save all found root nodes.
-
-                    // Is the node a root node?
-                    if (node.isTopLevelNode) {
-                        // Add the node to rootNodes
-                        rootNodes.push(node);
-                    } else {
-                        const tmpRootNodes = qlikSenseTasks.findRootNodes(node);
-                        rootNodes.push(...tmpRootNodes);
-                    }
-                }
-
-                // Set nodesToVisualize to root nodes
-                nodesToVisualize.push(...rootNodes);
-
-                logger.verbose(`Found ${rootNodes.length} root nodes in task model`);
-                // Log root node type, id and if available name
-                rootNodes.forEach((node) => {
-                    if (node.taskName) {
-                        logger.debug(`Root task: [${node.id}] - "${node.taskName}"`);
-                    } else if (node.metaNodeType) {
-                        logger.debug(`Root meta task: [${node.id}] - "${node.metaNodeType}"`);
-                    }
-                });
-            } else {
-                logger.warn('No tasks found matching the specified task id(s)/tag(s). Exiting.');
-                return false;
-            }
-        } catch (error) {
-            console.error(error);
-            console.error('Error in parseTree()');
-        }
-    }
-
     // If no task id or tag filters specified, visualize all nodes in task model
     if (!options.taskId && !options.taskTag) {
         // No task id filters specified
@@ -827,6 +690,18 @@ async function parseTree(options, qlikSenseTasks) {
         logger.verbose('No task id or tag filters specified. Visualizing all nodes in task model.');
 
         nodesToVisualize.push(...taskModel.nodes);
+    } else {
+        // Task id filters specified.
+        // Get all task chains the tasks are part of,
+        // then get the root nodes of each chain. They will be the starting points for the task tree.
+
+        // Array to keep track of root nodes of task chains
+        const rootNodes = await qlikSenseTasks.getRootNodesFromFilter();
+
+        // Set nodesToVisualize to root nodes, if there are any
+        if (rootNodes) {
+            nodesToVisualize.push(...rootNodes);
+        }
     }
 
     // De-duplicate nodesToVisualize array, using id as the key

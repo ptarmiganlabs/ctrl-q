@@ -12,11 +12,14 @@ import { extParseReloadTask } from './parse_reload_task.js';
 import { extParseExternalProgramTask } from './parse_ext_program_task.js';
 import { extGetTaskModelFromQseow } from './get_task_model_from_qseow.js';
 import { extGetTasksFromQseow } from './get_tasks_from_qseow.js';
+import { extGetTaskSubGraph } from './get_task_sub_graph.js';
 import { extGetTaskSubTree } from './get_task_sub_tree.js';
 import { extGetTaskSubTable } from './get_task_sub_table.js';
 import { extParseSchemaEvents } from './parse_schema_events.js';
 import { extGetTaskModelFromFile } from './get_task_model_from_file.js';
 import { extSaveTaskModelToQseow } from './save_task_model_to_qseow.js';
+import { extGetRootNodesFromFilter } from './get_root_nodes_from_filter.js';
+import { extFindRootNodes } from './find_root_nodes.js';
 
 export class QlikSenseTasks {
     constructor() {
@@ -34,8 +37,12 @@ export class QlikSenseTasks {
             // Map that will map fake task IDs (used in source file) with real task IDs after tasks have been created in Sense
             this.taskIdMap = new Map();
 
-            // Data structure to keep track of which up-tree nodes a node is connected to in a task tree
-            this.taskTreeCyclicVisited = new Set();
+            // Data structure to keep track of which up-tree nodes a node is connected to in a task tree or network
+            this.taskCyclicVisited = new Set();
+            this.taskCyclicStack = new Set();
+
+            // Data structure to keep track of which nodes have been visited when looking for root nodes
+            this.nodeRootCyclicVisited = new Set();
 
             if (options.authType === 'cert') {
                 // Get certificate paths
@@ -59,11 +66,11 @@ export class QlikSenseTasks {
     // Function to determine if a task tree is cyclic
     // Uses a depth-first search algorithm to determine if a task tree is cyclic
     isTaskTreeCyclic(task) {
-        if (this.taskTreeCyclicVisited.has(task)) {
+        if (this.taskCyclicVisited.has(task)) {
             return true;
         }
 
-        this.taskTreeCyclicVisited.add(task);
+        this.taskCyclicVisited.add(task);
 
         return false;
     }
@@ -106,37 +113,25 @@ export class QlikSenseTasks {
      * @returns {Array} Array of found root nodes.
      */
     findRootNodes(node) {
-        const rootNodes = [];
-        this.tmp = node;
+        const result = extFindRootNodes(this, node, logger);
 
-        try {
-            if (node.isTopLevelNode) {
-                rootNodes.push(node);
-            } else {
-                // This node is not a root node.
-                // Investigate upstream nodes.
-                const upstreamEdges = this.taskNetwork.edges.filter((edge) => edge.to === node.id);
+        // logger.verbose(`Root node count: ${result.length}`);
+        // Log root node and name
+        // for (const rootNode of result) {
+        //     // Meta node?
+        //     if (rootNode.metaNode === true) {
+        //         // Reload task?
+        //         if (rootNode.taskType === 'reloadTask') {
+        //             logger.verbose(
+        //                 `Meta node: metanode type=${rootNode.metaNodeType} id=[${rootNode.id}] task type=${rootNode.taskType} task name="${rootNode.completeSchemaEvent.reloadTask.name}"`
+        //             );
+        //         }
+        //     } else {
+        //         logger.verbose(`Root node: [${rootNode.id}] "${rootNode.taskName}"`);
+        //     }
+        // }
 
-                for (const upstreamEdge of upstreamEdges) {
-                    const upstreamNode = this.taskNetwork.nodes.find((n) => n.id === upstreamEdge.from);
-                    // If the task network is correctly defined in nodes and edges, the upstream node should always be found.
-                    // If not, there is an error in the task network definition.
-                    if (upstreamNode === undefined) {
-                        logger.error(`UPSTREAM NODE NOT FOUND: ${upstreamEdge.from}`);
-                        continue;
-                    }
-
-                    const result = this.findRootNodes(upstreamNode);
-                    if (result.length > 0) {
-                        rootNodes.push(...result);
-                    }
-                }
-            }
-        } catch (err) {
-            catchLog('FIND ROOT NODES', err);
-        }
-
-        return rootNodes;
+        return result;
     }
 
     // Function to parse the rows associated with a specific reload task in the source file
@@ -291,6 +286,11 @@ export class QlikSenseTasks {
         return result;
     }
 
+    async getTaskSubGraph(node, parentTreeLevel, parentNode) {
+        const result = extGetTaskSubGraph(this, node, parentTreeLevel, parentNode, logger);
+        return result;
+    }
+
     async getTaskSubTree(task, parentTreeLevel, parentTask) {
         const result = extGetTaskSubTree(this, task, parentTreeLevel, parentTask, logger);
         return result;
@@ -321,5 +321,88 @@ export class QlikSenseTasks {
     async getTaskModelFromQseow() {
         const result = await extGetTaskModelFromQseow(this, logger);
         return result;
+    }
+
+    /**
+     * Returns an array of root nodes in the task network.
+     *
+     * Method:
+     * 1. Use various task and app filters specified in CLI options to get a list of tasks to consider.
+     * 2. For each task, check if it has any upstream dependencies.
+     * 3. If it does not have any upstream dependencies, it is a root node.
+     * 4. If it has upstream dependencies, it is not a root node. Continue to the next upstream node.
+     * 5. Repeat until all upstream nodes have been checked.
+     * 6. Return an array of root nodes.
+     *
+     * Root nodes are tasks or metatasks that have no upstream dependencies.
+     * In other words, they are not triggered by any other tasks.
+     *
+     * @param {Array<Object>} tasks List of tasks to consider
+     * @param {Array<Object>} apps List of apps to consider
+     * @returns {Promise<Array<Object>>} An array of root nodes in the task network, or false if an error occurred
+     */
+    async getRootNodesFromFilter() {
+        const result = await extGetRootNodesFromFilter(this, logger);
+        return result;
+    }
+
+    /**
+     * Extract nodes and edges starting from the provided root nodes.
+     * This function processes the root nodes to identify all connected nodes and edges,
+     * effectively building a subgraph starting from these root nodes.
+     *
+     * While doing this, make sure to
+     * - De-duplicate nodes where applicable. Node id is unique, but may appear at different places in the task network.
+     * - Keep track of edges between nodes and store them in edgesToVisualize
+     * - Store nodes in nodesToVisualize
+     * - Detect cyclic dependencies. Log warning if detected.
+     * - Detect identical, duplicate edges between nodes. Log warning if detected.
+     *
+     * @param {Array} rootNodes - An array of root node objects from which the extraction begins.
+     * @returns {Promise<object>} - A promise that resolves to an object containing the nodes and edges.
+     * Object properties:
+     *   - nodes: Array of nodes,
+     *   - edges: Array of edges
+     */
+    async getNodesAndEdgesFromRootNodes(rootNodes) {
+        // De-duplicate root nodes
+        const uniqueRootNodes = rootNodes.filter((node, index, self) => {
+            return index === self.findIndex((t) => t.id === node.id);
+        });
+
+        // Initialize arrays to store nodes and edges
+        let nodesFound = [];
+        let edgesFound = [];
+        let tasksFound = [];
+
+        // Extract nodes and edges from root nodes
+        for (const rootNode of uniqueRootNodes) {
+            const subGraph = await this.getTaskSubGraph(rootNode, 0, null);
+            // Ensure subgraph is not empty
+            if (!subGraph) {
+                logger.verbose(`No subgraph found for root node ${rootNode.id}.`);
+                continue;
+            }
+            nodesFound.push(...subGraph.nodes);
+            edgesFound.push(...subGraph.edges);
+            tasksFound.push(...subGraph.tasks);
+        }
+
+        // De-duplicate nodes using node id
+        nodesFound = nodesFound.filter((node, index, self) => {
+            return index === self.findIndex((t) => t.id === node.id);
+        });
+
+        // De-duplicate tasks using task id
+        tasksFound = tasksFound.filter((task, index, self) => {
+            return (
+                index ===
+                self.findIndex((t) => {
+                    return t.taskId === task.taskId;
+                })
+            );
+        });
+
+        return { nodes: nodesFound, edges: edgesFound, tasks: tasksFound };
     }
 }

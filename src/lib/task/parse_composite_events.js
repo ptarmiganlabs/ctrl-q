@@ -1,3 +1,5 @@
+import { mapTaskType, mapRuleState, mapEventType } from '../util/qseow/lookups.js';
+
 export async function extParseCompositeEvents(_, param, logger) {
     // Get all composite events for this task
     //
