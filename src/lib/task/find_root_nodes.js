@@ -1,3 +1,5 @@
+import { catchLog } from '../util/log.js';
+
 export function extFindRootNodes(_, node, logger, visitedNodes = new Set()) {
     const rootNodes = [];
 

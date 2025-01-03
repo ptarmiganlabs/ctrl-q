@@ -28,7 +28,6 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
         // Were we called from top-level?
         if (parentTreeLevel === 0) {
             // Set up new data structure for detecting cicrular task chains
-            _.taskCyclicVisited = new Set();
             _.taskCyclicStack = new Set();
         }
 
@@ -59,39 +58,29 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
         }
 
         // Does this node have any downstream connections?
-        const edgesDownstreamNode = _.taskNetwork.edges.filter((edge) => edge.from === node.id);
-
-        // For each downstream node, store objects with properties
-        // - node: the current node
-        // - edge: the edge between the current node and the downstream node (if there is one/are any)
-        // let kids = [];
+        const edgesToDownstreamNodes = _.taskNetwork.edges.filter((edge) => edge.from === node.id);
 
         // Keep track of downstream nodes and their associated edge from the current node
         // Array of objects with properties
         // - sourceNode: Current node object
-        // - edgeDownstreamNode: Downstream node object
+        // - downstreamNode: Downstream node object
         // - edge: Edge object between sourceNode and edgeDownstreamNode
         const validDownstreamNodes = [];
-        for (const edgeDownstreamNode of edgesDownstreamNode) {
+        for (const edgeToDownstreamNode of edgesToDownstreamNodes) {
             logger.debug(
-                `GET TASK SUBGRAPH: Processing downstream node: ${edgeDownstreamNode.to}. Current/source node: ${edgeDownstreamNode.from}`
+                `GET TASK SUBGRAPH: Processing downstream node: ${edgeToDownstreamNode.to}. Current/source node: ${edgeToDownstreamNode.from}`
             );
-            if (edgeDownstreamNode.to !== undefined) {
+            if (edgeToDownstreamNode.to !== undefined) {
                 // Get downstream node object
-                const tmp = _.taskNetwork.nodes.find((el) => el.id === edgeDownstreamNode.to);
+                const downstreamNode = _.taskNetwork.nodes.find((el) => el.id === edgeToDownstreamNode.to);
 
-                if (!tmp) {
+                if (!downstreamNode) {
                     logger.warn(
-                        `Downstream node "${edgeDownstreamNode.to}" in task network not found. Current/source node: ${edgeDownstreamNode.from}`
+                        `Downstream node "${edgeToDownstreamNode.to}" in task network not found. Current/source node: ${edgeToDownstreamNode.from}`
                     );
-                    // kids = [
-                    //     {
-                    //         id: task.id,
-                    //     },
-                    // ];
                 } else {
                     // Keep track of this downstream node and the associated edge
-                    validDownstreamNodes.push({ sourceNode: node, edgeDownstreamNode: tmp, edge: edgeDownstreamNode });
+                    validDownstreamNodes.push({ sourceNode: node, downstreamNode: downstreamNode, edge: edgeToDownstreamNode });
 
                     // Don't check for cyclic task relationships yet, as that could trigger if two or more sibling tasks are triggered from the same source task.
                 }
@@ -102,7 +91,7 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
         // Examples are cyclic task tree relationships, multiple downstream tasks with the same ID etc.
 
         // Check for downstream nodes with the same ID and same relationship with parent node (e.g. on-success or on-failure)
-        // edgesDownstreamNode is an array of all downstream nodes from the current node. Properties are (the ones relevant here)
+        // edgesToDownstreamNodes is an array of all downstream nodes from the current node. Properties are (the ones relevant here)
         // - from: Source node ID
         // - fromTaskType: Source node type. "Reload" or "ExternalProgram"
         // - to: Destination node ID
@@ -115,15 +104,15 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
         // The relationship is the same if rule.ruleState is the same for two downstream nodes with the same ID.
         // If there are, log a warning.
         const duplicateDownstreamNodes = [];
-        for (const edgeDownstreamNode of edgesDownstreamNode) {
+        for (const edgeToDownstreamNode of edgesToDownstreamNodes) {
             // Are there any rules?
-            // edgeDownstreamNode.rule is an array of rules. Properties are
+            // edgeToDownstreamNode.rule is an array of rules. Properties are
             // - id: Rule ID
             // - ruleState: Rule state/type. 1 = TaskSuccessful, 2 = TaskFail. mapRuleState.get(ruleState) gives the string representation of the rule state, given the number.
-            if (edgeDownstreamNode.rule) {
+            if (edgeToDownstreamNode.rule) {
                 // Filter out downstream nodes with the same ID and the same rule state
-                const tmp = edgesDownstreamNode.filter((el) => {
-                    const sameDest = el.to === edgeDownstreamNode.to;
+                const tmp = edgesToDownstreamNodes.filter((el) => {
+                    const sameDest = el.to === edgeToDownstreamNode.to;
 
                     // Same rule state?
                     // el.rule can be either an array or an object. If it's an object, convert it to an array.
@@ -131,9 +120,9 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
                         el.rule = [el.rule];
                     }
 
-                    // Is one of the rule's ruleState properties the same as one or more of edgeDownstreamNode.rule[].ruleState?
+                    // Is one of the rule's ruleState properties the same as one or more of edgeToDownstreamNode.rule[].ruleState?
                     const sameRuleState = el.rule.some((rule) => {
-                        return edgeDownstreamNode.rule.some((rule2) => {
+                        return edgeToDownstreamNode.rule.some((rule2) => {
                             return rule.ruleState === rule2.ruleState;
                         });
                     });
@@ -143,7 +132,7 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
 
                 if (tmp.length > 1) {
                     // Look up current and downstream node objects
-                    const currentNode = _.taskNetwork.nodes.find((el) => el.id === task.id);
+                    const currentNode = _.taskNetwork.nodes.find((el) => el.id === edgeToDownstreamNode.from);
                     const edgeDownstreamNode = _.taskNetwork.nodes.find((el) => el.id === tmp[0].to);
 
                     // Get the rule state that is shared between the downstream tasks and the parent task
@@ -171,29 +160,23 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
         // If there are none, we can add the downstream node to the graph
 
         // First make sure all downstream node IDs are unique. Remove duplicates.
-        const uniqueDownstreamNodes = Array.from(new Set(validDownstreamNodes.map((a) => a.edgeDownstreamNode.id))).map((id) => {
-            return validDownstreamNodes.find((a) => a.edgeDownstreamNode.id === id);
+        const uniqueDownstreamNodes = Array.from(new Set(validDownstreamNodes.map((a) => a.downstreamNode.id))).map((id) => {
+            return validDownstreamNodes.find((a) => a.downstreamNode.id === id);
         });
 
         for (const uniqueDownstreamNode of uniqueDownstreamNodes) {
-            if (_.taskCyclicStack.has(uniqueDownstreamNode.edgeDownstreamNode.id)) {
+            if (_.taskCyclicStack.has(uniqueDownstreamNode.downstreamNode.id)) {
                 // Cyclic dependency detected
                 if (parentNode) {
-                    // Log warning
-                    logger.warn(`Cyclic dependency detected in task network. Won't go deeper.`);
-                    logger.warn(`   From task : [${uniqueDownstreamNode.sourceNode.id}] "${uniqueDownstreamNode.sourceNode.taskName}"`);
-                    logger.warn(
-                        `   To task   : [${uniqueDownstreamNode.edgeDownstreamNode.id}] "${uniqueDownstreamNode.edgeDownstreamNode.taskName}"`
+                    // Log verbose info
+                    logger.info(`Cyclic dependency detected in task network. Won't go deeper.`);
+                    logger.verbose(`   From task : [${uniqueDownstreamNode.sourceNode.id}] "${uniqueDownstreamNode.sourceNode.taskName}"`);
+                    logger.verbose(
+                        `   To task   : [${uniqueDownstreamNode.downstreamNode.id}] "${uniqueDownstreamNode.downstreamNode.taskName}"`
                     );
 
                     // Add edge, but don't add downstream node, and don't go deeper as this is a cyclic dependency
-                    // Add edge to subGraphEdges
                     subGraphEdges.push(uniqueDownstreamNode.edge);
-
-                    // kids = kids.concat({
-                    //     node: uniqueDownstreamNode.sourceNode,
-                    //     edge: uniqueDownstreamNode.edgeDownstreamNode,
-                    // });
                 } else {
                     // Log warning when there is no parent task (should not happen?)
                     logger.warn(`Cyclic dependency detected in task tree. No parent task detected. Won't go deeper.`);
@@ -204,12 +187,12 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
                 // Add downstream node to stack
                 // uniqueDownstreamNode is an object with properties
                 // - sourceNode: Current node object
-                // - edgeDownstreamNode: Downstream node object
+                // - downstreamNode: Downstream node object
                 // - edge: Edge object between sourceNode and edgeDownstreamNode
-                _.taskCyclicStack.add(uniqueDownstreamNode.edgeDownstreamNode.id);
+                _.taskCyclicStack.add(uniqueDownstreamNode.downstreamNode.id);
 
                 // // Add node to subGraphNodes
-                // subGraphNodes.push(uniqueDownstreamNode.edgeDownstreamNode);
+                // subGraphNodes.push(uniqueDownstreamNode.downstreamNode);
 
                 // Add edge to downstream node to subGraphEdges
                 subGraphEdges.push(uniqueDownstreamNode.edge);
@@ -218,10 +201,10 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
                 // subGraphTasks.push(task);
 
                 // Examine downstream node
-                const tmp3 = extGetTaskSubGraph(_, uniqueDownstreamNode.edgeDownstreamNode, newTreeLevel, node, logger);
+                const tmp3 = extGetTaskSubGraph(_, uniqueDownstreamNode.downstreamNode, newTreeLevel, node, logger);
 
                 // Remove downstream node from stack
-                _.taskCyclicStack.delete(uniqueDownstreamNode.edgeDownstreamNode.id);
+                _.taskCyclicStack.delete(uniqueDownstreamNode.downstreamNode.id);
 
                 // Add tmp3.nodes to subGraphNodes
                 subGraphNodes = subGraphNodes.concat(...tmp3.nodes);

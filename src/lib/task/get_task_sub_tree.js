@@ -23,7 +23,6 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
         // Were we called from top-level?
         if (parentTreeLevel === 0) {
             // Set up new data structure for detecting cicrular task trees
-            _.taskCyclicVisited = new Set();
             _.taskCyclicStack = new Set();
         }
 

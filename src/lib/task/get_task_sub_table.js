@@ -1,3 +1,5 @@
+import { catchLog } from '../util/log.js';
+
 export function extGetTaskSubTable(_, task, parentTreeLevel, logger) {
     try {
         const self = _;

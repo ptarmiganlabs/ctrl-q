@@ -1,3 +1,5 @@
+import { catchLog } from '../util/log.js';
+
 export function extSaveTaskModelToQseow(_, options, logger) {
     return new Promise(async (resolve, reject) => {
         try {

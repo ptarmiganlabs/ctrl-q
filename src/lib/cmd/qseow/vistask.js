@@ -7,6 +7,8 @@ import sea from 'node:sea';
 
 import { appVersion, logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists, verifySeaAssetExists } from '../../../globals.js';
 import { QlikSenseTasks } from '../../task/class_alltasks.js';
+import { findCircularTaskChains } from '../../task/find_circular_task_chain.js';
+import { catchLog } from '../../util/log.js';
 
 // js: 'application/javascript',
 const MIME_TYPES = {
@@ -550,10 +552,6 @@ export async function visTask(options) {
     // Filters above are additive, i.e. all tasks that match any of the filters are included in the network diagram.
     // Make sure to de-duplicate root tasks.
 
-    // Arrays to keep track of which nodes in task model to visualize
-    // const nodesToVisualize = [];
-    // const edgesToVisualize = [];
-
     // If no task id or tag filters specified, visualize all nodes in task model
     if (!options.taskId && !options.taskTag) {
         // No task id filters specified
@@ -587,13 +585,43 @@ export async function visTask(options) {
 
         // Get all nodes that are children of the root nodes
         const { nodes, edges, tasks } = await qlikSenseTasks.getNodesAndEdgesFromRootNodes(rootNodes);
-        // nodesToVisualize.push(...nodes);
-        // edgesToVisualize.push(...edges);
-        // tasksToVisualize.push(...tasks);
-
-        // taskNetwork = { nodes: nodesToVisualize, edges: edgesToVisualize, tasks)
 
         taskNetwork = { nodes, edges, tasks };
+    }
+
+    // Look for circular task chains in the task network
+    logger.info('');
+    logger.info('Looking for circular task chains in the task network');
+
+    try {
+        const circularTaskChains = findCircularTaskChains(taskNetwork, logger);
+
+        // Errros?
+        if (circularTaskChains === false) {
+            return false;
+        }
+
+        // De-duplicate circular task chains (where fromTask.id and toTask.id matches in two different chains).
+        const deduplicatedCircularTaskChain = circularTaskChains.filter((chain, index, self) => {
+            return self.findIndex((c) => c.fromTask.id === chain.fromTask.id && c.toTask.id === chain.toTask.id) === index;
+        });
+
+        // Log circular task chains, if any were found.
+        if (deduplicatedCircularTaskChain?.length > 0) {
+            logger.warn('');
+            logger.warn(`Found ${deduplicatedCircularTaskChain.length} circular task chains in task model`);
+            for (const chain of deduplicatedCircularTaskChain) {
+                logger.warn(`Circular task chain:`);
+
+                logger.warn(`   From task : [${chain.fromTask.id}] "${chain.fromTask.taskName}"`);
+                logger.warn(`   To task   : [${chain.toTask.id}] "${chain.toTask.taskName}"`);
+            }
+        } else {
+            logger.info('No circular task chains found in task model');
+        }
+    } catch (error) {
+        catchLog('FIND CIRCULAR TASK CHAINS', error);
+        return false;
     }
 
     // Add additional values to Handlebars template

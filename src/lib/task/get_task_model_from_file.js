@@ -1,4 +1,5 @@
 import { mapTaskType } from '../util/qseow/lookups.js';
+import { catchLog } from '../util/log.js';
 
 export async function extGetTaskModelFromFile(_, tasksFromFile, tagsExisting, cpExisting, options, logger) {
     return new Promise(async (resolve, reject) => {

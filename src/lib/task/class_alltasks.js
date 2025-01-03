@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { v4 as uuidv4, validate } from 'uuid';
 
 import { logger } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
@@ -38,7 +37,6 @@ export class QlikSenseTasks {
             this.taskIdMap = new Map();
 
             // Data structure to keep track of which up-tree nodes a node is connected to in a task tree or network
-            this.taskCyclicVisited = new Set();
             this.taskCyclicStack = new Set();
 
             // Data structure to keep track of which nodes have been visited when looking for root nodes
@@ -61,18 +59,6 @@ export class QlikSenseTasks {
         } catch (err) {
             catchLog(`QS TASK`, err);
         }
-    }
-
-    // Function to determine if a task tree is cyclic
-    // Uses a depth-first search algorithm to determine if a task tree is cyclic
-    isTaskTreeCyclic(task) {
-        if (this.taskCyclicVisited.has(task)) {
-            return true;
-        }
-
-        this.taskCyclicVisited.add(task);
-
-        return false;
     }
 
     getTask(taskId) {
@@ -114,22 +100,6 @@ export class QlikSenseTasks {
      */
     findRootNodes(node) {
         const result = extFindRootNodes(this, node, logger);
-
-        // logger.verbose(`Root node count: ${result.length}`);
-        // Log root node and name
-        // for (const rootNode of result) {
-        //     // Meta node?
-        //     if (rootNode.metaNode === true) {
-        //         // Reload task?
-        //         if (rootNode.taskType === 'reloadTask') {
-        //             logger.verbose(
-        //                 `Meta node: metanode type=${rootNode.metaNodeType} id=[${rootNode.id}] task type=${rootNode.taskType} task name="${rootNode.completeSchemaEvent.reloadTask.name}"`
-        //             );
-        //         }
-        //     } else {
-        //         logger.verbose(`Root node: [${rootNode.id}] "${rootNode.taskName}"`);
-        //     }
-        // }
 
         return result;
     }
@@ -401,6 +371,12 @@ export class QlikSenseTasks {
                     return t.taskId === task.taskId;
                 })
             );
+        });
+
+        // De-duplicate edges.
+        // Edges are identical if they connect the same two nodes, i.e. have the same from and to properties.
+        edgesFound = edgesFound.filter((edge, index, self) => {
+            return index === self.findIndex((t) => t.from === edge.from && t.to === edge.to);
         });
 
         return { nodes: nodesFound, edges: edgesFound, tasks: tasksFound };
