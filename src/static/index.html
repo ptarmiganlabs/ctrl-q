@@ -200,13 +200,13 @@
 
             #nodeLegend {
                 /* ... existing styles ... */
-                top: 100px
+                top: 100px;
                 width: 450px;
             }
 
             .dot {
                 height: 20px;
-                width: 42px;
+                width: 20px;
                 border-radius: 50%;
                 display: inline-block;
             }
@@ -220,8 +220,8 @@
                 display: inline-block;
             }
             .hexagon {
-                width: 30px;
-                height: 17.32px;
+                width: 20px; /* Reduce width */
+                height: 11.55px; /* Reduce height proportionally */
                 background-color: black;
                 position: relative;
                 display: inline-block;
@@ -232,17 +232,17 @@
                 content: "";
                 position: absolute;
                 width: 0;
-                border-left: 15px solid transparent;
-                border-right: 15px solid transparent;
+                border-left: 10px solid transparent; /* Reduce border size proportionally */
+                border-right: 10px solid transparent; /* Reduce border size proportionally */
             }
             .hexagon:before {
                 bottom: 100%;
-                border-bottom: 8.66px solid black;
+                border-bottom: 5.77px solid black; /* Reduce border size proportionally */
             }
             .hexagon:after {
                 top: 100%;
                 width: 0;
-                border-top: 8.66px solid black;
+                border-top: 5.77px solid black; /* Reduce border size proportionally */
             }
             .ellipse {
                 width: 30px;
@@ -258,6 +258,36 @@
                 border-radius: 5px;
                 display: inline-block;
             }
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px; /* Add spacing between legend items */
+            }
+            .legend-item span {
+                margin-left: 10px;
+            }
+            .legend-table {
+                width: 100%;
+                border-collapse: collapse;
+                border: none; /* Hide table borders */
+                font-family: Arial, Helvetica, sans-serif; /* Use same font as rest of legend */
+                font-size: 14px; /* Use same font size as rest of legend */
+            }
+            .legend-table td {
+                padding: 5px;
+                vertical-align: middle;
+                border: none; /* Hide cell borders */
+            }
+
+            #legendTitle {
+                background-color: #ddd;
+                padding: 3px;
+                cursor: move;
+                width: 100%;
+                text-align: center; /* Center the header text */
+                margin-bottom: 10px; /* Add space after the title */
+            }
+
         </style>
     </head>
     <body>
@@ -320,17 +350,36 @@
             <div id="legendTitle" style="background-color: #ddd; padding: 3px; left: 10px; cursor: move; width: 245px">
                 <h3>Node Legend</h3>
             </div>
-            <p><span class="dot" style="background-color: green"></span> Successful task</p>
-            <p><span class="dot" style="background-color: red"></span> Failed task</p>
-            <p><span class="dot" style="background-color: rgb(80, 114, 225)"></span> Never executed task</p>
-            <p><span class="dot" style="background-color: lightgray"></span> Disabled</p>
-            <!-- Add more node types as needed -->
+
+            <div class="legend-item"><span class="dot" style="background-color: #21ff06"></span><span>Successful task</span></div>
+            <div class="legend-item"><span class="dot" style="background-color: #fb0207"></span><span>Failed or aborted task</span></div>
+            <div class="legend-item"><span class="dot" style="background-color: #fd8008"></span><span>Aborting/error/reset task</span></div>
+            <div class="legend-item"><span class="dot" style="background-color: #6cf"></span><span>Triggered/queued/running task</span></div>
+            <div class="legend-item"><span class="dot" style="background-color: #ffcc00"></span><span>Skipped task</span></div>
+            <div class="legend-item"><span class="dot" style="background-color: #999"></span><span>Never started task</span></div>
+            <hr>
+            <div class="legend-item"><span class="dot" style="background-color: #FFA807"></span><span>Enabled trigger</span></div>
+            <div class="legend-item"><span class="dot" style="background-color: #BCB9BF"></span><span>Disabled trigger</span></div>
             <hr>
             <p><strong>Shapes:</strong></p>
-            <p><span class="triangle"></span> Schedule trigger</p>
-            <p><span class="hexagon"></span> Composite trigger</p>
-            <p><span class="ellipse"></span> External program task</p>
-            <p><span class="rounded-rectangle"></span> Reload task</p>
+            <table class="legend-table">
+                <tr>
+                    <td><span class="triangle"></span></td>
+                    <td>Schedule trigger</td>
+                </tr>
+                <tr>
+                    <td><span class="hexagon"></span></td>
+                    <td>Composite trigger</td>
+                </tr>
+                <tr>
+                    <td><span class="ellipse"></span></td>
+                    <td>External program task</td>
+                </tr>
+                <tr>
+                    <td><span class="rounded-rectangle"></span></td>
+                    <td>Reload task</td>
+                </tr>
+            </table>
             <hr>
             <p>Ctrl-Q {{appVersion}}</p>
             <p>

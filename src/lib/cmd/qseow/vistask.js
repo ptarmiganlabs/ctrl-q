@@ -282,7 +282,6 @@ const prepareFile = async (url) => {
             if (node.metaNodeType === 'schedule') {
                 newNode.id = node.id;
                 newNode.label = node.label;
-                // newNode.title = node.label;
                 newNode.title = `<strong>Schema trigger</strong><br>Name: ${node.label}<br>Enabled: ${
                     node.enabled
                 }<br>Schema: ${getSchemaText(
@@ -296,7 +295,6 @@ const prepareFile = async (url) => {
                     node.completeSchemaEvent.operational.timesTriggered
                 }`;
                 newNode.shape = 'triangle';
-                // newNode.icon = { face: 'fontawesome', code: '\uf017' };
                 newNode.color = node.enabled ? '#FFA807' : '#BCB9BF';
                 // Needed to distinguish real tasks from meta tasks in the network diagram
                 newNode.isReloadTask = false;
@@ -311,7 +309,6 @@ const prepareFile = async (url) => {
             } else {
                 logger.error(`Huh? That's an unknown meta node type: ${node.metaNodeType}`);
             }
-            // task.color = task.schemaEvent.enabled ? '#FFA807' : '#BCB9BF';
             return newNode;
         });
 
@@ -338,8 +335,7 @@ const prepareFile = async (url) => {
                 // Needed to distinguish real tasks from meta tasks in the network diagram
                 newNode.isReloadTask = true;
 
-                // newNode.color = node.taskEnabled ? '#FFA807' : '#BCB9BF';
-                if (node.taskLastStatus === 'NeverStarted') {
+                if (node.taskLastStatus === 'NeverStarted' || node.taskLastStatus === '?') {
                     newNode.color = '#999';
                 } else if (node.taskLastStatus === 'Triggered' || node.taskLastStatus === 'Queued') {
                     newNode.color = '#6cf';
@@ -357,7 +353,7 @@ const prepareFile = async (url) => {
                 } else if (node.taskLastStatus === 'FinishedSuccess') {
                     newNode.color = '#21ff06';
                 } else if (node.taskLastStatus === 'Skipped') {
-                    newNode.color = '#6cf';
+                    newNode.color = '#ffcc00';
                 }
                 newNode.taskLastStatus = node.taskLastStatus;
                 return newNode;
