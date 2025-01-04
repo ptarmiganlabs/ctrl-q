@@ -9,9 +9,8 @@
             "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceFolder}/src/ctrl-q.js",
-            "runtimeVersion": "20",
+            "runtimeVersion": "23",
             "cwd": "${workspaceFolder}",
-
             // ------------------------------------
             // Set custom property of reload task
             // ------------------------------------
@@ -19,28 +18,23 @@
             //   "task-custom-property-set",
             //   "--host",
             //   "192.168.100.109",
-
             //   "--port",
             //   // "4747",
             //   "443",
-
             //   "--virtual-proxy",
             //   "jwt",
             //   "--auth-type",
             //   "jwt",
             //   "--auth-jwt",
             //   "<jwt>",
-
             //   // "--auth-cert-file",
             //   // "./cert/client.pem",
             //   // "--auth-cert-key-file",
             //   // "./cert/client_key.pem",
-
             //   "--auth-user-dir",
             //   "LAB",
             //   "--auth-user-id",
             //   "goran",
-
             //   "--task-id",
             //   "82bc3e66-c899-4e44-b52f-552145da5ee0",
             //   "5748afa9-3abe-43ab-bb1f-127c48ced075",
@@ -51,27 +45,21 @@
             //   // "Test data",
             //   // "api1",
             //   "apiCreaeted",
-
             //   "--custom-property-name",
             //   "Department",
             //   // "Department2",
             //   // "DemoApp",
             //   // "ReportMonth",
-
             //   "--custom-property-value",
             //   // "2023 Jan",
             //   "Finance",
             //   "Sales",
-
             //   "--update-mode",
             //   // "append",
             //   "replace",
-
             //   "--overwrite",
-
             //   "--dry-run"
             // ]
-
             // ------------------------------------
             // Import tasks from Excel file
             // ------------------------------------
@@ -79,52 +67,40 @@
             //   "task-import",
             //   "--host",
             //   "192.168.100.109",
-
             //   "--port",
             //   // "4747",
             //   "443",
-
             //   "--virtual-proxy",
             //   "jwt",
             //   "--auth-type",
             //   "jwt",
             //   "--auth-jwt",
             //   "<jwt>",
-
             //   // "--auth-cert-file",
             //   // "./cert/client.pem",
             //   // "--auth-cert-key-file",
             //   // "./cert/client_key.pem",
-
             //   "--auth-user-dir",
             //   "LAB",
             //   "--auth-user-id",
             //   "goran",
-
             //   "--file-type",
             //   "excel",
-
             //   "--file-name",
             //   "testdata/tasks.xlsx",
             //   "--sheet-name",
             //   "1"
-
             //   // "--import-app",
             //   // "--import-app-sheet-name",
             //   // "App import",
-
             //   // "--qvf-overwrite",
             //   // "no",
-
             //   // "--limit-import-count",
             //   // "2",
-
             //   // "--sleep-app-upload",
             //   // "500",
-
             //   // "--dry-run"
             // ]
-
             // ------------------------------------
             // Import tasks from CSV file
             // ------------------------------------
@@ -132,7 +108,6 @@
             //   "task-import",
             //   "--auth-type",
             //   "cert",
-
             //   // p2w1
             //   "--host",
             //   "192.168.100.109",
@@ -146,7 +121,6 @@
             //   "LAB",
             //   "--auth-user-id",
             //   "goran",
-
             //   // Parallels
             //   // "--host",
             //   // "10.211.55.15",
@@ -158,94 +132,71 @@
             //   // "winsrv1",
             //   // "--auth-user-id",
             //   // "goran",
-
             //   "--file-type",
             //   "csv",
-
             //   "--file-name",
             //   // "tasks2source.csv",
             //   // "task-chain.csv",
             //   // "testdata/reload-tasks.csv",
             //   // "./tasks_all.csv",
             //   "./testdata/tasks-1.csv"
-
             //   // "--qvf-overwrite",
             //   // "no",
-
             //   // "--limit-import-count",
             //   // "2",
-
             //   // "--dry-run"
             // ]
-
             // ------------------------------------
             // Export apps to QVF files
             // ------------------------------------
-            "args": [
-                "app-export",
-                "--host",
-                "pro2-win1.lab.ptarmiganlabs.net",
-                // "192.168.100.109",
-
-                "--port",
-                "4242",
-                // "443",
-
-                // "--virtual-proxy",
-                // "jwt",
-                // "--auth-type",
-                // "jwt",
-                // "--auth-jwt",
-                // "<jwt>",
-
-                "--auth-cert-file",
-                "./cert/client.pem",
-                "--auth-cert-key-file",
-                "./cert/client_key.pem",
-
-                "--auth-user-dir",
-                "LAB",
-                "--auth-user-id",
-                "goran",
-
-                "--app-tag",
-                "apiCreated",
-                "Ctrl-Q import",
-
-                "--app-id",
-                "eb3ab049-d007-43d3-93da-5962f9208c65",
-                "2933711d-6638-41d4-a2d2-6dd2d965208b",
-
-                "--app-published",
-
-                "--exclude-app-data",
-                // "false",
-                "true",
-
-                "--qvf-name-format",
-                // "export-time",
-                "app-name",
-                "export-date",
-
-                "--qvf-name-separator",
-                "__",
-
-                "--output-dir",
-                "qvfs",
-
-                // "--limit-export-count",
-                //  "2",
-
-                "--sleep-app-export",
-                "500",
-
-                "--qvf-overwrite",
-
-                // "--dry-run"
-
-                "--metadata-file-create"
-            ]
-
+            // "args": [
+            //     "app-export",
+            //     "--host",
+            //     "pro2-win1.lab.ptarmiganlabs.net",
+            //     // "192.168.100.109",
+            //     "--port",
+            //     "4242",
+            //     // "443",
+            //     // "--virtual-proxy",
+            //     // "jwt",
+            //     // "--auth-type",
+            //     // "jwt",
+            //     // "--auth-jwt",
+            //     // "<jwt>",
+            //     "--auth-cert-file",
+            //     "./cert/client.pem",
+            //     "--auth-cert-key-file",
+            //     "./cert/client_key.pem",
+            //     "--auth-user-dir",
+            //     "LAB",
+            //     "--auth-user-id",
+            //     "goran",
+            //     "--app-tag",
+            //     "apiCreated",
+            //     "Ctrl-Q import",
+            //     "--app-id",
+            //     "eb3ab049-d007-43d3-93da-5962f9208c65",
+            //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
+            //     "--app-published",
+            //     "--exclude-app-data",
+            //     // "false",
+            //     "true",
+            //     "--qvf-name-format",
+            //     // "export-time",
+            //     "app-name",
+            //     "export-date",
+            //     "--qvf-name-separator",
+            //     "__",
+            //     "--output-dir",
+            //     "qvfs",
+            //     // "--limit-export-count",
+            //     //  "2",
+            //     "--sleep-app-export",
+            //     "500",
+            //     "--qvf-overwrite",
+            //     // "--dry-run"
+            //     "--metadata-file-create"
+            // ]
             // ------------------------------------
             // Import apps from Excel file
             // ------------------------------------
@@ -253,93 +204,81 @@
             //   "app-import",
             //   "--host",
             //   "192.168.100.109",
-
             //   "--port",
             //   // "4747",
             //   "443",
-
             //   "--virtual-proxy",
             //   "jwt",
             //   "--auth-type",
             //   "jwt",
             //   "--auth-jwt",
             //   "",
-
             //   // "--auth-cert-file",
             //   // "./cert/client.pem",
             //   // "--auth-cert-key-file",
             //   // "./cert/client_key.pem",
-
             //   "--auth-user-dir",
             //   "LAB",
             //   "--auth-user-id",
             //   "goran",
-
             //   // "--file-type",
             //   // "excel",
-
             //   "--file-name",
             //   "testdata/tasks.xlsx",
             //   "--sheet-name",
             //   "App import",
-
             //   // "--limit-import-count",
             //   //  "2",
-
             //   "--sleep-app-upload",
             //   "500"
-
             //   // "--dry-run"
             // ]
-
             // ------------------------------------
             // Get task tree
             // ------------------------------------
             // "args": [
-            //   "task-get",
-            //   // "--auth-type",
-            //   // "cert",
-            //   "--host",
-            //   "192.168.100.109",
-            //   // "192.168.100.116",
-
-            //   // "--auth-cert-file",
-            //   // "./cert/pve-winsrv19-1/192.168.100.116/client.pem",
-            //   // "--auth-cert-key-file",
-            //   // "./cert/pve-winsrv19-1/192.168.100.116/client_key.pem",
-
-            //   "--auth-user-dir",
-            //   "LAB",
-            //   "--auth-user-id",
-            //   "goran",
-            //   //  "--task-id",
-            //   // "82bc3e66-c899-4e44-b52f-552145da5ee0",
-            //   // "--task-tag",
-            //   // "Test data",
-            //   "--output-format",
-            //   // "table",
-            //   "tree",
-
-            //   "--tree-icons"
-
-            //   // "--tree-details",
-            //   // "taskid",
-            //   // "appname",
-
-            //   // "--task-type",
-            //   // "reload",
-            //   // "ext-program"
-
-            //   // "--output-dest",
-            //   // "screen",
-            //   // "file",
-            //   // "--output-file-name",
-            //   // "tasks.json",
-            //   // "--output-file-format",
-            //   // "json",
-
-            //   // "--text-color",
-            //   // "no",
+            //     "qseow",
+            //     "task-get",
+            //     "--host",
+            //     "192.168.100.109",
+            //     // "192.168.100.116",
+            //     "--secure",
+            //     "false",
+            //     "--auth-type",
+            //     "cert",
+            //     "--auth-cert-file",
+            //     "/Users/goran/code/secret/pro2win1-nopwd/client.pem",
+            //     "--auth-cert-key-file",
+            //     "/Users/goran/code/secret/pro2win1-nopwd/client_key.pem",
+            //     "--auth-root-cert-file",
+            //     "/Users/goran/code/secret/pro2win1-nopwd/root.pem",
+            //     "--auth-user-dir",
+            //     "LAB",
+            //     "--auth-user-id",
+            //     "goran",
+            //     //  "--task-id",
+            //     // "82bc3e66-c899-4e44-b52f-552145da5ee0",
+            //     // "--task-tag",
+            //     // "Test data",
+            //     "--output-format",
+            //     // "table",
+            //     "tree",
+            //     "--tree-icons"
+            //     // "--tree-details",
+            //     // "taskid",
+            //     // "appname",
+            //     // "--task-type",
+            //     // "reload",
+            //     // "ext-program"
+            //     // "--output-dest",
+            //     // "screen",
+            //     // "file",
+            //     // "--output-file-name",
+            //     // "tasks.json",
+            //     // "--output-file-format",
+            //     // "json",
+            //     // "--text-color",
+            //     // "no",
             // ]
 
             // ------------------------------------
@@ -349,34 +288,28 @@
             //   "task-get",
             //   "--host",
             //   "192.168.100.109",
-
             //   "--port",
             //   // "4747",
             //   "443",
-
             //   "--virtual-proxy",
             //   "jwt",
             //   "--auth-type",
             //   "jwt",
             //   "--auth-jwt",
             //   "<jwt>",
-
             //   // "--auth-cert-file",
             //   // "../../code/secret/pro2win1-nopwd/client.pem",
             //   // // "./cert/client.pem",
             //   // "--auth-cert-key-file",
             //   // "../../code/secret/pro2win1-nopwd/client_key.pem",
             //   // // "./cert/client_key.pem",
-
             //   "--auth-user-dir",
             //   "LAB",
             //   "--auth-user-id",
             //   "goran",
-
             //   // "--task-type",
             //   //  "reload",
             //   // "ext-program",
-
             //   // "--task-id",
             //   // "afc250bc-28c3-49a2-8d63-80966749abe3",
             //   // "5748afa9-3abe-43ab-bb1f-127c48ced075",
@@ -384,7 +317,6 @@
             //   "--output-format",
             //   "table",
             //   // "tree",
-
             //   "--output-dest",
             //   "screen",
             //   // "--output-file-name",
@@ -394,10 +326,8 @@
             //   // "csv",
             //   // "json",
             //   // "excel",
-
             //   // "--text-color",
             //   // "no",
-
             //   "--table-details",
             //   "common",
             //   // "lastexecution",
@@ -406,7 +336,6 @@
             //   // "schematrigger",
             //   // "compositetrigger",
             // ]
-
             // ------------------------------------
             // Get tasks as CSV/Excel/JSON file
             // ------------------------------------
@@ -432,7 +361,6 @@
             //   // "--task-tag",
             //   // "Ctrl-Q demo",
             //   // "Butler 5.0 demo",
-
             //   "--output-format",
             //   "table",
             //   "--output-dest",
@@ -447,16 +375,12 @@
             //   // "excel",
             //   // "json",
             //   "csv",
-
             // //   "--output-file-name",
             // //   // "reload-tasks.xlsx",
             // //   "reload-tasks.csv",
-
             // //   // "--text-color",
             // //   // "no",
-
             // //   // "--output-file-overwrite",
-
             // //   "--table-details",
             // //   // "common",
             // //   // "lastexecution",
@@ -466,11 +390,9 @@
             // //   // "compositetrigger",
             // //   // "comptimeconstraint",
             // //   // "comprule",
-
             // //   // "--log-level",
             // //   // "debug"
             // // ]
-
             // ------------------------------------
             // Create custom property with user activity buckets
             // ------------------------------------
@@ -499,7 +421,6 @@
             //   "14",
             //   "7",
             // ]
-
             // ------------------------------------
             // Import master items from Excel file, using column names
             // ------------------------------------
@@ -509,38 +430,31 @@
             //   "cert",
             //   "--host",
             //   "192.168.100.109",
-
             //   "--port",
             //   "443",
-
             //   "--virtual-proxy",
             //   "jwt",
             //   "--auth-type",
             //   "jwt",
             //   "--auth-jwt",
             //   "<jwt>",
-
             //   //   "--auth-cert-file",
             //   //   "./cert/client.pem",
             //   //   "--auth-cert-key-file",
             //   //   "./cert/client_key.pem",
-
             //   "--auth-user-dir",
             //   "LAB",
             //   "--auth-user-id",
             //   "goran",
-
             //   "--app-id",
             //   "2933711d-6638-41d4-a2d2-6dd2d965208b",   // Ctrl-Q CLI app
             //   // "a3e0f5d2-000a-464f-998d-33d333b175d7",   // Thumbnail demo app
-
             //   "--file-type",
             //   "excel",
             //   "--file",
             //   "./testdata/ctrl-q-master-items.xlsx",
             //   "--sheet",
             //   "Sales",
-
             //   "--col-ref-by",
             //   "name",
             //   "--col-item-type",
@@ -559,17 +473,14 @@
             //   "Color",
             //   "--col-master-item-per-value-color",
             //   "Per value color",
-
             //   "--sleep-between-imports",
             //   // "1000",
             //   "0",
-
             //   // "--limit-import-count",
             //   // "5",
             //   "--log-level",
             //   "info"
             // ]
-
             // ------------------------------------
             //   Get measure
             // ------------------------------------
@@ -577,17 +488,14 @@
             //   "master-item-measure-get",
             //   "--host",
             //   "192.168.100.109",
-
             //   "--port",
             //   "443",
-
             //   "--virtual-proxy",
             //   "jwt",
             //   "--auth-type",
             //   "jwt",
             //   "--auth-jwt",
             //   "<jwt>",
-
             //   "--app-id",
             //   "a3e0f5d2-000a-464f-998d-33d333b175d7",
             //   // "2933711d-6638-41d4-a2d2-6dd2d965208b",
@@ -597,13 +505,11 @@
             //   // "e392f53f-17b5-4ede-8fd1-f64b4fae630f",
             //   "--output-format",
             //   "table",
-
             //   "--auth-user-dir",
             //   "LAB",
             //   "--auth-user-id",
             //   "goran"
             // ]
-
             // ------------------------------------
             // Delete master measure
             // ------------------------------------
@@ -611,21 +517,17 @@
             //   "master-item-measure-delete",
             //   "--host",
             //   "192.168.100.109",
-
             //   "--port",
             //   "443",
-
             //   "--virtual-proxy",
             //   "jwt",
             //   "--auth-type",
             //   "jwt",
             //   "--auth-jwt",
             //   "<jwt>",
-
             //   "--app-id",
             //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
             //   "--auth-user-dir",
-
             //   "LAB",
             //   "--auth-user-id",
             //   "goran",
@@ -636,7 +538,6 @@
             //   // "# No. of Contacts (LY)",
             //   // "--delete-all"
             // ]
-
             // ------------------------------------
             //   Get dimension
             // ------------------------------------
@@ -644,30 +545,24 @@
             //   "master-item-dim-get",
             //   "--host",
             //   "192.168.100.109",
-
             //   "--port",
             //   "443",
-
             //   "--virtual-proxy",
             //   "jwt",
             //   "--auth-type",
             //   "jwt",
             //   "--auth-jwt",
             //   "<jwt>",
-
             //   "--app-id",
             //   // "a3e0f5d2-000a-464f-998d-33d333b175d7",
             //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
-
             //   "--output-format",
             //   "table",
-
             //   "--auth-user-dir",
             //   "LAB",
             //   "--auth-user-id",
             //   "goran"
             // ]
-
             // ------------------------------------
             //   Delete dimension
             // ------------------------------------
@@ -675,32 +570,26 @@
             //   "master-item-dim-delete",
             //   "--host",
             //   "192.168.100.109",
-
             //   "--port",
             //   "443",
-
             //   "--virtual-proxy",
             //   "jwt",
             //   "--auth-type",
             //   "jwt",
             //   "--auth-jwt",
             //   "<jwt>",
-
             //   "--app-id",
             //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
-
             //   "--auth-user-dir",
             //   "LAB",
             //   "--auth-user-id",
             //   "goran",
-
             //   "--id-type",
             //   "name",
             //   "--master-item",
             //   "Dim2",
             //   "Dim3"
             // ]
-
             // ------------------------------------
             //   Get variables
             // ------------------------------------
@@ -709,15 +598,12 @@
             //     "--host",
             //     //   "192.168.100.109",
             //     "pro2-win1.lab.ptarmiganlabs.net",
-
             //     //   "--qrs-port",
             //     //   "4242",
             //     //   "443",
-
             //     //   "--engine-port",
             //     //   // "4747",
             //     //   "443",
-
             //     //   "--virtual-proxy",
             //     //   "jwt",
             //     "--auth-type",
@@ -725,19 +611,16 @@
             //     "cert",
             //     //   "--auth-jwt",
             //     //   "<jwt>",
-
             //     "--app-id",
             //     "a3e0f5d2-000a-464f-998d-33d333b175d7",
             //     //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
             //     "--app-tag",
             //     "Ctrl-Q variable 1",
             //     "Ctrl-Q variable 2",
-
             //     "--auth-user-dir",
             //     "LAB",
             //     "--auth-user-id",
             //     "goran",
-
             //     // "--id-type",
             //     // "id",
             //     // "--variable",
@@ -751,14 +634,11 @@
             //     "TimestampFormat",
             //     "var1",
             //     "vVar1",
-
             //     "--output-format",
             //     "table"
-
             //     // "--log-level",
             //     // "info"
             // ]
-
             // ------------------------------------
             //   Delete variables
             // ------------------------------------
@@ -766,41 +646,34 @@
             //     "variable-delete",
             //     "--host",
             //     "192.168.100.109",
-
             //     "--qrs-port",
             //     // "4242",
             //     "443",
-
             //     "--engine-port",
             //     // "4747",
             //     "443",
-
             //     "--virtual-proxy",
             //     "jwt",
             //     "--auth-type",
             //     "jwt",
             //     "--auth-jwt",
             //     "<jwt>",
-
             //     "--app-id",
             //     // "a3e0f5d2-000a-464f-998d-33d333b175d7",
             //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
             //     // "--app-tag",
             //     // "Ctrl-Q variable 1",
             //     // "Ctrl-Q variable 2",
-
             //     "--auth-user-dir",
             //     "LAB",
             //     "--auth-user-id",
             //     "goran",
-
             //     // "--id-type",
             //     // "id",
             //     // "--variable",
             //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a7",
             //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a6",
             //     // "2a70741b-6fdc-4252-a30d-7a2b2b4403a8",
-
             //     // "--id-type",
             //     // "name",
             //     // "--variable",
@@ -811,7 +684,6 @@
             //     "--delete-all",
             //     "--dry-run",
             // ]
-
             // ------------------------------------
             //   Get all bookmarks
             // ------------------------------------
@@ -819,10 +691,8 @@
             //     "bookmark-get",
             //     "--host",
             //     "192.168.100.109",
-
             //     // "--port",
             //     // "4747",
-
             //     "--port",
             //     "443",
             //     "--virtual-proxy",
@@ -831,18 +701,15 @@
             //     "jwt",
             //     "--auth-jwt",
             //     "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJnb3JhbiIsInVzZXJEaXJlY3RvcnkiOiJMQUIiLCJuYW1lIjoiR8O2cmFuIFNhbmRlciIsImVtYWlsIjoiZ29yYW5AcHRhcm1pZ2FubGFicy5jb20iLCJncm91cCI6WyJncm91cDEiLCJncm91cCAyIl0sImlhdCI6MTY4NDUyNTQ3MCwiZXhwIjoxOTk5ODg1NDcwLCJhdWQiOiJhYmMxMjMifQ.iiCr2obzBF_ixs9KAcSdR4813Dc_8UBknYGA4Jug-exwzw9YN-l9L1luZ_d0b6NBRGRcj3up__xR6X97CMeeNznD3TU_HFgRMcji7xjzyr2GHQWLlNWU3_doAKcUQtqQdN77rJSQ4ZMvdMV1J8-c60Yl8H3Altz6gfBBDmNjkH5XnBfIqVi5IKuMtFI9ehC5wM1aI83Fb8Dt0pq03UNdLlypYV4UQg0UCNhdYgPRhhoBFr-9Mbwc1onOwC9i9YYYyXIhRZaBVDq1pvXizSTwcDhmSg_FBl1GTQnlx9Kx0AeBiPqrpkdLvfzph4uxLNgp-yOliWBynMRF340pyyPQqC3PKNm_CkVzJ3YKA3rZM6KApGj0kbm0I5wF4SX9XRQTe8OGa4jiyaGWYtO_ymFpoTWhYtXTOJnXhQ24-BgVkWBEiKUNw7G-G5Y4JbSwlGG8nP17v9Knb--K_VAQQjdoe9bA7l8D4U9bvpOsUMMUgSr2cMJuU2VG1SVVWLQ6eCfpi-IHYgCosajEZCxxHqBND8TutXoxsNmHQLXYmKIhZWggKHtM7Gy2VEiJj5wnfh6ueLjWdZ3gIMt1KNnylkS_Bz03eT5R_0i3KuzjpdCdingXLybIWiWWVaIc9x_8ankhLGUaHamBDno_gsTegNxIsDIL5182VgZwMrjW92L-cdc",
-
             //     "--app-id",
             //     // "2933711d-6638-41d4-a2d2-6dd2d965208b",
             //     "449f2186-0e86-4e19-b46f-c4c23212d731",    // App does not exist
             //     // "449f2186-0e86-4e19-b46f-c4c23212d730",   // No bookmarks app
             //     // "e5d051f0-34c6-4f47-9bc8-7dfabf784f18",   // Has 2 bookmarks
-
             //     "--auth-user-dir",
             //     "LAB",
             //     "--auth-user-id",
             //     "goran",
-
             //     "--id-type",
             //     "id",
             //     // "--bookmark",
@@ -851,7 +718,6 @@
             //     "--output-format",
             //     "table"
             // ]
-
             // ------------------------------------
             //   Get sessions
             // ------------------------------------
@@ -869,31 +735,25 @@
             //     // "--virtual-proxy",
             //     // "jwt",
             //     // "",
-
             //     "--auth-user-dir",
             //     "LAB",
             //     "--auth-user-id",
             //     "goran",
-
             //     // "--host-proxy",
             //     // "pro2-win1.lab.ptarmiganlabs.net",
             //     // "pro2-win2.lab.ptarmiganlabs.net",
-
             //     // "--session-virtual-proxy",
             //     // "dev1",
             //     // "finance",
             //     // "",
-
             //     "--output-format",
             //     // "table",
             //     "json",
-
             //     "--sort-by",
             //     "prefix"
             //     // "proxyhost",
             //     // "proxyname",
             // ]
-
             // ------------------------------------
             //   Delete sessions
             // ------------------------------------
@@ -911,26 +771,21 @@
             //     "--virtual-proxy",
             //     "finance",
             //     // "",
-
             //     "--host-proxy",
             //     "pro2-win1.lab.ptarmiganlabs.net",
             //     // "pro2-win2.lab.ptarmiganlabs.net",
-
             //     // "--session-id",
             //     // "d6e457ca-37c9-4f80-91c2-c63d919c97f9",
             //     // "d6e457ca-37c9-4f80-91c2-c63d919c97f8",
             //     // "41904757-d2f5-4f6b-bfd6-3c0e125d3e1c",
-
             //     //"--session-virtual-proxy",
             //     // "",
             //     //"finance",
-
             //     "--auth-user-dir",
             //     "LAB",
             //     "--auth-user-id",
             //     "goran"
             // ]
-
             // ------------------------------------
             //   Get measure by id
             // ------------------------------------
@@ -954,7 +809,6 @@
             //   "--output-format",
             //   "table"
             // ]
-
             // ------------------------------------
             //   Get measure by name
             // ------------------------------------
@@ -978,7 +832,6 @@
             //   "--output-format",
             //   "table"
             // ]
-
             // ------------------------------------
             //   Delete measure by id
             // ------------------------------------
@@ -998,7 +851,6 @@
             //   "77ead64e-8bf3-4cd4-bc97-ae45b7521081",
             //   "7dde35ea-4cd7-43f5-a83e-40bb0d45339b"
             // ]
-
             // ------------------------------------
             //   Delete measure by name
             // ------------------------------------
@@ -1018,40 +870,65 @@
             //   "# No. of Contacts",
             //   // "# No. of Contacts (LY)"
             // ]
-
             // ------------------------------------
             // Scramble field
             // ------------------------------------
             // "args": [
-            //   "field-scramble",
-            //   "--host",
-            //   "192.168.100.109",
+            //     "qseow",
+            //     "field-scramble",
+            //     "--host",
+            //     // "192.168.100.109",
+            //     "pro2-win1.lab.ptarmiganlabs.net",
+            //     "--qrs-port",
+            //     "4242",
 
-            //   "--port",
-            //   // "4747",
-            //   "443",
+            //     // JWT auth
+            //     // "--virtual-proxy",
+            //     // "jwt",
+            //     // "--auth-type",
+            //     // "jwt",
+            //     // "--auth-jwt",
+            //     // "<jwt>",
+            //     // "--engine-port",
+            //     // "443",
 
-            //   "--virtual-proxy",
-            //   "jwt",
-            //   "--auth-type",
-            //   "jwt",
-            //   "--auth-jwt",
-            //   "<jwt>",
+            //     // Cert auth
+            //     "--engine-port",
+            //     "4747",
+            //     "--auth-type",
+            //     "cert",
 
-            //   "--app-id",
-            //   "2933711d-6638-41d4-a2d2-6dd2d965208b",
+            //     "--auth-cert-file",
+            //     "../secret/pro2win1-nopwd/client.pem",
+            //     "--auth-cert-key-file",
+            //     "../secret/pro2win1-nopwd/client_key.pem",
+            //     "--auth-root-cert-file",
+            //     "../secret/pro2win1-nopwd/root.pem",
 
-            //   "--auth-user-dir",
-            //   "LAB",
-            //   "--auth-user-id",
-            //   "goran",
+            //     "--auth-user-dir",
+            //     "LAB",
+            //     "--auth-user-id",
+            //     "goran",
 
-            //   "--field-name",
-            //   "Dim4",
-            //   "Dim2",
+            //     "--app-id",
+            //     "2933711d-6638-41d4-a2d2-6dd2d965208b",
+            //     // "b091456e-145f-474a-ae1e-8afe01b3ebad",
 
-            //   "--new-app-name",
-            //   "'New scrambled app'"
+            //     "--field-name",
+            //     "Dim4",
+            //     "Dim2",
+            //     "--new-app-name",
+            //     "_New-scrambled-app-2",
+
+            //     "--new-app-cmd",
+            //     // "publish",
+            //     // "--new-app-cmd-name",
+            //     // "Ctrl-Q demo apps"
+            //     "replace",
+            //     "--new-app-cmd-id",
+            //     "4dcee765-4f10-4351-a78a-333d4a0a7790"
+
+            //     // "--force"
             // ]
 
             // ------------------------------------
@@ -1062,46 +939,39 @@
             //   "--host",
             //   "192.168.100.109",
             // //   "pro2-win1.lab.ptarmiganlabs.net",
-
             // //   "--port",
             // //   "4747",
             // //   "443",
-
             // //   "--virtual-proxy",
             // //   "jwt",
-
             // //   "--auth-type",
             // //   "jwt",
             // //   "cert",
             // //   "--auth-jwt",
             // //   "<jwt>",
-
             //   "--app-id",
             //   "deba4bcf-47e4-472e-97b2-4fe8d6498e11",
-
             //   "--auth-user-dir",
             //   "LAB",
             //   "--auth-user-id",
             //   "goran",
-
             //   "--log-level",
             //   "info"
             // ]
 
             // ------------------------------------
-            // Connection test
+            // QSEoW Connection test
             // ------------------------------------
             // "args": [
+            //   "qseow",
             //   "connection-test",
             //   "--host",
             // //   "192.168.100.109",
             //   "pro2-win1.lab.ptarmiganlabs.net",
             // //   "--port",
             // //   "443",
-
             // //   "--virtual-proxy",
             // //   "/jwt",
-
             //   "--auth-type",
             // //   "jwt",
             //     "cert",
@@ -1115,57 +985,57 @@
             //     "./cert/root.pem",
             // //   "--auth-jwt",
             //   // "....",
-
             //   "--auth-user-dir",
             //   "LAB",
             //   "--auth-user-id",
             //   "goran",
-
             //   // "--log-level",
             //   // "info"
             // ]
+            //
+
+            // ------------------------------------
+            // QS Cloud connection test
+            // ------------------------------------
+            // "args": ["qscloud", "connection-test", "--tenant-host", "plabs.eu.qlikcloud.com", "--auth-type", "apikey", "--apikey", ""]
 
             // ------------------------------------
             // Network chart visualization
             // ------------------------------------
-            // "args": [
-            //     "task-vis",
-            //     "--host",
-            //     "192.168.100.109",
-            //     // "--port",
-            //     // "443",
-
-            //     "--vis-host",
-            //     "192.168.100.143",
-            //     "--vis-port",
-            //     "3000",
-
-            //     // "--virtual-proxy",
-            //     // "/jwt",
-
-            //     "--auth-type",
-            //     // "jwt",
-            //     "cert",
-            //     //   "--host",
-            //     //   "192.168.100.109",
-            //     //   "--auth-cert-file",
-            //     //   "../../code/secret/pro2win1-nopwd/client.pem",
-            //     //   "--auth-cert-key-file",
-            //     //   "../../code/secret/pro2win1-nopwd/client_key.pem",
-            //     // "./cert/client.pem",
-            //     // "./cert/client_key.pem",
-            //     // "--auth-jwt",
-            //     // "....",
-
-            //     "--auth-user-dir",
-            //     "LAB",
-            //     "--auth-user-id",
-            //     "goran",
-
-            //     "--log-level",
-            //     "info"
-            //     //   "verbose"
-            // ]
+            "args": [
+                "qseow",
+                "task-vis",
+                "--host",
+                // "192.168.100.109",
+                "pro2-win1.lab.ptarmiganlabs.net",
+                // "--port",
+                // "443",
+                "--vis-host",
+                "192.168.1.210",
+                // "192.168.100.143",
+                "--vis-port",
+                "3000",
+                // "--virtual-proxy",
+                // "/jwt",
+                "--auth-type",
+                // "jwt",
+                "cert",
+                "--auth-cert-file",
+                "/Users/goran/code/secret/pro2win1-nopwd/client.pem",
+                "--auth-cert-key-file",
+                "/Users/goran/code/secret/pro2win1-nopwd/client_key.pem",
+                "--auth-root-cert-file",
+                "/Users/goran/code/secret/pro2win1-nopwd/root.pem",
+                // "--auth-jwt",
+                // "....",
+                "--auth-user-dir",
+                "LAB",
+                "--auth-user-id",
+                "goran"
+                // "--log-level",
+                // "info"
+                //   "verbose"
+            ]
         }
     ]
 }

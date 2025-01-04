@@ -1,7 +1,7 @@
 import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
-import { qseowSharedParamAssertOptions } from '../util/qseow/assert-options.js';
+import { qseowSharedParamAssertOptions, visTaskAssertOptions } from '../util/qseow/assert-options.js';
 import { visTask } from '../cmd/qseow/vistask.js';
 
 export function setupQseowVisualiseTaskCommand(qseow) {
@@ -10,6 +10,7 @@ export function setupQseowVisualiseTaskCommand(qseow) {
         .description('visualise task network')
         .action(async (options) => {
             await qseowSharedParamAssertOptions(options);
+            await visTaskAssertOptions(options);
 
             await visTask(options);
         })
@@ -64,6 +65,21 @@ export function setupQseowVisualiseTaskCommand(qseow) {
         )
         .addOption(
             new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_AUTH_JWT')
+        )
+        .addOption(
+            new Option('--task-type <type...>', 'type of tasks to include').choices(['reload', 'ext-program']).env('CTRLQ_TASK_TYPE')
+        )
+        .addOption(new Option('--task-id <ids...>', 'task(s) in task chains to include in the network graph.').env('CTRLQ_TASK_ID'))
+        .addOption(new Option('--task-tag <tags...>', 'task tag(s) to include in the network graph.').env('CTRLQ_TASK_TAG'))
+        .addOption(
+            new Option('--app-id <ids...>', 'app(s) associated with the tasks that should be included in the network graph.').env(
+                'CTRLQ_APP_ID'
+            )
+        )
+        .addOption(
+            new Option('--app-tag <tags...>', 'app tag(s) associated with the tasks that should be included in the network graph.').env(
+                'CTRLQ_APP_TAG'
+            )
         )
         .addOption(new Option('--vis-host <host>', 'host for visualisation server').default('localhost').env('CTRLQ_VIS_HOST'))
         .addOption(new Option('--vis-port <port>', 'port for visualisation server').default('3000').env('CTRLQ_VIS_PORT'));

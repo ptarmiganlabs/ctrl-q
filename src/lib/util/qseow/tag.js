@@ -1,8 +1,45 @@
 import axios from 'axios';
-import path from 'node:path';
-import { logger, execPath } from '../../../globals.js';
+import { logger } from '../../../globals.js';
 import { setupQrsConnection } from './qrs.js';
 import { catchLog } from '../log.js';
+
+// Check if a tag with a given name exists
+export async function tagExistByName(tagName, optionsParam) {
+    try {
+        logger.debug(`Checking if tag with name ${tagName} exists`);
+
+        // Did we get any options as parameter?
+        let options;
+        if (!optionsParam) {
+            // Get CLI options
+            options = getCliOptions();
+        } else {
+            options = optionsParam;
+        }
+
+        const axiosConfig = setupQrsConnection(options, {
+            method: 'get',
+            path: '/qrs/tag/full',
+            queryParameters: [{ name: 'filter', value: encodeURI(`name eq '${tagName}'`) }],
+        });
+
+        const result = await axios.request(axiosConfig);
+        if (result.status === 200) {
+            const response = JSON.parse(result.data);
+            if (response.length === 1) {
+                logger.debug(`Tag with name ${tagName} exists`);
+                return true;
+            }
+
+            logger.debug(`Tag with name ${tagName} does not exist`);
+            return false;
+        }
+        return false;
+    } catch (err) {
+        catchLog('TAG EXIST BY NAME', err);
+        return false;
+    }
+}
 
 export function getTagsFromQseow(options) {
     return new Promise((resolve, _reject) => {

@@ -7,6 +7,8 @@ import sea from 'node:sea';
 
 import { appVersion, logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists, verifySeaAssetExists } from '../../../globals.js';
 import { QlikSenseTasks } from '../../task/class_alltasks.js';
+import { findCircularTaskChains } from '../../task/find_circular_task_chain.js';
+import { catchLog } from '../../util/log.js';
 
 // js: 'application/javascript',
 const MIME_TYPES = {
@@ -240,18 +242,46 @@ const prepareFile = async (url) => {
 
         const template = handlebars.compile(file, { noEscape: true });
 
+        // Debug logging of task network, which consists of three properties:
+        // 1. nodes: Array of nodes
+        // 2. edges: Array of edges
+        // 3. tasks: Array of tasks
+        logger.debug(`Tasks found: ${taskNetwork?.tasks?.length}`);
+        for (const task of taskNetwork.tasks) {
+            // Log task type
+            if (task.metaNode === false) {
+                logger.debug(`Task: [${task.id}] - "${task.taskName}"`);
+            } else {
+                logger.debug(`Meta node: [${task.id}], Meta node type: ${task.metaNodeType}`);
+            }
+        }
+
+        // Log nodes
+        logger.debug(`Nodes found: ${taskNetwork?.nodes?.length}`);
+        for (const node of taskNetwork.nodes) {
+            if (node.metaNode === true) {
+                logger.debug(`Meta node: [${node.id}] - "${node.label}"`);
+            } else {
+                logger.debug(`Task node: [${node.id}] - "${node.label}"`);
+            }
+        }
+
+        // Log edges
+        logger.debug(`Edges found: ${taskNetwork?.edges?.length}`);
+        for (const edge of taskNetwork.edges) {
+            logger.debug(`Edge: ${JSON.stringify(edge)}`);
+        }
+
         // Get task network model
         const taskModel = taskNetwork;
 
         // Add schema nodes
         const nodes = taskModel.nodes.filter((node) => node.metaNode === true);
-        // let nodes = taskModel.nodes.filter((node) => node.metaNodeType === 'schedule');
         let nodesNetwork = nodes.map((node) => {
             const newNode = {};
             if (node.metaNodeType === 'schedule') {
                 newNode.id = node.id;
                 newNode.label = node.label;
-                // newNode.title = node.label;
                 newNode.title = `<strong>Schema trigger</strong><br>Name: ${node.label}<br>Enabled: ${
                     node.enabled
                 }<br>Schema: ${getSchemaText(
@@ -265,10 +295,10 @@ const prepareFile = async (url) => {
                     node.completeSchemaEvent.operational.timesTriggered
                 }`;
                 newNode.shape = 'triangle';
-                // newNode.icon = { face: 'fontawesome', code: '\uf017' };
                 newNode.color = node.enabled ? '#FFA807' : '#BCB9BF';
                 // Needed to distinguish real tasks from meta tasks in the network diagram
                 newNode.isReloadTask = false;
+                newNode.nodeType = 'scheduleTrigger';
             } else if (node.metaNodeType === 'composite') {
                 newNode.id = node.id;
                 newNode.label = node.label;
@@ -277,10 +307,10 @@ const prepareFile = async (url) => {
                 newNode.color = '#FFA807';
                 // Needed to distinguish real tasks from meta tasks in the network diagram
                 newNode.isReloadTask = false;
+                newNode.nodeType = 'compositeTrigger';
             } else {
                 logger.error(`Huh? That's an unknown meta node type: ${node.metaNodeType}`);
             }
-            // task.color = task.schemaEvent.enabled ? '#FFA807' : '#BCB9BF';
             return newNode;
         });
 
@@ -298,17 +328,18 @@ const prepareFile = async (url) => {
                     // Reload task
                     newNode.title = `<strong>Reload task</strong><br>Name: ${node.taskName}<br>Task ID: ${node.taskId}<br>Enabled: ${node.taskEnabled}<br>App: ${node.appName}<br>Last exec status: ${node.taskLastStatus}<br>Last exec start: ${node.taskLastExecutionStartTimestamp}<br>Last exec stop: ${node.taskLastExecutionStopTimestamp}`;
                     newNode.shape = 'box';
+                    newNode.nodeType = 'reloadTask';
                 } else if (node.taskType === 1) {
                     // External program task
                     newNode.title = `<strong>Ext. program task</strong><br>Name: ${node.taskName}<br>Task ID: ${node.taskId}<br>Enabled: ${node.taskEnabled}<br>Last exec status: ${node.taskLastStatus}<br>Last exec start: ${node.taskLastExecutionStartTimestamp}<br>Last exec stop: ${node.taskLastExecutionStopTimestamp}`;
                     newNode.shape = 'ellipse';
+                    newNode.nodeType = 'externalProgramTask';
                 }
 
                 // Needed to distinguish real tasks from meta tasks in the network diagram
                 newNode.isReloadTask = true;
 
-                // newNode.color = node.taskEnabled ? '#FFA807' : '#BCB9BF';
-                if (node.taskLastStatus === 'NeverStarted') {
+                if (node.taskLastStatus === 'NeverStarted' || node.taskLastStatus === '?') {
                     newNode.color = '#999';
                 } else if (node.taskLastStatus === 'Triggered' || node.taskLastStatus === 'Queued') {
                     newNode.color = '#6cf';
@@ -326,7 +357,7 @@ const prepareFile = async (url) => {
                 } else if (node.taskLastStatus === 'FinishedSuccess') {
                     newNode.color = '#21ff06';
                 } else if (node.taskLastStatus === 'Skipped') {
-                    newNode.color = '#6cf';
+                    newNode.color = '#ffcc00';
                 }
                 newNode.taskLastStatus = node.taskLastStatus;
                 return newNode;
@@ -407,7 +438,7 @@ const requestHandler = async (req, res) => {
     }
 };
 
-// Set up http server for serviing html pages with the task visualization
+// Set up http server for serving html pages with the task visualization
 const startHttpServer = async (options) => {
     const server = http.createServer(requestHandler);
 
@@ -419,6 +450,12 @@ const startHttpServer = async (options) => {
     });
 };
 
+/**
+ * Start an HTTP server for visualizing QSEoW tasks as a network diagram.
+ *
+ * @param {Object} options - Options for the visTask function.
+ * @returns {Promise<boolean>} - A promise that resolves to true if the server was started successfully, false otherwise.
+ */
 export async function visTask(options) {
     // Set log level
     setLoggingLevel(options.logLevel);
@@ -492,23 +529,120 @@ export async function visTask(options) {
         logger.error('Failed to get task model from QSEoW');
         return false;
     }
-    taskNetwork = qlikSenseTasks.taskNetwork;
+
+    // Filter tasks based on CLI options. Two possible
+    // 1. If no filters specified, show all tasks.
+    // 2. At least one filter specified.
+    //    - If --task-id <id...> specified
+    //      - Get root task(s) for each specified task id
+    //      - Include in network diagram all tasks that are children of the root tasks
+    //    - If --task-tag <tag...> specified
+    //      - Get all tasks that have the specified tag(s)
+    //      - Get root task(s) for each task that has the specified tag(s)§
+    //    - If --app-id <id...> specified
+    //      - Get all tasks that are associated with the specified app id(s)
+    //      - Get root task(s) for each task that is associated with the specified app id(s)
+    //      - Include in network diagram all tasks that are children of the root tasks
+    //    - If --app-tag <tag...> specified
+    //      - Get all apps that are associated with the specified app tag(s)
+    //      - Get all tasks that are associated with the apps that have the specified app tag(s)
+    //      - Get root task(s) for each task that is associated with the apps that have the specified app tag(s)
+    //      - Include in network diagram all tasks that are children of the root tasks
+    //
+    // Filters above are additive, i.e. all tasks that match any of the filters are included in the network diagram.
+    // Make sure to de-duplicate root tasks.
+
+    // If no task id or tag filters specified, visualize all nodes in task model
+    if (!options.taskId && !options.taskTag) {
+        // No task id filters specified
+        // Visualize all nodes in task model
+        logger.verbose('No task id or tag filters specified. Visualizing all nodes in task model.');
+
+        taskNetwork = qlikSenseTasks.taskNetwork;
+    } else {
+        // Task id filters specified.
+        // Get all task chains the tasks are part of,
+        // then get the rMeta nodeoot nodes of each chain. They will be the starting points for the task tree.
+
+        // Array to keep track of root nodes of task chains
+        const rootNodes = await qlikSenseTasks.getRootNodesFromFilter();
+
+        // List root nodes to console
+        logger.verbose(`${rootNodes.length} root nodes sent to visualizer:`);
+        rootNodes.forEach((node) => {
+            // Meta node?
+            if (node.metaNode === true) {
+                // Reload task?
+                if (node.taskType === 'reloadTask') {
+                    logger.verbose(
+                        `Meta node: metanode type=${node.metaNodeType} id=[${node.id}] task type=${node.taskType} task name="${node.completeSchemaEvent.reloadTask.name}"`
+                    );
+                }
+            } else {
+                logger.verbose(`Root node: [${node.id}] "${node.taskName}"`);
+            }
+        });
+
+        // Get all nodes that are children of the root nodes
+        const { nodes, edges, tasks } = await qlikSenseTasks.getNodesAndEdgesFromRootNodes(rootNodes);
+
+        taskNetwork = { nodes, edges, tasks };
+    }
+
+    // Look for circular task chains in the task network
+    logger.info('');
+    logger.info('Looking for circular task chains in the task network');
+
+    try {
+        const circularTaskChains = findCircularTaskChains(taskNetwork, logger);
+
+        // Errros?
+        if (circularTaskChains === false) {
+            return false;
+        }
+
+        // De-duplicate circular task chains (where fromTask.id and toTask.id matches in two different chains).
+        const deduplicatedCircularTaskChain = circularTaskChains.filter((chain, index, self) => {
+            return self.findIndex((c) => c.fromTask.id === chain.fromTask.id && c.toTask.id === chain.toTask.id) === index;
+        });
+
+        // Log circular task chains, if any were found.
+        if (deduplicatedCircularTaskChain?.length > 0) {
+            logger.warn('');
+            logger.warn(`Found ${deduplicatedCircularTaskChain.length} circular task chains in task model`);
+            for (const chain of deduplicatedCircularTaskChain) {
+                logger.warn(`Circular task chain:`);
+
+                logger.warn(`   From task : [${chain.fromTask.id}] "${chain.fromTask.taskName}"`);
+                logger.warn(`   To task   : [${chain.toTask.id}] "${chain.toTask.taskName}"`);
+            }
+        } else {
+            logger.info('No circular task chains found in task model');
+        }
+    } catch (error) {
+        catchLog('FIND CIRCULAR TASK CHAINS', error);
+        return false;
+    }
 
     // Add additional values to Handlebars template
     templateData.visTaskHost = options.visHost;
     templateData.visTaskPort = options.visPort;
 
     // Get reload task count, i.e. tasks where taskType === 0
-    templateData.reloadTaskCount = qlikSenseTasks.taskList.filter((task) => task.taskType === 0).length;
+    // templateData.reloadTaskCount = qlikSenseTasks.taskList.filter((task) => task.taskType === 0).length;
+    templateData.reloadTaskCount = taskNetwork.tasks.filter((task) => task.taskType === 0).length;
 
     // Get external program task count, i.e. tasks where taskType === 1
-    templateData.externalProgramTaskCount = qlikSenseTasks.taskList.filter((task) => task.taskType === 1).length;
+    // templateData.externalProgramTaskCount = qlikSenseTasks.taskList.filter((task) => task.taskType === 1).length;
+    templateData.externalProgramTaskCount = taskNetwork.tasks.filter((task) => task.taskType === 1).length;
 
     // Get schema trigger count
-    templateData.schemaTriggerCount = qlikSenseTasks.qlikSenseSchemaEvents.schemaEventList.length;
+    // Count taskNetwork.nodes events where metaNodeType === 'schedule'
+    templateData.schemaTriggerCount = taskNetwork.nodes.filter((node) => node.metaNodeType === 'schedule').length;
 
     // Get composite trigger count
-    templateData.compositeTaskCount = qlikSenseTasks.qlikSenseCompositeEvents.compositeEventList.length;
+    // Count taskNetwork.nodes events where metaNodeType === 'composite'
+    templateData.compositeTaskCount = taskNetwork.nodes.filter((node) => node.metaNodeType === 'composite').length;
 
     startHttpServer(optionsNew);
     return true;

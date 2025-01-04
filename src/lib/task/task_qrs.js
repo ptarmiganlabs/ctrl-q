@@ -1,14 +1,10 @@
 import axios from 'axios';
-// const { promises: Fs } = require('fs');
-// const yesno = require('yesno');
 
 import { logger } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
 import { getCertFilePaths } from '../util/qseow/cert.js';
 
 import { catchLog } from '../util/log.js';
-// const { QlikSenseTasks } = require('./class_alltasks');
-// const { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } = require('../util/lookups');
 
 function uniqueByTaskKeys(array, keys) {
     const filtered = array.filter(
