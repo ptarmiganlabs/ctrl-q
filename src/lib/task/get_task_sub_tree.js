@@ -62,7 +62,7 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
             }
         }
 
-        // Now that all downstream tasks have been retrieved, we can check if there are any general issues with those tasks
+        // Now that all downstream tasks have been retrieved, we can check if there are any issues with those tasks.
         // Examples are cyclic task tree relationships, multiple downstream tasks with the same ID etc.
 
         // Check for downstream tasks with the same ID and same relationship with parent task (e.g. on-success or on-failure)
@@ -137,6 +137,9 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
         const uniqueDownstreamTasks = Array.from(new Set(validDownstreamTasks.map((a) => a.downstreamTask.id))).map((id) => {
             return validDownstreamTasks.find((a) => a.downstreamTask.id === id);
         });
+
+        // Now sort the downstream tasks by task name
+        uniqueDownstreamTasks.sort((a, b) => a.downstreamTask.taskName.localeCompare(b.downstreamTask.taskName));
 
         for (const uniqueDownstreamTask of uniqueDownstreamTasks) {
             if (_.taskCyclicStack.has(uniqueDownstreamTask.downstreamTask.id)) {
@@ -298,7 +301,6 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
         }
 
         return subTree;
-        // console.log('subTree: ' + JSON.stringify(subTree));
     } catch (err) {
         catchLog('GET TASK SUBTREE (tree)', err);
         return false;
