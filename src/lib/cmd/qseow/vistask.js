@@ -298,6 +298,7 @@ const prepareFile = async (url) => {
                 newNode.color = node.enabled ? '#FFA807' : '#BCB9BF';
                 // Needed to distinguish real tasks from meta tasks in the network diagram
                 newNode.isReloadTask = false;
+                newNode.nodeType = 'scheduleTrigger';
             } else if (node.metaNodeType === 'composite') {
                 newNode.id = node.id;
                 newNode.label = node.label;
@@ -306,6 +307,7 @@ const prepareFile = async (url) => {
                 newNode.color = '#FFA807';
                 // Needed to distinguish real tasks from meta tasks in the network diagram
                 newNode.isReloadTask = false;
+                newNode.nodeType = 'compositeTrigger';
             } else {
                 logger.error(`Huh? That's an unknown meta node type: ${node.metaNodeType}`);
             }
@@ -326,10 +328,12 @@ const prepareFile = async (url) => {
                     // Reload task
                     newNode.title = `<strong>Reload task</strong><br>Name: ${node.taskName}<br>Task ID: ${node.taskId}<br>Enabled: ${node.taskEnabled}<br>App: ${node.appName}<br>Last exec status: ${node.taskLastStatus}<br>Last exec start: ${node.taskLastExecutionStartTimestamp}<br>Last exec stop: ${node.taskLastExecutionStopTimestamp}`;
                     newNode.shape = 'box';
+                    newNode.nodeType = 'reloadTask';
                 } else if (node.taskType === 1) {
                     // External program task
                     newNode.title = `<strong>Ext. program task</strong><br>Name: ${node.taskName}<br>Task ID: ${node.taskId}<br>Enabled: ${node.taskEnabled}<br>Last exec status: ${node.taskLastStatus}<br>Last exec start: ${node.taskLastExecutionStartTimestamp}<br>Last exec stop: ${node.taskLastExecutionStopTimestamp}`;
                     newNode.shape = 'ellipse';
+                    newNode.nodeType = 'externalProgramTask';
                 }
 
                 // Needed to distinguish real tasks from meta tasks in the network diagram
