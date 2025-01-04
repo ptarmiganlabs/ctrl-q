@@ -210,6 +210,54 @@
                 border-radius: 50%;
                 display: inline-block;
             }
+
+            .triangle {
+                width: 0;
+                height: 0;
+                border-left: 10px solid transparent;
+                border-right: 10px solid transparent;
+                border-bottom: 20px solid black;
+                display: inline-block;
+            }
+            .hexagon {
+                width: 30px;
+                height: 17.32px;
+                background-color: black;
+                position: relative;
+                display: inline-block;
+                transform: rotate(90deg); /* Rotate the hexagon */
+            }
+            .hexagon:before,
+            .hexagon:after {
+                content: "";
+                position: absolute;
+                width: 0;
+                border-left: 15px solid transparent;
+                border-right: 15px solid transparent;
+            }
+            .hexagon:before {
+                bottom: 100%;
+                border-bottom: 8.66px solid black;
+            }
+            .hexagon:after {
+                top: 100%;
+                width: 0;
+                border-top: 8.66px solid black;
+            }
+            .ellipse {
+                width: 30px;
+                height: 20px;
+                background-color: black;
+                border-radius: 50%;
+                display: inline-block;
+            }
+            .rounded-rectangle {
+                width: 30px;
+                height: 20px;
+                background-color: black;
+                border-radius: 5px;
+                display: inline-block;
+            }
         </style>
     </head>
     <body>
@@ -277,12 +325,13 @@
             <p><span class="dot" style="background-color: rgb(80, 114, 225)"></span> Never executed task</p>
             <p><span class="dot" style="background-color: lightgray"></span> Disabled</p>
             <!-- Add more node types as needed -->
-            <!-- <hr>
-            Rectangle: Reload task<br>
-            Elipse: External program task or task cluser (if text within elipse is "cluster")<br>
-            Triangle: Schedule trigger<br>
-            <hr> -->
-            <!-- Add about info -->
+            <hr>
+            <p><strong>Shapes:</strong></p>
+            <p><span class="triangle"></span> Schedule trigger</p>
+            <p><span class="hexagon"></span> Composite trigger</p>
+            <p><span class="ellipse"></span> External program task</p>
+            <p><span class="rounded-rectangle"></span> Reload task</p>
+            <hr>
             <p>Ctrl-Q {{appVersion}}</p>
             <p>
                 More info at <a target="_blank" href="https://ctrl-q.ptarmiganlabs.com">ctrl-q.ptarmiganlabs.com</a><br />
