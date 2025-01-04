@@ -56,6 +56,9 @@ const visOptions = {
         arrows: 'to',
         width: 5,
         smooth: false,
+        font: {
+            size: 22, // Increase font size for text edge labels
+        },
     },
     layout: {
         randomSeed: 5.5,
@@ -363,6 +366,17 @@ const prepareFile = async (url) => {
                 return newNode;
             })
             .concat(nodesNetwork);
+
+        // Add a text with edge count for the edges where edgeCount > 1
+        // No text for edges where edgeCount === 1
+        // Update the edge label in taskModel.edges[] with the edge count
+        taskModel.edges.map((edge) => {
+            if (edge.edgeCount > 1) {
+                edge.label = `${edge.edgeCount}`;
+            } else {
+                edge.label = '';
+            }
+        });
 
         const networkTask = { nodes: nodesNetwork, edges: taskModel.edges };
 

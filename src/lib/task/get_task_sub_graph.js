@@ -152,6 +152,29 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
                     }
 
                     duplicateDownstreamNodes.push(tmp);
+
+                    // Update edge in main task network to reflect that there are multiple downstream nodes with the same ID and the same relationship
+                    _.taskNetwork.edges = _.taskNetwork.edges.map((el) => {
+                        if (el.from === edgeToDownstreamNode.from && el.to === edgeToDownstreamNode.to) {
+                            return {
+                                ...el,
+                                edgeCount: tmp.length,
+                            };
+                        }
+                        return el;
+                    });
+                } else {
+                    // No duplicate downstream nodes
+                    // Update edge in main task network to reflect that there are no multiple downstream nodes with the same ID and the same relationship
+                    _.taskNetwork.edges = _.taskNetwork.edges.map((el) => {
+                        if (el.from === edgeToDownstreamNode.from && el.to === edgeToDownstreamNode.to) {
+                            return {
+                                ...el,
+                                edgeCount: 1,
+                            };
+                        }
+                        return el;
+                    });
                 }
             }
         }
@@ -216,6 +239,17 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
                 subGraphTasks = subGraphTasks.concat(...tmp3.tasks);
             }
         }
+
+        // Update edges with information about how many instances of the same edge there are.
+        // This has been temporarily stored in the main task network object's edges property.
+        // Copy it over to the edges in the subgraphEdges array.
+        subGraphEdges = subGraphEdges.map((el) => {
+            const edgeCount = _.taskNetwork.edges.find((edge) => edge.from === el.from && edge.to === el.to).edgeCount;
+            return {
+                ...el,
+                edgeCount: edgeCount,
+            };
+        });
 
         return {
             nodes: subGraphNodes,
