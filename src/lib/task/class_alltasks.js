@@ -325,16 +325,16 @@ export class QlikSenseTasks {
      * - De-duplicate nodes where applicable. Node id is unique, but may appear at different places in the task network.
      * - Keep track of edges between nodes and store them in edgesToVisualize
      * - Store nodes in nodesToVisualize
-     * - Detect cyclic dependencies. Log warning if detected.
-     * - Detect identical, duplicate edges between nodes. Log warning if detected.
+     * - Detect cyclic dependencies to avoid infinite loops
      *
      * @param {Array} rootNodes - An array of root node objects from which the extraction begins.
      * @returns {Promise<object>} - A promise that resolves to an object containing the nodes and edges.
      * Object properties:
-     *   - nodes: Array of nodes,
+     *   - nodes: Array of nodes
      *   - edges: Array of edges
+     *   - tasks: Array of tasks
      */
-    async getNodesAndEdgesFromRootNodes(rootNodes) {
+    async getNetworkFromRootNodes(rootNodes) {
         // De-duplicate root nodes
         const uniqueRootNodes = rootNodes.filter((node, index, self) => {
             return index === self.findIndex((t) => t.id === node.id);
@@ -353,9 +353,38 @@ export class QlikSenseTasks {
                 logger.verbose(`No subgraph found for root node ${rootNode.id}.`);
                 continue;
             }
-            nodesFound.push(...subGraph.nodes);
-            edgesFound.push(...subGraph.edges);
-            tasksFound.push(...subGraph.tasks);
+
+            // Note: There are corner cases that need to be handled here.
+            // - Overlapping subnetworks. For example, Root1 > Node1 > Node2 and Root2 > Node1 > Node2.
+            //   In this case, Node1 and Node2 should NOT be duplicated in the final result.
+
+            // Only add nodes if they are not already in the nodesFound array
+            if (subGraph.nodes) {
+                for (const node of subGraph.nodes) {
+                    if (!nodesFound.find((t) => t.id === node.id)) {
+                        nodesFound.push(node);
+                    }
+                }
+            }
+
+            // Only add edges if they are not already in the edgesFound array
+            if (subGraph.edges) {
+                for (const edge of subGraph.edges) {
+                    if (!edgesFound.find((t) => t.from === edge.from && t.to === edge.to)) {
+                        // Add all edges (there can be multiple edges between the same nodes!) to the edgesFound array
+                        const edges = subGraph.edges.filter((e) => e.from === edge.from && e.to === edge.to);
+                        edgesFound.push(...edges);
+                    }
+                }
+            }
+            // Only add tasks if they are not already in the tasksFound array
+            if (subGraph.tasks) {
+                for (const task of subGraph.tasks) {
+                    if (!tasksFound.find((t) => t.taskId === task.taskId)) {
+                        tasksFound.push(task);
+                    }
+                }
+            }
         }
 
         // De-duplicate nodes using node id
@@ -371,12 +400,6 @@ export class QlikSenseTasks {
                     return t.taskId === task.taskId;
                 })
             );
-        });
-
-        // De-duplicate edges.
-        // Edges are identical if they connect the same two nodes, i.e. have the same from and to properties.
-        edgesFound = edgesFound.filter((edge, index, self) => {
-            return index === self.findIndex((t) => t.from === edge.from && t.to === edge.to);
         });
 
         return { nodes: nodesFound, edges: edgesFound, tasks: tasksFound };
