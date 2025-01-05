@@ -2,7 +2,7 @@ import { getTagIdByName } from '../util/qseow/tag.js';
 import { getCustomPropertyIdByName } from '../util/qseow/customproperties.js';
 import { mapTaskType } from '../util/qseow/lookups.js';
 
-export async function extParseExternalProgramTask(_, options, logger) {
+export async function extParseExternalProgramTask(_, param, logger) {
     let currentTask = null;
     let taskCreationOption;
 
