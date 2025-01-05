@@ -19,6 +19,7 @@ import { extGetTaskModelFromFile } from './get_task_model_from_file.js';
 import { extSaveTaskModelToQseow } from './save_task_model_to_qseow.js';
 import { extGetRootNodesFromFilter } from './get_root_nodes_from_filter.js';
 import { extFindRootNodes } from './find_root_nodes.js';
+import { extParseCompositeEvents } from './parse_composite_events.js';
 
 export class QlikSenseTasks {
     constructor() {

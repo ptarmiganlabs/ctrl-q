@@ -1,4 +1,7 @@
+import { v4 as uuidv4, validate } from 'uuid';
+
 import { mapTaskType, mapRuleState, mapEventType } from '../util/qseow/lookups.js';
+import { taskExistById, getTaskById } from '../util/qseow/task.js';
 
 export async function extParseCompositeEvents(_, param, logger) {
     // Get all composite events for this task
