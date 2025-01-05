@@ -1,5 +1,8 @@
-import { mapTaskType } from '../util/qseow/lookups.js';
+import { v4 as uuidv4, validate } from 'uuid';
+
+import { getTaskColumnPosFromHeaderRow, mapTaskType } from '../util/qseow/lookups.js';
 import { catchLog } from '../util/log.js';
+import { createReloadTaskInQseow, createCompositeEventInQseow } from '../util/qseow/task.js';
 
 export async function extGetTaskModelFromFile(_, tasksFromFile, tagsExisting, cpExisting, options, logger) {
     return new Promise(async (resolve, reject) => {

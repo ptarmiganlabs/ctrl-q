@@ -1,9 +1,11 @@
+import { validate } from 'uuid';
+
 import { getTagIdByName } from '../util/qseow/tag.js';
 import { getAppById } from '../util/qseow/app.js';
 import { getCustomPropertyIdByName } from '../util/qseow/customproperties.js';
 import { mapTaskType } from '../util/qseow/lookups.js';
 
-export async function extParseReloadTask(_, options, logger) {
+export async function extParseReloadTask(_, param, logger) {
     let currentTask = null;
     let taskCreationOption;
 

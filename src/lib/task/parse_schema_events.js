@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { mapIncrementOption, mapEventType, mapDaylightSavingTime } from '../util/qseow/lookups.js';
 
 export function extParseSchemaEvents(_, param, logger) {
