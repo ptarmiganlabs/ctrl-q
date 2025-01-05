@@ -56,6 +56,9 @@ const visOptions = {
         arrows: 'to',
         width: 5,
         smooth: false,
+        font: {
+            size: 22, // Increase font size for text edge labels
+        },
     },
     layout: {
         randomSeed: 5.5,
@@ -364,6 +367,17 @@ const prepareFile = async (url) => {
             })
             .concat(nodesNetwork);
 
+        // Add a text with edge count for the edges where edgeCount > 1
+        // No text for edges where edgeCount === 1
+        // Update the edge label in taskModel.edges[] with the edge count
+        taskModel.edges.map((edge) => {
+            if (edge.edgeCount > 1) {
+                edge.label = `${edge.edgeCount}`;
+            } else {
+                edge.label = '';
+            }
+        });
+
         const networkTask = { nodes: nodesNetwork, edges: taskModel.edges };
 
         templateData.nodes = JSON.stringify(nodesNetwork);
@@ -561,8 +575,8 @@ export async function visTask(options) {
         taskNetwork = qlikSenseTasks.taskNetwork;
     } else {
         // Task id filters specified.
-        // Get all task chains the tasks are part of,
-        // then get the rMeta nodeoot nodes of each chain. They will be the starting points for the task tree.
+        // Get all task chains the tasks are part of, then get the root nodes of each chain.
+        // They will be the starting points for the task tree.
 
         // Array to keep track of root nodes of task chains
         const rootNodes = await qlikSenseTasks.getRootNodesFromFilter();
@@ -584,7 +598,7 @@ export async function visTask(options) {
         });
 
         // Get all nodes that are children of the root nodes
-        const { nodes, edges, tasks } = await qlikSenseTasks.getNodesAndEdgesFromRootNodes(rootNodes);
+        const { nodes, edges, tasks } = await qlikSenseTasks.getNetworkFromRootNodes(rootNodes);
 
         taskNetwork = { nodes, edges, tasks };
     }
@@ -594,12 +608,15 @@ export async function visTask(options) {
     logger.info('Looking for circular task chains in the task network');
 
     try {
-        const circularTaskChains = findCircularTaskChains(taskNetwork, logger);
+        const result = findCircularTaskChains(taskNetwork, logger);
 
         // Errros?
-        if (circularTaskChains === false) {
+        if (result === false) {
             return false;
         }
+
+        const circularTaskChains = result.circularTaskChains;
+        const duplicateEdges = result.duplicateEdges;
 
         // De-duplicate circular task chains (where fromTask.id and toTask.id matches in two different chains).
         const deduplicatedCircularTaskChain = circularTaskChains.filter((chain, index, self) => {
@@ -618,6 +635,31 @@ export async function visTask(options) {
             }
         } else {
             logger.info('No circular task chains found in task model');
+        }
+
+        // Log duplicate edges, if any were found.
+        // De-duplicate first. If two edges have the same from and to task id, and the same rule state, it's a duplicate.
+        const deduplicatedDuplicateEdges = duplicateEdges.filter((edge, index, self) => {
+            return (
+                self.findIndex(
+                    (e) =>
+                        e.parentNode.id === edge.parentNode.id &&
+                        e.downstreamNode.id === edge.downstreamNode.id &&
+                        e.ruleState === edge.ruleState
+                ) === index
+            );
+        });
+
+        if (deduplicatedDuplicateEdges?.length > 0) {
+            logger.warn('');
+            logger.warn(`Found ${deduplicatedDuplicateEdges.length} duplicate task triggers in task model, across all examined tasks.`);
+            for (const duplicate of deduplicatedDuplicateEdges) {
+                logger.warn(
+                    `Multiple downstream nodes (${duplicate.duplicateEdgeCount}) with the same ID and the same trigger relationship "${duplicate.ruleState}" with the parent node.`
+                );
+                logger.warn(`   Parent node     : [${duplicate.parentNode.id}] "${duplicate.parentNode.completeTaskObject?.name}"`);
+                logger.warn(`   Downstream node : [${duplicate.downstreamNode.id}] "${duplicate.downstreamNode.completeTaskObject?.name}"`);
+            }
         }
     } catch (error) {
         catchLog('FIND CIRCULAR TASK CHAINS', error);

@@ -2,7 +2,8 @@ import { catchLog } from '../util/log.js';
 import { mapTaskType, mapRuleState } from '../util/qseow/lookups.js';
 
 /**
- * Function to get a subgraph of a task network/graph.
+ * Function to get a subgraph of a task network/graph, given a starting node.
+ * Detect cyclic task relationships and break the chain if a cyclic relationship is detected, to avoid infinite loops.
  *
  * @param {object} _ - QlikSenseTasks object. Corresponds to the 'this' keyword in a class.
  * @param {object} node - Node object
@@ -138,20 +139,30 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
                     // Get the rule state that is shared between the downstream tasks and the parent task
                     const ruleState = mapRuleState.get(tmp[0].rule[0].ruleState);
 
-                    // Log warning unless this parent/child relationship is already in the list of duplicate downstream tasks
-                    if (
-                        !duplicateDownstreamNodes.some(
-                            (el) => el[0].to === tmp[0].to && el[0].rule[0].ruleState === tmp[0].rule[0].ruleState
-                        )
-                    ) {
-                        logger.warn(
-                            `Multiple downstream nodes (${tmp.length}) with the same ID and the same trigger relationship "${ruleState}" with the parent node.`
-                        );
-                        logger.warn(`   Parent node     : ${currentNode.completeTaskObject.name}`);
-                        logger.warn(`   Downstream node : ${edgeDownstreamNode.completeTaskObject.name}`);
-                    }
-
                     duplicateDownstreamNodes.push(tmp);
+
+                    // Update edge in main task network to reflect that there are multiple downstream nodes with the same ID and the same relationship
+                    _.taskNetwork.edges = _.taskNetwork.edges.map((el) => {
+                        if (el.from === edgeToDownstreamNode.from && el.to === edgeToDownstreamNode.to) {
+                            return {
+                                ...el,
+                                edgeCount0: tmp.length,
+                            };
+                        }
+                        return el;
+                    });
+                } else {
+                    // No duplicate downstream nodes
+                    // Update edge in main task network to reflect that there are no multiple downstream nodes with the same ID and the same relationship
+                    _.taskNetwork.edges = _.taskNetwork.edges.map((el) => {
+                        if (el.from === edgeToDownstreamNode.from && el.to === edgeToDownstreamNode.to) {
+                            return {
+                                ...el,
+                                edgeCount0: 1,
+                            };
+                        }
+                        return el;
+                    });
                 }
             }
         }
@@ -191,14 +202,13 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
                 // - edge: Edge object between sourceNode and edgeDownstreamNode
                 _.taskCyclicStack.add(uniqueDownstreamNode.downstreamNode.id);
 
-                // // Add node to subGraphNodes
-                // subGraphNodes.push(uniqueDownstreamNode.downstreamNode);
-
-                // Add edge to downstream node to subGraphEdges
-                subGraphEdges.push(uniqueDownstreamNode.edge);
-
-                // // Add task to subGraphTasks
-                // subGraphTasks.push(task);
+                // Add edges from current node to downstream node to subGraphEdges
+                // Note that there may be multiple edges between node and downstream node.
+                // Get edges from validDownstreamNodes[].edge, given the downstream node ID
+                const tmpEdges = validDownstreamNodes
+                    .filter((el) => el.edge.to === uniqueDownstreamNode.downstreamNode.id)
+                    .map((el) => el.edge);
+                subGraphEdges = subGraphEdges.concat(...tmpEdges);
 
                 // Examine downstream node
                 const tmp3 = extGetTaskSubGraph(_, uniqueDownstreamNode.downstreamNode, newTreeLevel, node, logger);
@@ -210,12 +220,35 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
                 subGraphNodes = subGraphNodes.concat(...tmp3.nodes);
 
                 // Add tmp3.edges to subGraphEdges
-                subGraphEdges = subGraphEdges.concat(...tmp3.edges);
+                // Note that there are corner cases that need to be considered:
+                // - Overlapping subnetworks. For example, Root1 > Node1 > Node2 and Root2 > Node1 > Node2.
+                //   In this case, Node1 and Node2 should NOT be duplicated in the final result.
+                // Only add nodes if they are not already in the nodesFound array
+                if (tmp3.edges) {
+                    for (const edge of tmp3.edges) {
+                        if (!subGraphEdges.find((t) => t.from === edge.from && t.to === edge.to)) {
+                            // Add all edges (there can be multiple edges between the same nodes!) to the subGraphEdges array
+                            const edges = tmp3.edges.filter((e) => e.from === edge.from && e.to === edge.to);
+                            subGraphEdges.push(...edges);
+                        }
+                    }
+                }
 
                 // Add tmp3.tasks to subGraphTasks
                 subGraphTasks = subGraphTasks.concat(...tmp3.tasks);
             }
         }
+
+        // Update edges with information about how many instances of the same edge there are.
+        // This has been temporarily stored in the main task network object's edges property.
+        // Copy it over to the edges in the subgraphEdges array.
+        subGraphEdges = subGraphEdges.map((el) => {
+            const edgeCount = _.taskNetwork.edges.find((edge) => edge.from === el.from && edge.to === el.to).edgeCount0;
+            return {
+                ...el,
+                edgeCount0: edgeCount,
+            };
+        });
 
         return {
             nodes: subGraphNodes,
