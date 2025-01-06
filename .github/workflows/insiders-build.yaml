@@ -14,8 +14,7 @@ jobs:
                       build: |
                           # Inject git SHA into package.json
                           $GIT_SHA = (git rev-parse --short HEAD)
-                          Write-Host "GIT_SHA: $GIT_SHA"
-                          (Get-Content package.json) -replace '"version": "([^"]+)"', '"version": "$1-' + $GIT_SHA + '"' | Set-Content package.json
+                          (Get-Content package.json) -replace '"version": "(.*?)"', '"version": ('"version": "$1-' + $GIT_SHA + '"') | Set-Content package.json
 
                           ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node23 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
                           node --experimental-sea-config sea-config.json
