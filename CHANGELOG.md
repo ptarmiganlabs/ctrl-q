@@ -1,5 +1,48 @@
 # Changelog
 
+## [4.5.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.4.0...ctrl-q-v4.5.0) (2025-01-06)
+
+
+### Features
+
+* **qseow task-vis:** Always look for circular task chains and duplicate task triggers when starting Ctrl-Q ([44de75d](https://github.com/ptarmiganlabs/ctrl-q/commit/44de75d85bd6adb9c7f2c9d3b33949dd3a4ca328))
+* **qseow task-vis:** Show count for duplicate, identical triggers in task network view ([3499df4](https://github.com/ptarmiganlabs/ctrl-q/commit/3499df498f162df98c99c30f9f8f09eb4861ed13)), closes [#599](https://github.com/ptarmiganlabs/ctrl-q/issues/599)
+* **qseow:** Add explanation of the various shapes used in the task network diagram to the legend ([2255dba](https://github.com/ptarmiganlabs/ctrl-q/commit/2255dba7cf42e645d40b707ae16222f532a664b1)), closes [#595](https://github.com/ptarmiganlabs/ctrl-q/issues/595)
+* **qseow:** Add task filtering to `qseow task-vis` command, showing only parts of a task network ([042891a](https://github.com/ptarmiganlabs/ctrl-q/commit/042891aa345446582c2a0d8a8052114c710cd541)), closes [#581](https://github.com/ptarmiganlabs/ctrl-q/issues/581)
+* **qseow:** Add task tag and id filters to task tree vizualisation ([03d7f57](https://github.com/ptarmiganlabs/ctrl-q/commit/03d7f5755fd248f28effed5f894412a1263b5b80)), closes [#582](https://github.com/ptarmiganlabs/ctrl-q/issues/582)
+* **qseow:** Always look for circular task chains in `qseow task-vis` command ([1320df2](https://github.com/ptarmiganlabs/ctrl-q/commit/1320df22de4516ef96e4876771ab52cd6abfa916)), closes [#597](https://github.com/ptarmiganlabs/ctrl-q/issues/597)
+* **qseow:** Better verification of --task-tag option when calling task-get command ([f4821f6](https://github.com/ptarmiganlabs/ctrl-q/commit/f4821f6c425f974ead26ef115c0611b17b0ce6e1))
+* **qseow:** Better verification of `--task-id` option when calling `task-get` command ([a210f24](https://github.com/ptarmiganlabs/ctrl-q/commit/a210f2453ed45566cb567c140c116076038cdff4))
+* **qseow:** Show task info popup when double clicking on node in `qseow task-vis` command ([a1bf796](https://github.com/ptarmiganlabs/ctrl-q/commit/a1bf7968937315c9e7ca2129bae940ae43c8ba34)), closes [#601](https://github.com/ptarmiganlabs/ctrl-q/issues/601)
+
+
+### Bug Fixes
+
+* Correct regex for version injection in package.json ([5817c96](https://github.com/ptarmiganlabs/ctrl-q/commit/5817c964b4e9e273de14a8c683228c7f30aaafb0))
+* **field-scramble:** Better verification of command line options ([d59a010](https://github.com/ptarmiganlabs/ctrl-q/commit/d59a01072c246ce87105a5445b205d64404de617))
+* **qscloud:** Log correct tenant name when testing connection to QS Cloud ([e78fabc](https://github.com/ptarmiganlabs/ctrl-q/commit/e78fabc51f7bd6ae089d476ccfd5b655d0e96899)), closes [#535](https://github.com/ptarmiganlabs/ctrl-q/issues/535)
+* **qseow:** Make legend in `qseow task-vis` cmd describe all task network elements ([ad087f1](https://github.com/ptarmiganlabs/ctrl-q/commit/ad087f1e7750f482c28c5f1367dffb328d4b9732))
+* **qseow:** Set default virtual proxy value for all QSEoW commands ([38490de](https://github.com/ptarmiganlabs/ctrl-q/commit/38490deb4c99d4d4ab7f70f0b120d66ade6b957d)), closes [#580](https://github.com/ptarmiganlabs/ctrl-q/issues/580)
+* **qseow:** Sort task tree by task name on each level in `qseow task-get` command ([5821e73](https://github.com/ptarmiganlabs/ctrl-q/commit/5821e73204975a5903e2226be295a458758a7e3b)), closes [#592](https://github.com/ptarmiganlabs/ctrl-q/issues/592)
+* **task-get:** Correctly detect circular and duplicate task chains ([0d56b7a](https://github.com/ptarmiganlabs/ctrl-q/commit/0d56b7a9364f36ceefda31a855fa3bbeacecfb7b)), closes [#583](https://github.com/ptarmiganlabs/ctrl-q/issues/583)
+
+
+### Miscellaneous
+
+* Add Git SHA to version number on Insider builds ([cb09e85](https://github.com/ptarmiganlabs/ctrl-q/commit/cb09e85d907246fea3a3c96c5e02ab17cc893afd))
+* Add unit test for `qscloud connection-test` command ([5e53a96](https://github.com/ptarmiganlabs/ctrl-q/commit/5e53a965739c121981d4fbf926ea55bba76c6e00))
+* **deps:** Update dependencies ([8f84137](https://github.com/ptarmiganlabs/ctrl-q/commit/8f84137a39bc48a031e2f2cfd1294ce8871c4aaf))
+* **deps:** Update dependencies and remove undici dependency ([6719be5](https://github.com/ptarmiganlabs/ctrl-q/commit/6719be56d1c4ef02741f8e61ac944795f70d6d63))
+* Fix regex for Git SHA injection in package.json versioning ([f55bb14](https://github.com/ptarmiganlabs/ctrl-q/commit/f55bb147651e7c23b0a56323be57e6c1301d821b))
+* Fix regex for Git SHA injection in package.json versioning ([0346b5f](https://github.com/ptarmiganlabs/ctrl-q/commit/0346b5fa73bc358e14c5df2e2ca405b3e423666a))
+* Update Git SHA injection in package.json for Insider builds ([83b9bc8](https://github.com/ptarmiganlabs/ctrl-q/commit/83b9bc8d61695ad2db9b399e85cabc37804ff206))
+
+
+### Refactoring
+
+* Add unit tests and in-code documentation to improve maintanability ([1e16135](https://github.com/ptarmiganlabs/ctrl-q/commit/1e16135a750632e6ea55fec2622e86e3499cdd63))
+* **qseow:** Rework logic for showing task trees ([d044229](https://github.com/ptarmiganlabs/ctrl-q/commit/d044229982ebd9153f729a09bf4c04d6df466135))
+
 ## [4.4.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.3.1...ctrl-q-v4.4.0) (2024-11-29)
 
 
