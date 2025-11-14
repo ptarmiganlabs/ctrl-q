@@ -19,13 +19,13 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
       DIST_FILE_NAME: ctrl-q
     permissions:
-        contents: write
-        pull-requests: write
+      contents: write
+      pull-requests: write
     steps:
       - name: Show github.ref
         run: echo "$GITHUB_REF"
 
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4.4.0, pinned on 2025-11-14
         id: release
         if: |
           github.repository_owner == 'ptarmiganlabs'
@@ -58,7 +58,6 @@ jobs:
           echo "patch           : ${{ steps.release.outputs['patch'] }}"
           echo "sha             : ${{ steps.release.outputs['sha'] }}"
 
-
   #####################
   release-macos:
     needs: release-please
@@ -88,10 +87,10 @@ jobs:
           echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0, pinned on 2025-11-14
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0, pinned on 2025-11-14
         with:
           node-version: lts/*
 
@@ -165,7 +164,7 @@ jobs:
           security delete-keychain build.keychain
 
       - name: Upload to existing release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
         with:
           allowUpdates: true
           omitBodyDuringUpdate: true
@@ -211,10 +210,10 @@ jobs:
           Write-Output 'upload_url      : ${{ needs.release-please.outputs.release_upload_url }}'
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0, pinned on 2025-11-14
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0, pinned on 2025-11-14
         with:
           node-version: lts/*
 
@@ -278,7 +277,7 @@ jobs:
           Compress-Archive @compress
 
       - name: Upload to existing release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
         with:
           allowUpdates: true
           omitBodyDuringUpdate: true
@@ -297,7 +296,7 @@ jobs:
           del "./${env:DIST_FILE_NAME}.exe"
           del "./${env:DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-win.zip"
 
-#####################
+  #####################
   release-linux:
     needs: release-please
     runs-on: ubuntu-latest
@@ -315,10 +314,10 @@ jobs:
           echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0, pinned on 2025-11-14
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0, pinned on 2025-11-14
         with:
           node-version: lts/*
 
@@ -354,7 +353,7 @@ jobs:
           ls -la
 
       - name: Upload to existing release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
         with:
           allowUpdates: true
           omitBodyDuringUpdate: true
