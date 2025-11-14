@@ -3,8 +3,8 @@ name: Remove old artifacts
 on:
   workflow_dispatch:
   schedule:
-    # Every day at 1am
-    - cron: '0 1 * * *'
+    # Every Sunday at 1am
+    - cron: '0 1 * * 0'
 
 jobs:
   remove-old-artifacts:
@@ -12,10 +12,10 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - name: Remove old artifacts
-      uses: c-hive/gha-remove-artifacts@v1
-      with:
-        age: '3 days' # '<number> <unit>', e.g. 5 days, 2 years, 90 seconds, parsed by Moment.js
-        # Optional inputs
-        skip-tags: true
-        # skip-recent: 5
+      - name: Remove old artifacts
+        uses: c-hive/gha-remove-artifacts@44fc7acaf1b3d0987da0e8d4707a989d80e9554b # v1.4.0, pinned on 2025-11-14
+        with:
+          age: '3 days' # '<number> <unit>', e.g. 5 days, 2 years, 90 seconds, parsed by Moment.js
+          # Optional inputs
+          skip-tags: true
+          # skip-recent: 5
