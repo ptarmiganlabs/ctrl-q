@@ -1,374 +1,374 @@
 name: ci
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
+    workflow_dispatch:
+    push:
+        branches:
+            - main
 
 jobs:
-  release-please:
-    runs-on: ubuntu-latest
-    outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
-      release_tag_name: ${{ steps.release.outputs['tag_name'] }}
-      release_version: ${{ steps.release.outputs['version'] }}
-      release_upload_url: ${{ steps.release.outputs['upload_url'] }}
-    env:
-      GITHUB_REF: ${{ github.ref }}
-      GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
-      DIST_FILE_NAME: ctrl-q
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Show github.ref
-        run: echo "$GITHUB_REF"
-
-      - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4.4.0, pinned on 2025-11-14
-        id: release
-        if: |
-          github.repository_owner == 'ptarmiganlabs'
-        with:
-          token: ${{ secrets.RELEASE_PLEASE_PAT }}
-          # optional. customize path to release-please-config.json
-          config-file: release-please-config.json
-          # optional. customize path to .release-please-manifest.json
-          manifest-file: .release-please-manifest.json
-          target-branch: main
-
-      - name: Show output from Release-Please
-        if: always()
+    release-please:
+        runs-on: ubuntu-latest
+        outputs:
+            releases_created: ${{ steps.release.outputs.releases_created }}
+            release_tag_name: ${{ steps.release.outputs['tag_name'] }}
+            release_version: ${{ steps.release.outputs['version'] }}
+            release_upload_url: ${{ steps.release.outputs['upload_url'] }}
         env:
-          RELEASE_PLEASE_OUTPUT: ${{ toJSON(steps.release.outputs) }}
-        run: echo "$RELEASE_PLEASE_OUTPUT"
+            GITHUB_REF: ${{ github.ref }}
+            GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
+            DIST_FILE_NAME: ctrl-q
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Show github.ref
+              run: echo "$GITHUB_REF"
 
-      - name: Show output from Release-Please
-        run: |
-          echo "releases_created: ${{ steps.release.outputs.releases_created }}"
-          echo "release_created : ${{ steps.release.outputs.release_created }}"
-          echo "draft           : ${{ steps.release.outputs['draft'] }}"
-          echo "path            : ${{ steps.release.outputs['path'] }}"
-          echo "upload_url      : ${{ steps.release.outputs['upload_url'] }}"
-          echo "html_url        : ${{ steps.release.outputs['html_url'] }}"
-          echo "tag_name        : ${{ steps.release.outputs['tag_name'] }}"
-          echo "version         : ${{ steps.release.outputs['version'] }}"
-          echo "major           : ${{ steps.release.outputs['major'] }}"
-          echo "minor           : ${{ steps.release.outputs['minor'] }}"
-          echo "patch           : ${{ steps.release.outputs['patch'] }}"
-          echo "sha             : ${{ steps.release.outputs['sha'] }}"
+            - uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4.4.0, pinned on 2025-11-14
+              id: release
+              if: |
+                  github.repository_owner == 'ptarmiganlabs'
+              with:
+                  token: ${{ secrets.RELEASE_PLEASE_PAT }}
+                  # optional. customize path to release-please-config.json
+                  config-file: release-please-config.json
+                  # optional. customize path to .release-please-manifest.json
+                  manifest-file: .release-please-manifest.json
+                  target-branch: main
 
-  #####################
-  release-macos:
-    needs: release-please
-    runs-on:
-      - self-hosted
-      - x64
-      - macos
-      - sp53
-      # timeout-minutes: 15
+            - name: Show output from Release-Please
+              if: always()
+              env:
+                  RELEASE_PLEASE_OUTPUT: ${{ toJSON(steps.release.outputs) }}
+              run: echo "$RELEASE_PLEASE_OUTPUT"
 
-    if: needs.release-please.outputs.releases_created == 'true'
-    env:
-      DIST_FILE_NAME: ctrl-q
-      GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
-      MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE_BASE64_CODESIGN }}
-      MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_CODESIGN_PWD }}
-      MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_CODESIGN_NAME }}
-      MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
-      PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
-      PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-      PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
-    steps:
-      - name: Release tag and upload url from previous job
-        run: |
-          echo "tag_name   : ${{ needs.release-please.outputs.release_tag_name }}"
-          echo "version    : ${{ needs.release-please.outputs.release_version }}"
-          echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
+            - name: Show output from Release-Please
+              run: |
+                  echo "releases_created: ${{ steps.release.outputs.releases_created }}"
+                  echo "release_created : ${{ steps.release.outputs.release_created }}"
+                  echo "draft           : ${{ steps.release.outputs['draft'] }}"
+                  echo "path            : ${{ steps.release.outputs['path'] }}"
+                  echo "upload_url      : ${{ steps.release.outputs['upload_url'] }}"
+                  echo "html_url        : ${{ steps.release.outputs['html_url'] }}"
+                  echo "tag_name        : ${{ steps.release.outputs['tag_name'] }}"
+                  echo "version         : ${{ steps.release.outputs['version'] }}"
+                  echo "major           : ${{ steps.release.outputs['major'] }}"
+                  echo "minor           : ${{ steps.release.outputs['minor'] }}"
+                  echo "patch           : ${{ steps.release.outputs['patch'] }}"
+                  echo "sha             : ${{ steps.release.outputs['sha'] }}"
 
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0, pinned on 2025-11-14
+    #####################
+    release-macos:
+        needs: release-please
+        runs-on:
+            - self-hosted
+            - x64
+            - macos
+            - sp53
+            # timeout-minutes: 15
 
-      - name: Setup Node.js
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0, pinned on 2025-11-14
-        with:
-          node-version: lts/*
+        if: needs.release-please.outputs.releases_created == 'true'
+        env:
+            DIST_FILE_NAME: ctrl-q
+            GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
+            MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE_BASE64_CODESIGN }}
+            MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_CODESIGN_PWD }}
+            MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_CODESIGN_NAME }}
+            MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
+            PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+            PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+            PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+        steps:
+            - name: Release tag and upload url from previous job
+              run: |
+                  echo "tag_name   : ${{ needs.release-please.outputs.release_tag_name }}"
+                  echo "version    : ${{ needs.release-please.outputs.release_version }}"
+                  echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
 
-      - name: Install tool for creating stand-alone executables
-        run: |
-          npm install pkg --location=global
-          npm install --save-exact esbuild
+            - name: Checkout repository
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0, pinned on 2025-11-14
 
-      - name: Install dependencies
-        run: |
-          pwd
-          npm ci --include=prod
+            - name: Setup Node.js
+              uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0, pinned on 2025-11-14
+              with:
+                  node-version: lts/*
 
-      - name: Build binaries
-        run: |
-          # -------------------
-          ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node23 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
-          node --experimental-sea-config sea-config.json
-          cp $(command -v node) ${DIST_FILE_NAME}
-          codesign --remove-signature ${DIST_FILE_NAME}
-          npx postject ctrl-q NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 --macho-segment-name NODE_SEA
+            - name: Install tool for creating stand-alone executables
+              run: |
+                  npm install pkg --location=global
+                  npm install --save-exact esbuild
 
-          security delete-keychain build.keychain || true
+            - name: Install dependencies
+              run: |
+                  pwd
+                  npm ci --include=prod
 
-          pwd
-          ls -la
+            - name: Build binaries
+              run: |
+                  # -------------------
+                  ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node24 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
+                  node --experimental-sea-config sea-config.json
+                  cp $(command -v node) ${DIST_FILE_NAME}
+                  codesign --remove-signature ${DIST_FILE_NAME}
+                  npx postject ctrl-q NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 --macho-segment-name NODE_SEA
 
-          # -------------------
-          # Turn our base64-encoded certificate back to a regular .p12 file
-          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+                  security delete-keychain build.keychain || true
 
-          # -------------------
-          # We need to create a new keychain, otherwise using the certificate will prompt
-          # with a UI dialog asking for the certificate password, which we can't
-          # use in a headless CI environment
+                  pwd
+                  ls -la
 
-          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          security list-keychains -d user -s build.keychain
-          security default-keychain -d user -s build.keychain
-          security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+                  # -------------------
+                  # Turn our base64-encoded certificate back to a regular .p12 file
+                  echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
 
-          codesign --force -s "$MACOS_CERTIFICATE_NAME" -v "./${DIST_FILE_NAME}" --deep --strict --options=runtime --timestamp --entitlements ./release-config/${DIST_FILE_NAME}.entitlements
+                  # -------------------
+                  # We need to create a new keychain, otherwise using the certificate will prompt
+                  # with a UI dialog asking for the certificate password, which we can't
+                  # use in a headless CI environment
 
-          # -------------------
-          # Notarize
-          # Store the notarization credentials so that we can prevent a UI password dialog from blocking the CI
+                  security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+                  security list-keychains -d user -s build.keychain
+                  security default-keychain -d user -s build.keychain
+                  security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+                  security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+                  security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
 
-          echo "Create keychain profile"
-          xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
+                  codesign --force -s "$MACOS_CERTIFICATE_NAME" -v "./${DIST_FILE_NAME}" --deep --strict --options=runtime --timestamp --entitlements ./release-config/${DIST_FILE_NAME}.entitlements
 
-          # -------------------
-          # We can't notarize an app bundle directly, but we need to compress it as an archive.
-          # Therefore, we create a zip file containing our app bundle, so that we can send it to the
-          # notarization service
-          # Notarize insider binary
-          echo "Creating temp notarization archive for insider build"
-          ditto -c -k --keepParent "./${DIST_FILE_NAME}" "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-macos.zip"
+                  # -------------------
+                  # Notarize
+                  # Store the notarization credentials so that we can prevent a UI password dialog from blocking the CI
 
-          # Here we send the notarization request to the Apple's Notarization service, waiting for the result.
-          # This typically takes a few seconds inside a CI environment, but it might take more depending on the App
-          # characteristics. Visit the Notarization docs for more information and strategies on how to optimize it if
-          # you're curious
-          echo "Notarize insider app"
-          xcrun notarytool submit "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-macos.zip" --keychain-profile "notarytool-profile" --wait
+                  echo "Create keychain profile"
+                  xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
 
-          # -------------------
-          # Clean up
-          # Delete build keychain
-          security delete-keychain build.keychain
+                  # -------------------
+                  # We can't notarize an app bundle directly, but we need to compress it as an archive.
+                  # Therefore, we create a zip file containing our app bundle, so that we can send it to the
+                  # notarization service
+                  # Notarize insider binary
+                  echo "Creating temp notarization archive for insider build"
+                  ditto -c -k --keepParent "./${DIST_FILE_NAME}" "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-macos.zip"
 
-      - name: Upload to existing release
-        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
-        with:
-          allowUpdates: true
-          omitBodyDuringUpdate: true
-          omitNameDuringUpdate: true
-          artifactContentType: raw
-          # artifactContentType: application/zip
-          draft: true
-          tag: ${{ needs.release-please.outputs.release_tag_name }}
-          artifacts: ./ctrl-q-${{ needs.release-please.outputs.release_version }}-macos.zip
-          token: ${{ github.token }}
+                  # Here we send the notarization request to the Apple's Notarization service, waiting for the result.
+                  # This typically takes a few seconds inside a CI environment, but it might take more depending on the App
+                  # characteristics. Visit the Notarization docs for more information and strategies on how to optimize it if
+                  # you're curious
+                  echo "Notarize insider app"
+                  xcrun notarytool submit "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-macos.zip" --keychain-profile "notarytool-profile" --wait
 
-      - name: Tidy up before existing
-        run: |
-          pwd
-          ls -la
-          rm build.cjs
-          rm "./${DIST_FILE_NAME}"
-          rm "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-macos.zip"
+                  # -------------------
+                  # Clean up
+                  # Delete build keychain
+                  security delete-keychain build.keychain
 
-  #####################
-  release-win64:
-    needs: release-please
-    runs-on:
-      - self-hosted
-      - x64
-      - windows
-      - sp53
-      - win-code-sign
-    # timeout-minutes: 15
-    if: needs.release-please.outputs.releases_created == 'true'
-    env:
-      DIST_FILE_NAME: ctrl-q
-      GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
-      # CODESIGN_PWD: ${{ secrets.WIN_CODESIGN_PWD}}
-      # CODESIGN_INTERMEDIATE_BASE64: ${{ secrets.WIN_CODESIGN_INTERMEDIATE_BASE64 }}
-      # CODESIGN_BASE64: ${{ secrets.WIN_CODESIGN_BASE64}}
-      CODESIGN_WIN_THUMBPRINT: ${{ secrets.WIN_CODESIGN_THUMBPRINT}}
-    steps:
-      - name: Release tag and upload url from previous job
-        run: |
-          Write-Output 'tag_name        : ${{ needs.release-please.outputs.release_tag_name }}'
-          Write-Output 'version         : ${{ needs.release-please.outputs.release_version }}'
-          Write-Output 'upload_url      : ${{ needs.release-please.outputs.release_upload_url }}'
+            - name: Upload to existing release
+              uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
+              with:
+                  allowUpdates: true
+                  omitBodyDuringUpdate: true
+                  omitNameDuringUpdate: true
+                  artifactContentType: raw
+                  # artifactContentType: application/zip
+                  draft: true
+                  tag: ${{ needs.release-please.outputs.release_tag_name }}
+                  artifacts: ./ctrl-q-${{ needs.release-please.outputs.release_version }}-macos.zip
+                  token: ${{ github.token }}
 
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0, pinned on 2025-11-14
+            - name: Tidy up before existing
+              run: |
+                  pwd
+                  ls -la
+                  rm build.cjs
+                  rm "./${DIST_FILE_NAME}"
+                  rm "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-macos.zip"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0, pinned on 2025-11-14
-        with:
-          node-version: lts/*
+    #####################
+    release-win64:
+        needs: release-please
+        runs-on:
+            - self-hosted
+            - x64
+            - windows
+            - sp53
+            - win-code-sign
+        # timeout-minutes: 15
+        if: needs.release-please.outputs.releases_created == 'true'
+        env:
+            DIST_FILE_NAME: ctrl-q
+            GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
+            # CODESIGN_PWD: ${{ secrets.WIN_CODESIGN_PWD}}
+            # CODESIGN_INTERMEDIATE_BASE64: ${{ secrets.WIN_CODESIGN_INTERMEDIATE_BASE64 }}
+            # CODESIGN_BASE64: ${{ secrets.WIN_CODESIGN_BASE64}}
+            CODESIGN_WIN_THUMBPRINT: ${{ secrets.WIN_CODESIGN_THUMBPRINT}}
+        steps:
+            - name: Release tag and upload url from previous job
+              run: |
+                  Write-Output 'tag_name        : ${{ needs.release-please.outputs.release_tag_name }}'
+                  Write-Output 'version         : ${{ needs.release-please.outputs.release_version }}'
+                  Write-Output 'upload_url      : ${{ needs.release-please.outputs.release_upload_url }}'
 
-      - name: Install tool for creating stand-alone executables
-        run: |
-          npm install pkg --location=global
+            - name: Checkout repository
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0, pinned on 2025-11-14
 
-      - name: Install dependencies
-        run: |
-          pwd
-          npm ci --include=prod
+            - name: Setup Node.js
+              uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0, pinned on 2025-11-14
+              with:
+                  node-version: lts/*
 
-      - name: Build binaries
-        run: |
-          ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node23 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
-          node --experimental-sea-config sea-config.json
-          node -e "require('fs').copyFileSync(process.execPath, 'ctrl-q.exe')"
+            - name: Install tool for creating stand-alone executables
+              run: |
+                  npm install pkg --location=global
 
-          # Remove the signature from the executable
-          $processOptions1 = @{
-            FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
-            Wait = $true
-            ArgumentList = "remove", "/s", "./${env:DIST_FILE_NAME}.exe"
-            WorkingDirectory = "."
-            NoNewWindow = $true
-          }
-          Start-Process @processOptions1
+            - name: Install dependencies
+              run: |
+                  pwd
+                  npm ci --include=prod
 
-          npx postject ctrl-q.exe NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
+            - name: Build binaries
+              run: |
+                  ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node24 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
+                  node --experimental-sea-config sea-config.json
+                  node -e "require('fs').copyFileSync(process.execPath, 'ctrl-q.exe')"
 
-          dir
+                  # Remove the signature from the executable
+                  $processOptions1 = @{
+                    FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
+                    Wait = $true
+                    ArgumentList = "remove", "/s", "./${env:DIST_FILE_NAME}.exe"
+                    WorkingDirectory = "."
+                    NoNewWindow = $true
+                  }
+                  Start-Process @processOptions1
 
-          # Sign the executable
-          # 1st signing
-          $processOptions1 = @{
-            FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
-            Wait = $true
-            ArgumentList = "sign", "/sha1", "$env:CODESIGN_WIN_THUMBPRINT", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha1", "/v", "./${env:DIST_FILE_NAME}.exe"
-            WorkingDirectory = "."
-            NoNewWindow = $true
-          }
-          Start-Process @processOptions1
+                  npx postject ctrl-q.exe NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
 
-          # 2nd signing
-          $processOptions2 = @{
-            FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
-            Wait = $true
-            ArgumentList = "sign", "/sha1", "$env:CODESIGN_WIN_THUMBPRINT", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha256", "/v", "./${env:DIST_FILE_NAME}.exe"
-            WorkingDirectory = "."
-            NoNewWindow = $true
-          }
-          Start-Process @processOptions2
+                  dir
 
-          # Create insider's build zip
-          $compress = @{
-            Path = "./${env:DIST_FILE_NAME}.exe"
-            CompressionLevel = "Fastest"
-            DestinationPath = "${env:DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-win.zip"
-          }
+                  # Sign the executable
+                  # 1st signing
+                  $processOptions1 = @{
+                    FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
+                    Wait = $true
+                    ArgumentList = "sign", "/sha1", "$env:CODESIGN_WIN_THUMBPRINT", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha1", "/v", "./${env:DIST_FILE_NAME}.exe"
+                    WorkingDirectory = "."
+                    NoNewWindow = $true
+                  }
+                  Start-Process @processOptions1
 
-          Compress-Archive @compress
+                  # 2nd signing
+                  $processOptions2 = @{
+                    FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
+                    Wait = $true
+                    ArgumentList = "sign", "/sha1", "$env:CODESIGN_WIN_THUMBPRINT", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha256", "/v", "./${env:DIST_FILE_NAME}.exe"
+                    WorkingDirectory = "."
+                    NoNewWindow = $true
+                  }
+                  Start-Process @processOptions2
 
-      - name: Upload to existing release
-        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
-        with:
-          allowUpdates: true
-          omitBodyDuringUpdate: true
-          omitNameDuringUpdate: true
-          artifactContentType: raw
-          # artifactContentType: application/zip
-          draft: true
-          tag: ${{ needs.release-please.outputs.release_tag_name }}
-          artifacts: ./ctrl-q-${{ needs.release-please.outputs.release_version }}-win.zip
-          token: ${{ github.token }}
+                  # Create insider's build zip
+                  $compress = @{
+                    Path = "./${env:DIST_FILE_NAME}.exe"
+                    CompressionLevel = "Fastest"
+                    DestinationPath = "${env:DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-win.zip"
+                  }
 
-      - name: Tidy up before existing
-        run: |
-          dir
-          del build.cjs
-          del "./${env:DIST_FILE_NAME}.exe"
-          del "./${env:DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-win.zip"
+                  Compress-Archive @compress
 
-  #####################
-  release-linux:
-    needs: release-please
-    runs-on: ubuntu-latest
-    # timeout-minutes: 15
+            - name: Upload to existing release
+              uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
+              with:
+                  allowUpdates: true
+                  omitBodyDuringUpdate: true
+                  omitNameDuringUpdate: true
+                  artifactContentType: raw
+                  # artifactContentType: application/zip
+                  draft: true
+                  tag: ${{ needs.release-please.outputs.release_tag_name }}
+                  artifacts: ./ctrl-q-${{ needs.release-please.outputs.release_version }}-win.zip
+                  token: ${{ github.token }}
 
-    if: needs.release-please.outputs.releases_created == 'true'
-    env:
-      DIST_FILE_NAME: ctrl-q
-      GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
-    steps:
-      - name: Release tag and upload url from previous job
-        run: |
-          echo "tag_name   : ${{ needs.release-please.outputs.release_tag_name }}"
-          echo "version    : ${{ needs.release-please.outputs.release_version }}"
-          echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
+            - name: Tidy up before existing
+              run: |
+                  dir
+                  del build.cjs
+                  del "./${env:DIST_FILE_NAME}.exe"
+                  del "./${env:DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-win.zip"
 
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0, pinned on 2025-11-14
+    #####################
+    release-linux:
+        needs: release-please
+        runs-on: ubuntu-latest
+        # timeout-minutes: 15
 
-      - name: Setup Node.js
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0, pinned on 2025-11-14
-        with:
-          node-version: lts/*
+        if: needs.release-please.outputs.releases_created == 'true'
+        env:
+            DIST_FILE_NAME: ctrl-q
+            GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
+        steps:
+            - name: Release tag and upload url from previous job
+              run: |
+                  echo "tag_name   : ${{ needs.release-please.outputs.release_tag_name }}"
+                  echo "version    : ${{ needs.release-please.outputs.release_version }}"
+                  echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
 
-      - name: Install tool for creating stand-alone executables
-        run: |
-          npm install pkg --location=global
+            - name: Checkout repository
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0, pinned on 2025-11-14
 
-      - name: Install dependencies
-        run: |
-          pwd
-          npm ci
+            - name: Setup Node.js
+              uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0, pinned on 2025-11-14
+              with:
+                  node-version: lts/*
 
-      - name: Build binaries
-        run: |
-          ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node23 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
-          node --experimental-sea-config sea-config.json
-          cp $(command -v node) ${DIST_FILE_NAME}
-          npx postject ctrl-q NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
+            - name: Install tool for creating stand-alone executables
+              run: |
+                  npm install pkg --location=global
 
-          chmod +x ${DIST_FILE_NAME}
+            - name: Install dependencies
+              run: |
+                  pwd
+                  npm ci
 
-      - name: Make binary executable
-        run: |
-          chmod +x ./${DIST_FILE_NAME}
+            - name: Build binaries
+              run: |
+                  ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node24 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
+                  node --experimental-sea-config sea-config.json
+                  cp $(command -v node) ${DIST_FILE_NAME}
+                  npx postject ctrl-q NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
 
-      - name: Compress release binary
-        run: |
-          ls -la
-          zip -9 -r ./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-linux.zip ${DIST_FILE_NAME}
+                  chmod +x ${DIST_FILE_NAME}
 
-      - name: Debug
-        run: |
-          ls -la
+            - name: Make binary executable
+              run: |
+                  chmod +x ./${DIST_FILE_NAME}
 
-      - name: Upload to existing release
-        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
-        with:
-          allowUpdates: true
-          omitBodyDuringUpdate: true
-          omitNameDuringUpdate: true
-          artifactContentType: raw
-          # artifactContentType: application/zip
-          draft: true
-          tag: ${{ needs.release-please.outputs.release_tag_name }}
-          artifacts: ./ctrl-q-${{ needs.release-please.outputs.release_version }}-linux.zip
-          token: ${{ github.token }}
+            - name: Compress release binary
+              run: |
+                  ls -la
+                  zip -9 -r ./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-linux.zip ${DIST_FILE_NAME}
 
-      - name: Tidy up before existing
-        run: |
-          pwd
-          ls -la
-          rm build.cjs
-          rm "./${DIST_FILE_NAME}"
-          rm "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-linux.zip"
+            - name: Debug
+              run: |
+                  ls -la
+
+            - name: Upload to existing release
+              uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
+              with:
+                  allowUpdates: true
+                  omitBodyDuringUpdate: true
+                  omitNameDuringUpdate: true
+                  artifactContentType: raw
+                  # artifactContentType: application/zip
+                  draft: true
+                  tag: ${{ needs.release-please.outputs.release_tag_name }}
+                  artifacts: ./ctrl-q-${{ needs.release-please.outputs.release_version }}-linux.zip
+                  token: ${{ github.token }}
+
+            - name: Tidy up before existing
+              run: |
+                  pwd
+                  ls -la
+                  rm build.cjs
+                  rm "./${DIST_FILE_NAME}"
+                  rm "./${DIST_FILE_NAME}-${{ needs.release-please.outputs.release_version }}-linux.zip"
