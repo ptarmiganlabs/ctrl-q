@@ -146,7 +146,7 @@ program.configureHelp({
         // Create a new command
         const qsCloud = new Command('qscloud');
 
-        // QSEoW: Test connection command
+        // QS Cloud: Test connection command
         setupQscloudTestConnectionCommand(qsCloud);
 
         return qsCloud;
