@@ -204,7 +204,7 @@ jobs:
           ${{ matrix.build }}
 
       - name: Upload insider build artifacts to GitHub
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0, pinned on 2025-11-14
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v5.0.0, pinned on 2025-11-14
         with:
           name: ${{ matrix.artifact_insider }}
           path: ${{ matrix.artifact_insider }}
