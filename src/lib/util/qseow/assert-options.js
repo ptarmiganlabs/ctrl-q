@@ -144,6 +144,10 @@ export const getScriptAssertOptions = (options) => {
     //
 };
 
+export const getAppMetadataAssertOptions = (options) => {
+    //
+};
+
 export const getBookmarkAssertOptions = (options) => {
     //
 };

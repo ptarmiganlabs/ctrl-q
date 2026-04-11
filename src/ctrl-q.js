@@ -14,6 +14,7 @@ import { setpQseowGetVariableCommand } from './lib/cli/qseow-get-variable.js';
 import { setupQseowDeleteVariableCommand } from './lib/cli/qseow-delete-variable.js';
 import { setupQseowScrambleFieldCommand } from './lib/cli/qseow-scramble-field.js';
 import { setupGetScriptCommand } from './lib/cli/qseow-get-script.js';
+import { setupAppMetadataGetCommand } from './lib/cli/qseow-app-metadata-get.js';
 import { setupQseowGetBookmarkCommand } from './lib/cli/qseow-get-bookmark.js';
 import { setupGetTaskCommand } from './lib/cli/qseow-get-task.js';
 import { setupQseowSetTaskCustomPropertyCommand } from './lib/cli/qseow-set-task-cp.js';
@@ -103,6 +104,9 @@ program.configureHelp({
 
         // QSEoW: Get script command
         setupGetScriptCommand(qseow);
+
+        // QSEoW: Get app metadata command
+        setupAppMetadataGetCommand(qseow);
 
         // QSEoW: Get bookmark command
         setupQseowGetBookmarkCommand(qseow);
