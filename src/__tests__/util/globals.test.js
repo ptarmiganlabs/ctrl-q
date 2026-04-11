@@ -80,16 +80,16 @@ describe('sleep function', () => {
 
     // Negative number
     test('rejects when given a negative number', async () => {
-        await expect(sleep(-1)).rejects.toThrowError();
-        await expect(sleep(0)).rejects.toThrowError();
-        await expect(sleep('a')).rejects.toThrowError();
+        await expect(sleep(-1)).rejects.toThrow();
+        await expect(sleep(0)).rejects.toThrow();
+        await expect(sleep('a')).rejects.toThrow();
     });
 
     // Invalid string
     test('rejects when given an invalid string', async () => {
-        await expect(sleep('-100')).rejects.toThrowError();
-        await expect(sleep('abc')).rejects.toThrowError();
-        await expect(sleep('')).rejects.toThrowError();
+        await expect(sleep('-100')).rejects.toThrow();
+        await expect(sleep('abc')).rejects.toThrow();
+        await expect(sleep('')).rejects.toThrow();
     });
 
     test('resolves after the specified time', async () => {
@@ -97,6 +97,7 @@ describe('sleep function', () => {
         await sleep(3000);
         const endTime = Date.now();
         expect(endTime - startTime).toBeGreaterThanOrEqual(2900);
+        expect(endTime - startTime).toBeLessThan(3500);
     });
 });
 
@@ -189,6 +190,6 @@ describe('mergeDirFilePath', () => {
 
     it('should handle null or undefined path elements', () => {
         const pathElements = [null, undefined, 'path', 'to', 'file'];
-        expect(() => mergeDirFilePath(pathElements)).toThrowError();
+        expect(() => mergeDirFilePath(pathElements)).toThrow();
     });
 });

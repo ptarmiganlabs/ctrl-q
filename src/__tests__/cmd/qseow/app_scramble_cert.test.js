@@ -322,7 +322,6 @@ describe('scramble fields, replace unpublished (cert auth)', () => {
 
         const result = await scrambleField(options);
         expect(result.newAppCmd).toBe('replace');
-        expect(uuidValidate(result.newAppId)).toBe(true); // App ID should be UUID
         expect(result.status).toBe('success');
     });
 

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { jest, test, expect, describe } from '@jest/globals';
 
 import { importAppFromFile } from '../../../lib/cmd/qseow/importapp.js';
