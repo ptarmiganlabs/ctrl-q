@@ -123,7 +123,7 @@ describe('extGetTaskSubGraph - Single Task', () => {
         const node = createNode('task-1', 'Task 1');
         const mockObj = createMockTaskNetwork([node], [], []);
 
-        const result = extGetTaskSubGraph(mockObj, node, 1, null, logger);
+        extGetTaskSubGraph(mockObj, node, 1, null, logger);
 
         expect(logger.warn).toHaveBeenCalled();
     });
