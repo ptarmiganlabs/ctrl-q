@@ -1,12 +1,15 @@
 import { jest, test, expect, describe } from '@jest/globals';
 
-import { importTaskFromFile } from '../../../lib/cmd/qseow/importtask.js';
-import { getTaskById, deleteExternalProgramTaskById, deleteReloadTaskById } from '../../../lib/util/qseow/task.js';
-import { mapTaskType } from '../../../lib/util/qseow/lookups.js';
+import { importTaskFromFile } from '../../../../lib/cmd/qseow/importtask.js';
+import { getTaskById, deleteExternalProgramTaskById, deleteReloadTaskById } from '../../../../lib/util/qseow/task.js';
+import { mapTaskType } from '../../../../lib/util/qseow/lookups.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
     authType: process.env.CTRL_Q_AUTH_TYPE || 'cert',
+    authCertFile: process.env.CTRL_Q_AUTH_CERT_FILE || './cert/client.pem',
+    authCertKeyFile: process.env.CTRL_Q_AUTH_CERT_KEY_FILE || './cert/client_key.pem',
+    authRootCertFile: process.env.CTRL_Q_AUTH_ROOT_CERT_FILE || './cert/root.pem',
     host: process.env.CTRL_Q_HOST || '',
     port: process.env.CTRL_Q_PORT || '4242',
     schemaVersion: process.env.CTRL_Q_SCHEMA_VERSION || '12.612.0',
@@ -15,19 +18,17 @@ const options = {
     authUserDir: process.env.CTRL_Q_AUTH_USER_DIR || '',
     authUserId: process.env.CTRL_Q_AUTH_USER_ID || '',
     updateMode: process.env.CTRL_Q_UPDATE_MODE || 'create',
-    authJwt: process.env.CTRL_Q_AUTH_JWT || '',
 };
 
 const defaultTestTimeout = process.env.CTRL_Q_TEST_TIMEOUT || 600000; // 10 minute default timeout
 jest.setTimeout(defaultTestTimeout);
 
 // Test suite for task import
-describe('import task (jwt auth)', () => {
-    options.authType = 'jwt';
-    options.port = '443';
-    options.virtualProxy = 'jwt';
-
+describe('import task (cert auth)', () => {
     test('get tasks (verify parameters)', async () => {
+        expect(options.authCertFile).not.toHaveLength(0);
+        expect(options.authCertKeyFile).not.toHaveLength(0);
+        expect(options.authRootCertFile).not.toHaveLength(0);
         expect(options.host).not.toHaveLength(0);
         expect(options.authUserDir).not.toHaveLength(0);
         expect(options.authUserId).not.toHaveLength(0);

@@ -2,8 +2,8 @@ import { jest, test, expect, describe } from '@jest/globals';
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { getTask } from '../../../lib/cmd/qseow/gettask.js';
-import { getTaskAssertOptions } from '../../../lib/util/qseow/assert-options.js';
+import { getTask } from '../../../../lib/cmd/qseow/gettask.js';
+import { getTaskAssertOptions } from '../../../../lib/util/qseow/assert-options.js';
 import { logger } from '../../../globals.js';
 
 const options = {
