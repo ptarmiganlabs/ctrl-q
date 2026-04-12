@@ -1,4 +1,4 @@
-import { jest, test, expect, describe, beforeEach } from '@jest/globals';
+import { jest, test, expect, describe } from '@jest/globals';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
