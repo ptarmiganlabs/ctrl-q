@@ -1,5 +1,5 @@
 import { jest, test, expect, describe, beforeAll, afterAll } from '@jest/globals';
-import { writeFileSync, unlinkSync, existsSync, mkdirSync } from 'fs';
+import { unlinkSync, existsSync, mkdirSync } from 'fs';
 import { getAppMetadata } from '../../../lib/cmd/qseow/app-metadata-get.js';
 
 const options = {
