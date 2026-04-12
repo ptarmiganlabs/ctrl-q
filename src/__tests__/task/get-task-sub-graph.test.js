@@ -75,7 +75,7 @@ describe('extGetTaskSubGraph - Empty/Invalid Input', () => {
         const node = createNode('task-1', 'Task');
         delete node.id;
 
-        const result = extGetTaskSubGraph(mockObj, node, 0, null, logger);
+        extGetTaskSubGraph(mockObj, node, 0, null, logger);
 
         expect(logger.debug).toHaveBeenCalled();
     });
