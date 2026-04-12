@@ -46,7 +46,7 @@ describe('connection test (JWT auth)', () => {
      * Should succeed if credentials are valid
      */
     test('do connection test', async () => {
-        const { qscloudTestConnection } = await import('../../../../lib/cmd/qscloud/testconnection.js');
+        const { qscloudTestConnection } = await import('../../lib/cmd/qscloud/testconnection.js');
 
         const result = await qscloudTestConnection(options);
 

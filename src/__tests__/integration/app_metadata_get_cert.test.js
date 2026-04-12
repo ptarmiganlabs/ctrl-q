@@ -1,6 +1,6 @@
 import { jest, test, expect, describe, beforeAll, afterAll } from '@jest/globals';
 import { unlinkSync, existsSync, mkdirSync } from 'fs';
-import { getAppMetadata } from '../../../../lib/cmd/qseow/app-metadata-get.js';
+import { getAppMetadata } from '../../lib/cmd/qseow/app-metadata-get.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',
