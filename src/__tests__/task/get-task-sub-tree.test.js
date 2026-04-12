@@ -212,7 +212,7 @@ describe('extGetTaskSubTree - Tree Level', () => {
         const task = createTask('task-1', 'Task 1');
         const mockObj = createMockTaskNetwork([task], []);
 
-        const result = extGetTaskSubTree(mockObj, task, 1, null, logger);
+        extGetTaskSubTree(mockObj, task, 1, null, logger);
 
         expect(logger.debug).toHaveBeenCalled();
     });
