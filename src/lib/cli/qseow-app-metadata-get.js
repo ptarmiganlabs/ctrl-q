@@ -24,10 +24,14 @@ export function setupAppMetadataGetCommand(qseow) {
         .command('app-metadata-get')
         .description('Get metadata from Qlik Sense apps')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            getAppMetadataAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                getAppMetadataAssertOptions(options);
 
-            getAppMetadata(options);
+                await getAppMetadata(options);
+            } catch (err) {
+                catchLog('GET APP METADATA', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

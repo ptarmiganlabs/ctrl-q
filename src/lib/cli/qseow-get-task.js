@@ -9,23 +9,27 @@ export function setupGetTaskCommand(qseow) {
         .command('task-get')
         .description('get info about one or more tasks')
         .action(async (options) => {
-            const newOptions = options;
-            // If options.tableDetails is true, it means --table-details was passed as options without any explicit value.
-            // This is allowed, but should be interpreted as "all" table details.
-            // Make options.tableDetails an array with all possible table details.
-            if (options.tableDetails === true) {
-                newOptions.tableDetails = ['common', 'lastexecution', 'tag', 'customproperty', 'schematrigger', 'compositetrigger'];
+            try {
+                const newOptions = options;
+                // If options.tableDetails is true, it means --table-details was passed as options without any explicit value.
+                // This is allowed, but should be interpreted as "all" table details.
+                // Make options.tableDetails an array with all possible table details.
+                if (options.tableDetails === true) {
+                    newOptions.tableDetails = ['common', 'lastexecution', 'tag', 'customproperty', 'schematrigger', 'compositetrigger'];
+                }
+
+                await qseowSharedParamAssertOptions(newOptions);
+                await getTaskAssertOptions(newOptions);
+
+                // If --output-format=table and --task-type is not specified, default to ['reload', 'ext-program']
+                if (newOptions.outputFormat === 'table' && !newOptions.taskType) {
+                    newOptions.taskType = ['reload', 'ext-program'];
+                }
+
+                await getTask(newOptions);
+            } catch (err) {
+                catchLog('GET TASK', err);
             }
-
-            await qseowSharedParamAssertOptions(newOptions);
-            await getTaskAssertOptions(newOptions);
-
-            // If --output-format=table and --task-type is not specified, default to ['reload', 'ext-program']
-            if (newOptions.outputFormat === 'table' && !newOptions.taskType) {
-                newOptions.taskType = ['reload', 'ext-program'];
-            }
-
-            getTask(newOptions);
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

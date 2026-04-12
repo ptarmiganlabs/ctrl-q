@@ -9,10 +9,14 @@ export function setupQseowGetMasterMeasureCommand(qseow) {
         .command('master-item-measure-get')
         .description('get info about one or more master measures')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            masterItemGetAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                masterItemGetAssertOptions(options);
 
-            getMasterMeasure(options);
+                await getMasterMeasure(options);
+            } catch (err) {
+                catchLog('GET MASTER MEASURE', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

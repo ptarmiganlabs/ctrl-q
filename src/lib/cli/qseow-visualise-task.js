@@ -9,10 +9,14 @@ export function setupQseowVisualiseTaskCommand(qseow) {
         .command('task-vis')
         .description('visualise task network')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            await visTaskAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                await visTaskAssertOptions(options);
 
-            await visTask(options);
+                await visTask(options);
+            } catch (err) {
+                catchLog('VISUALISE TASK', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

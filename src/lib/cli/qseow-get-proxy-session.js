@@ -9,10 +9,14 @@ export function setupQseowGetProxySessionsCommand(qseow) {
         .command('session-get')
         .description('get info about proxy sessions on one or more virtual proxies')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            await getSessionsAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                await getSessionsAssertOptions(options);
 
-            getSessions(options, null);
+                await getSessions(options, null);
+            } catch (err) {
+                catchLog('GET PROXY SESSION', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

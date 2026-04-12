@@ -9,10 +9,14 @@ export function setupQseowScrambleFieldCommand(qseow) {
         .command('field-scramble')
         .description('scramble one or more fields in an app. A new app with the scrambled data is created.')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            await qseowScrambleFieldAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                await qseowScrambleFieldAssertOptions(options);
 
-            scrambleField(options);
+                await scrambleField(options);
+            } catch (err) {
+                catchLog('SCRAMBLE FIELD', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

@@ -9,9 +9,13 @@ export function setupQseowGetMasterDimensionCommand(qseow) {
         .command('master-item-dim-get')
         .description('get info about one or more master dimensions')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
 
-            getMasterDimension(options);
+                await getMasterDimension(options);
+            } catch (err) {
+                catchLog('GET MASTER DIMENSION', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

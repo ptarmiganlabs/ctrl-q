@@ -9,10 +9,14 @@ export function setupQseowDeleteVariableCommand(qseow) {
         .command('variable-delete')
         .description('delete one or more variables in one or more apps')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            variableDeleteAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                variableDeleteAssertOptions(options);
 
-            deleteVariable(options);
+                await deleteVariable(options);
+            } catch (err) {
+                catchLog('DELETE VARIABLE', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

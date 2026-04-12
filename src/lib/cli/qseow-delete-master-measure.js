@@ -9,10 +9,14 @@ export function setupQseowDeleteMasterMeasureCommand(qseow) {
         .command('master-item-measure-delete')
         .description('delete master measure(s)')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            masterItemMeasureDeleteAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                masterItemMeasureDeleteAssertOptions(options);
 
-            deleteMasterMeasure(options);
+                await deleteMasterMeasure(options);
+            } catch (err) {
+                catchLog('DELETE MASTER MEASURE', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

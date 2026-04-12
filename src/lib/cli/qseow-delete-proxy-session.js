@@ -9,10 +9,14 @@ export function setupQseowDeleteProxySessionsCommand(qseow) {
         .command('session-delete')
         .description('delete proxy session(s) on a specific virtual proxy and proxy service')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            await deleteSessionsAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                await deleteSessionsAssertOptions(options);
 
-            deleteSessions(options);
+                await deleteSessions(options);
+            } catch (err) {
+                catchLog('DELETE PROXY SESSION', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')
