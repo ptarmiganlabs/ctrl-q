@@ -16,6 +16,8 @@ import { logger } from '../../../globals.js';
  * @returns {Promise<Object[]>} Array of objects with full property trees
  */
 async function getList(app, objectType) {
+    logger.debug(`SERIALIZE APP GET LIST: Retrieving objects of type "${objectType}"`);
+
     const list = await app.createSessionObject({
         qAppObjectListDef: {
             qType: objectType,
@@ -39,6 +41,7 @@ async function getList(app, objectType) {
         })
     );
 
+    logger.verbose(`SERIALIZE APP GET LIST: Retrieved ${objects.length} objects of type "${objectType}"`);
     return objects;
 }
 
@@ -49,6 +52,8 @@ async function getList(app, objectType) {
  * @returns {Promise<Object[]>} Array of dimension objects with properties
  */
 async function getDimensions(app) {
+    logger.debug('SERIALIZE APP GET DIMENSIONS: Retrieving master dimensions');
+
     const list = await app.createSessionObject({
         qDimensionListDef: {
             qType: 'dimension',
@@ -68,6 +73,7 @@ async function getDimensions(app) {
         })
     );
 
+    logger.verbose(`SERIALIZE APP GET DIMENSIONS: Retrieved ${dimensions.length} master dimensions`);
     return dimensions;
 }
 
@@ -78,6 +84,8 @@ async function getDimensions(app) {
  * @returns {Promise<Object[]>} Array of measure objects with properties
  */
 async function getMeasures(app) {
+    logger.debug('SERIALIZE APP GET MEASURES: Retrieving master measures');
+
     const list = await app.createSessionObject({
         qMeasureListDef: {
             qType: 'measure',
@@ -98,6 +106,7 @@ async function getMeasures(app) {
         })
     );
 
+    logger.verbose(`SERIALIZE APP GET MEASURES: Retrieved ${measures.length} master measures`);
     return measures;
 }
 
@@ -109,6 +118,8 @@ async function getMeasures(app) {
  * @returns {Promise<Object[]>} Array of bookmark objects with properties and state
  */
 async function getBookmarks(app) {
+    logger.debug('SERIALIZE APP GET BOOKMARKS: Retrieving bookmarks');
+
     const list = await app.createSessionObject({
         qBookmarkListDef: {
             qType: 'bookmark',
@@ -134,6 +145,7 @@ async function getBookmarks(app) {
         })
     );
 
+    logger.verbose(`SERIALIZE APP GET BOOKMARKS: Retrieved ${bookmarks.length} bookmarks`);
     return bookmarks;
 }
 
@@ -145,6 +157,8 @@ async function getBookmarks(app) {
  * @returns {Promise<Object[]>} Array of media file objects
  */
 async function getMediaList(app) {
+    logger.debug('SERIALIZE APP GET MEDIA: Retrieving embedded media');
+
     const list = await app.createSessionObject({
         qInfo: {
             qId: 'mediaList',
@@ -154,9 +168,12 @@ async function getMediaList(app) {
     });
 
     const layout = await list.getLayout();
-    return layout.qMediaList.qItems.filter((d) => {
+    const mediaItems = layout.qMediaList.qItems.filter((d) => {
         return d.qUrlDef.substring(0, 7) === '/media/';
     });
+
+    logger.verbose(`SERIALIZE APP GET MEDIA: Retrieved ${mediaItems.length} embedded media files`);
+    return mediaItems;
 }
 
 /**
@@ -166,6 +183,8 @@ async function getMediaList(app) {
  * @returns {Promise<Object[]>} Array of snapshot objects with properties
  */
 async function getSnapshots(app) {
+    logger.debug('SERIALIZE APP GET SNAPSHOTS: Retrieving snapshots');
+
     const list = await app.createSessionObject({
         qBookmarkListDef: {
             qType: 'snapshot',
@@ -186,6 +205,7 @@ async function getSnapshots(app) {
         })
     );
 
+    logger.verbose(`SERIALIZE APP GET SNAPSHOTS: Retrieved ${snapshots.length} snapshots`);
     return snapshots;
 }
 
@@ -197,6 +217,8 @@ async function getSnapshots(app) {
  * @returns {Promise<Object[]>} Array of field objects
  */
 async function getFields(app) {
+    logger.debug('SERIALIZE APP GET FIELDS: Retrieving fields');
+
     const fields = await app.createSessionObject({
         qFieldListDef: {
             qShowSystem: true,
@@ -208,7 +230,10 @@ async function getFields(app) {
     });
 
     const layout = await fields.getLayout();
-    return layout.qFieldList.qItems;
+    const fieldItems = layout.qFieldList.qItems;
+
+    logger.verbose(`SERIALIZE APP GET FIELDS: Retrieved ${fieldItems.length} fields`);
+    return fieldItems;
 }
 
 /**
@@ -218,6 +243,8 @@ async function getFields(app) {
  * @returns {Promise<Object[]>} Array of connection detail objects
  */
 async function getDataConnections(app) {
+    logger.debug('SERIALIZE APP GET DATA CONNECTIONS: Retrieving data connections');
+
     const connections = await app.getConnections();
     const connectionDetails = await Promise.all(
         connections.map(async (d) => {
@@ -225,6 +252,7 @@ async function getDataConnections(app) {
         })
     );
 
+    logger.verbose(`SERIALIZE APP GET DATA CONNECTIONS: Retrieved ${connectionDetails.length} data connections`);
     return connectionDetails;
 }
 
@@ -236,6 +264,8 @@ async function getDataConnections(app) {
  * @returns {Promise<Object[]>} Array of variable objects with properties
  */
 async function getVariables(app) {
+    logger.debug('SERIALIZE APP GET VARIABLES: Retrieving variables');
+
     const list = await app.createSessionObject({
         qVariableListDef: {
             qType: 'variable',
@@ -263,6 +293,7 @@ async function getVariables(app) {
         })
     );
 
+    logger.verbose(`SERIALIZE APP GET VARIABLES: Retrieved ${variables.length} variables`);
     return variables;
 }
 
@@ -276,6 +307,8 @@ async function getVariables(app) {
  * @returns {Promise<Object>} Object containing tables (qtr) and keys (qk)
  */
 async function getTablesAndKeys(app) {
+    logger.debug('SERIALIZE APP GET TABLES AND KEYS: Retrieving tables and keys from data model');
+
     const params = {
         qWindowSize: { qcx: 0, qcy: 0 },
         qNullSize: { qcx: 0, qcy: 0 },
@@ -287,6 +320,8 @@ async function getTablesAndKeys(app) {
     };
 
     const result = await app.getTablesAndKeys(params);
+
+    logger.verbose(`SERIALIZE APP GET TABLES AND KEYS: Retrieved ${result.qtr?.length ?? 0} tables and ${result.qk?.length ?? 0} keys`);
     return result;
 }
 
@@ -310,6 +345,8 @@ async function getTablesAndKeys(app) {
  * // etc.
  */
 export async function serializeApp(app) {
+    logger.debug('SERIALIZE APP: Starting app serialization');
+
     if (!app || typeof app.createSessionObject !== 'function') {
         throw new Error('Expects a valid enigma.js app connection');
     }
@@ -333,14 +370,19 @@ export async function serializeApp(app) {
     };
 
     // Get app properties
+    logger.debug('SERIALIZE APP: Getting app properties');
     const properties = await app.getAppProperties();
     appObj.properties = properties;
+    logger.debug(`SERIALIZE APP: App name: "${properties.qTitle}"`);
 
     // Get load script
+    logger.debug('SERIALIZE APP: Getting load script');
     const script = await app.getScript();
     appObj.loadScript = script;
+    logger.verbose(`SERIALIZE APP: Load script length: ${script.length} characters`);
 
     // Get lists (sheets, stories, master objects, app props)
+    logger.debug('SERIALIZE APP: Getting sheets, stories, master objects, and app props');
     const listData = await Promise.all(
         LISTS.map(async (d) => {
             const objectType = d[Object.keys(d)[0]];
@@ -354,6 +396,7 @@ export async function serializeApp(app) {
     });
 
     // Get other metadata via METHODS
+    logger.debug('SERIALIZE APP: Getting dimensions, measures, bookmarks, media, snapshots, fields, connections, variables, tables');
     await Promise.all(
         Object.keys(METHODS).map(async (key) => {
             const data = await METHODS[key](app);
@@ -361,5 +404,6 @@ export async function serializeApp(app) {
         })
     );
 
+    logger.debug('SERIALIZE APP: App serialization complete');
     return appObj;
 }

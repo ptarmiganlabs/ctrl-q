@@ -75,37 +75,51 @@ export const userActivityCustomPropertyAssertOptions = (options) => {
     return newOptions;
 };
 
-export const masterItemImportAssertOptions = (options) => {
+export function validateMasterItemImportOptions(options) {
     if (options.colRefBy === undefined || !options.colRefBy) {
-        logger.error(
-            'Mandatory option --col-ref-by is missing. Use it to specify how Excel file columns are referenced (by name or position)'
-        );
+        return {
+            valid: false,
+            error: 'Mandatory option --col-ref-by is missing. Use it to specify how Excel file columns are referenced (by name or position)',
+        };
+    }
+    return { valid: true };
+}
+
+export const masterItemImportAssertOptions = (options) => {
+    const result = validateMasterItemImportOptions(options);
+    if (!result.valid) {
+        logger.error(result.error);
         process.exit(1);
     }
 };
 
-export const masterItemMeasureDeleteAssertOptions = (options) => {
-    // Make sure options are valid for deleting master measures
-
-    // Either --delete-all OR (--id-type and --master-item) should be specified
+export function validateMasterItemMeasureDeleteOptions(options) {
     if (options.deleteAll === undefined && options.idType === undefined && options.masterItem === undefined) {
-        logger.error('Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --master-item');
-        process.exit(1);
+        return {
+            valid: false,
+            error: 'Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --master-item',
+        };
     }
 
     if (options.deleteAll === undefined) {
         if (options.idType === undefined) {
-            logger.error('Mandatory options --id-type missing.');
-            process.exit(1);
+            return { valid: false, error: 'Mandatory options --id-type missing.' };
         } else if (options.masterItem === undefined) {
-            logger.error('Mandatory options --master-item missing.');
-            process.exit(1);
+            return { valid: false, error: 'Mandatory options --master-item missing.' };
         }
     }
 
-    // Make sure not *both* --delete-all AND (--id-type and --master-item) are specified
     if (options.deleteAll !== undefined && options.idType !== undefined && options.masterItem !== undefined) {
-        logger.error('Invalid combination of options.\nUse either --delete-all OR --id-type/--master-item.');
+        return { valid: false, error: 'Invalid combination of options.\nUse either --delete-all OR --id-type/--master-item.' };
+    }
+
+    return { valid: true };
+}
+
+export const masterItemMeasureDeleteAssertOptions = (options) => {
+    const result = validateMasterItemMeasureDeleteOptions(options);
+    if (!result.valid) {
+        logger.error(result.error);
         process.exit(1);
     }
 };

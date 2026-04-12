@@ -199,10 +199,17 @@ export function findCircularTaskChains(taskNetwork, logger) {
     const duplicateEdges = [];
 
     try {
+        // Guard against null/undefined network
+        if (!taskNetwork) {
+            logger.error('FIND CIRCULAR TASK CHAINS: Task network is null or undefined');
+            return false;
+        }
+
         // Get all root nodes in task network.
         // Root nodes are nodes meeting either of the following criteria:
         // - node's isTopLevelNode property is true.
-        const rootNodes = taskNetwork.nodes.filter((node) => node.isTopLevelNode);
+        const nodes = taskNetwork.nodes ?? [];
+        const rootNodes = nodes.filter((node) => node.isTopLevelNode);
 
         if (!rootNodes) {
             logger.error('Could not find root nodes in task model');

@@ -116,9 +116,11 @@ describe('generateXrfKey', () => {
     });
 
     it('generates both uppercase and lowercase letters', () => {
-        const xrfKey = generateXrfKey();
-        expect(/[a-z]/.test(xrfKey)).toBe(true);
-        expect(/[A-Z]/.test(xrfKey)).toBe(true);
+        // A single 16-char key might not contain both cases by chance.
+        // Generate several keys and check that both appear across all of them.
+        const keys = Array.from({ length: 10 }, () => generateXrfKey()).join('');
+        expect(/[a-z]/.test(keys)).toBe(true);
+        expect(/[A-Z]/.test(keys)).toBe(true);
     });
 
     it('generates a different key each time', () => {

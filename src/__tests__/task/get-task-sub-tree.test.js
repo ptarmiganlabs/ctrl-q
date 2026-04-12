@@ -224,7 +224,7 @@ describe('extGetTaskSubTree - Meta Nodes', () => {
         const task = createTask('task-1', 'Task', 0, true, 'schedule');
         const mockObj = createMockTaskNetwork([task], []);
 
-        const result = extGetTaskSubTree(mockObj, task, 1, null, logger);
+        extGetTaskSubTree(mockObj, task, 1, null, logger);
 
         expect(logger.debug).toHaveBeenCalled();
     });

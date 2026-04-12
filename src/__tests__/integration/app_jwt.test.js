@@ -3,7 +3,6 @@ import { jest, test, expect, describe } from '@jest/globals';
 
 import { getApps, getAppById, appExistById, deleteAppById } from '../../lib/util/qseow/app.js';
 import { importAppFromFile } from '../../lib/cmd/qseow/importapp.js';
-import { sleep } from '../../globals.js';
 
 const options = {
     logLevel: process.env.CTRL_Q_LOG_LEVEL || 'info',

@@ -24,7 +24,7 @@ import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
 import { catchLog } from '../../util/log.js';
 import { serializeApp } from '../../util/qseow/serialize-app.js';
-import { getAppById, getApps } from '../../util/qseow/app.js';
+import { getApps } from '../../util/qseow/app.js';
 import { extractIntel } from '../../util/qseow/intel/index.js';
 
 /**

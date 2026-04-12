@@ -262,7 +262,7 @@ describe('extGetTaskSubGraph - Tree Level', () => {
         const task = createTask('task-1', 'Task 1', 0);
         const mockObj = createMockTaskNetwork([node], [], [task]);
 
-        const result = extGetTaskSubGraph(mockObj, node, 0, null, logger);
+        extGetTaskSubGraph(mockObj, node, 0, null, logger);
 
         // Tree level 0 resets cyclic stack
         expect(mockObj.taskCyclicStack instanceof Set).toBe(true);
@@ -278,7 +278,7 @@ describe('extGetTaskSubGraph - Tree Level', () => {
         const tasks = [taskA];
         const mockObj = createMockTaskNetwork(nodes, edges, tasks);
 
-        const result = extGetTaskSubGraph(mockObj, nodeA, 1, null, logger);
+        extGetTaskSubGraph(mockObj, nodeA, 1, null, logger);
 
         expect(logger.debug).toHaveBeenCalled();
     });
@@ -321,7 +321,7 @@ describe('extGetTaskSubGraph - Edge Cases', () => {
         const task = createTask('task-1', 'My Named Task', 0);
         const mockObj = createMockTaskNetwork([node], [], [task]);
 
-        const result = extGetTaskSubGraph(mockObj, node, 1, null, logger);
+        extGetTaskSubGraph(mockObj, node, 1, null, logger);
 
         expect(logger.debug).toHaveBeenCalled();
     });
