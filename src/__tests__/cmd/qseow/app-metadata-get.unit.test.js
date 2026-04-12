@@ -3,7 +3,7 @@
  * Tests helper functions, intel extraction, and serialization utilities.
  */
 
-import { jest, test, expect, describe, beforeEach, afterEach } from '@jest/globals';
+import { test, expect, describe, beforeEach } from '@jest/globals';
 import { extractIntel } from '../../../lib/util/qseow/intel/index.js';
 import { getAllExtractors } from '../../../lib/util/qseow/intel/registry.js';
 import { BaseExtractor, IntelType, SourceType } from '../../../lib/util/qseow/intel/extractors/base.js';
