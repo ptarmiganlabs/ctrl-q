@@ -11,6 +11,7 @@ import MeasureIntelExtractor from './extractors/measure-intel.js';
 import VariableIntelExtractor from './extractors/variable-intel.js';
 import BookmarkIntelExtractor from './extractors/bookmark-intel.js';
 import ConnectionIntelExtractor from './extractors/connection-intel.js';
+import TableIntelExtractor from './extractors/table-intel.js';
 
 /**
  * Registry mapping data type names to their extractor classes.
@@ -32,6 +33,8 @@ export const EXTRACTOR_REGISTRY = {
     bookmark: BookmarkIntelExtractor,
     /** Data connection extractor */
     dataconnection: ConnectionIntelExtractor,
+    /** Table and key extractor */
+    table: TableIntelExtractor,
 };
 
 /**

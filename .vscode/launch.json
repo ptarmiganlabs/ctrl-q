@@ -1003,11 +1003,13 @@
                 "--log-level",
                 "info",
                 "--output-dest",
-                "screen",
+                "file",
                 "--output-detail",
-                "summary",
+                "full",
                 "--output-format",
-                "qvd"
+                "json",
+                "--open-without-data",
+                "false"
             ]
 
 

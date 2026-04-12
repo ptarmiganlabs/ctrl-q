@@ -50,6 +50,10 @@ export const SourceType = {
     BOOKMARK: 'bookmark',
     /** Data connection */
     DATACONNECTION: 'dataconnection',
+    /** Data table */
+    TABLE: 'table',
+    /** Table key */
+    TABLE_KEY: 'table-key',
 };
 
 /**

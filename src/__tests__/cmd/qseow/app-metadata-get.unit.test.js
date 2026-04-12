@@ -13,6 +13,7 @@ import MeasureIntelExtractor from '../../../lib/util/qseow/intel/extractors/meas
 import VariableIntelExtractor from '../../../lib/util/qseow/intel/extractors/variable-intel.js';
 import BookmarkIntelExtractor from '../../../lib/util/qseow/intel/extractors/bookmark-intel.js';
 import ConnectionIntelExtractor from '../../../lib/util/qseow/intel/extractors/connection-intel.js';
+import TableIntelExtractor from '../../../lib/util/qseow/intel/extractors/table-intel.js';
 
 describe('IntelType enum', () => {
     test('should have correct title type', () => {
@@ -801,6 +802,118 @@ describe('ConnectionIntelExtractor', () => {
         };
         const result = extractor.extract(metadata);
         expect(result.length).toBe(0);
+    });
+});
+
+describe('TableIntelExtractor', () => {
+    let extractor;
+
+    beforeEach(() => {
+        extractor = new TableIntelExtractor();
+    });
+
+    test('should have correct name', () => {
+        expect(extractor.name).toBe('table');
+    });
+
+    test('should have correct dataTypes', () => {
+        expect(extractor.dataTypes).toEqual(['tables']);
+    });
+
+    test('should return empty array for empty metadata', () => {
+        const result = extractor.extract({});
+        expect(result).toEqual([]);
+    });
+
+    test('should return empty array for metadata with empty tables', () => {
+        const result = extractor.extract({ tables: {} });
+        expect(result).toEqual([]);
+    });
+
+    test('should extract table names from qtr', () => {
+        const metadata = {
+            tables: {
+                qtr: [{ qName: 'Sales' }],
+            },
+        };
+        const result = extractor.extract(metadata);
+        const names = result.filter((item) => item.type === 'name' && item.sourceType === 'table');
+        expect(names.some((n) => n.value === 'Sales')).toBe(true);
+    });
+
+    test('should extract table tags from qtr', () => {
+        const metadata = {
+            tables: {
+                qtr: [{ qName: 'Sales', qTags: ['$key', '$numeric'] }],
+            },
+        };
+        const result = extractor.extract(metadata);
+        const tags = result.filter((item) => item.type === 'field' && item.sourceType === 'table');
+        expect(tags.some((t) => t.value === '$key')).toBe(true);
+        expect(tags.some((t) => t.value === '$numeric')).toBe(true);
+    });
+
+    test('should extract table tags from qTableTags', () => {
+        const metadata = {
+            tables: {
+                qtr: [{ qName: 'Sales', qTableTags: ['Star', 'Synthetic'] }],
+            },
+        };
+        const result = extractor.extract(metadata);
+        const tableTags = result.filter((item) => item.path === 'tables.qtr[0].qTableTags');
+        expect(tableTags.some((t) => t.value === 'Star')).toBe(true);
+        expect(tableTags.some((t) => t.value === 'Synthetic')).toBe(true);
+    });
+
+    test('should extract key tables from qk', () => {
+        const metadata = {
+            tables: {
+                qk: [{ qTables: ['Sales', 'Customers'], qKeyFields: ['ID'] }],
+            },
+        };
+        const result = extractor.extract(metadata);
+        const keyTables = result.filter((item) => item.sourceType === 'table-key' && item.type === 'field');
+        expect(keyTables.some((t) => t.value === 'Sales')).toBe(true);
+        expect(keyTables.some((t) => t.value === 'Customers')).toBe(true);
+    });
+
+    test('should extract key fields from qk', () => {
+        const metadata = {
+            tables: {
+                qk: [{ qTables: ['Sales'], qKeyFields: ['ID', 'Key'] }],
+            },
+        };
+        const result = extractor.extract(metadata);
+        const keyFields = result.filter((item) => item.path === 'tables.qk[0].qKeyFields');
+        expect(keyFields.some((f) => f.value === 'ID')).toBe(true);
+        expect(keyFields.some((f) => f.value === 'Key')).toBe(true);
+    });
+
+    test('should handle multiple tables', () => {
+        const metadata = {
+            tables: {
+                qtr: [
+                    { qName: 'Table1', qTags: ['$key'] },
+                    { qName: 'Table2', qTags: ['$text'] },
+                ],
+            },
+        };
+        const result = extractor.extract(metadata);
+        expect(result.length).toBe(4); // 2 names + 2 tags
+    });
+
+    test('should handle multiple keys', () => {
+        const metadata = {
+            tables: {
+                qk: [
+                    { qTables: ['T1'], qKeyFields: ['F1'] },
+                    { qTables: ['T2'], qKeyFields: ['F2'] },
+                ],
+            },
+        };
+        const result = extractor.extract(metadata);
+        // 2 tables + 2 fields per key
+        expect(result.length).toBe(4);
     });
 });
 

@@ -267,6 +267,30 @@ async function getVariables(app) {
 }
 
 /**
+ * Retrieves tables and keys from the app's data model.
+ *
+ * Returns table information and key fields that link tables together.
+ *
+ * @async
+ * @param {Object} app - The Qlik Sense app object
+ * @returns {Promise<Object>} Object containing tables (qtr) and keys (qk)
+ */
+async function getTablesAndKeys(app) {
+    const params = {
+        qWindowSize: { qcx: 0, qcy: 0 },
+        qNullSize: { qcx: 0, qcy: 0 },
+        qCellHeight: 0,
+        qSyntheticMode: false,
+        // Not supported in schema 12.612.0, but available in newer schemas like 12.936.0
+        // qIncludeSysVars: false,
+        // qIncludeProfiling: false,
+    };
+
+    const result = await app.getTablesAndKeys(params);
+    return result;
+}
+
+/**
  * Serializes a Qlik Sense app into a JSON object.
  *
  * Extracts all app metadata including properties, load script, sheets, stories,
@@ -305,6 +329,7 @@ export async function serializeApp(app) {
         fields: getFields,
         dataconnections: getDataConnections,
         variables: getVariables,
+        tables: getTablesAndKeys,
     };
 
     // Get app properties

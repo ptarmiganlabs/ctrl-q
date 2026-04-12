@@ -1,3 +1,21 @@
+/**
+ * @fileoverview Command for extracting metadata from Qlik Sense apps.
+ *
+ * This module retrieves comprehensive metadata from one or more Qlik Sense apps including:
+ * - Load script
+ * - App properties
+ * - Sheets and stories
+ * - Master objects, dimensions, and measures
+ * - Bookmarks and variables
+ * - Field definitions and data connections
+ * - Table and key information from the data model
+ *
+ * Supports output in JSON and QVD formats, with optional intel extraction
+ * for analyzing labels, expressions, and field references.
+ *
+ * @module cmd/qseow/app-metadata-get
+ */
+
 import enigma from 'enigma.js';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import upath from 'upath';
@@ -9,6 +27,21 @@ import { serializeApp } from '../../util/qseow/serialize-app.js';
 import { getAppById, getApps } from '../../util/qseow/app.js';
 import { extractIntel } from '../../util/qseow/intel/index.js';
 
+/**
+ * Creates QVD files containing structured intel extracted from app metadata.
+ *
+ * Generates three QVD files:
+ * - Run metadata: Information about the extraction run itself
+ * - Items: All extracted intel items with their properties
+ * - Associations: Relationships between items and sheet visualizations
+ *
+ * @async
+ * @param {Object} appData - App data object containing appId, appName, and metadata
+ * @param {string} outputDir - Directory where QVD files will be written
+ * @param {string} intelFileName - Base name for the intel QVD files
+ * @param {Object} log - Logger instance for status messages
+ * @returns {Promise<void>} Resolves when QVD files are created
+ */
 async function createIntelQvd(appData, outputDir, intelFileName, log) {
     const { QvdDataFrame } = await import('qvdjs');
 
@@ -83,6 +116,12 @@ async function createIntelQvd(appData, outputDir, intelFileName, log) {
     log.info(`Created intel associations QVD: ${assocFile}`);
 }
 
+/**
+ * Builds a summary data object with counts for various app components.
+ *
+ * @param {Object} appData - App data object with appId, appName, and metadata
+ * @returns {Object} Summary object with counts for sheets, stories, dimensions, measures, etc.
+ */
 function buildSummaryData(appData) {
     return {
         appId: appData.appId,
@@ -96,10 +135,19 @@ function buildSummaryData(appData) {
         variableCount: appData.metadata.variables?.length || 0,
         fieldCount: appData.metadata.fields?.length || 0,
         dataConnectionCount: appData.metadata.dataconnections?.length || 0,
+        tableCount: appData.metadata.tables?.qtr?.length || 0,
         scriptLines: appData.metadata.loadScript?.split('\n').length || 0,
     };
 }
 
+/**
+ * Builds a full data object containing all app metadata.
+ *
+ * @param {Object} appData - App data object with appId, appName, and metadata
+ * @param {string} server - Server hostname
+ * @param {string} engineVersion - Qlik Engine version string
+ * @returns {Object} Full metadata object with exportedAt, server, engineVersion, and all metadata sections
+ */
 function buildFullData(appData, server, engineVersion) {
     return {
         exportedAt: new Date().toISOString(),
@@ -118,9 +166,36 @@ function buildFullData(appData, server, engineVersion) {
         variables: appData.metadata.variables,
         fields: appData.metadata.fields,
         dataconnections: appData.metadata.dataconnections,
+        tables: appData.metadata.tables,
     };
 }
 
+/**
+ * Retrieves metadata from one or more Qlik Sense apps.
+ *
+ * This is the main function that orchestrates the metadata retrieval process.
+ * It connects to the Qlik Sense server, retrieves metadata for specified apps
+ * (by ID, tag, or all apps), and optionally creates intel files.
+ *
+ * @async
+ * @param {Object} options - Command options object
+ * @param {string} [options.host] - Qlik Sense server hostname
+ * @param {string} [options.appId] - Specific app ID or array of IDs
+ * @param {string} [options.appTag] - App tag to filter by (or array of tags)
+ * @param {string} [options.outputFormat='json'] - Output format: 'json' or 'qvd'
+ * @param {string} [options.outputCount='multiple'] - 'single' for one file per app, 'multiple' to combine
+ * @param {string} [options.outputDest='file'] - 'file' or 'screen'
+ * @param {string} [options.outputDetail='full'] - 'summary', 'full', or 'both'
+ * @param {string} [options.openWithoutData='true'] - Open app without loading data
+ * @param {string} [options.createIntelFile] - Create intel extraction files
+ * @param {string} [options.outputDir='.'] - Output directory for files
+ * @param {string} [options.outputFileName='app-metadata'] - Base filename for output
+ * @param {string} [options.intelFileName='app-metadata-intel'] - Base filename for intel files
+ * @param {number} [options.limitAppCount=0] - Maximum apps to process when not specifying appId
+ * @param {number} [options.sleepBetweenApps=1000] - Milliseconds to wait between apps
+ * @param {string} [options.logLevel] - Logging level
+ * @returns {Promise<Object[]>} Array of app data objects with metadata
+ */
 async function getAppMetadata(options) {
     try {
         setLoggingLevel(options.logLevel);
@@ -144,7 +219,7 @@ async function getAppMetadata(options) {
         let configEnigma;
         let session;
         try {
-            configEnigma = setupEnigmaConnection(options, sessionId);
+            configEnigma = await setupEnigmaConnection(options, sessionId);
             session = await enigma.create(configEnigma);
             logger.verbose(`Created session to server ${options.host}.`);
         } catch (err) {
@@ -173,10 +248,13 @@ async function getAppMetadata(options) {
 
         let appIds = [];
 
+        // Determine which apps to process: either by specific ID, tag filter, or all apps
         if (options.appId) {
+            // Use explicitly specified app ID(s)
             appIds = Array.isArray(options.appId) ? options.appId : [options.appId];
             logger.verbose(`Using specified app IDs: ${appIds.join(', ')}`);
         } else if (options.appTag) {
+            // Get apps filtered by tag(s)
             const appTags = Array.isArray(options.appTag) ? options.appTag : [options.appTag];
             logger.verbose(`Getting apps with tags: ${appTags.join(', ')}`);
 
@@ -189,6 +267,7 @@ async function getAppMetadata(options) {
                 process.exit(1);
             }
         } else {
+            // No filter specified, get all apps from server
             logger.verbose('No app ID or tag specified, getting all apps');
             const docList = await global.getDocList();
             appIds = docList.map((doc) => doc.qDocId);
@@ -202,45 +281,59 @@ async function getAppMetadata(options) {
 
         const appDataArray = [];
 
-        for (const appId of appIds) {
+        // Milliseconds to wait between apps (if processing multiple apps)
+        const sleepBetweenApps = parseInt(options.sleepBetweenApps, 10) || 0;
+
+        // Process each app: create session, open app, serialize, cleanup
+        for (let appIndex = 0; appIndex < appIds.length; appIndex++) {
+            const appId = appIds[appIndex];
             logger.info(`Processing app: ${appId}`);
 
-            if (session.globalPromise === undefined) {
-                try {
-                    session = await enigma.create(configEnigma);
-                    logger.verbose(`Created new session to server ${options.host}.`);
+            try {
+                // Create a new session if needed (first app or previous session closed)
+                if (session.globalPromise === undefined) {
+                    try {
+                        session = await enigma.create(configEnigma);
+                        logger.verbose(`Created new session to server ${options.host}.`);
 
-                    global = await session.open();
-                    logger.verbose(`Opened new session to server ${options.host}.`);
-                } catch (err) {
-                    catchLog(`Error creating new session for app ${appId}`, err);
-                    process.exit(1);
+                        global = await session.open();
+                        logger.verbose(`Opened new session to server ${options.host}.`);
+                    } catch (err) {
+                        catchLog(`Error creating new session for app ${appId}`, err);
+                        process.exit(1);
+                    }
+                }
+
+                // Open the app in Sense
+                const openWithoutData = options.openWithoutData === 'true';
+                const app = await global.openDoc(appId, '', '', '', openWithoutData);
+                logger.verbose(`Opened app ${appId}`);
+
+                // Extract all metadata from the app
+                const appObj = await serializeApp(app);
+
+                appDataArray.push({
+                    appId,
+                    appName: appObj.properties?.qTitle || 'Unknown',
+                    metadata: appObj,
+                });
+
+                logger.verbose(`Serialized app ${appId}`);
+            } catch (err) {
+                catchLog(`Error processing app ${appId}`, err);
+                process.exit(1);
+            } finally {
+                // Always close the session after processing the app
+                if (session.globalPromise !== undefined) {
+                    await session.close();
+                    logger.verbose(`Closed session for app ${appId}`);
                 }
             }
 
-            const openWithoutData = options.openWithoutData === 'true';
-            const app = await global.openDoc(appId, '', '', '', openWithoutData);
-            logger.verbose(`Opened app ${appId}`);
-
-            const appObj = await serializeApp(app);
-
-            appDataArray.push({
-                appId,
-                appName: appObj.properties?.qTitle || 'Unknown',
-                metadata: appObj,
-            });
-
-            logger.verbose(`Serialized app ${appId}`);
-
-            await session.close();
-            logger.verbose(`Closed session for app ${appId}`);
-        }
-
-        if (session.globalPromise !== undefined) {
-            if ((await session.close()) === true) {
-                logger.verbose(`Closed final session`);
-            } else {
-                logger.error(`Error closing final session`);
+            // Add delay after session close to give Qlik Engine time to fully release the app
+            if (sleepBetweenApps > 0 && appIndex < appIds.length - 1) {
+                logger.verbose(`Sleeping ${sleepBetweenApps}ms before processing next app`);
+                await new Promise((resolve) => setTimeout(resolve, sleepBetweenApps));
             }
         }
 
@@ -321,6 +414,7 @@ async function getAppMetadata(options) {
                     'variables',
                     'fields',
                     'dataconnections',
+                    'tables',
                 ];
 
                 if (outputCount === 'single') {
@@ -341,6 +435,7 @@ async function getAppMetadata(options) {
                         JSON.stringify(item.metadata.variables),
                         JSON.stringify(item.metadata.fields),
                         JSON.stringify(item.metadata.dataconnections),
+                        JSON.stringify(item.metadata.tables),
                     ]);
 
                     const df = await QvdDataFrame.fromDict({ columns, data });
@@ -373,6 +468,7 @@ async function getAppMetadata(options) {
                                 JSON.stringify(appData.metadata.variables),
                                 JSON.stringify(appData.metadata.fields),
                                 JSON.stringify(appData.metadata.dataconnections),
+                                JSON.stringify(appData.metadata.tables),
                             ],
                         ];
 

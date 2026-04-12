@@ -1,9 +1,24 @@
+/**
+ * @fileoverview CLI command definition for extracting metadata from Qlik Sense apps.
+ *
+ * Defines the command-line interface for the `qseow app-metadata-get` command
+ * using Commander.js.
+ *
+ * @module cli/qseow-app-metadata-get
+ */
+
 import { Option } from 'commander';
 
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, getAppMetadataAssertOptions } from '../util/qseow/assert-options.js';
 import { getAppMetadata } from '../cmd/qseow/app-metadata-get.js';
 
+/**
+ * Configures the app-metadata-get command with Commander.js.
+ *
+ * @param {Object} qseow - Parent commander object
+ * @returns {Object} The configured commander object
+ */
 export function setupAppMetadataGetCommand(qseow) {
     qseow
         .command('app-metadata-get')
@@ -120,5 +135,10 @@ export function setupAppMetadataGetCommand(qseow) {
                 .default(0)
                 .env('CTRLQ_LIMIT_APP_COUNT')
         )
-        .addOption(new Option('--output-dir <dir>', 'Output directory for files').default('.').env('CTRLQ_OUTPUT_DIR'));
+        .addOption(new Option('--output-dir <dir>', 'Output directory for files').default('.').env('CTRLQ_OUTPUT_DIR'))
+        .addOption(
+            new Option('--sleep-between-apps <milliseconds>', 'sleep this many milliseconds between apps. Set to 0 to disable')
+                .default(1000)
+                .env('CTRLQ_SLEEP_BETWEEN_APPS')
+        );
 }
