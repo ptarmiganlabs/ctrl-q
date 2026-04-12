@@ -98,7 +98,7 @@ describe('extGetTaskSubTree - No Downstream', () => {
         const task = createTask('task-1', 'My Task', 0);
         const mockObj = createMockTaskNetwork([task], []);
 
-        const result = extGetTaskSubTree(mockObj, task, 1, null, logger);
+        extGetTaskSubTree(mockObj, task, 1, null, logger);
 
         expect(logger.debug).toHaveBeenCalled();
     });
