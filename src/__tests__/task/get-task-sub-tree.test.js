@@ -66,7 +66,7 @@ describe('extGetTaskSubTree - Empty/Invalid Input', () => {
         const task = createTask('task-1', 'Task');
         delete task.id;
 
-        const result = extGetTaskSubTree(mockObj, task, 0, null, logger);
+        extGetTaskSubTree(mockObj, task, 0, null, logger);
 
         expect(logger.debug).toHaveBeenCalled();
     });
