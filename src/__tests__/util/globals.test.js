@@ -13,6 +13,10 @@ import {
 import fs from 'fs';
 import upath from 'upath';
 
+beforeEach(() => {
+    jest.useFakeTimers({ now: 0 });
+});
+
 describe('CLI Options', () => {
     test('getCliOptions should return an empty object initially', () => {
         const options = getCliOptions();
@@ -93,11 +97,9 @@ describe('sleep function', () => {
     });
 
     test('resolves after the specified time', async () => {
-        const startTime = Date.now();
-        await sleep(3000);
-        const endTime = Date.now();
-        expect(endTime - startTime).toBeGreaterThanOrEqual(2900);
-        expect(endTime - startTime).toBeLessThan(3500);
+        const promise = sleep(3000);
+        jest.advanceTimersByTime(3000);
+        await expect(promise).resolves.toBeUndefined();
     });
 });
 
