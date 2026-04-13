@@ -183,7 +183,7 @@ jobs:
           github.repository_owner == 'ptarmiganlabs' &&
           matrix.os == 'ubuntu-latest'
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@8cf7497f083aa867c3b0bf0a1a016717f5719cbc # v3.31.3, pinned on 2025-11-14
+        uses: github/codeql-action/upload-sarif@f94c9befffa4412c356fb5463a959ab7821dd57e # v3.31.3, pinned on 2025-11-14
         with:
           sarif_file: snyk.sarif
 
