@@ -291,7 +291,8 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
             subTree.taskNextExecutionTimestamp = task.taskNextExecutionTimestamp;
             subTree.taskLastStatus = task.taskLastStatus;
             subTree.taskTags = task.completeTaskObject?.tags?.map((tag) => tag.name) ?? [];
-            subTree.taskCustomProperties = task.completeTaskObject?.customProperties?.map((el) => `${el.definition.name}=${el.value}`) ?? [];
+            subTree.taskCustomProperties =
+                task.completeTaskObject?.customProperties?.map((el) => `${el.definition.name}=${el.value}`) ?? [];
             subTree.completeTaskObject = task.completeTaskObject;
 
             if (newTreeLevel === 1) {
