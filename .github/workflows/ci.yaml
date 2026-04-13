@@ -164,7 +164,7 @@ jobs:
                   security delete-keychain build.keychain
 
             - name: Upload to existing release
-              uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
+              uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.20.0, pinned on 2025-11-14
               with:
                   allowUpdates: true
                   omitBodyDuringUpdate: true
@@ -277,7 +277,7 @@ jobs:
                   Compress-Archive @compress
 
             - name: Upload to existing release
-              uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
+              uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.20.0, pinned on 2025-11-14
               with:
                   allowUpdates: true
                   omitBodyDuringUpdate: true
@@ -353,7 +353,7 @@ jobs:
                   ls -la
 
             - name: Upload to existing release
-              uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0, pinned on 2025-11-14
+              uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.20.0, pinned on 2025-11-14
               with:
                   allowUpdates: true
                   omitBodyDuringUpdate: true
