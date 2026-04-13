@@ -9,10 +9,14 @@ export function setpQseowGetVariableCommand(qseow) {
         .command('variable-get')
         .description('get variable definitions in one or more apps')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            variableGetAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                variableGetAssertOptions(options);
 
-            getVariable(options);
+                await getVariable(options);
+            } catch (err) {
+                catchLog('GET VARIABLE', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

@@ -1,5 +1,6 @@
 import { Option } from 'commander';
 
+import { catchLog } from '../util/log.js';
 import { appVersion, logger } from '../../globals.js';
 
 export function setupQseowShowVersionCommand(qseow) {
@@ -13,6 +14,10 @@ export function setupQseowShowVersionCommand(qseow) {
                 .env('CTRLQ_LOG_LEVEL')
         )
         .action(async (options) => {
-            logger.info(`Version: ${appVersion}`);
+            try {
+                logger.info(`Version: ${appVersion}`);
+            } catch (err) {
+                catchLog('SHOW VERSION', err);
+            }
         });
 }

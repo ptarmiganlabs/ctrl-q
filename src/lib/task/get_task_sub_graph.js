@@ -20,6 +20,7 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
     try {
         if (!node || !node?.id) {
             logger.debug('Node parameter empty or does not include a node ID');
+            return { nodes: [], edges: [], tasks: [] };
         }
 
         let subGraphNodes = [];
@@ -44,18 +45,17 @@ export function extGetTaskSubGraph(_, node, parentTreeLevel, parentNode, logger)
             // Get task associated with node, using node/task ID as key (if it's a regular task node, not a meta node)
             const task = _.taskNetwork.tasks.find((el) => el.taskId === node.id);
             if (!task || task === undefined) {
-                0;
                 logger.warn(`Task not found for node ID: ${node.id}`);
             } else {
                 subGraphNodes.push(node);
                 subGraphTasks.push(task);
                 // Not sure yet if we should add the edge to subGraphEdges, there may or may not be downstream node(s)
                 // Thus wait until we know if there are downstream nodes before adding the edge
-            }
 
-            logger.debug(
-                `GET TASK SUBGRAPH: Task type: ${mapTaskType.get(task.taskType)}, tree level: ${newTreeLevel}, task id: ${task.taskId}, task name: ${task.taskName}`
-            );
+                logger.debug(
+                    `GET TASK SUBGRAPH: Task type: ${mapTaskType.get(task.taskType)}, tree level: ${newTreeLevel}, task id: ${task.taskId}, task name: ${task.taskName}`
+                );
+            }
         }
 
         // Does this node have any downstream connections?

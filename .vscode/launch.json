@@ -64,48 +64,48 @@
             // ------------------------------------
             // Import tasks from Excel file
             // ------------------------------------
-            "args": [
-                "qseow",
-                "task-import",
-                "--host",
-                "192.168.100.109",
-                // "--port",
-                // // "4747",
-                // "443",
+            // "args": [
+            //     "qseow",
+            //     "task-import",
+            //     "--host",
+            //     "192.168.100.109",
+            //     // "--port",
+            //     // // "4747",
+            //     // "443",
 
-                // "--virtual-proxy",
-                // "jwt",
-                // "--auth-type",
-                // "jwt",
-                // "--auth-jwt",
-                // "<jwt>",
-                "--auth-cert-file",
-                "../../code/secret/pro2win1-nopwd/client.pem",
-                "--auth-cert-key-file",
-                "../../code/secret/pro2win1-nopwd/client_key.pem",
-                "--auth-root-cert-file",
-                "../../code/secret/pro2win1-nopwd/root.pem",
-                "--auth-user-dir",
-                "LAB",
-                "--auth-user-id",
-                "goran",
-                "--file-type",
-                "excel",
-                "--file-name",
-                "testdata/tasks.xlsx",
-                "--sheet-name",
-                "1"
-                // "--import-app",
-                // "--import-app-sheet-name",
-                // "App import",
-                // "--qvf-overwrite",
-                // "no",
-                // "--limit-import-count",
-                // "2",
-                // "--sleep-app-upload",
-                // "500",
-                // "--dry-run"
-            ]
+            //     // "--virtual-proxy",
+            //     // "jwt",
+            //     // "--auth-type",
+            //     // "jwt",
+            //     // "--auth-jwt",
+            //     // "<jwt>",
+            //     "--auth-cert-file",
+            //     "../../code/secret/pro2win1-nopwd/client.pem",
+            //     "--auth-cert-key-file",
+            //     "../../code/secret/pro2win1-nopwd/client_key.pem",
+            //     "--auth-root-cert-file",
+            //     "../../code/secret/pro2win1-nopwd/root.pem",
+            //     "--auth-user-dir",
+            //     "LAB",
+            //     "--auth-user-id",
+            //     "goran",
+            //     "--file-type",
+            //     "excel",
+            //     "--file-name",
+            //     "testdata/tasks.xlsx",
+            //     "--sheet-name",
+            //     "1"
+            //     // "--import-app",
+            //     // "--import-app-sheet-name",
+            //     // "App import",
+            //     // "--qvf-overwrite",
+            //     // "no",
+            //     // "--limit-import-count",
+            //     // "2",
+            //     // "--sleep-app-upload",
+            //     // "500",
+            //     // "--dry-run"
+            // ]
             // ------------------------------------
             // Import tasks from CSV file
             // ------------------------------------
@@ -967,6 +967,51 @@
 
             //     // "--force"
             // ]
+
+            // ------------------------------------
+            // QSEoW Get app metadata
+            // ------------------------------------
+            "args": [
+                "qseow",
+                "app-metadata-get",
+                "--host",
+                "192.168.100.109",
+                //   "pro2-win1.lab.ptarmiganlabs.net",
+                //   "--port",
+                //   "4747",
+                //   "443",
+                //   "--virtual-proxy",
+                //   "jwt",
+                "--auth-type",
+                //   "jwt",
+                "cert",
+                "--auth-cert-file",
+                "../../code/secret/pro2win1-nopwd/client.pem",
+                "--auth-cert-key-file",
+                "../../code/secret/pro2win1-nopwd/client_key.pem",
+                "--auth-root-cert-file",
+                "../../code/secret/pro2win1-nopwd/root.pem",
+                //   "--auth-jwt",
+                //   "<jwt>",
+                "--app-id",
+                // "deba4bcf-47e4-472e-97b2-4fe8d6498e11",
+                "79f610f2-2164-43d3-be66-0eaacf13f143",
+                "--auth-user-dir",
+                "LAB",
+                "--auth-user-id",
+                "goran",
+                "--log-level",
+                "info",
+                "--output-dest",
+                "file",
+                "--output-detail",
+                "full",
+                "--output-format",
+                "json",
+                "--open-without-data",
+                "false"
+            ]
+
 
             // ------------------------------------
             // Get script

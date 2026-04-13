@@ -18,6 +18,7 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
 
         if (!task || !task?.id) {
             logger.debug('Task parameter empty or does not include a task ID');
+            return [];
         }
 
         // Were we called from top-level?
@@ -190,7 +191,7 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
                 };
             }
 
-            if (_.options.treeIcons) {
+            if (_.options?.treeIcons) {
                 if (task.taskLastStatus === 'FinishedSuccess') {
                     subTree.text = `✅ ${task.taskName}`;
                     // subTree.text = _.options.textColor ? `✅ \x1b[0m${task.taskName}\x1b[0m` : `✅ ${task.taskName}`;
@@ -209,30 +210,30 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
                 subTree.text = task.taskName;
             }
 
-            if (_.options.treeDetails === true) {
+            if (_.options?.treeDetails === true) {
                 // All task details should be included
                 if (task.completeTaskObject.schemaPath === 'ReloadTask') {
-                    if (_.options.textColor === 'yes') {
+                    if (_.options?.textColor === 'yes') {
                         subTree.text += ` \x1b[2mTask id: \x1b[3m${task.id}\x1b[0;2m, Last start/stop: \x1b[3m${task.taskLastExecutionStartTimestamp}/${task.taskLastExecutionStopTimestamp}\x1b[0;2m, Next start: \x1b[3m${task.taskNextExecutionTimestamp}\x1b[0;2m, App name: \x1b[3m${task.appName}\x1b[0;2m, App stream: \x1b[3m${task.appStream}\x1b[0;2m\x1b[0m`;
                     } else {
                         subTree.text += ` Task id: ${task.id}, Last start/stop: ${task.taskLastExecutionStartTimestamp}/${task.taskLastExecutionStopTimestamp}, Next start: ${task.taskNextExecutionTimestamp}, App name: ${task.appName}, App stream: ${task.appStream}`;
                     }
                 } else if (task.completeTaskObject.schemaPath === 'ExternalProgramTask') {
-                    if (_.options.textColor === 'yes') {
+                    if (_.options?.textColor === 'yes') {
                         subTree.text += ` \x1b[2m--EXTERNAL PROGRAM--Task id: \x1b[3m${task.id}\x1b[0;2m, Last start/stop: \x1b[3m${task.taskLastExecutionStartTimestamp}/${task.taskLastExecutionStopTimestamp}\x1b[0;2m, Next start: \x1b[3m${task.taskNextExecutionTimestamp}\x1b[0;2m, Path: \x1b[3m${task.path}\x1b[0;2m, Parameters: \x1b[3m${task.parameters}\x1b[0;2m\x1b[0m`;
                     } else {
                         subTree.text += `--EXTERNAL PROGRAM--Task id: ${task.id}, Last start/stop: ${task.taskLastExecutionStartTimestamp}/${task.taskLastExecutionStopTimestamp}, Next start: ${task.taskNextExecutionTimestamp}, path: ${task.path}, Parameters: ${task.oarameters}`;
                     }
                 }
-            } else if (_.options.treeDetails) {
+            } else if (_.options?.treeDetails) {
                 // Some task details should be included
-                if (_.options.treeDetails.find((item) => item === 'taskid')) {
+                if (_.options?.treeDetails.find((item) => item === 'taskid')) {
                     subTree.text +=
-                        _.options.textColor === 'yes' ? `\x1b[2m, Task id: \x1b[3m${task.id}\x1b[0;2m\x1b[0m` : `, Task id: ${task.id}`;
+                        _.options?.textColor === 'yes' ? `\x1b[2m, Task id: \x1b[3m${task.id}\x1b[0;2m\x1b[0m` : `, Task id: ${task.id}`;
                 }
-                if (_.options.treeDetails.find((item) => item === 'laststart')) {
+                if (_.options?.treeDetails.find((item) => item === 'laststart')) {
                     subTree.text +=
-                        _.options.textColor === 'yes'
+                        _.options?.textColor === 'yes'
                             ? `\x1b[2m, Last start: \x1b[3m${task.taskLastExecutionStartTimestamp}\x1b[0;2m\x1b[0m`
                             : `, Last start: ${task.taskLastExecutionStartTimestamp}`;
                 }
@@ -289,8 +290,9 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
             subTree.taskLastExecutionExecutingNodeName = task.taskLastExecutionExecutingNodeName;
             subTree.taskNextExecutionTimestamp = task.taskNextExecutionTimestamp;
             subTree.taskLastStatus = task.taskLastStatus;
-            subTree.taskTags = task.completeTaskObject.tags.map((tag) => tag.name);
-            subTree.taskCustomProperties = task.completeTaskObject.customProperties.map((el) => `${el.definition.name}=${el.value}`);
+            subTree.taskTags = task.completeTaskObject?.tags?.map((tag) => tag.name) ?? [];
+            subTree.taskCustomProperties =
+                task.completeTaskObject?.customProperties?.map((el) => `${el.definition.name}=${el.value}`) ?? [];
             subTree.completeTaskObject = task.completeTaskObject;
 
             if (newTreeLevel === 1) {

@@ -13,6 +13,10 @@ import {
 import fs from 'fs';
 import upath from 'upath';
 
+beforeEach(() => {
+    jest.useFakeTimers({ now: 0 });
+});
+
 describe('CLI Options', () => {
     test('getCliOptions should return an empty object initially', () => {
         const options = getCliOptions();
@@ -80,23 +84,22 @@ describe('sleep function', () => {
 
     // Negative number
     test('rejects when given a negative number', async () => {
-        await expect(sleep(-1)).rejects.toThrowError();
-        await expect(sleep(0)).rejects.toThrowError();
-        await expect(sleep('a')).rejects.toThrowError();
+        await expect(sleep(-1)).rejects.toThrow();
+        await expect(sleep(0)).rejects.toThrow();
+        await expect(sleep('a')).rejects.toThrow();
     });
 
     // Invalid string
     test('rejects when given an invalid string', async () => {
-        await expect(sleep('-100')).rejects.toThrowError();
-        await expect(sleep('abc')).rejects.toThrowError();
-        await expect(sleep('')).rejects.toThrowError();
+        await expect(sleep('-100')).rejects.toThrow();
+        await expect(sleep('abc')).rejects.toThrow();
+        await expect(sleep('')).rejects.toThrow();
     });
 
     test('resolves after the specified time', async () => {
-        const startTime = Date.now();
-        await sleep(3000);
-        const endTime = Date.now();
-        expect(endTime - startTime).toBeGreaterThanOrEqual(2900);
+        const promise = sleep(3000);
+        jest.advanceTimersByTime(3000);
+        await expect(promise).resolves.toBeUndefined();
     });
 });
 
@@ -113,9 +116,11 @@ describe('generateXrfKey', () => {
     });
 
     it('generates both uppercase and lowercase letters', () => {
-        const xrfKey = generateXrfKey();
-        expect(/[a-z]/.test(xrfKey)).toBe(true);
-        expect(/[A-Z]/.test(xrfKey)).toBe(true);
+        // A single 16-char key might not contain both cases by chance.
+        // Generate several keys and check that both appear across all of them.
+        const keys = Array.from({ length: 10 }, () => generateXrfKey()).join('');
+        expect(/[a-z]/.test(keys)).toBe(true);
+        expect(/[A-Z]/.test(keys)).toBe(true);
     });
 
     it('generates a different key each time', () => {
@@ -189,6 +194,6 @@ describe('mergeDirFilePath', () => {
 
     it('should handle null or undefined path elements', () => {
         const pathElements = [null, undefined, 'path', 'to', 'file'];
-        expect(() => mergeDirFilePath(pathElements)).toThrowError();
+        expect(() => mergeDirFilePath(pathElements)).toThrow();
     });
 });

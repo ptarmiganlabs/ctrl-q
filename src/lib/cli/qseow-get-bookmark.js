@@ -9,10 +9,14 @@ export function setupQseowGetBookmarkCommand(qseow) {
         .command('bookmark-get')
         .description('get info about one or more bookmarks')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            getBookmarkAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                getBookmarkAssertOptions(options);
 
-            getBookmark(options);
+                await getBookmark(options);
+            } catch (err) {
+                catchLog('GET BOOKMARK', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

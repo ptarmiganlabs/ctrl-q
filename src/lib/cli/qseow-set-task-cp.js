@@ -9,10 +9,14 @@ export function setupQseowSetTaskCustomPropertyCommand(qseow) {
         .command('task-custom-property-set')
         .description('update a custom property of one or more tasks')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            setTaskCustomPropertyAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                setTaskCustomPropertyAssertOptions(options);
 
-            await setTaskCustomProperty(options);
+                await setTaskCustomProperty(options);
+            } catch (err) {
+                catchLog('SET TASK CUSTOM PROPERTY', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

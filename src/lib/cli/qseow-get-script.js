@@ -9,10 +9,14 @@ export function setupGetScriptCommand(qseow) {
         .command('script-get')
         .description('get script from Qlik Sense app')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            getScriptAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                getScriptAssertOptions(options);
 
-            getScript(options);
+                await getScript(options);
+            } catch (err) {
+                catchLog('GET SCRIPT', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

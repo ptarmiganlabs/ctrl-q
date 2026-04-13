@@ -9,10 +9,14 @@ export function setupQseowDeleteMasterDimensionCommand(qseow) {
         .command('master-item-dim-delete')
         .description('delete master dimension(s)')
         .action(async (options) => {
-            await qseowSharedParamAssertOptions(options);
-            masterItemDimDeleteAssertOptions(options);
+            try {
+                await qseowSharedParamAssertOptions(options);
+                masterItemDimDeleteAssertOptions(options);
 
-            deleteMasterDimension(options);
+                await deleteMasterDimension(options);
+            } catch (err) {
+                catchLog('DELETE MASTER DIMENSION', err);
+            }
         })
         .addOption(
             new Option('--log-level <level>', 'log level')

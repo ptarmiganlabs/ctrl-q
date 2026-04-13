@@ -95,6 +95,9 @@ function compareTable(a, b) {
     return 0;
 }
 
+// Exported for unit testing
+export { cleanupTaskTree, compareTree, compareTable };
+
 /**
  * CLI command: qseow get-task
  * Options are assumed to be verified before calling this function
