@@ -723,7 +723,11 @@ const createMasterItems = async (masterItemDefs, options, colPos, existingMeasur
             global = await session.open();
         } catch (err) {
             catchLog(`Error opening session to server ${options.host}`, err);
-            await session.close();
+            try {
+                await session.close();
+            } catch (_closeErr) {
+                // ignore close error
+            }
             process.exit(1);
         }
 

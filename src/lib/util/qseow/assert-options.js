@@ -342,7 +342,7 @@ export function validateTaskImportOptions(options) {
     if (options.importApp && (options.importAppSheetName === undefined || options?.importAppSheetName.length === 0)) {
         return {
             valid: false,
-            error: 'Invalid combination of options.\nWhen using --import-app you must also specify a sheet name in the Excel file where app definitions are found, i.e. the --import-app-sheet-name option."',
+            error: 'Invalid combination of options.\nWhen using --import-app you must also specify a sheet name in the Excel file where app definitions are found, i.e. the --import-app-sheet-name option.',
         };
     }
 
@@ -436,6 +436,12 @@ export const deleteSessionsAssertOptions = (options) => {
 };
 
 export function validateUserActivityBucketsCPName(options) {
+    if (!options.customPropertyName) {
+        return {
+            valid: false,
+            error: 'Invalid custom property name. The --custom-property-name option is required.',
+        };
+    }
     if (!/^[a-zA-Z0-9_]+$/.test(options.customPropertyName)) {
         return {
             valid: false,
