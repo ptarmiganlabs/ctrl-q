@@ -140,7 +140,9 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
         });
 
         // Now sort the downstream tasks by task name
-        uniqueDownstreamTasks.sort((a, b) => a.downstreamTask.taskName.localeCompare(b.downstreamTask.taskName));
+        uniqueDownstreamTasks.sort((a, b) =>
+            (a?.downstreamTask?.taskName ?? '').localeCompare(b?.downstreamTask?.taskName ?? '')
+        );
 
         for (const uniqueDownstreamTask of uniqueDownstreamTasks) {
             if (_.taskCyclicStack.has(uniqueDownstreamTask.downstreamTask.id)) {
@@ -305,6 +307,6 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
         return subTree;
     } catch (err) {
         catchLog('GET TASK SUBTREE (tree)', err);
-        return false;
+        return [];
     }
 }
