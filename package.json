@@ -4,9 +4,9 @@
     "description": "Command line tool for interacting with Qlik Sense Enterprise servers",
     "main": "ctrl-q.js",
     "scripts": {
-        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
         "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPatterns='src/__tests__/util' --testPathPatterns='src/__tests__/cmd' --testPathPatterns='src/__tests__/task'",
-        "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPatterns='src/__tests__/integration' --passWithNoTests",
+        "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPatterns='src/__tests__/integration' --passWithNoTests --runInBand",
         "lint": "npx eslint ./src/**/*.js",
         "pc": "pre-commit run --all-files"
     },

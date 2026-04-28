@@ -1,4 +1,39 @@
 /* eslint-disable no-console */
+/**
+ * @fileoverview Integration tests for retrieving in-app bookmarks using certificate authentication.
+ * @module integration/bookmark_get_cert
+ *
+ * @description
+ * Exercises {@link getBookmark} to list bookmarks from Qlik Sense apps via the Engine API
+ * (port 4747). Tests cover: a non-existing app, an app with no bookmarks, an app with two
+ * bookmarks (JSON and table output), retrieving a single specific bookmark by ID, and
+ * retrieving specific bookmarks by ID list and by name. Duplicate test names are intentional
+ * (same scenario, different outputFormat).
+ *
+ * @requires ../../lib/cmd/qseow/getbookmark
+ *
+ * @environment
+ * - CTRL_Q_HOST               – Qlik Sense server hostname (required)
+ * - CTRL_Q_PORT               – Engine API port (default: '4747')
+ * - CTRL_Q_AUTH_TYPE          – Auth type (default: 'cert')
+ * - CTRL_Q_AUTH_CERT_FILE     – Client certificate PEM path
+ * - CTRL_Q_AUTH_CERT_KEY_FILE – Client private-key PEM path
+ * - CTRL_Q_AUTH_ROOT_CERT_FILE – Root/CA certificate PEM path
+ * - CTRL_Q_AUTH_USER_DIR      – Qlik user directory (required)
+ * - CTRL_Q_AUTH_USER_ID       – Qlik user ID (required)
+ * - CTRL_Q_ID_TYPE            – Bookmark lookup type (default: 'name')
+ * - CTRL_Q_OUTPUT_FORMAT      – Output format (default: 'json')
+ * - CTRL_Q_LOG_LEVEL          – Logging verbosity (default: 'info')
+ * - CTRL_Q_TEST_TIMEOUT       – Jest timeout in ms (default: 600000)
+ *
+ * @prerequisites
+ * - Qlik Sense Engine API reachable at CTRL_Q_HOST on port 4747
+ * - App 'e5d051f0-34c6-4f47-9bc8-7dfabf784f18' must exist and contain exactly two bookmarks:
+ *   '5ec99a44-3ffd-4a35-8fb9-6c0899cf07ea' ('Bookmark 1')
+ *   'c49210ea-3005-4f2c-8697-52fe541b51d8' ('Bookmark 2')
+ * - App '449f2186-0e86-4e19-b46f-c4c23212d730' must exist with no bookmarks
+ * - App '449f2186-0e86-4e19-b46f-c4c23212d731' must NOT exist
+ */
 import { jest, test, expect, describe } from '@jest/globals';
 
 import { getBookmark } from '../../lib/cmd/qseow/getbookmark.js';
@@ -30,6 +65,13 @@ const appIdExistsHasBookmarks1 = 'e5d051f0-34c6-4f47-9bc8-7dfabf784f18';
 const appIdExistsHasBookmarks1Bookmark1 = '5ec99a44-3ffd-4a35-8fb9-6c0899cf07ea';
 const appIdExistsHasBookmarks1Bookmark2 = 'c49210ea-3005-4f2c-8697-52fe541b51d8';
 
+/**
+ * @test Verify parameters (cert auth)
+ * @description Pre-flight guard: asserts certificate paths, host, user credentials, idType,
+ * and outputFormat are all non-empty.
+ * Input: options populated from environment variables
+ * Expected: all checked fields are non-empty
+ */
 test('get bookmark (verify parameters)', async () => {
     expect(options.authCertFile).not.toHaveLength(0);
     expect(options.authCertKeyFile).not.toHaveLength(0);
@@ -41,14 +83,17 @@ test('get bookmark (verify parameters)', async () => {
     expect(options.outputFormat).not.toHaveLength(0);
 });
 
-// Test suite for app export
+/**
+ * Test suite for {@link getBookmark} with certificate authentication.
+ * Covers: non-existing app, existing app with no bookmarks, app with bookmarks
+ * (JSON and table output), retrieval by single ID, by multiple IDs, and by name.
+ */
 describe('get in-app bookmarks (cert auth)', () => {
     /**
-     * All bookmarks in app that doesn't exist, JSON output
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
+     * @test Get bookmarks from a non-existing app
+     * @description Calls {@link getBookmark} with an app ID that does not exist.
+     * Input: appId='449f2186-0e86-4e19-b46f-c4c23212d731', idType='id', outputFormat='json'
+     * Expected: result === false
      */
     test('get all bookmarks from app that does not exist', async () => {
         options.appId = appIdNoExists;
@@ -62,12 +107,10 @@ describe('get in-app bookmarks (cert auth)', () => {
     });
 
     /**
-     * All bookmarks in app, JSON output
-     * No bookmarks exist in app that exist
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
+     * @test Get all bookmarks from app with no bookmarks
+     * @description Calls {@link getBookmark} for an app that exists but has no bookmarks.
+     * Input: appId='449f2186-0e86-4e19-b46f-c4c23212d730', idType='id', outputFormat='json'
+     * Expected: result is an empty array
      */
     test('get all bookmarks from app that has no bookmarks in it', async () => {
         options.appId = appIdExistsNoBookmarks1;
@@ -81,12 +124,11 @@ describe('get in-app bookmarks (cert auth)', () => {
     });
 
     /**
-     * All bookmarks in app, JSON output
-     * App has 2 bookmarks
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
+     * @test Get all bookmarks from app with bookmarks — JSON output
+     * @description Calls {@link getBookmark} for the test app containing two bookmarks,
+     * with JSON output. Verifies both bookmark IDs in order.
+     * Input: appId='e5d051f0-...', idType='id', outputFormat='json'
+     * Expected: result.length === 2; result[0].qInfo.qId === bookmark2; result[1].qInfo.qId === bookmark1
      */
     test('get all bookmarks from app that has bookmarks in it', async () => {
         options.appId = appIdExistsHasBookmarks1;
@@ -104,12 +146,10 @@ describe('get in-app bookmarks (cert auth)', () => {
     });
 
     /**
-     * All bookmarks in app, table output
-     * App has 2 bookmarks
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
+     * @test Get all bookmarks from app with bookmarks — table output
+     * @description Same as JSON variant but with outputFormat='table'. Verifies bookmark IDs.
+     * Input: appId='e5d051f0-...', idType='id', outputFormat='table'
+     * Expected: result.length === 2; both bookmark IDs present
      */
     test('get all bookmarks from app that has bookmarks in it', async () => {
         options.appId = appIdExistsHasBookmarks1;
@@ -128,13 +168,10 @@ describe('get in-app bookmarks (cert auth)', () => {
     });
 
     /**
-     * Get 1 specific bookmark (based on ID) from app, JSON output
-     * App has 2 bookmarks
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
-     * --bookmark [<id>]
+     * @test Get one specific bookmark by ID
+     * @description Calls {@link getBookmark} filtering to a single bookmark by GUID.
+     * Input: appId='e5d051f0-...', bookmark=[bookmark1Id], idType='id', outputFormat='json'
+     * Expected: result.length === 1; result[0].qInfo.qId === bookmark1Id
      */
     test('get 1 specific bookmark from app that has bookmarks in it', async () => {
         options.appId = appIdExistsHasBookmarks1;
@@ -152,13 +189,10 @@ describe('get in-app bookmarks (cert auth)', () => {
     });
 
     /**
-     * Get 2 specific bookmarks (based on ID) from app, JSON output
-     * App has 2 bookmarks
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
-     * --bookmark [<id>, <id>]
+     * @test Get two specific bookmarks by ID list
+     * @description Calls {@link getBookmark} filtering to two bookmarks by GUID list.
+     * Input: appId='e5d051f0-...', bookmark=[bookmark1Id, bookmark2Id], idType='id'
+     * Expected: result.length === 2; both bookmark IDs present in order
      */
     test('get 2 specific bookmarks from app that has bookmarks in it', async () => {
         options.appId = appIdExistsHasBookmarks1;
@@ -177,13 +211,10 @@ describe('get in-app bookmarks (cert auth)', () => {
     });
 
     /**
-     * Get 2 specific bookmarks (based on name) from app, JSON output
-     * App has 2 bookmarks
-     *
-     * --app-id <id>
-     * --id-type name
-     * --output-format json
-     * --bookmark [<name>, <name>]
+     * @test Get two specific bookmarks by name
+     * @description Calls {@link getBookmark} filtering to two bookmarks by name.
+     * Input: appId='e5d051f0-...', bookmark=['Bookmark 1', 'Bookmark 2'], idType='name'
+     * Expected: result.length === 2; result[0].qMeta.title === 'Bookmark 1'; result[1].qMeta.title === 'Bookmark 2'
      */
     test('get 2 specific bookmarks from app that has bookmarks in it', async () => {
         options.appId = appIdExistsHasBookmarks1;
