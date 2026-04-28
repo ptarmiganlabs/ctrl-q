@@ -76,6 +76,7 @@ export async function getVariable(options) {
             global = await session.open();
         } catch (err) {
             catchLog(`Error opening session (1) to server ${options.host}`, err);
+            await session.close();
             process.exit(1);
         }
 
@@ -93,6 +94,7 @@ export async function getVariable(options) {
             logger.verbose(`Server ${options.host} product name: ${qTProduct}.`);
         } catch (err) {
             catchLog(`Error getting engine version from server ${options.host}`, err);
+            await session.close();
             process.exit(1);
         }
 

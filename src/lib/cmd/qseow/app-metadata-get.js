@@ -234,6 +234,7 @@ async function getAppMetadata(options) {
             global = await session.open();
         } catch (err) {
             catchLog(`Error opening session to server ${options.host}`, err);
+            await session.close();
             process.exit(1);
         }
 
@@ -243,6 +244,7 @@ async function getAppMetadata(options) {
             logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
         } catch (err) {
             catchLog(`Error getting engine version from server ${options.host}`, err);
+            await session.close();
             process.exit(1);
         }
 
@@ -264,6 +266,7 @@ async function getAppMetadata(options) {
                 logger.verbose(`Found ${appIds.length} apps with specified tags`);
             } else {
                 logger.error('No apps found with specified tags');
+                await session.close();
                 process.exit(1);
             }
         } else {
