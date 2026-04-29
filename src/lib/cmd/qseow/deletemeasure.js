@@ -44,6 +44,7 @@ export async function deleteMasterMeasure(options) {
             global = await session.open();
         } catch (err) {
             catchLog(`Error opening session to server ${options.host}`, err);
+            await session.close();
             process.exit(1);
         }
 
@@ -53,6 +54,7 @@ export async function deleteMasterMeasure(options) {
             logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
         } catch (err) {
             catchLog(`Error getting engine version from server ${options.host}`, err);
+            await session.close();
             process.exit(1);
         }
 

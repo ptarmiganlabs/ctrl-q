@@ -723,6 +723,11 @@ const createMasterItems = async (masterItemDefs, options, colPos, existingMeasur
             global = await session.open();
         } catch (err) {
             catchLog(`Error opening session to server ${options.host}`, err);
+            try {
+                await session.close();
+            } catch (_closeErr) {
+                // ignore close error
+            }
             process.exit(1);
         }
 
@@ -1033,6 +1038,7 @@ const importMasterItemFromExcel = async (options) => {
             global = await session.open();
         } catch (err) {
             catchLog(`Error opening session to server ${options.host}`, err);
+            await session.close();
             process.exit(1);
         }
 
@@ -1042,6 +1048,7 @@ const importMasterItemFromExcel = async (options) => {
             logger.verbose(`Server ${options.host} has engine version ${engineVersion.qComponentVersion}.`);
         } catch (err) {
             catchLog(`Error getting engine version from server ${options.host}`, err);
+            await session.close();
             process.exit(1);
         }
 

@@ -156,3 +156,4 @@ ctrl-q.exe
 .test.env
 src/lib/task/parse_reload_task copy.js
 testdata/~$tasks.xlsx
+test-output/

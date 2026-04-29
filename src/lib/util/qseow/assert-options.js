@@ -124,28 +124,30 @@ export const masterItemMeasureDeleteAssertOptions = (options) => {
     }
 };
 
-export const masterItemDimDeleteAssertOptions = (options) => {
-    // Make sure options are valid for deleting master dimensions
-
-    // Either --delete-all OR (--id-type and --master-item) should be specified
+export function validateMasterItemDimDeleteOptions(options) {
     if (options.deleteAll === undefined && options.idType === undefined && options.masterItem === undefined) {
-        logger.error('Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --master-item');
-        process.exit(1);
+        return { valid: false, error: 'Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --master-item' };
     }
 
     if (options.deleteAll === undefined) {
         if (options.idType === undefined) {
-            logger.error('Mandatory options --id-type missing.');
-            process.exit(1);
+            return { valid: false, error: 'Mandatory options --id-type missing.' };
         } else if (options.masterItem === undefined) {
-            logger.error('Mandatory options --master-item missing.');
-            process.exit(1);
+            return { valid: false, error: 'Mandatory options --master-item missing.' };
         }
     }
 
-    // Make sure not *both* --delete-all AND (--id-type and --master-item) are specified
     if (options.deleteAll !== undefined && options.idType !== undefined && options.masterItem !== undefined) {
-        logger.error('Invalid combination of options.\nUse either --delete-all OR --id-type/--master-item.');
+        return { valid: false, error: 'Invalid combination of options.\nUse either --delete-all OR --id-type/--master-item.' };
+    }
+
+    return { valid: true };
+}
+
+export const masterItemDimDeleteAssertOptions = (options) => {
+    const result = validateMasterItemDimDeleteOptions(options);
+    if (!result.valid) {
+        logger.error(result.error);
         process.exit(1);
     }
 };
@@ -329,26 +331,32 @@ export const setTaskCustomPropertyAssertOptions = (options) => {
     //
 };
 
-export const taskImportAssertOptions = (options) => {
-    // If --import-app is specified, the import file type must be Excel
+export function validateTaskImportOptions(options) {
     if (options.importApp && options.fileType !== 'excel') {
-        logger.error(
-            `Invalid combination of options.\nFile type must be "excel" when importing apps as part of task import.\nCurrent value for --file-type is "${options.fileType}"`
-        );
-        process.exit(1);
+        return {
+            valid: false,
+            error: `Invalid combination of options.\nFile type must be "excel" when importing apps as part of task import.\nCurrent value for --file-type is "${options.fileType}"`,
+        };
     }
 
-    // If --import-app is specified, a sheet name must also be specified via --import-app-sheet-name option
     if (options.importApp && (options.importAppSheetName === undefined || options?.importAppSheetName.length === 0)) {
-        logger.error(
-            `Invalid combination of options.\nWhen using --import-app you must also specify a sheet name in the Excel file where app definitions are found, i.e. the --import-app-sheet-name option."`
-        );
-        process.exit(1);
+        return {
+            valid: false,
+            error: 'Invalid combination of options.\nWhen using --import-app you must also specify a sheet name in the Excel file where app definitions are found, i.e. the --import-app-sheet-name option.',
+        };
     }
 
-    // If --file-type is excel: --sheet-name is required
     if (options.fileType === 'excel' && options.sheetName === undefined) {
-        logger.error('Invalid combination of options.\nWhen importing from Excel file you must also specify the --sheet-name option.');
+        return { valid: false, error: 'Invalid combination of options.\nWhen importing from Excel file you must also specify the --sheet-name option.' };
+    }
+
+    return { valid: true };
+}
+
+export const taskImportAssertOptions = (options) => {
+    const result = validateTaskImportOptions(options);
+    if (!result.valid) {
+        logger.error(result.error);
         process.exit(1);
     }
 };
@@ -372,43 +380,49 @@ export const appExportAssertOptions = async (options) => {
     // }
 };
 
-export const variableGetAssertOptions = (options) => {
-    // Make sure options are valid for getting variables
-    // At least one app specified?
+export function validateVariableGetOptions(options) {
     if (options.appId === undefined && options.appTag === undefined) {
-        logger.error('No app IDs or app tags specified. Exiting.');
+        return { valid: false, error: 'No app IDs or app tags specified. Exiting.' };
+    }
+    return { valid: true };
+}
+
+export const variableGetAssertOptions = (options) => {
+    const result = validateVariableGetOptions(options);
+    if (!result.valid) {
+        logger.error(result.error);
         process.exit(1);
     }
 };
 
-export const variableDeleteAssertOptions = (options) => {
-    // Make sure options are valid for deleting variables
-
-    // At least one app specified?
+export function validateVariableDeleteOptions(options) {
     if (options.appId === undefined && options.appTag === undefined) {
-        logger.error('No app IDs or app tags specified. Exiting.');
-        process.exit(1);
+        return { valid: false, error: 'No app IDs or app tags specified. Exiting.' };
     }
 
-    // Either --delete-all OR (--id-type and --variable) should be specified
     if (options.deleteAll === undefined && options.idType === undefined && options.variable === undefined) {
-        logger.error('Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --variable');
-        process.exit(1);
+        return { valid: false, error: 'Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --variable' };
     }
 
     if (options.deleteAll === undefined) {
         if (options.idType === undefined) {
-            logger.error('Mandatory options --id-type missing.');
-            process.exit(1);
+            return { valid: false, error: 'Mandatory options --id-type missing.' };
         } else if (options.variable === undefined) {
-            logger.error('Mandatory options --variable missing.');
-            process.exit(1);
+            return { valid: false, error: 'Mandatory options --variable missing.' };
         }
     }
 
-    // Make sure not *both* --delete-all AND (--id-type and --variable) are specified
     if (options.deleteAll !== undefined && options.idType !== undefined && options.variable !== undefined) {
-        logger.error('Invalid combination of options.\nUse either --delete-all or both of --id-type and --variable.');
+        return { valid: false, error: 'Invalid combination of options.\nUse either --delete-all or both of --id-type and --variable.' };
+    }
+
+    return { valid: true };
+}
+
+export const variableDeleteAssertOptions = (options) => {
+    const result = validateVariableDeleteOptions(options);
+    if (!result.valid) {
+        logger.error(result.error);
         process.exit(1);
     }
 };
@@ -421,10 +435,26 @@ export const deleteSessionsAssertOptions = (options) => {
     //
 };
 
-export const userActivityBucketsCustomPropertyAssertOptions = (options) => {
-    // Verify that custom property name only contains letters, numbers and underscores
+export function validateUserActivityBucketsCPName(options) {
+    if (!options.customPropertyName) {
+        return {
+            valid: false,
+            error: 'Invalid custom property name. The --custom-property-name option is required.',
+        };
+    }
     if (!/^[a-zA-Z0-9_]+$/.test(options.customPropertyName)) {
-        logger.error(`Invalid custom property name "${options.customPropertyName}". Only letters, numbers and underscores are allowed.`);
+        return {
+            valid: false,
+            error: `Invalid custom property name "${options.customPropertyName}". Only letters, numbers and underscores are allowed.`,
+        };
+    }
+    return { valid: true };
+}
+
+export const userActivityBucketsCustomPropertyAssertOptions = (options) => {
+    const result = validateUserActivityBucketsCPName(options);
+    if (!result.valid) {
+        logger.error(result.error);
         process.exit(1);
     }
 };

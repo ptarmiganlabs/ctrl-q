@@ -1,3 +1,31 @@
+/**
+ * @fileoverview Integration tests for retrieving in-app bookmarks using JWT authentication.
+ * @module integration/bookmark_get_jwt
+ *
+ * @description
+ * Mirrors `bookmark_get_cert.test.js` but uses JWT auth (port 443, virtualProxy='jwt').
+ * Most tests in the describe block are commented out; only the non-existing app test is active.
+ * The active test verifies that {@link getBookmark} returns false when the app does not exist.
+ *
+ * @requires ../../lib/cmd/qseow/getbookmark
+ *
+ * @environment
+ * - CTRL_Q_HOST         – Qlik Sense server hostname (required)
+ * - CTRL_Q_PORT         – Engine API port (default: '4747'; overridden to '443')
+ * - CTRL_Q_AUTH_TYPE    – Auth type (default: 'cert'; overridden to 'jwt')
+ * - CTRL_Q_AUTH_CERT_FILE / KEY / ROOT – Cert paths (present but not used for JWT)
+ * - CTRL_Q_AUTH_USER_DIR – Qlik user directory (required)
+ * - CTRL_Q_AUTH_USER_ID – Qlik user ID (required)
+ * - CTRL_Q_AUTH_JWT     – JWT Bearer token (required)
+ * - CTRL_Q_ID_TYPE      – Bookmark lookup type (default: 'name')
+ * - CTRL_Q_OUTPUT_FORMAT – Output format (default: 'json')
+ * - CTRL_Q_LOG_LEVEL    – Logging verbosity (default: 'info')
+ * - CTRL_Q_TEST_TIMEOUT – Jest timeout in ms (default: 600000)
+ *
+ * @prerequisites
+ * - Qlik Sense server reachable at CTRL_Q_HOST on port 443 via JWT virtual proxy
+ * - App '449f2186-0e86-4e19-b46f-c4c23212d731' must NOT exist
+ */
 import { jest, test, expect, describe } from '@jest/globals';
 
 import { getBookmark } from '../../lib/cmd/qseow/getbookmark.js';
@@ -34,6 +62,13 @@ options.authType = 'jwt';
 options.port = '443';
 options.virtualProxy = 'jwt';
 
+/**
+ * @test Verify parameters (JWT auth)
+ * @description Pre-flight guard: asserts certificate paths (present even for JWT), host, user
+ * credentials, idType, and outputFormat are non-empty.
+ * Input: options with authType='jwt', port='443', virtualProxy='jwt'
+ * Expected: all checked fields are non-empty
+ */
 test('get bookmark (verify parameters)', async () => {
     expect(options.authCertFile).not.toHaveLength(0);
     expect(options.authCertKeyFile).not.toHaveLength(0);
@@ -45,14 +80,16 @@ test('get bookmark (verify parameters)', async () => {
     expect(options.outputFormat).not.toHaveLength(0);
 });
 
-// Test suite for app export
+/**
+ * Test suite for {@link getBookmark} with JWT authentication.
+ * Most tests are currently commented out. Only the non-existing app scenario is active.
+ */
 describe('get in-app bookmarks (jwt auth)', () => {
     /**
-     * All bookmarks in app that doesn't exist, JSON output
-     *
-     * --app-id <id>
-     * --id-type id
-     * --output-format json
+     * @test Get bookmarks from a non-existing app (JWT)
+     * @description Calls {@link getBookmark} with an app ID that does not exist, via JWT auth.
+     * Input: appId='449f2186-0e86-4e19-b46f-c4c23212d731', idType='id', outputFormat='json'
+     * Expected: result === false
      */
     test('get all bookmarks from app that does not exist', async () => {
         options.appId = appIdNoExists;
