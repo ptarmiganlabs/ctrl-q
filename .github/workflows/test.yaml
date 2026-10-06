@@ -1,0 +1,51 @@
+# Unit tests (npm test) for every push to a branch in this repository.
+#
+# The job runs on the organisation's self-hosted plabs-ci runners (runner group linux-ci), never on a GitHub-hosted
+# runner, matching the other Ptarmigan Labs repositories.
+#
+# Only `push` and manual runs trigger it, deliberately not `pull_request`: Ctrl-Q is a public repository, and code from
+# pull requests opened from forks must never run on the shared self-hosted pool. Pushes come only from people with
+# write access, and a pull request from a branch in this repository gets its checks from the push run.
+#
+# Note: the linux-ci runner group must allow public repositories and include this repository, otherwise the job waits
+# for a runner that never comes.
+name: test
+
+on:
+    push:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: test-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+    unit-tests:
+        runs-on:
+            group: linux-ci
+            labels: [self-hosted, linux, plabs-ci]
+        # The pool is shared with other repositories; a hung job must not hold a runner for GitHub's 6 h default.
+        timeout-minutes: 15
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.0.0, pinned on 2025-11-14
+              with:
+                  # npm ci runs install scripts, so the token must not be left in .git/config. Nothing here pushes.
+                  persist-credentials: false
+
+            - name: Install Node.js
+              uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.0.0, pinned on 2025-11-14
+              with:
+                  node-version-file: .nvmrc
+
+            - name: Install dependencies
+              run: npm ci --no-audit --no-fund
+
+            - name: Run unit tests
+              run: npm test
