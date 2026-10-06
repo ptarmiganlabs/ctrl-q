@@ -8,8 +8,7 @@ import { TASK_TYPE_CODES } from '../task-gantt/model/lanes.js';
 
 export function setupQseowTaskGanttCommand(qseow) {
     qseow
-        // Hidden until the command is complete
-        .command('task-gantt', { hidden: true })
+        .command('task-gantt')
         .description('show reload task executions over time in a Gantt chart, to find reload congestion')
         .action(async (options, command) => {
             try {

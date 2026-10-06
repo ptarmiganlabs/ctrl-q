@@ -15,6 +15,8 @@ const compat = new FlatCompat({
 
 // export default [...compat.extends("airbnb-base", "prettier"), {
 export default [
+    // Vendored third-party bundles are not linted
+    { ignores: ['src/static/vendor/**', 'src/static/*.min.js'] },
     ...compat.extends('prettier'),
     {
         plugins: {
@@ -32,6 +34,16 @@ export default [
 
         rules: {
             'prettier/prettier': 'error',
+        },
+    },
+    {
+        // Browser code of the task-gantt web page; ECharts is loaded as a global by the page
+        files: ['src/static/task-gantt/**/*.js'],
+        languageOptions: {
+            globals: {
+                ...globals.browser,
+                echarts: 'readonly',
+            },
         },
     },
 ];
