@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.5.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.5.0...ctrl-q-v4.5.1) (2026-10-11)
+
+
+### Miscellaneous
+
+* tag each release when release-please creates its draft ([52fcccf](https://github.com/ptarmiganlabs/ctrl-q/commit/52fcccfe299607c5ad1626ce97bfed27385326a3))
+
 ## [4.5.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.4.0...ctrl-q-v4.5.0) (2026-04-29)
 
 
