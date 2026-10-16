@@ -4,7 +4,7 @@ import { logger } from '../../globals.js';
 import { setupQrsConnection } from '../util/qseow/qrs.js';
 import { getCertFilePaths } from '../util/qseow/cert.js';
 
-import { catchLog } from '../util/log.js';
+import { catchLog, redactAxiosConfig } from '../util/log.js';
 
 function uniqueByTaskKeys(array, keys) {
     const filtered = array.filter(
@@ -103,7 +103,7 @@ export const getTasksFromQseow = async (options) => {
             queryParameters: [{ name: 'filter', value: filter }],
         });
 
-        logger.debug(`QRS connection config: ${JSON.stringify(axiosConfig, null, 2)}}`);
+        logger.debug(`QRS connection config: ${JSON.stringify(redactAxiosConfig(axiosConfig), null, 2)}`);
 
         // Query QRS for tasks based on task IDs
         const result = await axios.request(axiosConfig);

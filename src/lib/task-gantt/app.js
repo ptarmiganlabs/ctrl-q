@@ -1,0 +1,480 @@
+import { createExecutionStore } from './store/execution-store.js';
+import { createCoverage } from './store/coverage.js';
+import { createHistoryStore, recordSignature, utcDay } from './store/history-store.js';
+import { createLaneRegistry } from './model/lanes.js';
+import { createQrsSource } from './sources/qrs-source.js';
+import { buildSnapshot, buildAnalytics, createNodeTable, encodeLanes, encodeRecords, isStale } from './api/snapshot.js';
+import { SOURCE, SOURCE_BIT, HISTORY_READ_MARGIN_MS, MAX_RECORDS } from './defaults.js';
+import { qrsRequestJson } from '../util/qseow/qrs-json.js';
+
+// How often the history file records that Ctrl-Q was watching (an { t: 'obs' } line)
+const OBSERVATION_WRITE_MS = 5 * 60 * 1000;
+
+/**
+ * Create a source status object, shown as a badge on the page.
+ *
+ * @param {string} id - Source id.
+ * @param {string} state - 'disabled', 'pending', 'loading', 'ok', 'degraded', 'error' or 'timeout'.
+ * @returns {object} Status.
+ */
+export function newSourceStatus(id, state) {
+    return { id, state, message: '', hint: '', lastOkAt: null, records: 0, coverage: null };
+}
+
+/**
+ * Resolve --app-tag filters to app ids.
+ *
+ * @param {object} options - Ctrl-Q options.
+ * @param {string[]} appTags - App tag names.
+ * @param {Function} request - QRS request function.
+ * @returns {Promise<Set<string>>} Ids of apps with any of the tags.
+ */
+async function appIdsWithTags(options, appTags, request) {
+    if (!appTags?.length) return new Set();
+    const filter = appTags.map((t) => `tags.name eq '${String(t).replace(/'/g, "''")}'`).join(' or ');
+    const res = await request(options, { method: 'get', path: '/qrs/app', query: { filter } });
+    return new Set((res.data || []).map((a) => a.id));
+}
+
+const taskSignature = (t) => JSON.stringify([t.name, t.taskType, t.appId, t.appName]);
+
+/**
+ * Create the task-gantt application state: the execution store, its sources and everything the web page asks for.
+ *
+ * @param {object} param - Parameters.
+ * @param {object} param.config - Command configuration, see validateTaskGanttOptions().
+ * @param {object} param.logger - Winston-style logger.
+ * @param {Function} [param.now] - Clock.
+ * @param {Function} [param.request] - QRS request function (for tests).
+ * @param {number} [param.maxRecords] - Most executions kept in memory (for tests).
+ * @returns {object} The app.
+ */
+export function createGanttApp({ config, logger, now = () => Date.now(), request = qrsRequestJson, maxRecords = MAX_RECORDS }) {
+    const store = createExecutionStore({ maxRecords });
+    const coverage = createCoverage();
+    const qrs = createQrsSource({ options: config.qseow, logger, request });
+    const statuses = new Map();
+    const nodes = createNodeTable();
+    const changedLanes = new Set();
+    let lanes = null;
+    let filters = null;
+    let schedulers = [];
+    let runningResultIds = new Set();
+    let history = null;
+    let clusterId = null;
+    let lastRev = 0;
+    // Number of node names the page already knows (from the snapshot or earlier deltas)
+    let sentNodeCount = 0;
+    let liveFrom = null;
+    // End of the current live coverage: the time of the latest successful poll
+    let liveTo = null;
+    let lastObservationWrite = 0;
+    // Set when the oldest executions had to be evicted from memory; data before it is incomplete
+    let incompleteBefore = null;
+    // What the history file already holds: record key -> "status:stoppedAt", and task id -> task signature. Used to
+    // avoid appending the same lines again on every start.
+    const persisted = new Map();
+    let persistedTasks = new Map();
+
+    for (const id of [SOURCE.QRS, SOURCE.HISTORY]) {
+        statuses.set(id, newSourceStatus(id, config.sources.includes(id) ? 'pending' : 'disabled'));
+    }
+
+    const setStatus = (id, patch) => {
+        Object.assign(statuses.get(id), patch);
+    };
+
+    const windowNow = () => {
+        const t = now();
+        return { from: t - config.lookbackMs, to: t };
+    };
+
+    const upsertLane = (task) => {
+        const { lane, changed } = lanes.upsert(task);
+        if (changed) changedLanes.add(lane.id);
+        return lane;
+    };
+
+    // Give every task that has executions a lane, also tasks QRS no longer knows (deleted ones)
+    const ensureLanesForRecords = (records, historyTasks = new Map()) => {
+        for (const rec of records) {
+            if (lanes.get(rec.taskId)) continue;
+            const known = historyTasks.get(rec.taskId);
+            upsertLane({
+                id: rec.taskId,
+                name: known?.name,
+                taskType: rec.taskType ?? known?.taskType,
+                appId: rec.appId,
+                appName: known?.appName,
+                deleted: true,
+            });
+        }
+    };
+
+    // Write executions QRS has seen to the history file, unless already stored unchanged. Executions still running
+    // are written too (a later line with the final state replaces them), so the file never claims to cover a period
+    // while missing an execution in it.
+    const persist = (records) => {
+        if (history?.mode() !== 'readwrite') return;
+        const fresh = [];
+        for (const r of records) {
+            const stored = store.get(r.key) ?? r;
+            if (!(stored.src & SOURCE_BIT[SOURCE.QRS])) continue;
+            const sig = recordSignature(stored);
+            if (persisted.get(stored.key) === sig) continue;
+            persisted.set(stored.key, sig);
+            fresh.push(stored);
+        }
+        history.appendRecords(fresh);
+    };
+
+    // Evicting the oldest executions (memory cap) makes the time before them incomplete: show it as unknown
+    const checkEviction = () => {
+        const until = store.evictedUntil();
+        if (until === null || until === incompleteBefore) return;
+        incompleteBefore = until;
+        coverage.setCompleteFrom(until);
+        const message = `Too many executions to keep in memory; executions before ${new Date(until).toISOString()} are incomplete. Use a shorter --lookback.`;
+        setStatus(config.sources.includes(SOURCE.HISTORY) ? SOURCE.HISTORY : SOURCE.QRS, { state: 'degraded', message });
+        logger.warn(message);
+    };
+
+    const persistTasks = (tasks) => {
+        if (history?.mode() !== 'readwrite') return;
+        const fresh = tasks.filter((t) => persistedTasks.get(t.id) !== taskSignature(t));
+        for (const t of fresh) persistedTasks.set(t.id, taskSignature(t));
+        history.appendTasks(fresh);
+    };
+
+    /**
+     * Load metadata, history and the QRS snapshot. Only the QRS metadata is essential; other failures degrade a source.
+     *
+     * @returns {Promise<void>}
+     */
+    const init = async () => {
+        // 1. QRS metadata. Without it there is nothing to show.
+        setStatus(SOURCE.QRS, { state: 'loading' });
+        const meta = await qrs.loadMetadata();
+        schedulers = meta.schedulers;
+        clusterId = meta.clusterId;
+        if (!clusterId) {
+            logger.warn(
+                'Could not read the Sense cluster id, so history files of another Sense site with the same host name are not detected.'
+            );
+        }
+        filters = { ...config.filters, appIdsFromTags: await appIdsWithTags(config.qseow, config.filters.appTags, request) };
+        lanes = createLaneRegistry(filters);
+        for (const t of meta.tasks) upsertLane(t);
+        for (const s of schedulers) nodes.idx(s.nodeName);
+        logger.info(`Found ${meta.tasks.length} tasks and ${schedulers.length} reloading scheduler(s)`);
+
+        const { from, to } = windowNow();
+
+        // 2. Local history file
+        if (config.sources.includes(SOURCE.HISTORY)) {
+            setStatus(SOURCE.HISTORY, { state: 'loading' });
+            history = createHistoryStore({
+                dir: config.historyDir,
+                host: config.qseow.host,
+                clusterId,
+                retentionDays: config.historyRetentionDays,
+                logger,
+                now,
+            });
+            const opened = await history.open();
+            if (opened.mode === 'error') {
+                setStatus(SOURCE.HISTORY, { state: 'error', message: opened.message, hint: 'Check --history-dir.' });
+                logger.warn(`History file: ${opened.message}`);
+            } else {
+                const loaded = await history.load(from, to);
+                for (const rec of loaded.records) persisted.set(rec.key, recordSignature(rec));
+                persistedTasks = new Map([...loaded.tasks].map(([id, t]) => [id, taskSignature({ ...t, id })]));
+                store.upsertMany(loaded.records, SOURCE.HISTORY);
+                ensureLanesForRecords(loaded.records, loaded.tasks);
+                for (const [a, b] of loaded.coverage.global) coverage.addGlobal(a, b);
+                for (const [taskId, ranges] of loaded.coverage.tasks) for (const [a, b] of ranges) coverage.addTask(taskId, a, b);
+                // Overall span of the history's coverage, for the source badge (a loop: there can be many ranges)
+                let covFrom = Infinity;
+                let covTo = -Infinity;
+                for (const ranges of [loaded.coverage.global, ...loaded.coverage.tasks.values()]) {
+                    for (const [a, b] of ranges) {
+                        covFrom = Math.min(covFrom, a);
+                        covTo = Math.max(covTo, b);
+                    }
+                }
+                setStatus(SOURCE.HISTORY, {
+                    state: opened.mode === 'readonly' ? 'degraded' : 'ok',
+                    message: [opened.message, loaded.skippedLines ? `${loaded.skippedLines} unreadable line(s) skipped` : '']
+                        .filter(Boolean)
+                        .join('; '),
+                    records: loaded.records.length,
+                    lastOkAt: now(),
+                    coverage: covTo > covFrom ? { fromMs: covFrom, toMs: covTo } : null,
+                });
+                logger.info(`History file: ${loaded.records.length} executions loaded from ${history.dir}`);
+            }
+        }
+
+        // 3. QRS execution results
+        const snap = await qrs.snapshot();
+        runningResultIds = snap.runningResultIds;
+        store.upsertMany(snap.records, SOURCE.QRS);
+        ensureLanesForRecords(snap.records);
+        let oldestQrs = Infinity;
+        for (const [taskId, oldest] of snap.oldestByTask) {
+            coverage.addTask(taskId, oldest, snap.serverTime);
+            oldestQrs = Math.min(oldestQrs, oldest);
+        }
+        setStatus(SOURCE.QRS, {
+            state: 'ok',
+            records: snap.records.length,
+            lastOkAt: now(),
+            coverage: Number.isFinite(oldestQrs) ? { fromMs: oldestQrs, toMs: snap.serverTime } : null,
+            message: 'QRS keeps only the last few executions of each task',
+        });
+        app.cursor = snap.maxModified ?? snap.serverTime;
+
+        if (history?.mode() === 'readwrite') {
+            // QRS may still hold results older than the window read above. Learn which of those the file already has,
+            // reading only the daily files those results belong to.
+            const readFrom = from - HISTORY_READ_MARGIN_MS;
+            const olderDays = new Set();
+            for (const rec of snap.records) {
+                const at = rec.triggeredAt ?? rec.startedAt ?? rec.stoppedAt;
+                if (at !== null && at < readFrom && !persisted.has(rec.key)) olderDays.add(utcDay(at));
+            }
+            if (olderDays.size) {
+                for (const [key, sig] of await history.readSignatures(olderDays)) persisted.set(key, sig);
+            }
+            persistTasks(meta.tasks);
+            persist(snap.records);
+            history.appendCoverage(snap.oldestByTask, snap.serverTime);
+            await history.flush();
+        }
+        checkEviction();
+
+        // Everything so far is in the first snapshot; live deltas start from here
+        store.drainChanges();
+        changedLanes.clear();
+        lastRev = store.rev();
+        sentNodeCount = nodes.names.length;
+        if (config.pollIntervalMs > 0) {
+            liveFrom = snap.serverTime;
+            liveTo = snap.serverTime;
+        }
+    };
+
+    /**
+     * Apply execution results changed in QRS (from the live poller).
+     *
+     * @param {Array<object>} records - Normalised QRS records.
+     * @returns {number} Number of records added or changed.
+     */
+    const applyQrsChanges = (records) => {
+        if (!records.length) return 0;
+        const changes = store.upsertMany(records, SOURCE.QRS);
+        ensureLanesForRecords(records);
+        persist(records);
+        checkEviction();
+        return changes;
+    };
+
+    /**
+     * Reload task metadata and scheduler capacity, e.g. to pick up new or renamed tasks.
+     *
+     * @returns {Promise<boolean>} True if any lane or capacity changed.
+     */
+    const refreshMetadata = async () => {
+        const meta = await qrs.loadMetadata();
+        const before = JSON.stringify(schedulers);
+        schedulers = meta.schedulers;
+        for (const s of schedulers) nodes.idx(s.nodeName);
+        const lanesBefore = changedLanes.size;
+        for (const t of meta.tasks) upsertLane(t);
+        persistTasks(meta.tasks);
+        // Keep memory bounded when Ctrl-Q runs for a long time
+        store.pruneBefore(windowNow().from - HISTORY_READ_MARGIN_MS);
+        for (const key of persisted.keys()) {
+            if (!store.get(key)) persisted.delete(key);
+        }
+        await history?.pruneExpired().catch((err) => logger.warn(`History file: ${err.message}`));
+        return changedLanes.size > lanesBefore || before !== JSON.stringify(schedulers);
+    };
+
+    /**
+     * Record that Ctrl-Q has been watching QRS without interruption until a time.
+     *
+     * @param {number} t - Time of the latest successful poll.
+     */
+    const markLive = (t) => {
+        if (liveFrom === null) return;
+        liveTo = t;
+        coverage.setLive(liveFrom, t);
+        if (history?.mode() === 'readwrite' && t - lastObservationWrite >= OBSERVATION_WRITE_MS) {
+            history.appendObservation(liveFrom, t);
+            lastObservationWrite = t;
+        }
+        history?.flush().catch((err) => logger.warn(`History file: ${err.message}`));
+    };
+
+    /**
+     * End the current live coverage range after an outage, and start a new one.
+     *
+     * @param {number} lastOk - Last successful poll before the outage.
+     * @param {number} t - Now.
+     */
+    const breakLiveCoverage = (lastOk, t) => {
+        if (liveFrom === null) return;
+        coverage.addGlobal(liveFrom, lastOk);
+        history?.appendObservation(liveFrom, lastOk);
+        coverage.setLive(null);
+        liveFrom = t;
+        liveTo = t;
+    };
+
+    /**
+     * State of live updates, sent to the page after every poll. The page treats time after `coveredTo` as unknown, and
+     * reloads its snapshot when `from` changes (coverage was split by an outage) or `rev` is ahead of it (missed deltas).
+     *
+     * @returns {object} { rev, now, from, coveredTo, qrs: { state, message, lastOkAt }, staleKeys }.
+     */
+    const liveStatus = () => {
+        const t = now();
+        const { state, message, lastOkAt } = statuses.get(SOURCE.QRS);
+        // Runs that turned stale since they were sent, e.g. their engine session vanished
+        const staleKeys = [];
+        for (const r of store.running()) {
+            if (lanes?.get(r.taskId)?.visible && isStale(r, runningResultIds, t)) staleKeys.push(r.key);
+        }
+        return { rev: store.rev(), now: t, from: liveFrom, coveredTo: liveTo, qrs: { state, message, lastOkAt }, staleKeys };
+    };
+
+    const visibleLaneMap = () => new Map(lanes.visible().map((l) => [l.id, l.idx]));
+
+    /**
+     * Changes since the previous call, for the live update stream.
+     *
+     * @returns {object} { rev, prevRev, cols, removed, lanes, nodes } where lanes holds new/changed visible lanes.
+     */
+    const drainDelta = () => {
+        const { rev, changed, removed } = store.drainChanges();
+        const { from, to } = windowNow();
+        const t = now();
+        const records = changed.map((k) => store.get(k)).filter(Boolean);
+        const cols = encodeRecords(records, { laneByTask: visibleLaneMap(), nodeIdx: nodes.idx, runningResultIds, from, to, now: t });
+        const laneList = [...changedLanes].map((id) => lanes.get(id)).filter((l) => l?.visible);
+        changedLanes.clear();
+        const delta = {
+            rev,
+            prevRev: lastRev,
+            cols,
+            removed,
+            lanes: encodeLanes(laneList, coverage, from, to),
+            nodes: nodes.names.length !== sentNodeCount ? [...nodes.names] : undefined,
+        };
+        lastRev = rev;
+        sentNodeCount = nodes.names.length;
+        return delta;
+    };
+
+    const analyticsParams = () => ({
+        records: store.all(),
+        lanes,
+        schedulers,
+        runningResultIds,
+        window: windowNow(),
+        now: now(),
+        completeFrom: coverage.completeFrom(),
+    });
+
+    /**
+     * Analytics and source statuses for the live update stream.
+     *
+     * @returns {object} { rev, window, analytics, sources, capacity }.
+     */
+    const analyticsPayload = () => {
+        const params = analyticsParams();
+        return {
+            rev: store.rev(),
+            window: params.window,
+            analytics: buildAnalytics(params),
+            sources: [...statuses.values()],
+            capacity: { nodes: schedulers.map((s) => ({ name: s.nodeName, maxConcurrentEngines: s.maxConcurrentEngines })) },
+        };
+    };
+
+    /**
+     * Build the page snapshot for the current window.
+     *
+     * @returns {object} Snapshot.
+     */
+    const snapshot = () =>
+        buildSnapshot({
+            ...analyticsParams(),
+            coverage,
+            sources: [...statuses.values()],
+            live: config.pollIntervalMs > 0 ? { ...liveStatus(), pollIntervalMs: config.pollIntervalMs } : null,
+            rev: store.rev(),
+            nodes,
+        });
+
+    /**
+     * Details for one execution: the stored record, plus the QRS state changes and messages if it came from QRS.
+     *
+     * @param {string} key - Record key.
+     * @returns {Promise<object|null>} Details, or null if the key is unknown.
+     */
+    const executionDetails = async (key) => {
+        const rec = store.get(key);
+        if (!rec) return null;
+        const lane = lanes.get(rec.taskId);
+        let qrsDetails = null;
+        if (rec.resultId && rec.src & SOURCE_BIT[SOURCE.QRS]) {
+            qrsDetails = await qrs.executionDetails(rec.resultId);
+        }
+        return {
+            record: rec,
+            task: lane ? { id: lane.id, name: lane.name, appName: lane.appName, stream: lane.stream } : null,
+            qrs: qrsDetails,
+        };
+    };
+
+    /**
+     * Record the final observation range, flush the history file and release its lock.
+     *
+     * @returns {Promise<void>}
+     */
+    const close = async () => {
+        if (history?.mode() === 'readwrite' && liveFrom !== null) {
+            history.appendObservation(liveFrom, now());
+        }
+        if (history) await history.close();
+    };
+
+    const app = {
+        init,
+        snapshot,
+        analyticsPayload,
+        drainDelta,
+        executionDetails,
+        applyQrsChanges,
+        refreshMetadata,
+        markLive,
+        breakLiveCoverage,
+        liveStatus,
+        close,
+        store,
+        coverage,
+        qrs,
+        cursor: null,
+        lanes: () => lanes,
+        statuses: () => [...statuses.values()],
+        setStatus,
+        history: () => history,
+        hasRunning: () => store.running().some((r) => !isStale(r, runningResultIds, now())),
+        setRunningResultIds: (ids) => {
+            runningResultIds = ids;
+        },
+    };
+    return app;
+}
