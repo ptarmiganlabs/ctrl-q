@@ -1,0 +1,11 @@
+#!/bin/bash
+# node --experimental-sea-config <file>: leaves a blob where that file's
+# "output" says. The scripts also copy this file, as `command -v node`, to be
+# the binary they sign.
+printf 'node %s\n' "$*" >> "$LOG"
+. "$STAND_INS/held" node
+if [ "$1" = "--experimental-sea-config" ]; then
+  output=$(sed -n 's/.*"output"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$2")
+  printf 'a blob\n' > "${output:?no output in $2}"
+fi
+exit 0
