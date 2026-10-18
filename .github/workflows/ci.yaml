@@ -21,6 +21,7 @@ on:
 jobs:
     release-please:
         runs-on: ubuntu-latest
+        timeout-minutes: 15
         outputs:
             releases_created: ${{ steps.release.outputs.releases_created }}
             release_tag_name: ${{ steps.release.outputs['tag_name'] }}
@@ -456,7 +457,7 @@ jobs:
     release-linux:
         needs: release-please
         runs-on: ubuntu-latest
-        # timeout-minutes: 15
+        timeout-minutes: 15
 
         if: needs.release-please.outputs.releases_created == 'true'
         env:
