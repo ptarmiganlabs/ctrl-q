@@ -8,9 +8,13 @@ jobs:
   insiders-build:
     strategy:
       matrix:
-        os: [win-code-sign, macos-15, ubuntu-latest]
+        os: [windows-latest, macos-15, ubuntu-latest]
         include:
-          - os: win-code-sign
+          # On a GitHub-hosted runner: Ctrl-Q is public, and the organisation's self-hosted runner
+          # groups do not admit public repositories, so the win-code-sign runner this leg asked for
+          # never started. Not signed: insiders builds are for testing (plabs-house-rules,
+          # rules/ci/public-repositories.md), and only a release is signed, in ci.yaml.
+          - os: windows-latest
             build: |
               # Inject git SHA and date into package.json
               $GIT_SHA = (git rev-parse --short HEAD)
@@ -18,43 +22,23 @@ jobs:
               (Get-Content package.json) -replace '"version": "(.*?)"', ('"version": "$1_' + $DATE_STR + '_' + $GIT_SHA + '"') | Set-Content package.json
 
               ./node_modules/.bin/esbuild src/ctrl-q.js --bundle --outfile=build.cjs --format=cjs --platform=node --target=node24 --inject:./src/lib/util/import-meta-url.js --define:import.meta.url=import_meta_url
+              if ($LASTEXITCODE -ne 0) { throw "esbuild failed with exit code $LASTEXITCODE" }
               node --experimental-sea-config sea-config.json
+              if ($LASTEXITCODE -ne 0) { throw "Generating the SEA blob failed with exit code $LASTEXITCODE" }
               node -e "require('fs').copyFileSync(process.execPath, 'ctrl-q.exe')"
+              if ($LASTEXITCODE -ne 0) { throw "Copying node.exe failed with exit code $LASTEXITCODE" }
 
-              # Remove the signature from the executable
-              $processOptions1 = @{
-                FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
-                Wait = $true
-                ArgumentList = "remove", "/s", "./${env:DIST_FILE_NAME}.exe"
-                WorkingDirectory = "."
-                NoNewWindow = $true
-              }
-              Start-Process @processOptions1
+              # Remove node.exe's own signature before postject changes the file. signtool is found
+              # by search, as in scripts/release-win.ps1, because the Windows SDK version in its path
+              # differs between machines.
+              $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" -ErrorAction SilentlyContinue |
+                  Sort-Object FullName -Descending | Select-Object -First 1
+              if (-not $signtool) { throw 'signtool.exe not found. Install the signing tools from the Windows SDK.' }
+              & $signtool.FullName remove /s "./${env:DIST_FILE_NAME}.exe"
+              if ($LASTEXITCODE -ne 0) { throw "signtool remove failed with exit code $LASTEXITCODE" }
 
               npx postject ctrl-q.exe NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
-
-              dir
-
-              # Sign the executable
-              # 1st signing
-              $processOptions1 = @{
-                FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
-                Wait = $true
-                ArgumentList = "sign", "/sha1", "$env:CODESIGN_WIN_THUMBPRINT", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha1", "/v", "./${env:DIST_FILE_NAME}.exe"
-                WorkingDirectory = "."
-                NoNewWindow = $true
-              }
-              Start-Process @processOptions1
-
-              # 2nd signing
-              $processOptions2 = @{
-                FilePath = "C:\Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
-                Wait = $true
-                ArgumentList = "sign", "/sha1", "$env:CODESIGN_WIN_THUMBPRINT", "/tr", "http://time.certum.pl", "/td", "sha256", "/fd", "sha256", "/v", "./${env:DIST_FILE_NAME}.exe"
-                WorkingDirectory = "."
-                NoNewWindow = $true
-              }
-              Start-Process @processOptions2
+              if ($LASTEXITCODE -ne 0) { throw "postject failed with exit code $LASTEXITCODE" }
 
               # Create insider's build zip
               $compress = @{
@@ -115,12 +99,13 @@ jobs:
               ls -la
             artifact_insider: ctrl-q--linux-x64--${{ github.sha }}.tgz
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.0.0, pinned on 2025-11-14
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.0.0, pinned on 2025-11-14
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 24
 
@@ -138,7 +123,7 @@ jobs:
           github.repository_owner == 'ptarmiganlabs' &&
           matrix.os == 'ubuntu-latest'
         continue-on-error: true
-        uses: snyk/actions/node@9adf32b1121593767fc3c057af55b55db032dc04 # master, pinned on 2025-11-14
+        uses: snyk/actions/node@9adf32b1121593767fc3c057af55b55db032dc04 # v1.0.0
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -149,21 +134,20 @@ jobs:
           github.repository_owner == 'ptarmiganlabs' &&
           matrix.os == 'ubuntu-latest'
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.32.6, pinned on 2025-11-14
+        uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
         with:
           sarif_file: snyk.sarif
 
+      # No leg signs with anything but an ad-hoc signature, so this step needs no secret at all.
       - name: Create binaries
         env:
           DIST_FILE_NAME: ctrl-q
-          GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
-          CODESIGN_WIN_THUMBPRINT: ${{ secrets.WIN_CODESIGN_THUMBPRINT}}
         run: |
           pwd
           ${{ matrix.build }}
 
       - name: Upload insider build artifacts to GitHub
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v5.0.0, pinned on 2025-11-14
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ matrix.artifact_insider }}
           path: ${{ matrix.artifact_insider }}

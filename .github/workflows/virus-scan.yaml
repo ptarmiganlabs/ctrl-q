@@ -7,13 +7,14 @@ on:
 jobs:
   virustotal:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: |
       github.event_name != 'pull_request' &&
       github.repository_owner == 'ptarmiganlabs'
 
     steps:
       - name: VirusTotal Scan
-        uses: crazy-max/ghaction-virustotal@936d8c5c00afe97d3d9a1af26d017cfdf26800a2 # v5.0.0.2.0, pinned on 2025-11-15.0.0
+        uses: crazy-max/ghaction-virustotal@936d8c5c00afe97d3d9a1af26d017cfdf26800a2 # v5.0.0
         with:
           vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
           request_rate: 4
