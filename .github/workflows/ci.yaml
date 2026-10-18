@@ -36,7 +36,7 @@ jobs:
             - name: Show github.ref
               run: echo "$GITHUB_REF"
 
-            - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v4.4.0, pinned on 2025-11-14
+            - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
               id: release
               if: |
                   github.repository_owner == 'ptarmiganlabs'
@@ -103,12 +103,12 @@ jobs:
                   echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
 
             - name: Checkout repository
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.0.0, pinned on 2025-11-14
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
               with:
                   persist-credentials: false
 
             - name: Setup Node.js
-              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.0.0, pinned on 2025-11-14
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
               with:
                   node-version: 24
 
@@ -145,7 +145,7 @@ jobs:
 
             - name: Upload to existing release
               if: needs.release-please.outputs.releases_created == 'true'
-              uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.20.0, pinned on 2025-11-14
+              uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
               with:
                   allowUpdates: true
                   omitBodyDuringUpdate: true
@@ -159,7 +159,7 @@ jobs:
 
             - name: Keep the rehearsal's zip
               if: needs.release-please.outputs.releases_created != 'true'
-              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v5.0.0, pinned on 2025-11-14
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
               with:
                   name: ctrl-q-${{ steps.name.outputs.version }}-macos
                   path: ./ctrl-q-${{ steps.name.outputs.version }}-macos.zip
@@ -192,10 +192,10 @@ jobs:
                   Write-Output 'upload_url      : ${{ needs.release-please.outputs.release_upload_url }}'
 
             - name: Checkout repository
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.0.0, pinned on 2025-11-14
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
             - name: Setup Node.js
-              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.0.0, pinned on 2025-11-14
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
               with:
                   node-version: 24
 
@@ -259,7 +259,7 @@ jobs:
                   Compress-Archive @compress
 
             - name: Upload to existing release
-              uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.20.0, pinned on 2025-11-14
+              uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
               with:
                   allowUpdates: true
                   omitBodyDuringUpdate: true
@@ -296,10 +296,10 @@ jobs:
                   echo "upload_url : ${{ needs.release-please.outputs.release_upload_url }}"
 
             - name: Checkout repository
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.0.0, pinned on 2025-11-14
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
             - name: Setup Node.js
-              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.0.0, pinned on 2025-11-14
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
               with:
                   node-version: 24
 
@@ -335,7 +335,7 @@ jobs:
                   ls -la
 
             - name: Upload to existing release
-              uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.20.0, pinned on 2025-11-14
+              uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
               with:
                   allowUpdates: true
                   omitBodyDuringUpdate: true
