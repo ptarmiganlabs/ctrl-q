@@ -8,7 +8,7 @@ jobs:
   insiders-build:
     strategy:
       matrix:
-        os: [win-code-sign, mac-build2, ubuntu-latest]
+        os: [win-code-sign, macos-15, ubuntu-latest]
         include:
           - os: win-code-sign
             build: |
@@ -66,7 +66,12 @@ jobs:
               Compress-Archive @compress
 
             artifact_insider: ctrl-q--win-x64--${{ github.sha }}.zip
-          - os: mac-build2
+          # On a GitHub-hosted runner: Ctrl-Q is public, and the organisation's self-hosted runner
+          # groups do not admit public repositories. Signed ad hoc, which is what lets an arm64 Mac
+          # run it at all; not with the Developer ID, and not notarized, because insiders builds are
+          # for testing (plabs-house-rules, rules/ci/public-repositories.md). Releases are signed
+          # and notarized by scripts/release-macos.sh.
+          - os: macos-15
             build: |
               # Inject git SHA and date into package.json
               GIT_SHA=$(git rev-parse --short HEAD)
@@ -80,89 +85,13 @@ jobs:
               codesign --remove-signature ${DIST_FILE_NAME}
               npx postject ctrl-q NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2 --macho-segment-name NODE_SEA
 
-              security delete-keychain build.keychain || true
+              # Re-sign with an ad-hoc signature, which arm64 macOS requires to run anything
+              codesign --sign - "./${DIST_FILE_NAME}"
 
-              pwd
-              ls -la
-
-              # -------------------
-              # Turn our base64-encoded certificate back to a regular .p12 file
-              echo "DEBUG: Decoding certificate from base64"
-              echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-
-              export KEYCHAIN_NAME="build.keychain"
-
-              # -------------------
-              # We need to create a new keychain, otherwise using the certificate will prompt
-              # with a UI dialog asking for the certificate password, which we can't
-              # use in a headless CI environment
-
-              echo "DEBUG: Creating new keychain"
-              security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" "${KEYCHAIN_NAME}"
-
-              echo "DEBUG: Getting current keychain list"
-              OLD_KEYCHAIN_NAMES=$(security list-keychains -d user | sed -e 's/"//g' | xargs)
-              echo "DEBUG: Current keychains: ${OLD_KEYCHAIN_NAMES}"
-
-              echo "DEBUG: Setting keychain search list"
-              security list-keychains -d user -s "${KEYCHAIN_NAME}" ${OLD_KEYCHAIN_NAMES}
-
-              echo "DEBUG: Getting current default keychain"
-              DEFAULT_KEYCHAIN=$(security default-keychain -d user | sed -e 's/"//g' | xargs)
-              echo "DEBUG: Default keychain is: ${DEFAULT_KEYCHAIN}"
-
-              echo "DEBUG: Setting our keychain as default"
-              security default-keychain -d user -s "${KEYCHAIN_NAME}"
-
-              echo "DEBUG: Unlocking keychain"
-              security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" "${KEYCHAIN_NAME}"
-
-              echo "DEBUG: Importing certificate into keychain"
-              security import certificate.p12 -k "${KEYCHAIN_NAME}" -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign -A
-
-              echo "DEBUG: Importing Apple Developer ID G2 intermediate CA"
-              curl -L -s -o DeveloperIDG2CA.cer https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
-              security import DeveloperIDG2CA.cer -k "${KEYCHAIN_NAME}"
-              rm DeveloperIDG2CA.cer
-
-              echo "DEBUG: Setting keychain timeout to prevent locking"
-              security set-keychain-settings -t 3600 -l "${KEYCHAIN_NAME}"
-
-              echo "DEBUG: Setting key partition list"
-              security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" "${KEYCHAIN_NAME}"
-
-              echo "DEBUG: Performing codesign operation"
-              codesign --force -s "$MACOS_CERTIFICATE_NAME" -v "./${DIST_FILE_NAME}" --deep --strict --options=runtime --timestamp --entitlements ./release-config/${DIST_FILE_NAME}.entitlements
-
-              echo "DEBUG: Verifying code signature"
-              codesign -vvv --deep --strict "./${DIST_FILE_NAME}"
-
-              # -------------------
-              # Notarize
-              # Store the notarization credentials so that we can prevent a UI password dialog from blocking the CI
-              echo "Create keychain profile"
-              KEYCHAIN_PATH=~/Library/Keychains/${KEYCHAIN_NAME}-db
-              echo "DEBUG: Using keychain at path: ${KEYCHAIN_PATH}"
-              xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD" --keychain "${KEYCHAIN_PATH}"
-
-              # -------------------
-              # Create archive for notarization
-              echo "Creating temp notarization archive for insider build"
+              # Create insider's build zip
               zip -r "./${DIST_FILE_NAME}--macos-arm64--${{ github.sha }}.zip" "./${DIST_FILE_NAME}" -x "*.DS_Store"
 
-              echo "Notarize insider app"
-              xcrun notarytool submit "./${DIST_FILE_NAME}--macos-arm64--${{ github.sha }}.zip" --keychain-profile "notarytool-profile" --wait --keychain "${KEYCHAIN_PATH}"
-
-              echo "DEBUG: Restoring original default keychain"
-              security default-keychain -d user -s "$DEFAULT_KEYCHAIN" || echo "WARNING: Failed to restore default keychain, continuing anyway"
-
-              echo "DEBUG: Restoring original keychain list"
-              security list-keychains -d user -s ${OLD_KEYCHAIN_NAMES} || echo "WARNING: Failed to restore keychain list, continuing anyway"
-
-              # -------------------
-              # Clean up
-              security delete-keychain build.keychain
-              rm build.cjs certificate.p12
+              rm build.cjs
 
             artifact_insider: ctrl-q--macos-arm64--${{ github.sha }}.zip
 
@@ -228,13 +157,6 @@ jobs:
         env:
           DIST_FILE_NAME: ctrl-q
           GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_PAT }}
-          MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE_BASE64_CODESIGN }}
-          MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_CODESIGN_PWD }}
-          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_CODESIGN_NAME }}
-          MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
-          PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
-          PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-          PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
           CODESIGN_WIN_THUMBPRINT: ${{ secrets.WIN_CODESIGN_THUMBPRINT}}
         run: |
           pwd
