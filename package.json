@@ -7,6 +7,7 @@
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPatterns='src/__tests__/util' --testPathPatterns='src/__tests__/cmd' --testPathPatterns='src/__tests__/task'",
         "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPatterns='src/__tests__/util' --testPathPatterns='src/__tests__/cmd' --testPathPatterns='src/__tests__/task'",
         "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPatterns='src/__tests__/integration' --passWithNoTests --runInBand",
+        "test:release-kit": "node --test scripts/test/release-kit.test.js",
         "lint": "npx eslint ./src/**/*.js",
         "pc": "pre-commit run --all-files"
     },
@@ -65,6 +66,7 @@
         "globals": "^17.5.0",
         "jest": "^30.3.0",
         "jest-junit": "^17.0.0",
+        "js-yaml": "^4.1.1",
         "prettier": "^3.8.3",
         "snyk": "^1.1304.1"
     },
