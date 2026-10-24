@@ -1,5 +1,21 @@
 # Changelog
 
+## [4.5.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.5.0...ctrl-q-v4.5.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* build macos insiders on macos-15, signed ad hoc ([2e8eafa](https://github.com/ptarmiganlabs/ctrl-q/commit/2e8eafae1abe9128091f51e2310eed4ed3de5b4f))
+* build windows insiders on windows-latest, unsigned ([58ccbbe](https://github.com/ptarmiganlabs/ctrl-q/commit/58ccbbeb059a01ceb54ba29ff5ea74fd59639f3a))
+* sign the macos release on macos-15 from a throwaway keychain ([a5db931](https://github.com/ptarmiganlabs/ctrl-q/commit/a5db931e3b9036693c8d3b75992cde9ecc1768a2))
+* sign windows releases through azure artifact signing on hosted runners ([b7fcada](https://github.com/ptarmiganlabs/ctrl-q/commit/b7fcadaff66719cc0144f55dc732446081123d72))
+
+
+### Miscellaneous
+
+* add apple's ca certificates for the macos signing keychain ([a4399fe](https://github.com/ptarmiganlabs/ctrl-q/commit/a4399fe5513de479eecfcdce8b8355f2a9deba64))
+* tag each release when release-please creates its draft ([52fcccf](https://github.com/ptarmiganlabs/ctrl-q/commit/52fcccfe299607c5ad1626ce97bfed27385326a3))
+
 ## [4.5.0](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.4.0...ctrl-q-v4.5.0) (2026-04-29)
 
 
