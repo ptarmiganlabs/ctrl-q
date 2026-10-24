@@ -3,7 +3,7 @@ import enigma from 'enigma.js';
 import { table } from 'table';
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 const consoleTableConfig = {
     border: {
@@ -47,7 +47,7 @@ export async function getMasterMeasure(options) {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Get master measures');
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         // Session ID to use when connecting to the Qlik Sense server
         const sessionId = 'ctrlq';
