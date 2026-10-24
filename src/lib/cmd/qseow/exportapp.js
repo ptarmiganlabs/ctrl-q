@@ -5,7 +5,7 @@ import yesno from 'yesno';
 
 import { logger, setLoggingLevel, isSea, execPath, mergeDirFilePath, verifyFileSystemExists, sleep } from '../../../globals.js';
 import { QlikSenseApps } from '../../app/class_allapps.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 export async function exportAppToFile(options) {
     try {
@@ -24,7 +24,7 @@ export async function exportAppToFile(options) {
         }
 
         logger.info(`Export apps to directory "${outputDir}"`);
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         // Set up app structure
         const qlikSenseApps = new QlikSenseApps();

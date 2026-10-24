@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import { logger, setLoggingLevel, isSea, execPath, sleep } from '../../../globals.js';
 import { setupQrsConnection } from '../../util/qseow/qrs.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 import {
     getUserActivityProfessional,
     getUserActivityAnalyzer,
@@ -72,7 +72,7 @@ export async function createUserActivityBucketsCustomProperty(options) {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('== Step 1: Create custom property for tracking user activity in QMC');
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         // Sort activity buckets passed via command line in ascending order
         // When creating new or updating existing custom property, the allowed values should be sorted in ascending order
