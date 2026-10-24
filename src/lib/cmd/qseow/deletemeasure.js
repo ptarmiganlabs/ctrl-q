@@ -1,7 +1,7 @@
 import enigma from 'enigma.js';
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 // Variable to keep track of how many measures have been deleted
 let deleteCount = 0;
@@ -19,7 +19,7 @@ export async function deleteMasterMeasure(options) {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Delete master measures');
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         // Session ID to use when connecting to the Qlik Sense server
         const sessionId = 'ctrlq';
