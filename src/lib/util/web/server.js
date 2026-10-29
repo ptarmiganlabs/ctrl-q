@@ -5,7 +5,7 @@ import zlib from 'node:zlib';
 import { promisify } from 'node:util';
 
 import { logger as defaultLogger, isSea } from '../../../globals.js';
-import { describeError } from './describe-error.js';
+import { describeError } from '../describe-error.js';
 import { isTextMimeType } from './mime.js';
 
 const gzip = promisify(zlib.gzip);
@@ -557,6 +557,9 @@ export async function startWebServer({
 
     const [firstAddress, ...otherAddresses] = bindHost.toLowerCase() === 'localhost' ? LOCALHOST_ADDRESSES : [bindHost];
     const requestedPort = Number(port);
+    // A known gap: a program that starts listening on 0.0.0.0 in the moment between this check and listen() below is
+    // not seen, and on macOS and Windows its local traffic then reaches this server. Checking again after listening
+    // would mean telling our own sockets from the other program's, for a window of a few milliseconds at startup.
     if (requestedPort !== 0) {
         for (const address of [firstAddress, ...otherAddresses].filter(isLoopbackHost)) {
             if (await acceptsConnections(address, requestedPort)) {
