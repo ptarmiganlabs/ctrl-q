@@ -4,8 +4,9 @@ import { logger as defaultLogger } from '../../../globals.js';
  * Create a shutdown manager for long-running commands, e.g. those running a web server.
  *
  * Cleanup functions ("closers") are registered as resources are created, and run once, in reverse order, when
- * Ctrl-C (SIGINT), SIGTERM or, on Windows, Ctrl-Break (SIGBREAK) arrives. A second signal while cleanup runs forces an
- * immediate exit.
+ * Ctrl-C (SIGINT), SIGTERM, Ctrl-Break (SIGBREAK, Windows only) or, when output goes to a terminal, SIGHUP arrives.
+ * SIGHUP is what closing the terminal window sends. A second Ctrl-C, Ctrl-Break or SIGTERM while cleanup runs forces
+ * an immediate exit.
  *
  * @param {object} [param] - Parameters.
  * @param {object} [param.processRef] - The process object. Injectable for tests.
@@ -16,6 +17,7 @@ import { logger as defaultLogger } from '../../../globals.js';
 export function createShutdownManager({ processRef = process, logger = defaultLogger, closerTimeoutMs = 5000 } = {}) {
     const closers = [];
     let shutdownPromise = null;
+    let shuttingDown = false;
     let installed = false;
 
     /**
@@ -38,7 +40,9 @@ export function createShutdownManager({ processRef = process, logger = defaultLo
 
             Promise.resolve()
                 .then(() => closer.fn())
-                .catch((err) => logger.warn(`Shutdown: "${closer.name}" failed: ${err.message}`))
+                // Not every rejection is an Error. Reading .message off undefined would throw here, and that rejection
+                // would end the process before the remaining closers had run.
+                .catch((err) => logger.warn(`Shutdown: "${closer.name}" failed: ${err?.message ?? err}`))
                 .finally(() => {
                     clearTimeout(timer);
                     resolve();
@@ -53,6 +57,7 @@ export function createShutdownManager({ processRef = process, logger = defaultLo
      */
     const shutdown = (reason = 'shutdown requested') => {
         if (!shutdownPromise) {
+            shuttingDown = true;
             logger.info(`Shutting down (${reason})...`);
             shutdownPromise = (async () => {
                 for (const closer of [...closers].reverse()) {
@@ -72,14 +77,34 @@ export function createShutdownManager({ processRef = process, logger = defaultLo
         }
         installed = true;
 
+        // Once the terminal window has been closed, writing to it fails, and the first use of process.stderr (or
+        // stdout) blocks for good: Node then opens the terminal device, which on macOS waits for a terminal that is
+        // gone. Either would keep the closers from running. So both streams are set up now, while the terminal is
+        // there, and their write errors are ignored once shutdown has begun. Before that they end the process as usual.
+        for (const stream of [processRef.stdout, processRef.stderr]) {
+            stream?.on('error', (err) => {
+                if (!shuttingDown) {
+                    throw err;
+                }
+            });
+        }
+
         const signals = ['SIGINT', 'SIGTERM'];
         if (processRef.platform === 'win32') {
             signals.push('SIGBREAK');
+        }
+        // Only with a terminal to close. Under nohup, or with output redirected, SIGHUP keeps its usual meaning.
+        if (processRef.stdout?.isTTY || processRef.stderr?.isTTY) {
+            signals.push('SIGHUP');
         }
 
         for (const signal of signals) {
             processRef.on(signal, () => {
                 if (shutdownPromise) {
+                    // Closing a terminal can deliver SIGHUP more than once; only a repeated Ctrl-C or kill forces the exit
+                    if (signal === 'SIGHUP') {
+                        return;
+                    }
                     logger.warn(`Received ${signal} again, exiting immediately`);
                     processRef.exit(1);
                     return;
