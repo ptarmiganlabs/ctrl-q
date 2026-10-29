@@ -30,7 +30,9 @@ export function mimeTypeFor(fileName) {
     if (!match) {
         return DEFAULT_MIME_TYPE;
     }
-    return MIME_TYPES[match[1].toLowerCase()] || DEFAULT_MIME_TYPE;
+    // Own properties only: an extension such as '.constructor' must not find Object's prototype
+    const extension = match[1].toLowerCase();
+    return Object.hasOwn(MIME_TYPES, extension) ? MIME_TYPES[extension] : DEFAULT_MIME_TYPE;
 }
 
 /**

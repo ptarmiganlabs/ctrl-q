@@ -1,4 +1,7 @@
 import { test, expect, describe, beforeAll, afterAll } from '@jest/globals';
+import http from 'node:http';
+import net from 'node:net';
+import os from 'node:os';
 
 import { createAssetCatalog } from '../../../lib/util/web/assets.js';
 import {
@@ -8,9 +11,28 @@ import {
     parseCookies,
     formatHostForUrl,
     createAccessToken,
+    acceptsGzip,
+    matchesIfNoneMatch,
     CSRF_HEADER,
 } from '../../../lib/util/web/server.js';
-import { rawRequest, silentLogger } from './web-test-helpers.mjs';
+import { rawRequest, silentLogger, sleep, waitFor } from './web-test-helpers.mjs';
+
+// Not every computer has an IPv6 loopback address (some containers, IPv6 switched off)
+const hasIpv6Loopback = Object.values(os.networkInterfaces())
+    .flat()
+    .some((nic) => nic.internal && nic.family === 'IPv6' && nic.address === '::1');
+
+// Send raw bytes and return the response's status line
+const rawStatusLine = (port, text) =>
+    new Promise((resolve) => {
+        let received = '';
+        const socket = net.connect(port, '127.0.0.1', () => socket.write(text));
+        socket.on('data', (chunk) => {
+            received += chunk;
+        });
+        socket.on('error', () => {});
+        socket.on('close', () => resolve(received.split('\r\n')[0]));
+    });
 
 const BIG_JS = `// big file\n${'console.log("x");\n'.repeat(500)}`;
 const FILES = {
@@ -84,6 +106,34 @@ describe('helpers', () => {
 
         expect(a).toMatch(/^[A-Za-z0-9_-]{32}$/);
         expect(createAccessToken()).not.toBe(a);
+    });
+
+    test.each([
+        ['gzip', true],
+        ['gzip, deflate, br', true],
+        ['GZIP', true],
+        ['x-gzip', true],
+        ['gzip;q=0.5', true],
+        ['*', true],
+        ['gzip;q=0', false],
+        ['gzip; q=0.000', false],
+        ['deflate, br', false],
+        ['*;q=0', false],
+        ['gzip;q=0, *', false],
+        ['gzip;q=nonsense', false],
+        ['', false],
+        [undefined, false],
+    ])('acceptsGzip(%j) is %s', (header, expected) => {
+        expect(acceptsGzip(header)).toBe(expected);
+    });
+
+    test('matchesIfNoneMatch compares weakly, and understands lists and *', () => {
+        expect(matchesIfNoneMatch('"abc"', '"abc"')).toBe(true);
+        expect(matchesIfNoneMatch('W/"abc"', '"abc"')).toBe(true);
+        expect(matchesIfNoneMatch('"x", "abc"', '"abc"')).toBe(true);
+        expect(matchesIfNoneMatch('*', '"abc"')).toBe(true);
+        expect(matchesIfNoneMatch('"abc-gzip"', '"abc"')).toBe(false);
+        expect(matchesIfNoneMatch(undefined, '"abc"')).toBe(false);
     });
 });
 
@@ -160,6 +210,37 @@ describe('startWebServer (no token)', () => {
 
         expect(res.headers['content-type']).toBe('image/png');
         expect(res.headers['content-encoding']).toBeUndefined();
+        expect(res.headers.vary).toBeUndefined();
+    });
+
+    test('sends the plain file to a client that refuses gzip with q=0', async () => {
+        const res = await rawRequest({ port: web.port, path: '/demo/big.js', headers: { 'Accept-Encoding': 'gzip;q=0, identity' } });
+
+        expect(res.headers['content-encoding']).toBeUndefined();
+        expect(res.body).toBe(BIG_JS);
+    });
+
+    test('gives the gzip and the plain copy of a file their own entity tags; both vary by Accept-Encoding', async () => {
+        const plain = await rawRequest({ port: web.port, path: '/demo/big.js' });
+        const zipped = await rawRequest({ port: web.port, path: '/demo/big.js', headers: { 'Accept-Encoding': 'gzip' } });
+        const revalidate = (etag, encoding = 'gzip') =>
+            rawRequest({ port: web.port, path: '/demo/big.js', headers: { 'If-None-Match': etag, 'Accept-Encoding': encoding } });
+
+        expect(plain.headers.etag).not.toBe(zipped.headers.etag);
+        expect(plain.headers.vary).toBe('Accept-Encoding');
+        expect(zipped.headers.vary).toBe('Accept-Encoding');
+        // A client holding the plain copy, now asking for gzip, does not have the gzip copy
+        expect((await revalidate(plain.headers.etag)).status).toBe(200);
+        expect((await revalidate(zipped.headers.etag)).status).toBe(304);
+        expect((await revalidate(`W/${zipped.headers.etag}`)).status).toBe(304);
+        expect((await revalidate(`"other", ${plain.headers.etag}`, 'identity')).status).toBe(304);
+    });
+
+    test('answers malformed requests with 400, and oversized headers with 431', async () => {
+        expect(await rawStatusLine(web.port, 'GET / HTTP/1.1\r\nHost: x\r\nNot a header line\r\n\r\n')).toBe('HTTP/1.1 400 Bad Request');
+        expect(await rawStatusLine(web.port, `GET / HTTP/1.1\r\nHost: x\r\nX-Big: ${'a'.repeat(20000)}\r\n\r\n`)).toBe(
+            'HTTP/1.1 431 Request Header Fields Too Large'
+        );
     });
 
     test('HEAD returns headers without a body', async () => {
@@ -227,9 +308,12 @@ describe('startWebServer (no token)', () => {
 
     test('compresses large JSON responses', async () => {
         const res = await rawRequest({ port: web.port, path: '/api/big', headers: { 'Accept-Encoding': 'gzip, deflate' } });
+        const plain = await rawRequest({ port: web.port, path: '/api/big' });
 
         expect(res.headers['content-encoding']).toBe('gzip');
         expect(JSON.parse(res.body).rows).toHaveLength(500);
+        expect(plain.headers['content-encoding']).toBeUndefined();
+        expect(plain.headers.vary).toBe('Accept-Encoding');
     });
 
     test('handlers can send their own response and read query parameters', async () => {
@@ -280,6 +364,93 @@ describe('startWebServer (no token)', () => {
         await expect(startWebServer({ host: '127.0.0.1', port: web.port, assets: makeAssets(), logger: silentLogger })).rejects.toThrow(
             /already in use/
         );
+    });
+});
+
+describe('startWebServer static file caching', () => {
+    test('loads an embedded file once, and reads a file on disk on every request, so edits show', async () => {
+        let embeddedLoads = 0;
+        const embedded = createAssetCatalog({
+            routes: [{ url: '/a.js', file: 'static/a.js' }],
+            isSea: true,
+            getSeaAsset: () => {
+                embeddedLoads += 1;
+                return new TextEncoder().encode(BIG_JS).buffer;
+            },
+        });
+        let onDisk = 'first version';
+        const fromDisk = createAssetCatalog({
+            routes: [{ url: '/b.txt', file: 'static/b.txt' }],
+            isSea: false,
+            srcRoot: '/fake/src',
+            readFile: async () => Buffer.from(onDisk),
+        });
+        const webA = await startWebServer({ host: '127.0.0.1', port: 0, assets: embedded, logger: silentLogger });
+        const webB = await startWebServer({ host: '127.0.0.1', port: 0, assets: fromDisk, logger: silentLogger });
+        try {
+            const first = await rawRequest({ port: webA.port, path: '/a.js', headers: { 'Accept-Encoding': 'gzip' } });
+            await rawRequest({ port: webA.port, path: '/a.js' });
+            const revalidated = await rawRequest({
+                port: webA.port,
+                path: '/a.js',
+                headers: { 'Accept-Encoding': 'gzip', 'If-None-Match': first.headers.etag },
+            });
+
+            expect(first.body).toBe(BIG_JS);
+            expect(revalidated.status).toBe(304);
+            expect(embeddedLoads).toBe(1);
+
+            const before = await rawRequest({ port: webB.port, path: '/b.txt' });
+            onDisk = 'second version';
+            const after = await rawRequest({ port: webB.port, path: '/b.txt' });
+
+            expect([before.body, after.body]).toEqual(['first version', 'second version']);
+            expect(after.headers.etag).not.toBe(before.headers.etag);
+        } finally {
+            await webA.close();
+            await webB.close();
+        }
+    });
+});
+
+describe('startWebServer on localhost', () => {
+    test('answers on 127.0.0.1, and on ::1 where the computer has it', async () => {
+        const web = await startWebServer({ host: 'localhost', port: 0, assets: makeAssets(), logger: silentLogger });
+        try {
+            expect(web.url).toBe(`http://localhost:${web.port}/`);
+            expect((await rawRequest({ port: web.port, path: '/' })).status).toBe(200);
+            if (hasIpv6Loopback) {
+                expect(web.servers).toHaveLength(2);
+                expect((await rawRequest({ host: '::1', port: web.port, path: '/' })).status).toBe(200);
+            }
+        } finally {
+            await web.close();
+        }
+    });
+
+    (hasIpv6Loopback ? test : test.skip)('fails when another program holds the port on ::1, and lets go of 127.0.0.1', async () => {
+        const other = http.createServer(() => {});
+        await new Promise((resolve) => {
+            other.listen(0, '::1', resolve);
+        });
+        const { port } = other.address();
+        try {
+            await expect(startWebServer({ host: 'localhost', port, logger: silentLogger })).rejects.toThrow(/already in use/);
+
+            // 127.0.0.1 is free again
+            const probe = http.createServer(() => {});
+            await new Promise((resolve, reject) => {
+                probe.once('error', reject);
+                probe.listen(port, '127.0.0.1', resolve);
+            });
+            await new Promise((resolve) => {
+                probe.close(resolve);
+            });
+        } finally {
+            await new Promise((resolve) => {
+                other.close(resolve);
+            });
+        }
     });
 });
 
@@ -337,6 +508,19 @@ describe('startWebServer (with access token)', () => {
 describe('startWebServer refuses unsafe configurations', () => {
     test('a missing host is rejected', async () => {
         await expect(startWebServer({ port: 0, logger: silentLogger })).rejects.toThrow('host is required');
+    });
+
+    test('a route with an unsupported method gives a rejected promise, not a thrown error', async () => {
+        let started;
+        expect(() => {
+            started = startWebServer({
+                host: '127.0.0.1',
+                port: 0,
+                logger: silentLogger,
+                apiRoutes: [{ method: 'PUT', path: '/api/x', handler: () => {} }],
+            });
+        }).not.toThrow();
+        await expect(started).rejects.toThrow('unsupported method PUT for /api/x');
     });
 
     test.each(['0.0.0.0', '::', '192.168.1.10', 'my-laptop.lan'])('binding to %s without a token is rejected', async (host) => {
@@ -397,6 +581,14 @@ describe('startWebServer hardening', () => {
                     handler: ({ sendJson }) => {
                         sendJson(200, { rows: Array.from({ length: 300 }, (_, i) => i) });
                     },
+                },
+                {
+                    // Answers only once the client has gone
+                    path: '/api/slow',
+                    handler: ({ res }) =>
+                        new Promise((resolve) => {
+                            res.on('close', () => resolve({ late: true }));
+                        }),
                 },
             ],
         });
@@ -475,6 +667,24 @@ describe('startWebServer hardening', () => {
         expect(first.headers.etag).toMatch(/^"[0-9a-f]{40}"$/);
         expect(second.status).toBe(304);
         expect(second.body).toBe('');
+    });
+
+    test('a client that hangs up before the response is logged as such, not as a second response', async () => {
+        logs.length = 0;
+        const req = http.request({
+            host: '127.0.0.1',
+            port: web.port,
+            path: '/api/slow',
+            headers: { Host: `localhost:${web.port}`, ...auth },
+            agent: false,
+        });
+        req.on('error', () => {});
+        req.end();
+        await sleep(50);
+        req.destroy();
+        await waitFor(() => logs.some((l) => l.includes('closed the connection before the response')));
+
+        expect(logs.some((l) => l.includes('second response'))).toBe(false);
     });
 
     test('logs one line per request, at warn level for rejected ones', async () => {

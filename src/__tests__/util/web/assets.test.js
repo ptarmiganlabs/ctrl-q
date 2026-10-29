@@ -56,6 +56,24 @@ describe('createAssetCatalog', () => {
         expect(() => createAssetCatalog({ routes: 'nope' })).toThrow('routes must be an array');
     });
 
+    test('refuses two files under one SEA key, and allows one file under two URLs', () => {
+        const sharing = [
+            { url: '/a.js', file: 'static/x/a.js', seaKey: '/a.js' },
+            { url: '/b.js', file: 'static/y/a.js', seaKey: '/a.js' },
+        ];
+
+        expect(() => createAssetCatalog({ routes: sharing, isSea: false })).toThrow(
+            'static/x/a.js and static/y/a.js share the SEA key /a.js'
+        );
+        // ROUTES serves static/demo/index.html as both / and /demo/index.html
+        expect(() => createAssetCatalog({ routes: ROUTES, isSea: false })).not.toThrow();
+    });
+
+    test('says whether its content can change while running', () => {
+        expect(createAssetCatalog({ routes: ROUTES, isSea: true, getSeaAsset: () => new ArrayBuffer(0) }).immutable).toBe(true);
+        expect(createAssetCatalog({ routes: ROUTES, isSea: false }).immutable).toBe(false);
+    });
+
     test('lookup only matches exact URL paths', () => {
         const catalog = createAssetCatalog({ routes: ROUTES, isSea: false, srcRoot: '/fake/src', readFile: fakeReadFile });
 
@@ -124,5 +142,16 @@ describe('checkSeaConfig', () => {
         expect(problems).toHaveLength(3);
         expect(problems[0]).toContain('points to "./src/static/demo/other.html"');
         expect(problems[1]).toContain('missing sea-config asset "/static/demo/app.js"');
+    });
+
+    test('reports two files under one SEA key, which the binary would serve as one', () => {
+        const routes = [
+            { url: '/a.js', file: 'static/x/a.js', seaKey: '/a.js' },
+            { url: '/b.js', file: 'static/y/a.js', seaKey: '/a.js' },
+        ];
+
+        expect(checkSeaConfig(routes, { '/a.js': './src/static/x/a.js' })).toEqual([
+            '"static/x/a.js" and "static/y/a.js" share sea-config asset "/a.js"; the binary serves "static/x/a.js" for both',
+        ]);
     });
 });
