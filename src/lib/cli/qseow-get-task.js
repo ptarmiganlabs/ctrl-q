@@ -26,9 +26,13 @@ export function setupGetTaskCommand(qseow) {
                     newOptions.taskType = ['reload', 'ext-program'];
                 }
 
-                await getTask(newOptions);
+                // Exit with an error code when the command fails, so that a script running Ctrl-Q can tell
+                if (!(await getTask(newOptions))) {
+                    process.exitCode = 1;
+                }
             } catch (err) {
                 catchLog('GET TASK', err);
+                process.exitCode = 1;
             }
         })
         .addOption(

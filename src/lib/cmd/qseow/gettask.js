@@ -125,6 +125,10 @@ export async function getTask(options) {
 
     // Get reload and external program tasks
     const qlikSenseTasks = await getTaskModelFromQseow(options);
+    if (!qlikSenseTasks) {
+        // Why is already logged
+        return false;
+    }
 
     // What should we do with the retrieved task data?
     // return outputTaskData(options, qlikSenseTasks, tags);
