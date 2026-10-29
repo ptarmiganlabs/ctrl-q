@@ -26,3 +26,24 @@ export function rawRequest({ port, method = 'GET', path = '/', headers = {}, hos
 }
 
 export const silentLogger = { error() {}, warn() {}, info() {}, verbose() {}, debug() {}, silly() {} };
+
+export const sleep = (ms) =>
+    new Promise((r) => {
+        setTimeout(r, ms);
+    });
+
+/**
+ * Wait until a condition holds.
+ *
+ * @param {Function} predicate - Returns true once the condition holds.
+ * @param {number} [timeoutMs] - Give up, and throw, after this long.
+ */
+export async function waitFor(predicate, timeoutMs = 2000) {
+    const start = Date.now();
+    while (!predicate()) {
+        if (Date.now() - start > timeoutMs) {
+            throw new Error('timeout waiting for condition');
+        }
+        await sleep(10);
+    }
+}
