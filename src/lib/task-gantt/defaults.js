@@ -26,6 +26,8 @@ export const MIN_CONCURRENCY_BUCKET_MS = 60 * 1000;
 
 // History file
 export const HISTORY_FLUSH_INTERVAL_MS = 10 * 1000;
+// Lines kept in memory while the history file cannot be written, e.g. on a full disk: a day or two of a busy site
+export const HISTORY_MAX_PENDING_LINES = 50000;
 // Records are stored in the daily file of their trigger day. Files this much older than the window start are read
 // too, so long-running executions that started before the window are not missed.
 export const HISTORY_READ_MARGIN_MS = 2 * 24 * 60 * 60 * 1000;

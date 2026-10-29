@@ -1,5 +1,7 @@
 import { jest, test, expect, describe, beforeEach, afterEach } from '@jest/globals';
+import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -8,7 +10,8 @@ import { validateTaskGanttOptions } from '../../../lib/task-gantt/options.js';
 import { mergeIntervals } from '../../../lib/task-gantt/shared/sweep.js';
 import { FLAG_STALE } from '../../../lib/task-gantt/api/snapshot.js';
 import { createQrsPoller } from '../../../lib/task-gantt/live/qrs-poller.js';
-import { createLivePublisher } from '../../../lib/cmd/qseow/taskgantt.js';
+import { createLivePublisher, taskGantt } from '../../../lib/cmd/qseow/taskgantt.js';
+import { logger as globalLogger } from '../../../globals.js';
 import { silentLogger } from '../../util/web/web-test-helpers.mjs';
 
 // Real QRS rows (anonymised) from a lab run: 6 reload tasks triggered at 06:29:45 on one node with
@@ -162,6 +165,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+    jest.restoreAllMocks();
     for (const app of apps) await app.close().catch(() => {});
     fs.rmSync(dir, { recursive: true, force: true });
 });
@@ -1339,15 +1343,122 @@ describe('failures', () => {
         expect(fs.readdirSync(dir)).toEqual([]);
     });
 
-    test('when the QRS snapshot fails, init fails and close() still releases the history lock', async () => {
+    test('when the QRS snapshot fails, init fails and releases the history lock itself', async () => {
         const stub = createQrsStub(now);
         stub.failures.set('/qrs/executionsession/full', new Error('socket hang up'));
         const app = makeApp(stub);
 
         await expect(app.init()).rejects.toThrow('socket hang up');
-        expect(fs.existsSync(path.join(hostDir(), '.lock'))).toBe(true);
+        expect(fs.readdirSync(hostDir())).toEqual([]);
 
+        // close() afterwards does no harm
         await app.close();
         expect(fs.readdirSync(hostDir())).toEqual([]);
+    });
+
+    test('a history file that cannot be read: Ctrl-Q starts on QRS alone, says so, and writes nothing to it', async () => {
+        writeHistory('2026-10-05', [oldCmLine()]);
+        const readFile = fsp.readFile;
+        jest.spyOn(fsp, 'readFile').mockImplementation(async (file, ...rest) => {
+            if (String(file).endsWith('2026-10-05.ndjson')) {
+                throw Object.assign(new Error(`EACCES: permission denied, open '${file}'`), { code: 'EACCES' });
+            }
+            return readFile(file, ...rest);
+        });
+        const app = makeApp(createQrsStub(now));
+
+        await app.init();
+
+        const [qrs, history] = app.statuses();
+        expect(qrs.state).toBe('ok');
+        expect(history).toMatchObject({ state: 'error', hint: 'Check --history-dir.', message: expect.stringContaining('EACCES') });
+        expect(app.snapshot().cols.key).toHaveLength(6);
+        // The lock is released at once, and nothing is written
+        expect(fs.existsSync(path.join(hostDir(), '.lock'))).toBe(false);
+        clock = NOW + 10 * MIN;
+        app.markLive(clock);
+        await app.close();
+        expect(fs.readdirSync(hostDir())).toEqual(['2026-10-05.ndjson']);
+    });
+
+    test('a history file that cannot be written: Ctrl-Q starts, the badge shows it until a write works, and nothing is lost', async () => {
+        const append = jest
+            .spyOn(fsp, 'appendFile')
+            .mockRejectedValue(Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' }));
+        const warn = jest.fn();
+        const app = makeApp(createQrsStub(now), makeConfig(), { ...silentLogger, warn });
+
+        await app.init();
+
+        expect(app.statuses()[1]).toMatchObject({
+            state: 'error',
+            message: 'cannot write to the history file: ENOSPC: no space left on device, write',
+        });
+        const waiting = app.history().pending();
+        expect(waiting).toBeGreaterThan(0);
+
+        // Still failing at the next poll: the lines stay queued, and the warning is not repeated
+        clock = NOW + MIN;
+        app.markLive(clock);
+        await waitFor(() => append.mock.calls.length >= 2);
+        expect(warn.mock.calls.filter(([m]) => m.includes('ENOSPC'))).toHaveLength(1);
+
+        // The disk has room again
+        append.mockRestore();
+        clock = NOW + 2 * MIN;
+        app.markLive(clock);
+        await waitFor(() => app.statuses()[1].state === 'ok');
+        expect(app.statuses()[1].message).toBe('');
+        await app.close();
+        expect(ofType(historyLines('2026-10-06'), 'r')).toHaveLength(6);
+        expect(ofType(historyLines('2026-10-06'), 'task')).toHaveLength(7);
+    });
+
+    test('once the history store stops writing (too many lines waiting), the badge says so for the rest of the session', async () => {
+        const app = makeApp(createQrsStub(now));
+        await app.init();
+        expect(app.statuses()[1].state).toBe('ok');
+
+        jest.spyOn(app.history(), 'mode').mockReturnValue('error');
+        jest.spyOn(app.history(), 'message').mockReturnValue('stopped writing to the history directory until Ctrl-Q is restarted');
+        clock = NOW + MIN;
+        app.markLive(clock);
+
+        await waitFor(() => app.statuses()[1].state === 'error');
+        expect(app.statuses()[1].message).toBe('stopped writing to the history directory until Ctrl-Q is restarted');
+    });
+
+    test('Ctrl-C while start-up waits for QRS releases the history lock', async () => {
+        const stub = createQrsStub(now);
+        let fail;
+        const snapshotSent = new Promise((resolve, reject) => {
+            fail = reject;
+        });
+        const request = async (options, req) => {
+            if (req.path === '/qrs/executionresult/full') await snapshotSent;
+            return stub.request(options, req);
+        };
+        const proc = Object.assign(new EventEmitter(), {
+            platform: 'linux',
+            stdout: new EventEmitter(),
+            stderr: new EventEmitter(),
+            exit: jest.fn(),
+        });
+        for (const level of ['info', 'warn']) jest.spyOn(globalLogger, level).mockImplementation(() => {});
+
+        const result = taskGantt(makeConfig(), { request, processRef: proc }).then(
+            () => 'started',
+            (err) => err.message
+        );
+        await waitFor(() => fs.existsSync(path.join(hostDir(), '.lock')));
+
+        proc.emit('SIGINT');
+        await waitFor(() => proc.exit.mock.calls.length > 0);
+        expect(proc.exit).toHaveBeenCalledWith(0);
+        expect(fs.existsSync(path.join(hostDir(), '.lock'))).toBe(false);
+
+        // The process would have ended here. Let the stalled request fail, so nothing else starts.
+        fail(new Error('process exited'));
+        expect(await result).toBe('process exited');
     });
 });

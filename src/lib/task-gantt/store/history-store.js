@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
-import { HISTORY_READ_MARGIN_MS, SOURCE, SOURCE_BIT } from '../defaults.js';
+import { HISTORY_MAX_PENDING_LINES, HISTORY_READ_MARGIN_MS, SOURCE, SOURCE_BIT } from '../defaults.js';
 import { recordKey } from '../model/execution-record.js';
 import { mergeIntervals } from '../shared/sweep.js';
 
@@ -126,6 +126,10 @@ const isProcessAlive = (pid) => {
  * Coverage is merged when read, so loading stays fast however often Ctrl-Q is started. Only one Ctrl-Q instance
  * writes per host directory; others open the store read-only.
  *
+ * Lines that cannot be written stay queued for the next flush, up to maxPendingLines. Past that the store
+ * stops writing until it is opened again, rather than drop some lines: a coverage line written later would claim the
+ * time of executions that were dropped.
+ *
  * @param {object} param - Parameters.
  * @param {string} param.dir - Base directory, e.g. ~/.ctrl-q/task-history.
  * @param {string} param.host - Sense host; becomes a sub directory.
@@ -135,6 +139,7 @@ const isProcessAlive = (pid) => {
  * @param {Function} [param.now] - Clock, for tests.
  * @param {Function} [param.pidAlive] - (pid) => boolean, for tests.
  * @param {number} [param.pid] - Process id written to the lock file, for tests.
+ * @param {number} [param.maxPendingLines] - Most lines kept while writes fail, for tests.
  * @returns {object} The history store.
  */
 export function createHistoryStore({
@@ -146,6 +151,7 @@ export function createHistoryStore({
     now = () => Date.now(),
     pidAlive = isProcessAlive,
     pid: ownPid = process.pid,
+    maxPendingLines = HISTORY_MAX_PENDING_LINES,
 }) {
     const hostDir = path.join(dir, hostSlug(host));
     const lockPath = path.join(hostDir, LOCK_FILE);
@@ -154,6 +160,11 @@ export function createHistoryStore({
     let pending = [];
     // Flushes run one at a time; close() waits for the last one
     let flushChain = Promise.resolve(0);
+    // The write lock is this store's to release, whatever became of the mode since it was taken
+    let ownsLock = false;
+    // An open() under way, which close() waits for: it may be about to take the lock
+    let opening = null;
+    let lastWriteError = '';
     // Daily file name -> 'own' (ours, ready for appending) or 'foreign' (belongs to another cluster)
     const fileState = new Map();
     const clusterSuffix = String(clusterId || 'unknown')
@@ -246,22 +257,26 @@ export function createHistoryStore({
      *
      * @returns {Promise<{mode: string, message: string}>} 'readwrite', 'readonly' (another instance writes) or 'error'.
      */
-    const open = async () => {
-        try {
-            await fs.mkdir(hostDir, { recursive: true });
-            if (await acquireLock()) {
-                mode = 'readwrite';
-                const deleted = await deleteExpired();
-                message = deleted ? `deleted ${deleted} expired daily file(s)` : '';
-            } else {
-                mode = 'readonly';
-                message = 'another Ctrl-Q instance is writing this history; opened read-only';
+    const open = () => {
+        opening = (async () => {
+            try {
+                await fs.mkdir(hostDir, { recursive: true });
+                if (await acquireLock()) {
+                    ownsLock = true;
+                    mode = 'readwrite';
+                    const deleted = await deleteExpired();
+                    message = deleted ? `deleted ${deleted} expired daily file(s)` : '';
+                } else {
+                    mode = 'readonly';
+                    message = 'another Ctrl-Q instance is writing this history; opened read-only';
+                }
+            } catch (err) {
+                mode = 'error';
+                message = `cannot use history directory ${hostDir}: ${err.message}`;
             }
-        } catch (err) {
-            mode = 'error';
-            message = `cannot use history directory ${hostDir}: ${err.message}`;
-        }
-        return { mode, message };
+            return { mode, message };
+        })();
+        return opening;
     };
 
     const listFiles = async (firstDay, lastDay) =>
@@ -398,7 +413,16 @@ export function createHistoryStore({
     };
 
     const queue = (day, obj) => {
-        if (mode === 'readwrite') pending.push({ day, line: JSON.stringify(obj) });
+        if (mode !== 'readwrite') return;
+        if (pending.length >= maxPendingLines) {
+            mode = 'error';
+            const reason = lastWriteError ? ` (${lastWriteError})` : '';
+            message = `stopped writing to ${hostDir} until Ctrl-Q is restarted: ${pending.length} lines could not be written${reason}`;
+            pending = [];
+            logger.warn(`History file: ${message}`);
+            return;
+        }
+        pending.push({ day, line: JSON.stringify(obj) });
     };
 
     /**
@@ -503,8 +527,9 @@ export function createHistoryStore({
                 done.add(day);
             }
         } catch (err) {
-            // Keep what was not written, in order, for the next flush
-            pending = [...batch.filter((b) => !done.has(b.day)), ...pending];
+            // Keep what was not written, in order, for the next flush (unless the store has stopped writing meanwhile)
+            if (mode === 'readwrite') pending = [...batch.filter((b) => !done.has(b.day)), ...pending];
+            lastWriteError = err.message;
             throw err;
         }
         return batch.length;
@@ -522,15 +547,18 @@ export function createHistoryStore({
     };
 
     /**
-     * Flush and release the write lock.
+     * Flush and release the write lock. Also releases a lock that an open() still under way is taking, e.g. when Ctrl-C
+     * arrives during start-up.
      *
      * @returns {Promise<void>}
      */
     const close = async () => {
+        await opening;
         try {
             await flush();
         } finally {
-            if (mode === 'readwrite') await fs.rm(lockPath, { force: true });
+            if (ownsLock) await fs.rm(lockPath, { force: true });
+            ownsLock = false;
             mode = 'closed';
         }
     };

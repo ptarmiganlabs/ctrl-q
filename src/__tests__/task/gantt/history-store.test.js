@@ -1,5 +1,6 @@
-import { test, expect, describe, beforeEach, afterEach } from '@jest/globals';
+import { jest, test, expect, describe, beforeEach, afterEach } from '@jest/globals';
 import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -36,6 +37,7 @@ beforeEach(() => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ctrlq-history-'));
 });
 afterEach(() => {
+    jest.restoreAllMocks();
     fs.rmSync(dir, { recursive: true, force: true });
 });
 
@@ -397,6 +399,48 @@ describe('createHistoryStore', () => {
             await a.close();
             await b.close();
         }
+    });
+
+    test('close() during an open() still under way waits for it, and releases the lock it took', async () => {
+        const store = make();
+
+        const opening = store.open();
+        await store.close();
+
+        expect((await opening).mode).toBe('readwrite');
+        expect(store.mode()).toBe('closed');
+        expect(fs.existsSync(path.join(dir, 'sense.example.com', '.lock'))).toBe(false);
+    });
+
+    test('past the limit of lines waiting to be written, the store stops writing for the session and says why', async () => {
+        const warn = jest.fn();
+        const store = make({ maxPendingLines: 3, logger: { ...silent, warn } });
+        await store.open();
+        const append = jest
+            .spyOn(fsp, 'appendFile')
+            .mockRejectedValue(Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' }));
+
+        store.appendRecords([rec({ resultId: 'a' }), rec({ resultId: 'b' })]);
+        await expect(store.flush()).rejects.toThrow('ENOSPC');
+        expect(store.pending()).toBe(2);
+        store.appendRecords([rec({ resultId: 'c' })]);
+        expect(store.mode()).toBe('readwrite');
+
+        // A fourth line would pass the limit. Dropping only some lines would leave coverage lines written later
+        // claiming the time of the dropped executions, so nothing more is written at all.
+        store.appendRecords([rec({ resultId: 'd' })]);
+        expect(store.mode()).toBe('error');
+        expect(store.pending()).toBe(0);
+        expect(store.message()).toBe(
+            `stopped writing to ${path.join(dir, 'sense.example.com')} until Ctrl-Q is restarted: 3 lines could not be written (ENOSPC: no space left on device, write)`
+        );
+        expect(warn).toHaveBeenCalledWith(`History file: ${store.message()}`);
+
+        append.mockRestore();
+        store.appendRecords([rec({ resultId: 'e' })]);
+        expect(await store.flush()).toBe(0);
+        await store.close();
+        expect(fs.readdirSync(path.join(dir, 'sense.example.com'))).toEqual([]);
     });
 
     test('an unusable directory gives mode error, and load returns nothing', async () => {
