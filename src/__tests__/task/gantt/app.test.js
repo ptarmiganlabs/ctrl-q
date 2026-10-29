@@ -758,6 +758,36 @@ describe('history file', () => {
         expect(fs.readFileSync(lockFile, 'utf8')).toBe(lock);
     });
 
+    test('a start that queues more lines than may wait on failing writes writes them all, as long as writing works', async () => {
+        // A large site: more QRS results than the 50,000 lines the history store keeps while its writes fail
+        const stub = createQrsStub(now);
+        const run = ROWS.find((r) => r.taskID === CAL_PERF_1);
+        for (let i = 0; i < 50000; i += 1) {
+            const n = i.toString(16).padStart(12, '0');
+            const t = NOW - DAY + i * 1000;
+            stub.rows.push({
+                ...run,
+                id: `99999999-aaaa-4bbb-8ccc-${n}`,
+                executionID: `88888888-aaaa-4bbb-8ccc-${n}`,
+                status: 7,
+                startTime: iso(t),
+                stopTime: iso(t + 500),
+                modifiedDate: iso(t + 600),
+                details: [],
+            });
+        }
+        const app = makeApp(stub);
+
+        await app.init();
+
+        expect(app.history().mode()).toBe('readwrite');
+        expect(app.statuses()[1]).toMatchObject({ state: 'ok', message: '' });
+        await app.close();
+        expect(ofType(historyLines('2026-10-05'), 'r')).toHaveLength(50000);
+        expect(ofType(historyLines('2026-10-06'), 'r')).toHaveLength(6);
+        expect(ofType(historyLines('2026-10-06'), 'task')).toHaveLength(7);
+    });
+
     test('init copes with history files holding more coverage lines than fit in one function call', async () => {
         // Older Ctrl-Q versions wrote one coverage line per task on every start
         const lines = [];
@@ -1685,6 +1715,28 @@ describe('failures', () => {
         await app.close();
         expect(ofType(historyLines('2026-10-06'), 'obs')).toEqual([]);
         expect(JSON.parse(fs.readFileSync(lockFile, 'utf8'))).toMatchObject({ token: 'theirs' });
+    });
+
+    test('writes that fail until another instance takes the lock over do not end in "writing again"', async () => {
+        const info = jest.fn();
+        const app = makeApp(createQrsStub(now), makeConfig(), { ...silentLogger, info });
+        await app.init();
+        jest.spyOn(fsp, 'appendFile').mockRejectedValue(
+            Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' })
+        );
+        clock = NOW + MIN;
+        app.markLive(clock);
+        await waitFor(() => app.statuses()[1].state === 'error');
+
+        // The other instance writes from now on; this one's flushes write nothing
+        fs.writeFileSync(path.join(hostDir(), '.lock'), JSON.stringify({ pid: 4242, host: 'other-computer', token: 'theirs' }));
+        await app.history().heartbeat();
+        clock = NOW + 2 * MIN;
+        app.markLive(clock);
+
+        await waitFor(() => app.statuses()[1].state === 'degraded');
+        expect(app.statuses()[1].message).toMatch(/^another Ctrl-Q instance took over writing this history/);
+        expect(info).not.toHaveBeenCalledWith('History file: writing again');
     });
 
     test('Ctrl-C while start-up waits for QRS releases the history lock', async () => {

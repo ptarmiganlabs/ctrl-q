@@ -222,14 +222,16 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     // its lock over) the badge says so for good. Never rejects: the history file is not essential.
     const flushHistory = async () => {
         if (!writingHistory) return;
-        const wasFailing = issues.get(SOURCE.HISTORY).has('write');
         try {
             await history.flush();
-            if (wasFailing) {
+            // A flush that succeeds while the store still writes has written the lines that had failed, or one before
+            // it has. Not when the store has stopped writing meanwhile: its flushes then resolve without writing.
+            if (issues.get(SOURCE.HISTORY).has('write') && history.mode() === 'readwrite') {
                 setIssue(SOURCE.HISTORY, 'write', null);
                 logger.info('History file: writing again');
             }
         } catch (err) {
+            const wasFailing = issues.get(SOURCE.HISTORY).has('write');
             setIssue(SOURCE.HISTORY, 'write', {
                 state: 'error',
                 message: `cannot write to the history file: ${err.message}`,

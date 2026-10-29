@@ -140,9 +140,10 @@ const isProcessAlive = (pid) => {
  * computer and its process no longer runs, or when it has not been refreshed for HISTORY_LOCK_STALE_MS, whatever its
  * process id: a writer on another computer sharing the directory, or a process id reused after a crash.
  *
- * Lines that cannot be written stay queued for the next flush, up to maxPendingLines. Past that the store
- * stops writing until it is opened again, rather than drop some lines: a coverage line written later would claim the
- * time of executions that were dropped.
+ * Lines that cannot be written stay queued for the next flush. Once a write has failed, up to maxPendingLines more are
+ * queued until one succeeds; past that the store stops writing until it is opened again, rather than drop some lines:
+ * a coverage line written later would claim the time of executions that were dropped. Lines queued while writing
+ * works are always written, however many, e.g. at the first start on a large site.
  *
  * @param {object} param - Parameters.
  * @param {string} param.dir - Base directory, e.g. ~/.ctrl-q/task-history.
@@ -154,7 +155,7 @@ const isProcessAlive = (pid) => {
  * @param {Function} [param.pidAlive] - (pid) => boolean, for tests.
  * @param {number} [param.pid] - Process id written to the lock file, for tests.
  * @param {string} [param.hostname] - Name of this computer written to the lock file, for tests.
- * @param {number} [param.maxPendingLines] - Most lines kept while writes fail, for tests.
+ * @param {number} [param.maxPendingLines] - Most lines queued while writes fail, for tests.
  * @returns {object} The history store.
  */
 export function createHistoryStore({
@@ -185,6 +186,8 @@ export function createHistoryStore({
     // An open() under way, which close() waits for: it may be about to take the lock
     let opening = null;
     let lastWriteError = '';
+    // Lines queued since a write failed, or null while writes succeed: the backlog maxPendingLines limits
+    let backlog = null;
     // Daily file name -> 'own' (ours, ready for appending) or 'foreign' (belongs to another cluster)
     const fileState = new Map();
     const clusterSuffix = String(clusterId || 'unknown')
@@ -297,6 +300,7 @@ export function createHistoryStore({
         if (mode === 'readwrite') {
             mode = 'readonly';
             pending = [];
+            backlog = null;
             message = `another Ctrl-Q instance took over writing this history while this one was not responding (see ${lockPath}); read-only from now on`;
             logger.warn(`History file: ${message}`);
         }
@@ -545,15 +549,19 @@ export function createHistoryStore({
 
     const queue = (day, obj) => {
         if (mode !== 'readwrite') return;
-        if (pending.length >= maxPendingLines) {
-            mode = 'error';
-            const reason = lastWriteError ? ` (${lastWriteError})` : '';
-            message = `stopped writing to ${hostDir} until Ctrl-Q is restarted: ${pending.length} lines could not be written${reason}`;
-            pending = [];
-            logger.warn(`History file: ${message}`);
-            // Another instance may write instead
-            releaseLock().catch(() => {});
-            return;
+        if (backlog !== null) {
+            if (backlog >= maxPendingLines) {
+                mode = 'error';
+                const reason = lastWriteError ? ` (${lastWriteError})` : '';
+                message = `stopped writing to ${hostDir} until Ctrl-Q is restarted: ${pending.length} lines could not be written${reason}`;
+                pending = [];
+                backlog = null;
+                logger.warn(`History file: ${message}`);
+                // Another instance may write instead
+                releaseLock().catch(() => {});
+                return;
+            }
+            backlog += 1;
         }
         pending.push({ day, line: JSON.stringify(obj) });
     };
@@ -638,13 +646,15 @@ export function createHistoryStore({
             fileState.set(name, 'foreign');
             return prepareFile(day);
         }
-        fileState.set(name, 'own-ready');
         if (!content?.includes('\n')) {
             // A new file, or one without a single complete line: that is this store's own header, torn by an append
-            // that failed part-way (a full disk). Start the file again.
+            // that failed part-way (a full disk). Start the file again. Ready only once emptied: if that fails, the next
+            // flush must look again, or it would append without a header.
             if (content) await fs.truncate(file, 0);
+            fileState.set(name, 'own-ready');
             return { name, prefix: `${header()}\n` };
         }
+        fileState.set(name, 'own-ready');
         // A crash, or an append that failed part-way, may have left a torn last line; start ours on a new line so it is
         // not glued onto it
         return { name, prefix: content.endsWith('\n') ? '' : '\n' };
@@ -673,11 +683,16 @@ export function createHistoryStore({
         } catch (err) {
             // The append may have written part of its lines: look at the file's tail again before the next one
             if (appending) fileState.delete(appending);
-            // Keep what was not written, in order, for the next flush (unless the store has stopped writing meanwhile)
-            if (mode === 'readwrite') pending = [...batch.filter((b) => !done.has(b.day)), ...pending];
+            // Keep what was not written, in order, for the next flush (unless the store has stopped writing meanwhile).
+            // From now on until a write succeeds, the lines queued count towards the limit.
+            if (mode === 'readwrite') {
+                pending = [...batch.filter((b) => !done.has(b.day)), ...pending];
+                backlog ??= 0;
+            }
             lastWriteError = err.message;
             throw err;
         }
+        backlog = null;
         return batch.length;
     };
 
