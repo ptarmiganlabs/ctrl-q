@@ -14,7 +14,8 @@ instruction file.
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | Published site    | <https://ctrl-q.ptarmiganlabs.com> — public                                                                                   |
 | Source repository | [ptarmiganlabs/ctrl-q-docs](https://github.com/ptarmiganlabs/ctrl-q-docs) — public, cloned at `/Users/goran/code/ctrl-q-docs` |
-| Preview           | None yet: the site deploys from `main` to GitHub Pages. See [Decisions](#decisions)                                           |
+| Hosting           | A Cloudflare Pages project, which builds and serves `main`                                                                    |
+| Previews          | One per pull request, at its own `https://<hash>.ctrl-q-docs.pages.dev` — public. See [Decisions](#decisions)                 |
 | Local build       | `npm run build` in the site repository, or `npm run dev` to browse it                                                         |
 
 **Every user-visible change gets its draft here, in the same commit as the change**, and is published to the site later, as
@@ -226,11 +227,13 @@ a run has settled rather than guessing.
   `qseow/app-metadata-get.md`, published in the site's update for Ctrl-Q 4.5, to `done/`, and `qseow/task-gantt.md`, which that pull
   request adds, as a pending draft. Moving `app-metadata-get.md` first would make git read the move as a rename of its whole folder,
   and file `task-gantt.md` under `done/` when the pull request merged.
-- **Until the site has a preview, a draft's pull request goes into the site's `main`** (Goran, 2026-10-29). ctrl-q-docs predates the
-  house setup for documentation sites: it deploys from `main` to GitHub Pages, and has no `next` branch and no preview. Each draft still
-  gets a pull request of its own. Its review happens on that pull request and on a local build (`npm run dev` in the site repository)
-  _before_ the merge, because the merge publishes it; the `done_` move follows the merge, in the same turn. When the site moves to the
-  house setup — a `next` branch with a preview of every push — this decision lapses, and the loop runs as written.
+- **Until the site moves to the house setup, a draft's pull request goes into the site's `main`** (Goran, 2026-10-29). ctrl-q-docs
+  predates the house setup for documentation sites: a Cloudflare Pages project builds and serves `main`, and there is no `next` branch.
+  Each pull request does get a preview, at an address of its own on `pages.dev`, but anyone can open it, where the house setup keeps
+  previews behind Cloudflare Access. So each draft still gets a pull request of its own, reviewed on its preview _before_ the merge,
+  because the merge publishes it; the `done_` move follows the merge, in the same turn. A preview can show behaviour no release has
+  shipped yet, so its address goes no further than the review. Goran decided the same day that the site moves to the house setup — a
+  `next` branch, a Worker, previews behind Access — and this decision lapses once it has.
 
 ## Ownership
 
