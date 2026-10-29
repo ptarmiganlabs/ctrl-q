@@ -28,7 +28,8 @@ export const MIN_CONCURRENCY_BUCKET_MS = 60 * 1000;
 // refreshed for HISTORY_LOCK_STALE_MS. Generous, as computers sharing a history directory may disagree about the time.
 export const HISTORY_HEARTBEAT_MS = 10 * 1000;
 export const HISTORY_LOCK_STALE_MS = 5 * 60 * 1000;
-// Lines kept in memory while the history file cannot be written, e.g. on a full disk: a day or two of a busy site
+// Lines queued while the history file cannot be written, e.g. on a full disk: a day or two of a busy site. Lines queued
+// while writing works do not count, however many there are.
 export const HISTORY_MAX_PENDING_LINES = 50000;
 // Records are stored in the daily file of their trigger day. Files this much older than the window start are read
 // too, so long-running executions that started before the window are not missed.

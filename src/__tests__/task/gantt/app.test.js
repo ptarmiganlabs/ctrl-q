@@ -758,6 +758,36 @@ describe('history file', () => {
         expect(fs.readFileSync(lockFile, 'utf8')).toBe(lock);
     });
 
+    test('a start that queues more lines than may wait on failing writes writes them all, as long as writing works', async () => {
+        // A large site: more QRS results than the 50,000 lines the history store keeps while its writes fail
+        const stub = createQrsStub(now);
+        const run = ROWS.find((r) => r.taskID === CAL_PERF_1);
+        for (let i = 0; i < 50000; i += 1) {
+            const n = i.toString(16).padStart(12, '0');
+            const t = NOW - DAY + i * 1000;
+            stub.rows.push({
+                ...run,
+                id: `99999999-aaaa-4bbb-8ccc-${n}`,
+                executionID: `88888888-aaaa-4bbb-8ccc-${n}`,
+                status: 7,
+                startTime: iso(t),
+                stopTime: iso(t + 500),
+                modifiedDate: iso(t + 600),
+                details: [],
+            });
+        }
+        const app = makeApp(stub);
+
+        await app.init();
+
+        expect(app.history().mode()).toBe('readwrite');
+        expect(app.statuses()[1]).toMatchObject({ state: 'ok', message: '' });
+        await app.close();
+        expect(ofType(historyLines('2026-10-05'), 'r')).toHaveLength(50000);
+        expect(ofType(historyLines('2026-10-06'), 'r')).toHaveLength(6);
+        expect(ofType(historyLines('2026-10-06'), 'task')).toHaveLength(7);
+    });
+
     test('init copes with history files holding more coverage lines than fit in one function call', async () => {
         // Older Ctrl-Q versions wrote one coverage line per task on every start
         const lines = [];
@@ -1046,6 +1076,36 @@ describe('live updates', () => {
         expect(page.lane(8)).toBeUndefined();
     });
 
+    test('a task first seen while a refresh waits for QRS is known once that refresh lists it: no early refresh follows', async () => {
+        const stub = createQrsStub(now);
+        let release = null;
+        const request = async (options, req) => {
+            if (req.path === '/qrs/task/full' && release === false) {
+                await new Promise((resolve) => {
+                    release = resolve;
+                });
+            }
+            return stub.request(options, req);
+        };
+        const app = makeApp(stub, makeConfig({ sources: 'qrs' }), silentLogger, { request });
+        await app.init();
+
+        // The 10-minute refresh waits for the tasks. Meanwhile the task is created, and its first run polled.
+        release = false;
+        clock = NOW + 10 * MIN;
+        const refreshed = app.refreshMetadata();
+        await waitFor(() => typeof release === 'function');
+        stub.tasks = [...baseTasks(), newTask()];
+        stub.rows.push(newTaskRow({ status: 7, stoppedAt: NOW + 2 * MIN, modifiedAt: NOW + 2 * MIN + 100 }));
+        await pollChanges(app);
+        expect(app.metadataWanted()).toBe(true);
+        release();
+        await refreshed;
+
+        expect(app.lanes().get(NEW_TASK)).toMatchObject({ name: 'Reload New Sales', deleted: false });
+        expect(app.metadataWanted()).toBe(false);
+    });
+
     // BUG: drainDelta() only sends the node table when it grew during that call. refreshMetadata() registers new
     // scheduler nodes in the shared table first, so the next delta has no `nodes`, and pages that loaded the snapshot
     // earlier cannot resolve the node index of executions on the new node (tooltip, node filter).
@@ -1300,38 +1360,60 @@ describe('live updates', () => {
         expect(page.row(`r:${om.id}`)).toMatchObject({ lane: LANE[OPS_MONITOR] });
     });
 
-    test("executions evicted while live updates run: pages get the lanes' new coverage, so the evicted time is unknown", async () => {
+    test("executions evicted while live updates run: pages get the lanes' new coverage and live range, so the evicted time is unknown", async () => {
         const stub = createQrsStub(now);
         const app = makeApp(stub, makeConfig({ sources: 'qrs' }), silentLogger, { maxRecords: 8 });
         await app.init();
         const { page, gaps, publish } = makePage(app);
         expect(page.lane(LANE[CONTENT_MONITOR]).coverage).toEqual([[CM_TRIGGERED, NOW]]);
+        // Runs of one task, each finished half a second after it started
+        const addRuns = (first, count) => {
+            for (let i = first; i < first + count; i += 1) {
+                const run = structuredClone(ROWS.find((r) => r.taskID === CAL_PERF_2));
+                const t = NOW + 2000 + i * 1000;
+                const n = String(i).padStart(12, '0');
+                Object.assign(run, {
+                    id: `99999999-aaaa-4bbb-8ccc-${n}`,
+                    executionID: `88888888-aaaa-4bbb-8ccc-${n}`,
+                    status: 7,
+                    startTime: iso(t),
+                    stopTime: iso(t + 500),
+                    modifiedDate: iso(t + 600),
+                    details: [],
+                });
+                stub.rows.push(run);
+            }
+        };
 
         // Four more runs push the store over its cap of 8
-        for (let i = 0; i < 4; i += 1) {
-            const run = structuredClone(ROWS.find((r) => r.taskID === CAL_PERF_2));
-            const t = NOW + 2000 + i * 1000;
-            Object.assign(run, {
-                id: `99999999-aaaa-4bbb-8ccc-00000000000${i}`,
-                executionID: `99999999-aaaa-4bbb-8ccc-10000000000${i}`,
-                status: 7,
-                startTime: iso(t),
-                stopTime: iso(t + 500),
-                modifiedDate: iso(t + 600),
-                details: [],
-            });
-            stub.rows.push(run);
-        }
+        addRuns(0, 4);
         clock = NOW + 10 * 1000;
         await pollChanges(app);
         publish({ changed: true, statusChanged: false });
 
-        const completeFrom = app.coverage.completeFrom();
+        let completeFrom = app.coverage.completeFrom();
         expect(completeFrom).toBeGreaterThan(CM_TRIGGERED);
         expect(gaps).toEqual([]);
         for (const lane of app.snapshot().lanes) {
             expect(page.lane(lane.idx).coverage).toEqual(lane.coverage);
             expect(lane.coverage.every(([a]) => a >= completeFrom)).toBe(true);
+        }
+
+        // Eight more: now runs of the live range are evicted too
+        addRuns(4, 8);
+        clock = NOW + 20 * 1000;
+        await pollChanges(app);
+        app.markLive(clock);
+        completeFrom = app.coverage.completeFrom();
+        expect(completeFrom).toBe(NOW + 2000 + 3 * 1000 + 500);
+
+        // The page adds the live range to every lane's coverage, so it starts after the evicted runs too
+        const { live } = app.snapshot();
+        expect(live).toMatchObject({ from: completeFrom, coveredTo: NOW + 20 * 1000 });
+        expect(app.liveStatus().from).toBe(completeFrom);
+        for (const lane of app.snapshot().lanes) {
+            const covered = mergeIntervals([...lane.coverage, [live.from, live.coveredTo]]);
+            expect(covered.filter(([a, b]) => a < completeFrom && b > NOW)).toEqual([]);
         }
     });
 
@@ -1367,6 +1449,28 @@ describe('live updates', () => {
         await poller.tickNow();
         await poller.stop();
         expect(b.statuses()[0]).toMatchObject({ state: 'ok', message: warning });
+    });
+
+    test('a failing metadata refresh is a message on the QRS badge: live updates, which still work, stay ok', async () => {
+        const stub = createQrsStub(now);
+        const config = makeConfig({ sources: 'qrs' });
+        const app = makeApp(stub, config);
+        await app.init();
+        const poller = createQrsPoller({ app, intervalMs: config.pollIntervalMs, logger: silentLogger, onUpdate: () => {}, now });
+        stub.failures.set(
+            '/qrs/task/full',
+            Object.assign(new Error('QRS GET /qrs/task/full on h:4242 failed: HTTP 500'), { status: 500, reason: 'HTTP 500' })
+        );
+
+        clock = NOW + 10 * MIN;
+        await poller.tickNow();
+        clock += 10 * 1000;
+        await poller.tickNow();
+        await poller.stop();
+
+        // The page shows "Sense not reachable" for any other state, and stops extending live coverage
+        expect(app.liveStatus().qrs).toMatchObject({ state: 'ok', message: expect.stringContaining('could not be refreshed (HTTP 500)') });
+        expect(app.statuses()[0]).toMatchObject({ state: 'ok', message: expect.stringContaining('retrying in 60 s') });
     });
 
     test.each([
@@ -1430,6 +1534,61 @@ describe('live updates', () => {
         // The history file records what was watched on the Sense clock too
         await app.close();
         expect(ofType(historyLines('2026-10-06'), 'obs').map((l) => [l.from, l.to])).toEqual([[SENSE_NOW, SENSE_NOW + 15 * 1000]]);
+    });
+
+    test.each([
+        ["this computer's clock is stepped forward", { local: 2 * MIN, sense: 0 }],
+        ['the Sense clock is stepped back', { local: 0, sense: -2 * MIN }],
+    ])('when %s by 2 minutes, coverage and the page clock do not run ahead of the polls', async (_name, step) => {
+        const stub = createQrsStub(now);
+        const app = makeApp(stub);
+        await app.init();
+        const senseNow = () => clock + stub.skewMs;
+        // A poll, as the poller makes it
+        const poll = async () => {
+            const t = now();
+            await pollChanges(app);
+            app.markLive(t);
+        };
+        clock = NOW + 10 * 1000;
+        await poll();
+        const beforeStep = senseNow();
+
+        clock += step.local;
+        stub.skewMs += step.sense - step.local;
+        for (let i = 0; i < 3; i += 1) {
+            clock += 10 * 1000;
+            await poll();
+            // The page's clock is the Sense clock. Coverage reaches the latest poll, and never back: after the Sense clock
+            // was put back it stays at the last poll before, until the Sense clock has passed that again.
+            expect(app.liveStatus()).toMatchObject({ now: senseNow(), coveredTo: Math.max(beforeStep, senseNow()) });
+        }
+
+        await app.close();
+        const obs = ofType(historyLines('2026-10-06'), 'obs');
+        expect(Math.max(...obs.map((l) => l.to))).toBe(Math.max(beforeStep, senseNow()));
+    });
+
+    test('a slow response is no clock step: the estimate of the Sense clock keeps its higher bounds', async () => {
+        const stub = createQrsStub(now);
+        let slowMs = 0;
+        // The answer arrives slowMs after QRS wrote its Date header
+        const request = async (options, req) => {
+            const res = await stub.request(options, req);
+            clock += slowMs;
+            return res;
+        };
+        const app = makeApp(stub, makeConfig({ sources: 'qrs' }), silentLogger, { request });
+        await app.init();
+
+        // A catch-up poll after an outage, which takes QRS 90 s to send
+        slowMs = 90 * 1000;
+        clock = NOW + 10 * 1000;
+        const t = now();
+        await pollChanges(app);
+        app.markLive(t);
+
+        expect(app.liveStatus()).toMatchObject({ now: NOW + 100 * 1000, coveredTo: NOW + 10 * 1000 });
     });
 
     test('markLive and breakLiveCoverage extend and split the coverage, and record it in the history', async () => {
@@ -1598,6 +1757,56 @@ describe('failures', () => {
         expect(fs.readdirSync(hostDir())).toEqual([]);
     });
 
+    // A request function whose requests to one path fail at once, while those to another take until they are aborted,
+    // like the bulk reads of a large site, which may take minutes. Other requests go to the stub.
+    const failFastWhileSlow = (stub, { fail, slow }) => {
+        const state = { waiting: 0, failing: false };
+        state.request = (options, req) => {
+            if (!state.failing) return stub.request(options, req);
+            if (req.path === fail) return Promise.reject(Object.assign(new Error(`QRS GET ${fail} failed: HTTP 403`), { status: 403 }));
+            if (req.path !== slow) return stub.request(options, req);
+            state.waiting += 1;
+            return new Promise((resolve, reject) => {
+                req.signal?.addEventListener('abort', () => {
+                    state.waiting -= 1;
+                    reject(new Error('aborted'));
+                });
+            });
+        };
+        return state;
+    };
+
+    test.each([
+        ['the metadata', { fail: '/qrs/servicecluster/full', slow: '/qrs/task/full' }],
+        ['the execution results', { fail: '/qrs/executionsession/full', slow: '/qrs/executionresult/full' }],
+    ])('a request for %s that fails at once ends the start at once: the slow one beside it is aborted', async (_name, paths) => {
+        const stub = createQrsStub(now);
+        const qrs = failFastWhileSlow(stub, paths);
+        qrs.failing = true;
+        const app = makeApp(stub, makeConfig(), silentLogger, { request: qrs.request });
+
+        await expect(app.init()).rejects.toThrow('HTTP 403');
+
+        // Nothing is left that would keep the process running, for up to the 5-minute timeout of the bulk reads
+        expect(qrs.waiting).toBe(0);
+        expect(fs.existsSync(path.join(hostDir(), '.lock'))).toBe(false);
+    });
+
+    test('a failing metadata refresh ends once all its requests have: the slow ones beside the failure are aborted', async () => {
+        const stub = createQrsStub(now);
+        stub.apps = [{ id: appOf(CONTENT_MONITOR) }];
+        const qrs = failFastWhileSlow(stub, { fail: '/qrs/app', slow: '/qrs/task/full' });
+        const app = makeApp(stub, makeConfig({ sources: 'qrs', appTag: 'Monitoring' }), silentLogger, { request: qrs.request });
+        await app.init();
+        qrs.failing = true;
+
+        clock = NOW + 10 * MIN;
+        await expect(app.refreshMetadata()).rejects.toThrow('HTTP 403');
+
+        // Its retry, after the backoff, does not run beside a load still under way
+        expect(qrs.waiting).toBe(0);
+    });
+
     test('a history file that cannot be read: Ctrl-Q starts on QRS alone, says so, and writes nothing to it', async () => {
         writeHistory('2026-10-05', [oldCmLine()]);
         const readFile = fsp.readFile;
@@ -1685,6 +1894,133 @@ describe('failures', () => {
         await app.close();
         expect(ofType(historyLines('2026-10-06'), 'obs')).toEqual([]);
         expect(JSON.parse(fs.readFileSync(lockFile, 'utf8'))).toMatchObject({ token: 'theirs' });
+    });
+
+    // The lock of another instance on another computer, last refreshed at NOW unless said otherwise
+    const writeOtherLock = (refreshedAt = NOW) => {
+        const lockFile = path.join(hostDir(), '.lock');
+        fs.mkdirSync(hostDir(), { recursive: true });
+        fs.writeFileSync(lockFile, JSON.stringify({ pid: 4242, host: 'other-computer', token: 'theirs', since: iso(NOW - DAY) }));
+        fs.utimesSync(lockFile, new Date(refreshedAt), new Date(refreshedAt));
+    };
+    const takenOver = /^the Ctrl-Q instance that was writing this history \(process 4242 on other-computer\) has stopped/;
+
+    test('opened read-only, it writes once the other instance has stopped: what it has seen, and the time watched since', async () => {
+        writeOtherLock();
+        const stub = createQrsStub(now);
+        const app = makeApp(stub);
+        await app.init();
+        expect(app.statuses()[1]).toMatchObject({ state: 'degraded', message: expect.stringContaining('opened read-only') });
+
+        // A run starts while the other instance writes the file
+        stub.rows.push(newTaskRow({ status: 2, modifiedAt: NOW + MIN + 600 }));
+        clock = NOW + 2 * MIN;
+        const { records, cursor } = await app.qrs.changesSince(app.cursor);
+        app.cursor = cursor;
+        app.applyQrsChanges(records);
+        app.markLive(clock);
+
+        // The other instance stopped at NOW: 5 minutes later its lock is stale
+        clock = NOW + 6 * MIN;
+        app.markLive(clock);
+        await app.history().heartbeat();
+
+        expect(app.history().mode()).toBe('readwrite');
+        expect(app.statuses()[1]).toMatchObject({ state: 'ok', message: expect.stringMatching(takenOver) });
+        clock = NOW + 8 * MIN;
+        app.markLive(clock);
+        await app.close();
+        const today = historyLines('2026-10-06');
+        // The executions it has seen since start-up, the running one included, and the task names
+        expect(ofType(today, 'r').map((l) => `r:${l.r}`)).toEqual(expect.arrayContaining([CM_KEY, OM_KEY, NEW_KEY]));
+        expect(ofType(today, 'r')).toHaveLength(7);
+        expect(ofType(today, 'task')).toHaveLength(7);
+        // Watched time only from the takeover on: lines the other instance had not written yet may be missing before it
+        expect(ofType(today, 'obs').map((l) => [l.from, l.to])).toEqual([[NOW + 6 * MIN, NOW + 8 * MIN]]);
+    });
+
+    test('opened read-only, it writes when the other instance stops while start-up waits for QRS', async () => {
+        writeOtherLock();
+        const stub = createQrsStub(now);
+        let release;
+        const snapshotSent = new Promise((resolve) => {
+            release = resolve;
+        });
+        const request = async (options, req) => {
+            if (req.path === '/qrs/executionresult/full') await snapshotSent;
+            return stub.request(options, req);
+        };
+        const app = makeApp(stub, makeConfig(), silentLogger, { request });
+
+        const started = app.init();
+        await waitFor(() => app.history()?.mode() === 'readonly');
+        clock = NOW + 6 * MIN;
+        await app.history().heartbeat();
+        expect(app.history().mode()).toBe('readwrite');
+        release();
+        await started;
+
+        expect(app.statuses()[1]).toMatchObject({ state: 'ok', message: expect.stringMatching(takenOver) });
+        await app.close();
+        expect(ofType(historyLines('2026-10-06'), 'r')).toHaveLength(6);
+        expect(ofType(historyLines('2026-10-06'), 'task')).toHaveLength(7);
+    });
+
+    test('a lock taken over and given back before a poll noticed: it writes again, the running executions included', async () => {
+        const stub = createQrsStub(now);
+        const app = makeApp(stub);
+        await app.init();
+        // A run starts while the history file cannot be written, so its line waits
+        const append = jest
+            .spyOn(fsp, 'appendFile')
+            .mockRejectedValue(Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' }));
+        stub.rows.push(newTaskRow({ status: 2, modifiedAt: NOW + MIN + 600 }));
+        clock = NOW + 2 * MIN;
+        const { records, cursor } = await app.qrs.changesSince(app.cursor);
+        app.cursor = cursor;
+        app.applyQrsChanges(records);
+        app.markLive(clock);
+        await waitFor(() => app.statuses()[1].state === 'error');
+
+        // Another instance takes the lock over, which drops the waiting lines, and stops soon after
+        writeOtherLock(NOW + 2 * MIN);
+        await app.history().heartbeat();
+        expect(app.history().mode()).toBe('readonly');
+        append.mockRestore();
+        clock = NOW + 8 * MIN;
+        await app.history().heartbeat();
+
+        expect(app.history().mode()).toBe('readwrite');
+        await waitFor(() => app.statuses()[1].state === 'ok');
+        expect(app.statuses()[1].message).toMatch(takenOver);
+        clock = NOW + 9 * MIN;
+        app.markLive(clock);
+        await app.close();
+        const today = historyLines('2026-10-06');
+        expect(ofType(today, 'r').filter((l) => l.r === NEW_RESULT)).toEqual([expect.objectContaining({ s: 2, sp: null })]);
+        expect(ofType(today, 'obs').map((l) => [l.from, l.to])).toEqual([[NOW + 2 * MIN, NOW + 9 * MIN]]);
+    });
+
+    test('writes that fail until another instance takes the lock over do not end in "writing again"', async () => {
+        const info = jest.fn();
+        const app = makeApp(createQrsStub(now), makeConfig(), { ...silentLogger, info });
+        await app.init();
+        jest.spyOn(fsp, 'appendFile').mockRejectedValue(
+            Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' })
+        );
+        clock = NOW + MIN;
+        app.markLive(clock);
+        await waitFor(() => app.statuses()[1].state === 'error');
+
+        // The other instance writes from now on; this one's flushes write nothing
+        fs.writeFileSync(path.join(hostDir(), '.lock'), JSON.stringify({ pid: 4242, host: 'other-computer', token: 'theirs' }));
+        await app.history().heartbeat();
+        clock = NOW + 2 * MIN;
+        app.markLive(clock);
+
+        await waitFor(() => app.statuses()[1].state === 'degraded');
+        expect(app.statuses()[1].message).toMatch(/^another Ctrl-Q instance took over writing this history/);
+        expect(info).not.toHaveBeenCalledWith('History file: writing again');
     });
 
     test('Ctrl-C while start-up waits for QRS releases the history lock', async () => {

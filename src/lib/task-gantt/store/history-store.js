@@ -138,11 +138,14 @@ const isProcessAlive = (pid) => {
  * tells its lock from any other, also from one with the same process id in another container. The writer refreshes the
  * lock's modification time every HISTORY_HEARTBEAT_MS. A lock is stale, and taken over, when it comes from this
  * computer and its process no longer runs, or when it has not been refreshed for HISTORY_LOCK_STALE_MS, whatever its
- * process id: a writer on another computer sharing the directory, or a process id reused after a crash.
+ * process id: a writer on another computer sharing the directory, or a process id reused after a crash. When opening,
+ * a lock with this computer's name and this very process id is stale too, see isStale(). A store without the lock,
+ * opened read-only or taken over since, tries to take it on every heartbeat, and once it has, writes (onWritable).
  *
- * Lines that cannot be written stay queued for the next flush, up to maxPendingLines. Past that the store
- * stops writing until it is opened again, rather than drop some lines: a coverage line written later would claim the
- * time of executions that were dropped.
+ * Lines that cannot be written stay queued for the next flush. Once a write has failed, up to maxPendingLines more are
+ * queued until one succeeds; past that the store stops writing until it is opened again, rather than drop some lines:
+ * a coverage line written later would claim the time of executions that were dropped. Lines queued while writing
+ * works are always written, however many, e.g. at the first start on a large site.
  *
  * @param {object} param - Parameters.
  * @param {string} param.dir - Base directory, e.g. ~/.ctrl-q/task-history.
@@ -154,7 +157,9 @@ const isProcessAlive = (pid) => {
  * @param {Function} [param.pidAlive] - (pid) => boolean, for tests.
  * @param {number} [param.pid] - Process id written to the lock file, for tests.
  * @param {string} [param.hostname] - Name of this computer written to the lock file, for tests.
- * @param {number} [param.maxPendingLines] - Most lines kept while writes fail, for tests.
+ * @param {number} [param.maxPendingLines] - Most lines queued while writes fail, for tests.
+ * @param {Function} [param.onWritable] - Called when a store without the lock has taken it over from an instance that
+ *   stopped: it writes from then on.
  * @returns {object} The history store.
  */
 export function createHistoryStore({
@@ -168,6 +173,7 @@ export function createHistoryStore({
     pid: ownPid = process.pid,
     hostname: ownHost = os.hostname(),
     maxPendingLines = HISTORY_MAX_PENDING_LINES,
+    onWritable = () => {},
 }) {
     const hostDir = path.join(dir, hostSlug(host));
     const lockPath = path.join(hostDir, LOCK_FILE);
@@ -185,6 +191,8 @@ export function createHistoryStore({
     // An open() under way, which close() waits for: it may be about to take the lock
     let opening = null;
     let lastWriteError = '';
+    // Lines queued since a write failed, or null while writes succeed: the backlog maxPendingLines limits
+    let backlog = null;
     // Daily file name -> 'own' (ours, ready for appending) or 'foreign' (belongs to another cluster)
     const fileState = new Map();
     const clusterSuffix = String(clusterId || 'unknown')
@@ -233,16 +241,22 @@ export function createHistoryStore({
         return { raw, pid: holder?.pid, host: holder?.host, token: holder?.token, heartbeatAt: stat.mtimeMs };
     };
 
-    const isStale = (lock) =>
+    // When opening, a lock with this computer's name and this process id, but not this store's token, is from a crashed
+    // earlier run: one process holds at most one lock. That is how a container restarted at once finds the lock it left
+    // (same host name, process 1). Not later on: by then such a lock can only be another instance with the same name and
+    // process id (two such containers), and taking it back at every heartbeat would make the two take turns writing.
+    const isStale = (lock, { opening = false } = {}) =>
         now() - lock.heartbeatAt > HISTORY_LOCK_STALE_MS ||
-        (lock.host === ownHost && !(Number.isInteger(lock.pid) && lock.pid > 0 && pidAlive(lock.pid)));
+        (lock.host === ownHost &&
+            ((opening && lock.pid === ownPid && lock.token !== token) ||
+                !(Number.isInteger(lock.pid) && lock.pid > 0 && pidAlive(lock.pid))));
 
-    // Take the lock. Returns { taken }, and the lock that is in the way, if any.
-    const acquireLock = async () => {
+    // Take the lock. Returns { taken }, the lock that is in the way if not, and the stale lock it replaced, if any.
+    const acquireLock = async ({ opening = false } = {}) => {
         if (await tryCreateLock()) return { taken: true };
         const held = await readLock(lockPath);
         if (!held) return { taken: await tryCreateLock() };
-        if (!isStale(held)) return { taken: false, holder: held };
+        if (!isStale(held, { opening })) return { taken: false, holder: held };
 
         // A stale lock. Move it aside under a unique name, so that of several instances taking it over at the same time
         // only one succeeds; the others then find the new lock.
@@ -261,11 +275,11 @@ export function createHistoryStore({
             return { taken: false, holder: moved };
         }
         await fs.rm(aside, { force: true });
-        return { taken: await tryCreateLock() };
+        return { taken: await tryCreateLock(), stale: held };
     };
 
-    // Delete the lock if it is still this store's: another instance may have taken it over (see beat()). Done once;
-    // later calls wait for the same release.
+    // Delete the lock if it is still this store's: another instance may have taken it over (see beat()). Done once per
+    // open(); later calls wait for the same release.
     let releasing = null;
     const releaseLock = () => {
         releasing ??= (async () => {
@@ -279,10 +293,43 @@ export function createHistoryStore({
         return releasing;
     };
 
+    // " (process 1234 on some-host)", or nothing for a lock that does not say
+    const holderName = (lock) => (lock?.host ? ` (process ${lock.pid} on ${lock.host})` : '');
+    // The instance whose lock kept this store read-only, as last seen
+    let lastHolder = null;
+
+    // Take the lock over once the instance holding it has stopped (its lock is gone or stale): this store writes from
+    // then on. The files may have changed meanwhile, also their last line, so they are looked at again before writing.
+    const takeOver = async () => {
+        // While that instance runs, only read its lock: taking it would write a temporary file every heartbeat
+        const held = await readLock(lockPath);
+        if (held && !isStale(held)) {
+            lastHolder = held;
+            return;
+        }
+        const { taken, holder, stale } = await acquireLock();
+        if (!taken) {
+            lastHolder = holder ?? lastHolder;
+            return;
+        }
+        ownsLock = true;
+        mode = 'readwrite';
+        backlog = null;
+        lastWriteError = '';
+        fileState.clear();
+        message = `the Ctrl-Q instance that was writing this history${holderName(stale ?? lastHolder)} has stopped; this one writes it from now on`;
+        logger.info(`History file: ${message}`);
+        onWritable();
+    };
+
     // Refresh the lock, and notice when another instance has taken it over. That can happen after this process was
     // paused for longer than HISTORY_LOCK_STALE_MS, e.g. on a sleeping laptop: the other instance took the lock for
-    // stale, and writes from then on.
+    // stale, and writes from then on. Without the lock, try to take it over instead.
     const beat = async () => {
+        if (!ownsLock) {
+            if (mode === 'readonly') await takeOver();
+            return;
+        }
         const lock = await readLock(lockPath);
         if (!ownsLock) return;
         if (lock?.token === token) {
@@ -293,17 +340,18 @@ export function createHistoryStore({
         // Deleted by hand while this instance runs: take it again
         if (!lock && (await tryCreateLock())) return;
         ownsLock = false;
-        clearInterval(heartbeat);
+        lastHolder = lock;
         if (mode === 'readwrite') {
             mode = 'readonly';
             pending = [];
+            backlog = null;
             message = `another Ctrl-Q instance took over writing this history while this one was not responding (see ${lockPath}); read-only from now on`;
             logger.warn(`History file: ${message}`);
         }
     };
 
     /**
-     * Refresh the lock now, see beat(). The store does this every HISTORY_HEARTBEAT_MS by itself.
+     * Refresh the lock now, or try to take it over, see beat(). The store does this every HISTORY_HEARTBEAT_MS by itself.
      *
      * @returns {Promise<void>} Resolves when done.
      */
@@ -320,11 +368,10 @@ export function createHistoryStore({
 
     // Why the store opened read-only, and what to do about a lock left behind
     const readOnlyMessage = (holder) => {
-        const who = holder?.host ? ` (process ${holder.pid} on ${holder.host})` : '';
         const minutes = Math.round(HISTORY_LOCK_STALE_MS / 60000);
         return (
-            `another Ctrl-Q instance is writing this history${who}; opened read-only. Delete ${lockPath} if that instance is no ` +
-            `longer running; Ctrl-Q also takes over a lock that has not been refreshed for ${minutes} minutes.`
+            `another Ctrl-Q instance is writing this history${holderName(holder)}; opened read-only. Delete ${lockPath} if that ` +
+            `instance is no longer running; Ctrl-Q also takes over a lock that has not been refreshed for ${minutes} minutes.`
         );
     };
 
@@ -375,20 +422,27 @@ export function createHistoryStore({
      * @returns {Promise<{mode: string, message: string}>} 'readwrite', 'readonly' (another instance writes) or 'error'.
      */
     const open = () => {
+        // A store opened again releases the lock it takes now, not the one of the previous open()
+        releasing = null;
         opening = (async () => {
             try {
                 await fs.mkdir(hostDir, { recursive: true });
-                const { taken, holder } = await acquireLock();
+                const { taken, holder } = await acquireLock({ opening: true });
                 if (taken) {
                     ownsLock = true;
-                    heartbeat = setInterval(heartbeatNow, HISTORY_HEARTBEAT_MS);
-                    heartbeat.unref?.();
                     mode = 'readwrite';
-                    const deleted = await deleteExpired();
-                    message = deleted ? `deleted ${deleted} expired daily file(s)` : '';
                 } else {
                     mode = 'readonly';
-                    message = readOnlyMessage(holder ?? (await readLock(lockPath).catch(() => null)));
+                    lastHolder = holder ?? (await readLock(lockPath).catch(() => null));
+                    message = readOnlyMessage(lastHolder);
+                }
+                // Keeps the lock alive, or takes it over once its holder has stopped, see beat()
+                clearInterval(heartbeat);
+                heartbeat = setInterval(heartbeatNow, HISTORY_HEARTBEAT_MS);
+                heartbeat.unref?.();
+                if (taken) {
+                    const deleted = await deleteExpired();
+                    message = deleted ? `deleted ${deleted} expired daily file(s)` : '';
                 }
             } catch (err) {
                 mode = 'error';
@@ -545,15 +599,19 @@ export function createHistoryStore({
 
     const queue = (day, obj) => {
         if (mode !== 'readwrite') return;
-        if (pending.length >= maxPendingLines) {
-            mode = 'error';
-            const reason = lastWriteError ? ` (${lastWriteError})` : '';
-            message = `stopped writing to ${hostDir} until Ctrl-Q is restarted: ${pending.length} lines could not be written${reason}`;
-            pending = [];
-            logger.warn(`History file: ${message}`);
-            // Another instance may write instead
-            releaseLock().catch(() => {});
-            return;
+        if (backlog !== null) {
+            if (backlog >= maxPendingLines) {
+                mode = 'error';
+                const reason = lastWriteError ? ` (${lastWriteError})` : '';
+                message = `stopped writing to ${hostDir} until Ctrl-Q is restarted: ${pending.length} lines could not be written${reason}`;
+                pending = [];
+                backlog = null;
+                logger.warn(`History file: ${message}`);
+                // Another instance may write instead
+                releaseLock().catch(() => {});
+                return;
+            }
+            backlog += 1;
         }
         pending.push({ day, line: JSON.stringify(obj) });
     };
@@ -638,13 +696,15 @@ export function createHistoryStore({
             fileState.set(name, 'foreign');
             return prepareFile(day);
         }
-        fileState.set(name, 'own-ready');
         if (!content?.includes('\n')) {
             // A new file, or one without a single complete line: that is this store's own header, torn by an append
-            // that failed part-way (a full disk). Start the file again.
+            // that failed part-way (a full disk). Start the file again. Ready only once emptied: if that fails, the next
+            // flush must look again, or it would append without a header.
             if (content) await fs.truncate(file, 0);
+            fileState.set(name, 'own-ready');
             return { name, prefix: `${header()}\n` };
         }
+        fileState.set(name, 'own-ready');
         // A crash, or an append that failed part-way, may have left a torn last line; start ours on a new line so it is
         // not glued onto it
         return { name, prefix: content.endsWith('\n') ? '' : '\n' };
@@ -673,11 +733,16 @@ export function createHistoryStore({
         } catch (err) {
             // The append may have written part of its lines: look at the file's tail again before the next one
             if (appending) fileState.delete(appending);
-            // Keep what was not written, in order, for the next flush (unless the store has stopped writing meanwhile)
-            if (mode === 'readwrite') pending = [...batch.filter((b) => !done.has(b.day)), ...pending];
+            // Keep what was not written, in order, for the next flush (unless the store has stopped writing meanwhile).
+            // From now on until a write succeeds, the lines queued count towards the limit.
+            if (mode === 'readwrite') {
+                pending = [...batch.filter((b) => !done.has(b.day)), ...pending];
+                backlog ??= 0;
+            }
             lastWriteError = err.message;
             throw err;
         }
+        backlog = null;
         return batch.length;
     };
 

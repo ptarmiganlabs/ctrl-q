@@ -221,6 +221,43 @@ describe('qrsRequestJson: proxy session of JWT connections', () => {
         expect(sent()).toEqual(['jwt', 'jwt']);
     });
 
+    test('passes the abort signal to every request: the login, and those that send the session cookie', async () => {
+        axiosRequest
+            .mockResolvedValueOnce(ok([1], SESSION_1))
+            .mockRejectedValueOnce(httpError(401))
+            .mockResolvedValue(ok([2], SESSION_2));
+        const options = jwtOptions();
+        const { signal } = new AbortController();
+
+        await qrsRequestJson(options, { path: '/qrs/a', signal });
+        await qrsRequestJson(options, { path: '/qrs/b', signal });
+
+        // The login, the request that found the session ended, and the new login
+        expect(sent()).toEqual(['jwt', SESSION_1, 'jwt']);
+        expect(axiosRequest.mock.calls.map(([config]) => config.signal)).toEqual([signal, signal, signal]);
+    });
+
+    test('a request aborted while it waits for a login ends at once, sends nothing, and leaves the login alone', async () => {
+        const login = deferred();
+        axiosRequest.mockImplementationOnce(() => login.promise).mockResolvedValue(ok([2]));
+        const options = jwtOptions();
+        const first = qrsRequestJson(options, { path: '/qrs/a' });
+        const controller = new AbortController();
+        const second = qrsRequestJson(options, { path: '/qrs/b', signal: controller.signal }).catch((e) => e);
+        await Promise.resolve();
+
+        controller.abort();
+        const stillWaiting = new Promise((resolve) => setTimeout(() => resolve('still waiting'), 1000).unref());
+
+        expect(await Promise.race([second, stillWaiting])).toMatchObject({ name: 'QrsRequestError', aborted: true });
+        expect(sent()).toEqual(['jwt']);
+        // The login it waited for goes on, and later requests share its session
+        login.resolve(ok([1], SESSION_1));
+        await first;
+        await qrsRequestJson(options, { path: '/qrs/c' });
+        expect(sent()).toEqual(['jwt', SESSION_1]);
+    });
+
     test('keeps sending the JWT when the proxy sets no session cookie, as before', async () => {
         axiosRequest.mockResolvedValue(ok([1]));
         const options = jwtOptions();

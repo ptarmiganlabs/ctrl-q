@@ -199,14 +199,113 @@ describe('createHistoryStore', () => {
         await later.close();
     });
 
-    test("two containers with the same process id and computer name do not take over each other's lock", async () => {
-        // Both run Ctrl-Q as process 1. A process id equal to its own no longer passes for a crashed earlier run.
-        writeLock({ pid: 1, host: 'this-computer' });
-        const second = make({ pid: 1, pidAlive: () => true });
+    test("a lock with this computer's name and this process id is left by a crashed earlier run, and taken over at once", async () => {
+        // A container restarted after a crash: the same host name, Ctrl-Q process 1 again, and the crashed run's lock,
+        // refreshed shortly before the crash. One process holds at most one lock, so that one is not alive.
+        writeLock({ pid: 1, host: 'this-computer' }, { refreshedAgo: 20 * 1000 });
+        const restarted = make({ pid: 1, pidAlive: () => true });
 
-        expect((await second.open()).mode).toBe('readonly');
+        expect((await restarted.open()).mode).toBe('readwrite');
+        expect(readLock()).toMatchObject({ pid: 1, host: 'this-computer' });
+        expect(readLock().token).not.toBe('their-token');
+        await restarted.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('a lock lost to an instance with the same computer name and process id is not taken back while that one runs', async () => {
+        // Two containers with the same host name and process id share the directory. The later start takes the lock, as
+        // it would from a crashed earlier run ...
+        const first = make({ pid: 1, pidAlive: () => true });
+        await first.open();
+        const second = make({ pid: 1, pidAlive: () => true });
+        expect((await second.open()).mode).toBe('readwrite');
+
+        // ... and the first gives way at its next heartbeat. It does not take the lock back while the second refreshes
+        // it: the two would take turns writing.
+        await first.heartbeat();
+        expect(first.mode()).toBe('readonly');
+        await second.heartbeat();
+        await first.heartbeat();
+        expect(first.mode()).toBe('readonly');
+        expect(second.mode()).toBe('readwrite');
+        await first.close();
         await second.close();
-        expect(readLock()).toMatchObject({ pid: 1, token: 'their-token' });
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('a store opened read-only tries again on its heartbeat: once the lock is stale it takes it over, and says so', async () => {
+        let now = NOW;
+        writeLock({ pid: 4242, host: 'other-computer' });
+        const info = jest.fn();
+        const onWritable = jest.fn();
+        const intervals = jest.spyOn(globalThis, 'setInterval');
+        const store = make({ now: () => now, logger: { ...silent, info }, onWritable });
+        expect((await store.open()).mode).toBe('readonly');
+        const [beat, every] = intervals.mock.calls.at(-1) ?? [];
+        expect(every).toBe(10 * 1000);
+
+        // Not refreshed for 4 minutes: the other instance may still run. Its lock is only read.
+        const writeFile = jest.spyOn(fsp, 'writeFile');
+        now = NOW + 4 * MIN;
+        await beat();
+        expect(store.mode()).toBe('readonly');
+        expect(writeFile).not.toHaveBeenCalled();
+
+        now = NOW + 6 * MIN;
+        await beat();
+
+        expect(store.mode()).toBe('readwrite');
+        expect(store.message()).toBe(
+            'the Ctrl-Q instance that was writing this history (process 4242 on other-computer) has stopped; this one writes it from now on'
+        );
+        expect(info).toHaveBeenCalledWith(`History file: ${store.message()}`);
+        expect(onWritable).toHaveBeenCalledTimes(1);
+        expect(readLock()).toMatchObject({ pid: process.pid, host: 'this-computer' });
+        store.appendRecords([rec()]);
+        expect(await store.flush()).toBe(1);
+        await store.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('a store whose lock was taken over takes it back once the instance that took it has stopped', async () => {
+        let now = NOW;
+        const store = make({ now: () => now });
+        await store.open();
+        store.appendRecords([rec({ resultId: 'first' })]);
+        await store.flush();
+        writeLock({ pid: 4242, host: 'other-computer' });
+        await store.heartbeat();
+        expect(store.mode()).toBe('readonly');
+        // That instance appended to the file and left its last line torn when it stopped
+        fs.appendFileSync(dayFile(), '{"t":"r","task":"x","s":7,"tr":17');
+
+        now = NOW + 6 * MIN;
+        await store.heartbeat();
+
+        expect(store.mode()).toBe('readwrite');
+        store.appendRecords([rec({ resultId: 'second' })]);
+        expect(await store.flush()).toBe(1);
+        // Looked at the file's tail again, so the line was not glued onto the torn one
+        const loaded = await store.load(NOW - DAY, NOW);
+        expect(loaded.records.map((r) => r.resultId).sort()).toEqual(['first', 'second']);
+        expect(loaded.skippedLines).toBe(1);
+        await store.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('a store opened again after close() releases its new lock at the next close()', async () => {
+        const store = make();
+        expect((await store.open()).mode).toBe('readwrite');
+        await store.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
+
+        expect((await store.open()).mode).toBe('readwrite');
+        await store.close();
+
+        expect(fs.existsSync(lockFile())).toBe(false);
+        const other = make({ pid: 999999, pidAlive: () => true, hostname: 'other-computer' });
+        expect((await other.open()).mode).toBe('readwrite');
+        await other.close();
     });
 
     test('close() leaves a lock alone that another instance has taken over meanwhile', async () => {
@@ -517,6 +616,26 @@ describe('createHistoryStore', () => {
         await store.close();
     });
 
+    test('when emptying a torn header fails, the next flush looks at the file again: no line is written without a header', async () => {
+        const store = make();
+        await store.open();
+        failAppendAfter(10);
+        // As on Windows while a virus scanner has the file open
+        jest.spyOn(fsp, 'truncate').mockImplementationOnce(async () => {
+            throw Object.assign(new Error('EBUSY: resource busy or locked, open'), { code: 'EBUSY' });
+        });
+        store.appendRecords([rec({ resultId: 'first' }), rec({ resultId: 'second' })]);
+        await expect(store.flush()).rejects.toThrow('ENOSPC');
+        await expect(store.flush()).rejects.toThrow('EBUSY');
+
+        expect(await store.flush()).toBe(2);
+
+        const header = JSON.stringify({ v: 1, host: 'Sense.Example.com', clusterId: 'cluster-1' });
+        const lines = [rec({ resultId: 'first' }), rec({ resultId: 'second' })].map((r) => JSON.stringify(recordToLine(r)));
+        expect(fs.readFileSync(dayFile(), 'utf8')).toBe(`${header}\n${lines.join('\n')}\n`);
+        await store.close();
+    });
+
     test('an expired file that cannot be deleted is a warning: the store opens for writing, and the next prune tries again', async () => {
         const hostDir = path.join(dir, 'sense.example.com');
         fs.mkdirSync(hostDir, { recursive: true });
@@ -651,32 +770,64 @@ describe('createHistoryStore', () => {
         expect(fs.existsSync(path.join(dir, 'sense.example.com', '.lock'))).toBe(false);
     });
 
-    test('past the limit of lines waiting to be written, the store stops writing for the session and says why', async () => {
+    const recs = (...ids) => ids.map((id) => rec({ resultId: id }));
+    const enospc = () => Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' });
+
+    test('lines queued while writing works are all written, however many: the limit only counts lines waiting on a failure', async () => {
+        const store = make({ maxPendingLines: 3 });
+        await store.open();
+
+        // E.g. the first start on a large site, or the first poll after a long QRS outage
+        store.appendRecords(recs('a', 'b', 'c', 'd', 'e'));
+
+        expect(store.mode()).toBe('readwrite');
+        expect(await store.flush()).toBe(5);
+        expect((await store.load(NOW - DAY, NOW)).records.map((r) => r.resultId).sort()).toEqual(['a', 'b', 'c', 'd', 'e']);
+        await store.close();
+    });
+
+    test('a write that works again ends the backlog: the limit counts from the latest failure only', async () => {
+        const store = make({ maxPendingLines: 2 });
+        await store.open();
+        jest.spyOn(fsp, 'appendFile').mockRejectedValueOnce(enospc());
+        store.appendRecords(recs('a'));
+        await expect(store.flush()).rejects.toThrow('ENOSPC');
+        store.appendRecords(recs('b', 'c'));
+        expect(await store.flush()).toBe(3);
+
+        store.appendRecords(recs('d', 'e', 'f'));
+
+        expect(store.mode()).toBe('readwrite');
+        expect(await store.flush()).toBe(3);
+        await store.close();
+    });
+
+    test('past the limit of lines queued while writes fail, the store stops writing for the session and says why', async () => {
         const warn = jest.fn();
         const store = make({ maxPendingLines: 3, logger: { ...silent, warn } });
         await store.open();
-        const append = jest
-            .spyOn(fsp, 'appendFile')
-            .mockRejectedValue(Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' }));
+        const append = jest.spyOn(fsp, 'appendFile').mockRejectedValue(enospc());
 
-        store.appendRecords([rec({ resultId: 'a' }), rec({ resultId: 'b' })]);
+        store.appendRecords(recs('a', 'b'));
         await expect(store.flush()).rejects.toThrow('ENOSPC');
         expect(store.pending()).toBe(2);
-        store.appendRecords([rec({ resultId: 'c' })]);
+        // The lines of the failed write do not count
+        store.appendRecords(recs('c', 'd', 'e'));
         expect(store.mode()).toBe('readwrite');
+        expect(store.pending()).toBe(5);
 
-        // A fourth line would pass the limit. Dropping only some lines would leave coverage lines written later
-        // claiming the time of the dropped executions, so nothing more is written at all.
-        store.appendRecords([rec({ resultId: 'd' })]);
+        // A fourth line queued while writes fail passes the limit. Dropping only some lines would leave coverage lines
+        // written later claiming the time of the dropped executions, so nothing more is written at all.
+        store.appendRecords(recs('f'));
         expect(store.mode()).toBe('error');
         expect(store.pending()).toBe(0);
         expect(store.message()).toBe(
-            `stopped writing to ${path.join(dir, 'sense.example.com')} until Ctrl-Q is restarted: 3 lines could not be written (ENOSPC: no space left on device, write)`
+            `stopped writing to ${path.join(dir, 'sense.example.com')} until Ctrl-Q is restarted: 5 lines could not be written (ENOSPC: no space left on device, write)`
         );
         expect(warn).toHaveBeenCalledWith(`History file: ${store.message()}`);
 
         append.mockRestore();
-        store.appendRecords([rec({ resultId: 'e' })]);
+        store.appendRecords(recs('g'));
         expect(await store.flush()).toBe(0);
         await store.close();
         expect(fs.readdirSync(path.join(dir, 'sense.example.com'))).toEqual([]);
