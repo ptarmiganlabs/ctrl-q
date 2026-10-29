@@ -218,6 +218,14 @@ describe('QlikSenseTask.init — from_qseow ReloadTask', () => {
         expect(t.taskLastStatus).toBe('?');
     });
 
+    test('should return "?" for a status code the lookup does not know', async () => {
+        const t = new QlikSenseTask();
+        const task = makeQseowReloadTask();
+        task.operational.lastExecutionResult.status = 99;
+        await t.init('from_qseow', task, false);
+        expect(t.taskLastStatus).toBe('?');
+    });
+
     test('should map tags and custom properties to friendly strings', async () => {
         const t = new QlikSenseTask();
         await t.init('from_qseow', makeQseowReloadTask(), false);
@@ -303,6 +311,14 @@ describe('QlikSenseTask.init — from_qseow ExternalProgramTask', () => {
         taskNull.operational.lastExecutionResult.status = null;
         await isNull.init('from_qseow', taskNull, false);
         expect(isNull.taskLastStatus).toBe('?');
+    });
+
+    test('should return "?" for a status code the lookup does not know', async () => {
+        const t = new QlikSenseTask();
+        const task = makeQseowExtProgramTask();
+        task.operational.lastExecutionResult.status = 99;
+        await t.init('from_qseow', task, false);
+        expect(t.taskLastStatus).toBe('?');
     });
 
     test('should anonymize ext-program task names', async () => {
