@@ -115,10 +115,37 @@ Only **reload tasks** count towards the scheduler capacity. Congestion is always
 - **Click a task name** for the task's details and its latest 100 executions in the window.
 - **Congestion** tab: click an episode to zoom to it and list the tasks involved.
 - **Select range** (or press B): drag across the chart to list the tasks that ran in that period, sorted by time spent waiting.
-- **Filter** by name, app, stream or tag (press / to jump to the filter box), by status (failed, waited in queue, running now) and by node. **Sort** lanes by first start, total queue wait, failures, total run time or name.
+- **Filter** lanes by text, tag, status, congestion and node, see [Filtering](#filtering). **Sort** lanes by first start, total queue wait, failures, total run time or name.
 - **CSV** downloads the executions currently shown: those of the lanes shown, in the zoomed time range. The file opens in Excel with the right characters (UTF-8 with a byte order mark).
 - **Follow live** keeps the newest data in view. Zooming or panning back in time turns it off.
 - **Live indicator** in the header: green "live" while Ctrl-Q checks Sense successfully, orange "retrying" while Sense cannot be reached, red when live updates have stopped or the page lost its connection to Ctrl-Q. Time after Ctrl-Q's last successful check is hatched until it succeeds again.
+
+### Filtering
+
+On a site with hundreds or thousands of tasks, the filters in the toolbar find the lanes you need. They only choose what is drawn: the strip below the lanes and the congestion episodes always cover all tasks.
+
+**Search box** (press / to jump to it): a task is shown when every word matches its name, app, stream or one of its tags. Case does not matter.
+
+| You type                    | Shows the tasks that                                                                      |
+| --------------------------- | ----------------------------------------------------------------------------------------- |
+| `finance nightly`           | match both words, in any field                                                            |
+| `"daily load"`              | contain the phrase, space included                                                        |
+| `-test`                     | do not match `test`                                                                       |
+| `tag:nightly`               | have a tag containing `nightly`. `app:`, `stream:` and `name:` look in those fields alone |
+| `finance -test tag:nightly` | match all three                                                                           |
+
+**Tags** lists every tag the tasks have, with the number of tasks that have it; the box at the top finds a tag. Click a tag once to show only the tasks with it (+), again to hide the tasks with it (struck out), and once more to stop using it. With several tags included, a task needs one of them. **Clear** stops using all tags. The button shows how many tags are in use.
+
+**Status** has two groups of states:
+
+- **Runs in view**: failed / aborted / error, waited in queue, running now, succeeded, skipped. Only the runs in a ticked state are drawn, and tasks without such a run are hidden. A run whose state is unknown (grey dashed) counts as failed.
+- **Task**: last run failed (the latest run the page holds for the task failed, was aborted, ended in error or has an unknown state), disabled in Sense, deleted in Sense. These choose tasks only, and all their runs are drawn.
+
+Ticked states in one group combine with OR, the two groups with AND.
+
+**Only tasks in congestion** shows the tasks involved in a congestion episode that overlaps the time range on screen, and follows along as you zoom and pan. It uses the episodes listed on the Congestion tab, at most 50, most waiting first.
+
+Different filters combine with AND. While any of them is active, the line above the chart says how many tasks are shown, e.g. "Showing 37 of 2,140 tasks". On the **Congestion** tab, **Only episodes with shown tasks** lists only the episodes that involve a task in the chart.
 
 ## Options
 

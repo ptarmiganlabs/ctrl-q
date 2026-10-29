@@ -11,6 +11,7 @@ import {
     statusInfo,
     fmtDuration,
     fmtTime,
+    fmtCount,
     csvCell,
 } from '../../../static/task-gantt/format.js';
 import {
@@ -551,7 +552,7 @@ describe('createClientStore view()', () => {
         test('false does not bring back empty lanes while a status or node filter is active', () => {
             const store = loadedStore();
 
-            expect(viewOf(store, { onlyWithRuns: false, statusFilter: 'waited' }).order).toEqual([0, 1]);
+            expect(viewOf(store, { onlyWithRuns: false, runStates: ['waited'] }).order).toEqual([0, 1]);
             expect(viewOf(store, { onlyWithRuns: false, node: NODES[1] }).order).toEqual([2]);
         });
     });
@@ -585,7 +586,7 @@ describe('createClientStore view()', () => {
 
     describe('status filter', () => {
         test('problems: failed, aborted and error rows, plus stale rows', () => {
-            const v = viewOf(loadedStore(), { statusFilter: 'problems' });
+            const v = viewOf(loadedStore(), { runStates: ['problems'] });
 
             expect(keysOf(v.rows)).toEqual(['a1', 'c3', 'd1']);
             // Statistics only cover the shown rows: lane 2 now starts with c3 at 06:35, after lane 0 at 06:05.
@@ -603,18 +604,18 @@ describe('createClientStore view()', () => {
                 ]),
             });
 
-            expect(keysOf(viewOf(store, { statusFilter: 'problems' }).rows)).toEqual(['err', 'reset']);
+            expect(keysOf(viewOf(store, { runStates: ['problems'] }).rows)).toEqual(['err', 'reset']);
         });
 
         test('waited: rows that went through the scheduler queue', () => {
-            const v = viewOf(loadedStore(), { statusFilter: 'waited' });
+            const v = viewOf(loadedStore(), { runStates: ['waited'] });
 
             expect(keysOf(v.rows)).toEqual(['a1', 'b1']);
             expect(v.order).toEqual([0, 1]);
         });
 
         test('running: rows without a stop time that are not stale', () => {
-            const v = viewOf(loadedStore(), { statusFilter: 'running' });
+            const v = viewOf(loadedStore(), { runStates: ['running'] });
 
             expect(keysOf(v.rows)).toEqual(['c2']);
             expect(v.order).toEqual([2]);
@@ -624,9 +625,9 @@ describe('createClientStore view()', () => {
         test('combines with the text search and the node filter', () => {
             const store = loadedStore();
 
-            expect(viewOf(store, { statusFilter: 'problems', search: 'monitor' }).order).toEqual([0]);
-            expect(keysOf(viewOf(store, { statusFilter: 'problems', node: NODES[0] }).rows)).toEqual(['a1', 'd1']);
-            expect(keysOf(viewOf(store, { statusFilter: 'problems', node: NODES[1] }).rows)).toEqual(['c3']);
+            expect(viewOf(store, { runStates: ['problems'], search: 'monitor' }).order).toEqual([0]);
+            expect(keysOf(viewOf(store, { runStates: ['problems'], node: NODES[0] }).rows)).toEqual(['a1', 'd1']);
+            expect(keysOf(viewOf(store, { runStates: ['problems'], node: NODES[1] }).rows)).toEqual(['c3']);
         });
     });
 
@@ -662,7 +663,7 @@ describe('createClientStore view()', () => {
 
     test('does not change the store', () => {
         const store = loadedStore();
-        viewOf(store, { statusFilter: 'problems', search: 'monitor', node: NODES[0], sort: 'wait' });
+        viewOf(store, { runStates: ['problems'], search: 'monitor', node: NODES[0], sort: 'wait' });
 
         expect(store.size()).toBe(ROWS.length);
         expect(viewOf(store).order).toEqual([3, 2, 0, 1]);
@@ -732,10 +733,10 @@ describe('client store with a snapshot from the real buildSnapshot()', () => {
         store.load(snapshot);
         const at = { from: W_FROM, to: W_TO, now: W_TO };
 
-        const waited = store.view({ ...at, statusFilter: 'waited', sort: 'name' });
+        const waited = store.view({ ...at, runStates: ['waited'], sort: 'name' });
         expect(waited.order).toEqual([lanes.get(CONTENT_MONITOR).idx, lanes.get(OPERATIONS_MONITOR).idx]);
 
-        const problems = store.view({ ...at, statusFilter: 'problems', sort: 'name' });
+        const problems = store.view({ ...at, runStates: ['problems'], sort: 'name' });
         expect(problems.order).toEqual([lanes.get('a87ae597-be31-4453-be04-5b4f67489d8d').idx, lanes.get(CONTENT_MONITOR).idx]);
         expect(problems.rows.every((x) => x.status === 8 && x.flags === 0)).toBe(true);
 
@@ -861,6 +862,19 @@ describe('format: fmtTime', () => {
     test.each([null, undefined])('%p -> dash', (ms) => {
         expect(fmtTime(ms, true)).toBe('–');
         expect(fmtTime(ms, false)).toBe('–');
+    });
+});
+
+describe('format: fmtCount', () => {
+    test.each([
+        [0, '0'],
+        [7, '7'],
+        [999, '999'],
+        [2140, '2,140'],
+        [100000, '100,000'],
+        [1234567, '1,234,567'],
+    ])('%p -> %s', (n, text) => {
+        expect(fmtCount(n)).toBe(text);
     });
 });
 

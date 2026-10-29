@@ -278,6 +278,32 @@ describe('the web page', () => {
         expect(html).not.toMatch(/\son[a-z]+=/i);
     });
 
+    test('its scripts never write HTML or inline styles: text from Sense goes in as text, and styles come from classes', () => {
+        const forbidden = [
+            /\.(inner|outer)HTML\s*\+?=(?!=)/,
+            /insertAdjacentHTML\s*\(/,
+            /document\.write/,
+            /\.style(\.\w+)?\s*=(?!=)/,
+            /\.cssText\b/,
+            /setAttribute\(\s*['"`]style['"`]/,
+            // A style attribute through el() in format.js
+            /\bstyle\s*:\s*['"`]/,
+        ];
+        const scripts = TASK_GANTT_ROUTES.filter((r) => r.url.startsWith('/task-gantt/') && r.url.endsWith('.js'));
+
+        expect(scripts.length).toBeGreaterThanOrEqual(4);
+        for (const route of scripts) {
+            const code = readSrc(route.file).toString('utf8');
+            for (const pattern of forbidden) {
+                expect({ file: route.file, pattern: String(pattern), found: pattern.test(code) }).toEqual({
+                    file: route.file,
+                    pattern: String(pattern),
+                    found: false,
+                });
+            }
+        }
+    });
+
     test('serves its JavaScript modules, including the sweep code shared with the backend, as text/javascript', async () => {
         const gantt = await start();
         const main = await get(gantt.port, '/task-gantt/main.js');

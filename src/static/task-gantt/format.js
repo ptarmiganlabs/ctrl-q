@@ -115,6 +115,16 @@ export function fmtDuration(ms) {
 }
 
 /**
+ * Format a count with thousands separators, e.g. '2,140', in English like the rest of the page.
+ *
+ * @param {number} n - Count.
+ * @returns {string} Formatted count.
+ */
+export function fmtCount(n) {
+    return Number(n).toLocaleString('en-US');
+}
+
+/**
  * Quote a value for CSV, and neutralise values Excel would treat as formulas.
  *
  * @param {*} value - Cell value.

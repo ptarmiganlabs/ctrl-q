@@ -1,7 +1,7 @@
 import { jest, test, expect, describe, afterEach } from '@jest/globals';
 import fs from 'node:fs';
 
-import { buildChartOption, chartLayout, lanesThatFit, safeWindow, LANE_PX } from '../../../static/task-gantt/chart.js';
+import { buildChartOption, chartLayout, lanesThatFit, safeWindow, visibleRange, LANE_PX } from '../../../static/task-gantt/chart.js';
 import { FLAG_STALE, FLAG_DERIVED } from '../../../static/task-gantt/format.js';
 import { fromExecutionResult } from '../../../lib/task-gantt/normalize/qrs.js';
 
@@ -506,6 +506,30 @@ describe('no NaN reaches an axis (ECharts 6.1 then draws nothing)', () => {
 
         expect(values.every((v) => typeof v === 'number' && Number.isFinite(v))).toBe(true);
         expect(render(option).svg).toContain('Task 0');
+    });
+});
+
+describe('visibleRange', () => {
+    const WEEK = { from: T0 - 7 * 24 * HOUR, to: T0 };
+
+    test('is the saved zoom, or before the first zoom the last 24 hours of the window', () => {
+        expect(visibleRange({}, WEEK, NOW)).toEqual({ from: T0 - 24 * HOUR, to: T0 });
+        expect(visibleRange({ xStart: T0 - 2 * HOUR, xEnd: T0 - HOUR }, WEEK, NOW)).toEqual({ from: T0 - 2 * HOUR, to: T0 - HOUR });
+        // A window shorter than a day is shown whole
+        expect(visibleRange(undefined, WINDOW, NOW)).toEqual(WINDOW);
+        // Values that are not numbers are not used, as in buildChartOption()
+        expect(visibleRange({ xStart: NaN, xEnd: undefined }, WEEK, NaN)).toEqual({ from: T0 - 24 * HOUR, to: T0 });
+    });
+
+    test('is where the chart puts the time slider, so filters and chart agree on the range on screen', () => {
+        for (const [window, zoom] of [
+            [WEEK, {}],
+            [WEEK, { xStart: T0 - 3 * HOUR, xEnd: T0 - 2 * HOUR }],
+            [WINDOW, { xStart: T0 + 10 * MIN }],
+        ]) {
+            const slider = buildChartOption(params({ window, zoom })).option.dataZoom.find((z) => z.id === 'xSlider');
+            expect({ from: slider.startValue, to: slider.endValue }).toEqual(visibleRange(zoom, window, NOW));
+        }
     });
 });
 

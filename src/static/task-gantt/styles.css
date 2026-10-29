@@ -242,7 +242,204 @@ input[type='search'] {
 }
 
 #search {
-    width: 200px;
+    width: 220px;
+}
+
+/* Search syntax help, below the search box while it has focus and is still empty */
+.searchBox {
+    position: relative;
+    display: inline-flex;
+}
+
+.searchHelp {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 30;
+    width: max-content;
+    max-width: min(440px, calc(100vw - 24px));
+    padding: 6px 8px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+#search:focus:placeholder-shown + .searchHelp {
+    display: block;
+}
+
+.searchHelp code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--fg);
+    background: var(--bg);
+    border-radius: 3px;
+    padding: 0 3px;
+}
+
+/* Filter popovers: Tags and Status */
+.popwrap {
+    position: relative;
+    display: inline-flex;
+}
+
+.popbutton::after {
+    content: '\25BE';
+    margin-left: 5px;
+    color: var(--muted);
+}
+
+.popbutton[aria-expanded='true'],
+.popbutton.filtering {
+    border-color: var(--accent);
+}
+
+.popbutton .count {
+    display: inline-block;
+    min-width: 18px;
+    margin-left: 5px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
+}
+
+.popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 30;
+    width: max-content;
+    min-width: 250px;
+    max-width: min(380px, calc(100vw - 24px));
+    padding: 8px 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    color: var(--fg);
+}
+
+.popover.alignEnd {
+    left: auto;
+    right: 0;
+}
+
+.popover .hint {
+    margin: 6px 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.popover fieldset {
+    margin: 0 0 8px;
+    padding: 0;
+    border: none;
+}
+
+.popover legend {
+    margin-bottom: 2px;
+    padding: 0;
+    font-weight: 600;
+}
+
+.toolbar .popover label {
+    display: flex;
+    padding: 2px 0;
+    color: var(--fg);
+}
+
+.popoverHead {
+    display: flex;
+    gap: 6px;
+}
+
+.popoverHead input {
+    flex: 1;
+    min-width: 0;
+}
+
+.tagList {
+    display: flex;
+    flex-direction: column;
+    max-height: min(50vh, 420px);
+    overflow: auto;
+}
+
+/* One tag: no mark when unused, + and the accent colour when included, a struck-out name when excluded */
+.tagItem {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 3px 6px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    text-align: left;
+}
+
+.tagItem:hover {
+    background: var(--bg);
+}
+
+.tagItem .mark {
+    flex: none;
+    width: 14px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.tagItem .name {
+    overflow-wrap: anywhere;
+}
+
+.tagItem .n {
+    margin-left: auto;
+    padding-left: 10px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.tagItem.include .mark::before {
+    content: '+';
+    color: var(--accent);
+}
+
+.tagItem.include .name {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.tagItem.exclude .mark::before {
+    content: '\2212';
+    color: var(--danger);
+}
+
+.tagItem.exclude .name {
+    color: var(--danger);
+    text-decoration: line-through;
+}
+
+/* Text for screen readers only */
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 .banner {
@@ -342,6 +539,14 @@ input[type='search'] {
 }
 
 .panel .hint {
+    color: var(--muted);
+}
+
+.panelOption {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
     color: var(--muted);
 }
 

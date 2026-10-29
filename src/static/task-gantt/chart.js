@@ -37,6 +37,22 @@ export function safeWindow(window, now) {
 }
 
 /**
+ * The time range on screen: the saved zoom, or the last 24 hours of the window before the first zoom.
+ *
+ * @param {{xStart?: number, xEnd?: number}} zoom - Zoom, see buildChartOption().
+ * @param {{from: number, to: number}|undefined} window - Time window.
+ * @param {number} now - Current time.
+ * @returns {{from: number, to: number}} The range.
+ */
+export function visibleRange(zoom, window, now) {
+    const win = safeWindow(window, finite(now) ? now : Date.now());
+    return {
+        from: finite(zoom?.xStart) ? zoom.xStart : Math.max(win.from, win.to - DAY_MS),
+        to: finite(zoom?.xEnd) ? zoom.xEnd : win.to,
+    };
+}
+
+/**
  * How many lanes fit on screen.
  *
  * @param {number} chartHeight - Height of the chart element in px.
@@ -205,8 +221,7 @@ export function buildChartOption(p) {
 
     // Saved zoom values are used only when they are numbers (see safeWindow)
     const yStart = Math.min(Math.max(0, finite(zoom.yStart) ? zoom.yStart : 0), Math.max(0, order.length - fit));
-    const xStart = finite(zoom.xStart) ? zoom.xStart : Math.max(window.from, window.to - DAY_MS);
-    const xEnd = finite(zoom.xEnd) ? zoom.xEnd : window.to;
+    const { from: xStart, to: xEnd } = visibleRange(zoom, window, now);
 
     const option = {
         animation: false,
