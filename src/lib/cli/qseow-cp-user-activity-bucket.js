@@ -78,7 +78,9 @@ export function setupQseowUserActivityCustomPropertyCommand(qseow) {
                 .default('./cert/root.pem')
                 .env('CTRLQ_ROOT_CERT_FILE')
         )
-        .addOption(new Option('--jwt <JWT>', 'JSON Web Token (JWT) to use for authenticating with Qlik Sense').default('').env('CTRLQ_JWT'))
+        .addOption(
+            new Option('--jwt <JWT>', 'JSON Web Token (JWT) to use for authenticating with Qlik Sense').default('').env('CTRLQ_AUTH_JWT')
+        )
         .addOption(
             new Option('--user-directory <name...>', 'name of user directories whose users will be updated with activity info')
                 .default('')

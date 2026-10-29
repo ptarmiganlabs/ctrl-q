@@ -1,6 +1,7 @@
 import { Command, Option } from 'commander';
 import { logger, appVersion, setLoggingLevel, setCliOptions } from './globals.js';
 import { logStartupInfo } from './lib/util/log.js';
+import { applyDeprecatedJwtEnvVar } from './lib/util/jwt-env.js';
 
 // Import command setup functions
 // QSEoW
@@ -56,6 +57,9 @@ program.configureHelp({
             `Ctrl-Q is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.\nAmong other things the tool does bulk import of apps and tasks, manipulates master items and scrambles in-app data.\n\nVersion: ${appVersion}`
         )
         .hook('preAction', (thisCommand, actionCommand) => {
+            // Use the deprecated CTRLQ_JWT env var for a JWT not given on the command line or in CTRLQ_AUTH_JWT
+            const jwtEnvWarning = applyDeprecatedJwtEnvVar(actionCommand);
+
             const options = actionCommand.opts();
 
             // Store CLI options in global variable
@@ -64,6 +68,10 @@ program.configureHelp({
             // Set log level & show startup info
             setLoggingLevel(options.logLevel);
             logStartupInfo(options, actionCommand._name, actionCommand._description);
+
+            if (jwtEnvWarning) {
+                logger.warn(jwtEnvWarning);
+            }
 
             logger.verbose(`About to call action handler for subcommand: ${actionCommand.name()}`);
         });

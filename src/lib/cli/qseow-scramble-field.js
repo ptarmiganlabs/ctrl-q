@@ -75,7 +75,9 @@ export function setupQseowScrambleFieldCommand(qseow) {
                 .default('./cert/root.pem')
                 .env('CTRLQ_ROOT_CERT_FILE')
         )
-        .addOption(new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_JWT'))
+        .addOption(
+            new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_AUTH_JWT')
+        )
         .addOption(new Option('--app-id <id>', 'Qlik Sense app ID to be scrambled').makeOptionMandatory().env('CTRLQ_APP_ID'))
         .addOption(new Option('--field-name <names...>', 'name of field(s) to be scrambled').makeOptionMandatory().env('CTRLQ_FIELD_NAME'))
         .addOption(

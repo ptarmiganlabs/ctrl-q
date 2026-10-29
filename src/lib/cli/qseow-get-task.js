@@ -83,7 +83,9 @@ export function setupGetTaskCommand(qseow) {
                 .default('./cert/root.pem')
                 .env('CTRLQ_ROOT_CERT_FILE')
         )
-        .addOption(new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_JWT'))
+        .addOption(
+            new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_AUTH_JWT')
+        )
         .addOption(
             new Option('--task-type <type...>', 'type of tasks to include').choices(['reload', 'ext-program']).env('CTRLQ_TASK_TYPE')
         )
