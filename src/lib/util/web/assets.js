@@ -55,7 +55,9 @@ export function validateRoute(route) {
  * @param {Function} [param.getSeaAsset] - (key) => ArrayBuffer. Defaults to sea.getAsset.
  * @param {Function} [param.readFile] - async (absolutePath) => Buffer. Defaults to fs.promises.readFile.
  * @param {string} [param.srcRoot] - Absolute path to the 'src' directory. Defaults to defaultSrcRoot().
- * @returns {{lookup: Function, load: Function, verifyAll: Function, routes: Array}} The asset catalog.
+ * @returns {{lookup: Function, load: Function, verifyAll: Function, routes: Array, immutable: boolean}} The asset
+ *   catalog. immutable is true when the content cannot change while Ctrl-Q runs (embedded SEA assets), so a server
+ *   may cache it.
  */
 export function createAssetCatalog({ routes, isSea, getSeaAsset, readFile, srcRoot } = {}) {
     if (!Array.isArray(routes)) {
@@ -68,6 +70,7 @@ export function createAssetCatalog({ routes, isSea, getSeaAsset, readFile, srcRo
     let root = srcRoot;
 
     const byUrl = new Map();
+    const fileBySeaKey = new Map();
     for (const route of routes) {
         const error = validateRoute(route);
         if (error) {
@@ -76,10 +79,17 @@ export function createAssetCatalog({ routes, isSea, getSeaAsset, readFile, srcRo
         if (byUrl.has(route.url)) {
             throw new Error(`createAssetCatalog: duplicate route url ${route.url}`);
         }
+        const seaKey = route.seaKey || `/${route.file}`;
+        // One file may be served under several URLs, but two files under one key would be one file in the binary
+        const sharedWith = fileBySeaKey.get(seaKey);
+        if (sharedWith !== undefined && sharedWith !== route.file) {
+            throw new Error(`createAssetCatalog: ${sharedWith} and ${route.file} share the SEA key ${seaKey}`);
+        }
+        fileBySeaKey.set(seaKey, route.file);
         byUrl.set(route.url, {
             url: route.url,
             file: route.file,
-            seaKey: route.seaKey || `/${route.file}`,
+            seaKey,
             mimeType: mimeTypeFor(route.file),
         });
     }
@@ -129,7 +139,7 @@ export function createAssetCatalog({ routes, isSea, getSeaAsset, readFile, srcRo
         return { ok: missing.length === 0, missing };
     };
 
-    return { lookup, load, verifyAll, routes: [...byUrl.values()] };
+    return { lookup, load, verifyAll, routes: [...byUrl.values()], immutable: runningAsSea };
 }
 
 /**
@@ -142,11 +152,18 @@ export function createAssetCatalog({ routes, isSea, getSeaAsset, readFile, srcRo
  */
 export function checkSeaConfig(routes, seaAssets) {
     const problems = [];
-    const seen = new Set();
+    const fileByKey = new Map();
     for (const route of routes) {
         const key = route.seaKey || `/${route.file}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
+        const earlier = fileByKey.get(key);
+        if (earlier !== undefined) {
+            // Checked once per key. A second file under the same key would be served as the first one in the binary.
+            if (earlier !== route.file) {
+                problems.push(`"${earlier}" and "${route.file}" share sea-config asset "${key}"; the binary serves "${earlier}" for both`);
+            }
+            continue;
+        }
+        fileByKey.set(key, route.file);
         const expected = `./src/${route.file}`;
         if (!(key in (seaAssets || {}))) {
             problems.push(`missing sea-config asset "${key}" (expected "${expected}")`);

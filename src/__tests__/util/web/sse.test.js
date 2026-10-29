@@ -3,7 +3,7 @@ import http from 'node:http';
 
 import { createSseHub } from '../../../lib/util/web/sse.js';
 import { startWebServer } from '../../../lib/util/web/server.js';
-import { silentLogger } from './web-test-helpers.mjs';
+import { silentLogger, sleep, waitFor } from './web-test-helpers.mjs';
 
 // Open an SSE connection and collect what arrives
 function connect(port) {
@@ -23,18 +23,6 @@ function connect(port) {
     });
 }
 
-const waitFor = async (predicate, timeoutMs = 2000) => {
-    const start = Date.now();
-    while (!predicate()) {
-        if (Date.now() - start > timeoutMs) {
-            throw new Error('timeout waiting for condition');
-        }
-        await new Promise((r) => {
-            setTimeout(r, 10);
-        });
-    }
-};
-
 describe('createSseHub', () => {
     let web;
     let hub;
@@ -44,13 +32,24 @@ describe('createSseHub', () => {
         await web?.close();
     });
 
-    const start = async (hubOptions) => {
+    // readBody: the route reads the request body first, as a route taking a POST body would
+    const start = async (hubOptions, { readBody = false } = {}) => {
         hub = createSseHub({ logger: silentLogger, ...hubOptions });
         web = await startWebServer({
             host: '127.0.0.1',
             port: 0,
             logger: silentLogger,
-            apiRoutes: [{ path: '/api/events', handler: ({ req, res, baseHeaders }) => hub.handle(req, res, baseHeaders) }],
+            apiRoutes: [
+                {
+                    path: '/api/events',
+                    handler: ({ req, res, baseHeaders }) => {
+                        if (readBody) {
+                            req.resume();
+                        }
+                        hub.handle(req, res, baseHeaders);
+                    },
+                },
+            ],
         });
     };
 
@@ -94,22 +93,51 @@ describe('createSseHub', () => {
         real.req.destroy();
     });
 
-    test('drops a client that does not keep up', async () => {
-        await start({ maxBufferedBytes: 1000 });
+    test('drops a client whose backlog stays above the limit', async () => {
+        await start({ maxBufferedBytes: 1000, slowClientGraceMs: 50 });
         const slow = await connect(web.port);
         await waitFor(() => hub.clientCount() === 1);
         slow.res.pause();
 
+        // The operating system buffers the first few MB; after that the backlog grows on the server
         const big = 'x'.repeat(200000);
-        for (let i = 0; i < 50 && hub.clientCount() > 0; i += 1) {
+        for (let i = 0; i < 400 && hub.clientCount() > 0; i += 1) {
             hub.broadcast('bulk', { big });
-            await new Promise((r) => {
-                setTimeout(r, 5);
-            });
+            await sleep(5);
         }
 
         expect(hub.clientCount()).toBe(0);
         slow.req.destroy();
+    });
+
+    test('keeps a client that reads, also when one event is larger than the limit', async () => {
+        await start({ maxBufferedBytes: 1000 });
+        const client = await connect(web.port);
+        await waitFor(() => hub.clientCount() === 1);
+
+        // Both are queued at once, so the backlog is far above the limit until the socket has drained
+        hub.broadcast('bulk', { big: 'x'.repeat(2 * 1000 * 1000) });
+        hub.broadcast('after', { n: 1 });
+        await waitFor(() => client.received.text.includes('event: after'), 5000);
+
+        expect(hub.clientCount()).toBe(1);
+        client.req.destroy();
+    });
+
+    test('counts a client that has caught up as current again', async () => {
+        await start({ maxBufferedBytes: 1000, slowClientGraceMs: 50 });
+        const client = await connect(web.port);
+        await waitFor(() => hub.clientCount() === 1);
+
+        hub.broadcast('bulk', { big: 'x'.repeat(2 * 1000 * 1000) });
+        await waitFor(() => client.received.text.length > 2 * 1000 * 1000, 5000);
+        // Longer than the grace period since the backlog went above the limit
+        await sleep(100);
+        hub.broadcast('later', { n: 2 });
+        await waitFor(() => client.received.text.includes('event: later'));
+
+        expect(hub.clientCount()).toBe(1);
+        client.req.destroy();
     });
 
     test('broadcasts JSON events with ids to all clients', async () => {
@@ -136,6 +164,20 @@ describe('createSseHub', () => {
         await waitFor(() => hub.clientCount() === 0);
 
         expect(() => hub.broadcast('x', {})).not.toThrow();
+    });
+
+    test('keeps a client whose request body has been read', async () => {
+        // Reading the body ends the request stream, and its 'close' then fires while the connection is still open
+        await start({}, { readBody: true });
+        const client = await connect(web.port);
+        await waitFor(() => hub.clientCount() === 1);
+        await sleep(100);
+
+        hub.broadcast('delta', { rev: 1 });
+        await waitFor(() => client.received.text.includes('event: delta'));
+
+        expect(hub.clientCount()).toBe(1);
+        client.req.destroy();
     });
 
     test('sends keep-alive pings', async () => {
@@ -170,5 +212,15 @@ describe('createSseHub', () => {
         await ended;
 
         expect(hub.clientCount()).toBe(0);
+    });
+
+    test('after close(), clients that connect are turned away', async () => {
+        await start();
+        hub.close();
+        const late = await connect(web.port);
+
+        expect(late.received.status).toBe(503);
+        expect(hub.clientCount()).toBe(0);
+        late.req.destroy();
     });
 });
