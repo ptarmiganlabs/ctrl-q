@@ -16,6 +16,7 @@ import {
     mapIncrementOption,
     mapRuleState,
     mapTaskExecutionStatus,
+    mapTaskExecutionStatusIcon,
     mapTaskType,
     taskFileColumnHeaders,
     appFileColumnHeaders,
@@ -354,5 +355,21 @@ describe('Edge cases', () => {
         const initialSize = mapTaskType.size;
         mapTaskType.set(99, 'Test');
         expect(mapTaskType.size).toBe(initialSize + 1);
+    });
+});
+
+/**
+ * Tests for mapTaskExecutionStatusIcon - icon shown before a task's last status in task-get's table and tree
+ */
+describe('mapTaskExecutionStatusIcon', () => {
+    test('should only have icons for status names that mapTaskExecutionStatus produces', () => {
+        const statusNames = [...mapTaskExecutionStatus.values()];
+        const unknown = [...mapTaskExecutionStatusIcon.keys()].filter((status) => !statusNames.includes(status));
+
+        expect(unknown).toEqual([]);
+    });
+
+    test('should show a task that has never run (status 0) as 💤', () => {
+        expect(mapTaskExecutionStatusIcon.get(mapTaskExecutionStatus.get(0))).toBe('💤');
     });
 });
