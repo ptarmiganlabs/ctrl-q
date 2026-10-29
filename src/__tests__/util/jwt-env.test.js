@@ -17,29 +17,41 @@ const { applyDeprecatedJwtEnvVar } = await import('../../lib/util/jwt-env.js');
 // ---------------------------------------------------------------------------
 
 /**
- * Set up every command defined in src/lib/cli, and return each option that takes a JWT
- * together with the file that defines it.
+ * Set up every command defined in src/lib/cli, and return all of them, subcommands included,
+ * each with the file that defines it.
  */
-const getCliJwtOptions = async () => {
+const getCliCommands = async () => {
     const cliFiles = fs.readdirSync(new URL('../../lib/cli/', import.meta.url)).filter((file) => file.endsWith('.js'));
-    const jwtOptions = [];
+    const commands = [];
+    const collect = (command, file) => {
+        commands.push({ file, command });
+        command.commands.forEach((subcommand) => collect(subcommand, file));
+    };
 
     for (const file of cliFiles) {
         const cliModule = await import(`../../lib/cli/${file}`);
 
         for (const setupCommand of Object.values(cliModule)) {
-            // Fresh parent per file, as Commander refuses two subcommands with the same name
+            // Fresh parent per setup function, as Commander refuses two subcommands with the same name
             const parent = new Command();
             setupCommand(parent);
-
-            parent.commands.forEach((command) => {
-                command.options.filter((option) => /jwt/i.test(option.long)).forEach((option) => jwtOptions.push({ file, option }));
-            });
+            parent.commands.forEach((command) => collect(command, file));
         }
     }
 
-    return jwtOptions;
+    return commands;
 };
+
+/**
+ * Every option of the commands in src/lib/cli that takes a JWT: one that reads a JWT from the
+ * environment, or whose name says it takes one and that isn't a hidden alias.
+ */
+const getCliJwtOptions = async () =>
+    (await getCliCommands()).flatMap(({ file, command }) =>
+        command.options
+            .filter((option) => /jwt/i.test(option.envVar ?? '') || (/jwt/i.test(option.long ?? '') && !option.hidden))
+            .map((option) => ({ file, command, option }))
+    );
 
 /**
  * Parse args with a command shaped like the real ones, applying the CTRLQ_JWT fallback in a
@@ -93,8 +105,24 @@ describe('CLI options that take a JWT', () => {
 
         const otherEnvVars = jwtOptions
             .filter(({ option }) => option.envVar !== 'CTRLQ_AUTH_JWT')
-            .map(({ file, option }) => `${file}: ${option.long} reads ${option.envVar}`);
+            .map(({ file, command, option }) => `${file}: ${command.name()} ${option.long} reads ${option.envVar}`);
         expect(otherEnvVars).toEqual([]);
+    });
+
+    test('should be --auth-jwt in every command that offers JWT authentication', async () => {
+        const offersJwtAuth = (command) =>
+            command.options.some((option) => option.attributeName() === 'authType' && option.argChoices?.includes('jwt'));
+        const jwtAuthCommands = (await getCliCommands()).filter(({ command }) => offersJwtAuth(command));
+        expect(jwtAuthCommands.length).toBeGreaterThan(0);
+
+        // The QRS and engine connections, and the check for a missing JWT, all read options.authJwt
+        const withoutAuthJwt = jwtAuthCommands
+            .filter(
+                ({ command }) =>
+                    !command.options.some((option) => option.attributeName() === 'authJwt' && option.envVar === 'CTRLQ_AUTH_JWT')
+            )
+            .map(({ file, command }) => `${file}: ${command.name()}`);
+        expect(withoutAuthJwt).toEqual([]);
     });
 
     test('should not be mandatory, as Commander checks mandatory options before the CTRLQ_JWT fallback runs', async () => {
