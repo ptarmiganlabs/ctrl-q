@@ -1,7 +1,7 @@
 import { jest, test, expect, describe, afterEach } from '@jest/globals';
 import fs from 'node:fs';
 
-import { buildChartOption, chartLayout, lanesThatFit, LANE_PX } from '../../../static/task-gantt/chart.js';
+import { buildChartOption, chartLayout, lanesThatFit, safeWindow, LANE_PX } from '../../../static/task-gantt/chart.js';
 import { FLAG_STALE, FLAG_DERIVED } from '../../../static/task-gantt/format.js';
 import { fromExecutionResult } from '../../../lib/task-gantt/normalize/qrs.js';
 
@@ -482,6 +482,30 @@ describe('buildChartOption: gaps, episodes, concurrency and capacity', () => {
         expect(markLineFor(null).data).toEqual([]);
         expect(markLineFor(undefined).data).toEqual([]);
         expect(markLineFor(0).data).toEqual([]);
+    });
+});
+
+describe('no NaN reaches an axis (ECharts 6.1 then draws nothing)', () => {
+    test('safeWindow keeps a usable window and replaces a broken one with the 24 hours before its end or now', () => {
+        expect(safeWindow(WINDOW, NOW)).toEqual(WINDOW);
+        expect(safeWindow({ from: NaN, to: WINDOW.to }, NOW)).toEqual({ from: WINDOW.to - 24 * HOUR, to: WINDOW.to });
+        expect(safeWindow({ from: WINDOW.from, to: undefined }, NOW)).toEqual({ from: WINDOW.from, to: NOW });
+        expect(safeWindow(undefined, NOW)).toEqual({ from: NOW - 24 * HOUR, to: NOW });
+        // from must be before to
+        expect(safeWindow({ from: WINDOW.to, to: WINDOW.to }, NOW)).toEqual({ from: WINDOW.to - 24 * HOUR, to: WINDOW.to });
+    });
+
+    test('a broken window, clock or saved zoom still gives finite axis and zoom values, and a chart that renders', () => {
+        const { option } = buildChartOption(
+            params({ window: { from: NaN, to: undefined }, now: NaN, zoom: { xStart: NaN, xEnd: undefined, yStart: NaN } })
+        );
+        const values = [
+            ...option.xAxis.flatMap((a) => [a.min, a.max]),
+            ...option.dataZoom.filter((z) => z.type === 'slider').flatMap((z) => [z.startValue, z.endValue]),
+        ];
+
+        expect(values.every((v) => typeof v === 'number' && Number.isFinite(v))).toBe(true);
+        expect(render(option).svg).toContain('Task 0');
     });
 });
 

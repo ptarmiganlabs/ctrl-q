@@ -104,7 +104,9 @@ function initChart() {
     colors = readColors();
     patterns = createPatterns(colors);
     const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    chart = echarts.init($('chart'), dark ? 'dark' : null, { renderer: 'canvas' });
+    // Dirty-rect rendering stays off: with it, the axis pointer corrupts dense line series such as the concurrency strip
+    // (apache/echarts#21634)
+    chart = echarts.init($('chart'), dark ? 'dark' : null, { renderer: 'canvas', useDirtyRect: false });
     chart.on('click', onChartClick);
     chart.on('brushEnd', onBrushEnd);
     chart.on('datazoom', onDataZoom);

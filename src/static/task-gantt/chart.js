@@ -17,7 +17,24 @@ const GAP = 36;
 const BELOW_CONCURRENCY = 26;
 const BOTTOM_MARGIN = 8;
 
+const DAY_MS = 24 * 3600 * 1000;
+
 const finite = (v) => typeof v === 'number' && Number.isFinite(v);
+
+/**
+ * The time window with finite bounds, from before to. ECharts 6.1 draws nothing at all when an axis min or max is NaN,
+ * so a broken window must never reach the option.
+ *
+ * @param {{from: number, to: number}|undefined} window - Time window.
+ * @param {number} now - Current time (finite).
+ * @returns {{from: number, to: number}} The window, or the 24 hours before now (or before the window end) where it is
+ *   not usable.
+ */
+export function safeWindow(window, now) {
+    const to = finite(window?.to) ? window.to : now;
+    const from = finite(window?.from) && window.from < to ? window.from : to - DAY_MS;
+    return { from, to };
+}
 
 /**
  * How many lanes fit on screen.
@@ -152,8 +169,8 @@ export function buildChartOption(p) {
         order,
         laneOf,
         rows,
-        window,
-        now,
+        window: rawWindow,
+        now: rawNow,
         zoom = {},
         useUTC,
         colors,
@@ -164,6 +181,8 @@ export function buildChartOption(p) {
         gaps,
         chartHeight,
     } = p;
+    const now = finite(rawNow) ? rawNow : Date.now();
+    const window = safeWindow(rawWindow, now);
     const posByLane = new Map(order.map((idx, i) => [idx, i]));
     const layout = chartLayout(order.length, chartHeight);
     const { fit } = layout;
@@ -184,9 +203,10 @@ export function buildChartOption(p) {
         for (const [a, b] of ranges) gapData.push([pos, a, b]);
     }
 
-    const yStart = Math.min(Math.max(0, zoom.yStart ?? 0), Math.max(0, order.length - fit));
-    const xStart = zoom.xStart ?? Math.max(window.from, window.to - 24 * 3600 * 1000);
-    const xEnd = zoom.xEnd ?? window.to;
+    // Saved zoom values are used only when they are numbers (see safeWindow)
+    const yStart = Math.min(Math.max(0, finite(zoom.yStart) ? zoom.yStart : 0), Math.max(0, order.length - fit));
+    const xStart = finite(zoom.xStart) ? zoom.xStart : Math.max(window.from, window.to - DAY_MS);
+    const xEnd = finite(zoom.xEnd) ? zoom.xEnd : window.to;
 
     const option = {
         animation: false,
