@@ -27,10 +27,12 @@ export function isTaskVisible(task, filters) {
     if (!anyFilter) {
         return true;
     }
+    // Ids are compared in lower case: QRS gives them so, and validateTaskGanttOptions() lower-cases the filters
+    const lower = (id) => String(id).toLowerCase();
     return (
-        taskIds.includes(task.id) ||
+        taskIds.includes(lower(task.id)) ||
         (task.tags || []).some((t) => taskTags.includes(t)) ||
-        (task.appId !== null && (appIds.includes(task.appId) || appIdsFromTags.has(task.appId)))
+        (task.appId !== null && task.appId !== undefined && (appIds.includes(lower(task.appId)) || appIdsFromTags.has(task.appId)))
     );
 }
 

@@ -309,10 +309,21 @@ export function createExecutionStore({ maxRecords = MAX_RECORDS, matchToleranceM
         return out;
     };
 
+    /**
+     * Move the revision on without a change, e.g. so that pages following the live deltas reload their snapshot.
+     *
+     * @returns {number} The new revision.
+     */
+    const bumpRev = () => {
+        rev += 1;
+        return rev;
+    };
+
     return {
         upsertMany,
         pruneBefore,
         drainChanges,
+        bumpRev,
         get: (key) => records.get(key),
         all: () => [...records.values()],
         // Records that have not stopped yet, without scanning all records

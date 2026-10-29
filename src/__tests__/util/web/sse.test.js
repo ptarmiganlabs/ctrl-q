@@ -110,6 +110,25 @@ describe('createSseHub', () => {
         slow.req.destroy();
     });
 
+    test('drops a stalled client at once when its backlog passes the limit plus twice the largest event', async () => {
+        // The default grace period is 10 s; the hard limit must not wait for it
+        await start({ maxBufferedBytes: 1000 });
+        const slow = await connect(web.port);
+        await waitFor(() => hub.clientCount() === 1);
+        slow.res.pause();
+
+        const started = Date.now();
+        const big = 'x'.repeat(200000);
+        for (let i = 0; i < 400 && hub.clientCount() > 0; i += 1) {
+            hub.broadcast('bulk', { big });
+            await sleep(5);
+        }
+
+        expect(hub.clientCount()).toBe(0);
+        expect(Date.now() - started).toBeLessThan(5000);
+        slow.req.destroy();
+    });
+
     test('keeps a client that reads, also when one event is larger than the limit', async () => {
         await start({ maxBufferedBytes: 1000 });
         const client = await connect(web.port);
@@ -214,13 +233,16 @@ describe('createSseHub', () => {
         expect(hub.clientCount()).toBe(0);
     });
 
-    test('after close(), clients that connect are turned away', async () => {
-        await start();
+    test('after close(), a client that connects gets a stream that ends, so the browser tries again later', async () => {
+        await start({ retryMs: 1234 });
         hub.close();
         const late = await connect(web.port);
+        // The stream may well have ended before connect() returned
+        await waitFor(() => late.res.readableEnded);
 
-        expect(late.received.status).toBe(503);
+        // An error status would make EventSource give up for good
+        expect(late.received.status).toBe(200);
+        expect(late.received.text).toBe('retry: 1234\n\n');
         expect(hub.clientCount()).toBe(0);
-        late.req.destroy();
     });
 });

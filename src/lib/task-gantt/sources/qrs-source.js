@@ -6,6 +6,10 @@ import { STATUS } from '../model/status.js';
 
 // SchedulerServiceTypeEnum: 0 Master, 1 Slave, 2 MasterAndSlave. Only schedulers that run reloads have capacity.
 const RELOADING_SCHEDULER_TYPES = new Set([1, 2]);
+// Reading all tasks or all execution results can take minutes on a large site, far longer than the default 60 s
+const BULK_TIMEOUT_MS = 5 * 60 * 1000;
+// The details of one execution, for the page's details panel, which waits for them
+const DETAILS_TIMEOUT_MS = 10 * 1000;
 
 /**
  * Map a task from GET /qrs/task/full to the task-gantt task model.
@@ -53,7 +57,7 @@ export function toSchedulerNodes(schedulers) {
  * @returns {object} The source.
  */
 export function createQrsSource({ options, logger, request = qrsRequestJson }) {
-    const get = (path, query) => request(options, { method: 'get', path, query });
+    const get = (path, query, timeoutMs) => request(options, { method: 'get', path, query, ...(timeoutMs ? { timeoutMs } : {}) });
     let taskTypes = new Map();
 
     /**
@@ -63,9 +67,9 @@ export function createQrsSource({ options, logger, request = qrsRequestJson }) {
      */
     const loadMetadata = async () => {
         const [tasks, schedulers, clusters] = await Promise.all([
-            get('/qrs/task/full'),
-            get('/qrs/schedulerservice/full'),
-            get('/qrs/servicecluster/full'),
+            get('/qrs/task/full', undefined, BULK_TIMEOUT_MS),
+            get('/qrs/schedulerservice/full', undefined, BULK_TIMEOUT_MS),
+            get('/qrs/servicecluster/full', undefined, BULK_TIMEOUT_MS),
         ]);
         const taskInfos = (tasks.data || []).map(toTaskInfo);
         taskTypes = new Map(taskInfos.map((t) => [t.id, t.taskType]));
@@ -85,8 +89,8 @@ export function createQrsSource({ options, logger, request = qrsRequestJson }) {
      */
     const snapshot = async () => {
         const [results, sessions] = await Promise.all([
-            get('/qrs/executionresult/full', { filter: 'status ne NeverStarted' }),
-            get('/qrs/executionsession/full'),
+            get('/qrs/executionresult/full', { filter: 'status ne NeverStarted' }, BULK_TIMEOUT_MS),
+            get('/qrs/executionsession/full', undefined, BULK_TIMEOUT_MS),
         ]);
         const records = [];
         const oldestByTask = new Map();
@@ -148,7 +152,7 @@ export function createQrsSource({ options, logger, request = qrsRequestJson }) {
         if (!uuidValidate(resultId)) {
             throw new Error('invalid execution result id');
         }
-        const res = await get('/qrs/executionresult/full', { filter: `id eq ${resultId}` });
+        const res = await get('/qrs/executionresult/full', { filter: `id eq ${resultId}` }, DETAILS_TIMEOUT_MS);
         const row = (res.data || [])[0];
         if (!row) return null;
         return { details: parseExecutionDetails(row.details), scriptLogAvailable: Boolean(row.scriptLogAvailable) };

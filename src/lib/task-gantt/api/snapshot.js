@@ -62,16 +62,18 @@ export function encodeLanes(lanes, coverage, from, to) {
 }
 
 /**
- * Encode execution records column-wise, for records of visible lanes overlapping the window.
+ * Encode execution records column-wise, for records of visible lanes that have not ended before the window start.
+ * Records that begin after the window end are included: the window ends at Ctrl-Q's estimate of the Sense clock, which
+ * can be a little behind the times in QRS, and a record a live delta leaves out would never reach the page.
  *
  * @param {Array<object>} records - Records.
- * @param {object} ctx - { laneByTask: Map, nodeIdx: Function, runningResultIds: Set, from, to, now }.
+ * @param {object} ctx - { laneByTask: Map, nodeIdx: Function, runningResultIds: Set, from, now }.
  * @returns {object} Columns.
  */
-export function encodeRecords(records, { laneByTask, nodeIdx, runningResultIds, from, to, now }) {
+export function encodeRecords(records, { laneByTask, nodeIdx, runningResultIds, from, now }) {
     const cols = Object.fromEntries(COLS.map((c) => [c, []]));
     for (const rec of records) {
-        if (!overlapsWindow(rec, from, to, now)) continue;
+        if (!overlapsWindow(rec, from, Infinity, now)) continue;
         const lane = laneByTask.get(rec.taskId);
         if (lane === undefined) continue;
         cols.key.push(rec.key);
@@ -167,7 +169,7 @@ export function buildSnapshot(param) {
     const nodes = param.nodes || createNodeTable();
     const visibleLanes = lanes.visible();
     const laneByTask = new Map(visibleLanes.map((l) => [l.id, l.idx]));
-    const cols = encodeRecords(records, { laneByTask, nodeIdx: nodes.idx, runningResultIds, from, to, now });
+    const cols = encodeRecords(records, { laneByTask, nodeIdx: nodes.idx, runningResultIds, from, now });
 
     return {
         rev,

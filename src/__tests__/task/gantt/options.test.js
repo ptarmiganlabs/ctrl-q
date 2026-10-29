@@ -499,8 +499,11 @@ describe('validateTaskGanttOptions: valid input', () => {
             expect(result.config.filters.taskIds).toEqual([TASK_ID_1, TASK_ID_2]);
         });
 
-        test('accepts upper case GUIDs', () => {
-            expect(configFor({ taskId: [TASK_ID_1.toUpperCase()] }).filters.taskIds).toEqual([TASK_ID_1.toUpperCase()]);
+        test('accepts upper case GUIDs, and turns them into the lower case QRS uses, so they match', () => {
+            const config = configFor({ taskId: [TASK_ID_1.toUpperCase()], appId: [APP_ID.toUpperCase()] });
+
+            expect(config.filters.taskIds).toEqual([TASK_ID_1]);
+            expect(config.filters.appIds).toEqual([APP_ID]);
         });
     });
 
@@ -591,6 +594,11 @@ describe('validateTaskGanttOptions: errors', () => {
 
         test.each(['2.5', '15.5', '-5', '-1', 'abc', '15s', undefined])('rejects %j: not a whole, non-negative number', (pollInterval) => {
             expect(errorsFor({ pollInterval })).toEqual([`--poll-interval must be a whole number of seconds, got "${pollInterval}".`]);
+        });
+
+        // Above about 24.8 days setTimeout() overflows and fires at once, so QRS would be polled back to back
+        test.each(['3601', '86400', '2200000', 3601])('rejects %j: longer than an hour', (pollInterval) => {
+            expect(errorsFor({ pollInterval })).toEqual([`--poll-interval must be at most 3600 seconds (an hour), got "${pollInterval}".`]);
         });
     });
 

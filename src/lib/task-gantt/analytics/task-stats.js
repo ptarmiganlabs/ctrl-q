@@ -1,6 +1,8 @@
 import { isTerminalStatus, STATUS } from '../model/status.js';
 
-const percentile = (sorted, p) => (sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length))] : null);
+// Nearest-rank percentile: the smallest value that at least p % of the values are not above
+const percentile = (sorted, p) =>
+    sorted.length ? sorted[Math.min(sorted.length - 1, Math.max(0, Math.ceil((p / 100) * sorted.length) - 1))] : null;
 
 /**
  * Per-task statistics for the executions overlapping a window: run counts, failures, run-time percentiles and time
