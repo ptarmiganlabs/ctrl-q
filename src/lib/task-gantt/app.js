@@ -79,6 +79,13 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     const statuses = new Map();
     const nodes = createNodeTable();
     const changedLanes = new Set();
+    // Number of lane changes so far, to tell whether a metadata refresh changed any
+    let laneChanges = 0;
+    // Lanes the pages show, as of the last delta, see drainDelta()
+    let shownLanes = new Set();
+    // Tasks of live executions that the task metadata does not know yet, e.g. created after start-up: task id -> one
+    // of its records. Their lanes wait for an early metadata refresh to tell their name, type and tags.
+    const unknownTasks = new Map();
     let lanes = null;
     let filters = null;
     let schedulers = [];
@@ -147,7 +154,10 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
 
     const upsertLane = (task) => {
         const { lane, changed } = lanes.upsert(task);
-        if (changed) changedLanes.add(lane.id);
+        if (changed) {
+            changedLanes.add(lane.id);
+            laneChanges += 1;
+        }
         return lane;
     };
 
@@ -190,8 +200,13 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         if (until === null || until === incompleteBefore) return;
         incompleteBefore = until;
         coverage.setCompleteFrom(until);
+        // Pages must get the lanes' coverage again, now starting later, or the evicted time looks covered and idle
+        for (const lane of lanes.all()) changedLanes.add(lane.id);
         const message = `Too many executions to keep in memory; executions before ${new Date(until).toISOString()} are incomplete. Use a shorter --lookback.`;
-        setStatus(config.sources.includes(SOURCE.HISTORY) ? SOURCE.HISTORY : SOURCE.QRS, { state: 'degraded', message });
+        // An issue, so that it neither hides a more serious state nor is reset with the source's own. On the QRS badge
+        // only as a message: the page reads the QRS state as the state of live updates, which are fine.
+        if (config.sources.includes(SOURCE.HISTORY)) setIssue(SOURCE.HISTORY, 'memory', { state: 'degraded', message });
+        else setIssue(SOURCE.QRS, 'memory', { message });
         logger.warn(message);
     };
 
@@ -378,6 +393,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
             // Everything so far is in the first snapshot; live deltas start from here
             store.drainChanges();
             changedLanes.clear();
+            shownLanes = new Set(lanes.visible().map((l) => l.id));
             lastRev = store.rev();
             sentNodeCount = nodes.names.length;
             if (config.pollIntervalMs > 0) {
@@ -400,24 +416,47 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     const applyQrsChanges = (records) => {
         if (!records.length) return 0;
         const changes = store.upsertMany(records, SOURCE.QRS);
-        ensureLanesForRecords(records);
+        // A task the metadata does not know is most likely new, not deleted: wait for its name, type and tags rather
+        // than show a "deleted" lane that would also pass --task-type
+        for (const rec of records) {
+            if (!lanes.get(rec.taskId) && !unknownTasks.has(rec.taskId)) unknownTasks.set(rec.taskId, rec);
+        }
         persist(records);
         checkEviction();
         return changes;
     };
 
     /**
-     * Reload task metadata and scheduler capacity, e.g. to pick up new or renamed tasks.
+     * Reload task metadata, --app-tag apps and scheduler capacity, e.g. to pick up new, renamed, re-tagged or deleted
+     * tasks.
      *
      * @returns {Promise<boolean>} True if any lane or capacity changed.
      */
     const refreshMetadata = async () => {
-        const meta = await qrs.loadMetadata();
+        // Tasks first seen while the requests are under way wait for the next refresh
+        const asked = [...unknownTasks];
+        const [meta, appIdsFromTags] = await Promise.all([
+            qrs.loadMetadata(),
+            appIdsWithTags(config.qseow, config.filters.appTags, qrsRequest),
+        ]);
+        const lanesBefore = laneChanges;
         const before = JSON.stringify(schedulers);
         schedulers = meta.schedulers;
         for (const s of schedulers) nodes.idx(s.nodeName);
-        const lanesBefore = changedLanes.size;
+        // Apps tagged or untagged since the last refresh change the lanes --app-tag shows
+        filters.appIdsFromTags = appIdsFromTags;
         for (const t of meta.tasks) upsertLane(t);
+        // Tasks QRS no longer lists were deleted while Ctrl-Q runs. With the loop above, this also applies the new app tags
+        // to every lane.
+        const known = new Set(meta.tasks.map((t) => t.id));
+        for (const lane of lanes.all()) {
+            if (!known.has(lane.id)) upsertLane({ ...lane, deleted: true });
+        }
+        // Tasks of live executions that QRS does not know either: lanes as for deleted tasks
+        for (const [taskId, rec] of asked) {
+            unknownTasks.delete(taskId);
+            ensureLanesForRecords([rec]);
+        }
         persistTasks(meta.tasks);
         // Keep memory bounded when Ctrl-Q runs for a long time
         store.pruneBefore(windowNow().from - HISTORY_READ_MARGIN_MS);
@@ -425,7 +464,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
             if (!store.get(key)) persisted.delete(key);
         }
         await history?.pruneExpired().catch((err) => logger.warn(`History file: ${err.message}`));
-        return changedLanes.size > lanesBefore || before !== JSON.stringify(schedulers);
+        return laneChanges > lanesBefore || before !== JSON.stringify(schedulers);
     };
 
     // Write the current live range to the history file, if it grew since the last line. It ends at the latest successful
@@ -490,24 +529,44 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     const visibleLaneMap = () => new Map(lanes.visible().map((l) => [l.id, l.idx]));
 
     /**
-     * Changes since the previous call, for the live update stream.
+     * Changes since the previous call, for the live update stream. A lane that turned visible comes with all its
+     * executions, which earlier deltas left out while it was hidden or unknown.
+     *
+     * A lane that turned hidden cannot be taken off the pages: a delta only adds or updates lanes. The pages load a fresh
+     * snapshot instead, because such a delta skips a revision: its prevRev is ahead of every page's revision, which
+     * pages take for missed deltas.
      *
      * @returns {object} { rev, prevRev, cols, removed, lanes, nodes } where lanes holds new/changed visible lanes.
      */
     const drainDelta = () => {
+        const laneList = [...changedLanes].map((id) => lanes.get(id)).filter(Boolean);
+        changedLanes.clear();
+        const shown = new Set(laneList.filter((l) => l.visible && !shownLanes.has(l.id)).map((l) => l.id));
+        const resync = laneList.some((l) => !l.visible && shownLanes.has(l.id));
+        for (const l of laneList) {
+            if (l.visible) shownLanes.add(l.id);
+            else shownLanes.delete(l.id);
+        }
+        // A revision no page has seen, see above
+        const prevRev = resync ? store.bumpRev() : lastRev;
+        if (resync) store.bumpRev();
+
         const { rev, changed, removed } = store.drainChanges();
         const t = serverNow();
         const { from, to } = windowAt(t);
-        const records = changed.map((k) => store.get(k)).filter(Boolean);
+        const keys = new Set(changed);
+        if (shown.size) {
+            for (const r of store.all()) if (shown.has(r.taskId)) keys.add(r.key);
+        }
+        const records = [...keys].map((k) => store.get(k)).filter(Boolean);
         const cols = encodeRecords(records, { laneByTask: visibleLaneMap(), nodeIdx: nodes.idx, runningResultIds, from, now: t });
-        const laneList = [...changedLanes].map((id) => lanes.get(id)).filter((l) => l?.visible);
-        changedLanes.clear();
+        const visibleChanged = laneList.filter((l) => l.visible);
         const delta = {
             rev,
-            prevRev: lastRev,
+            prevRev,
             cols,
             removed,
-            lanes: encodeLanes(laneList, coverage, from, to),
+            lanes: encodeLanes(visibleChanged, coverage, from, to),
             nodes: nodes.names.length !== sentNodeCount ? [...nodes.names] : undefined,
         };
         lastRev = rev;
@@ -612,6 +671,8 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         statuses: visibleStatuses,
         setStatus,
         setIssue,
+        // True while live executions wait for the task metadata to know their task (see applyQrsChanges())
+        metadataWanted: () => unknownTasks.size > 0,
         history: () => history,
         hasRunning: () => store.running().some((r) => !isStale(r, runningResultIds, serverNow())),
         setRunningResultIds: (ids) => {

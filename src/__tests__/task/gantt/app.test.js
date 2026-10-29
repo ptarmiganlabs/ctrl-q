@@ -101,6 +101,16 @@ const newTaskRow = ({ status, stoppedAt = null, modifiedAt }) => ({
     ],
 });
 
+// NEW_TASK as GET /qrs/task/full lists it, once it is known
+const newTask = () => ({
+    id: NEW_TASK,
+    name: 'Reload New Sales',
+    taskType: 0,
+    enabled: true,
+    app: { id: NEW_APP, name: 'New Sales' },
+    tags: [],
+});
+
 /**
  * A fake QRS. The request function has the same signature as qrsRequestJson(options, { method, path, query }) and
  * answers from mutable state, so a test can change tasks, capacity and execution results between calls.
@@ -871,6 +881,12 @@ describe('live updates', () => {
         expect(await pollChanges(app)).toBe(1);
         expect(app.cursor).toBe(NOW + MIN + 600);
         expect(app.hasRunning()).toBe(true);
+        // The metadata does not know the task, so its lane waits for a refresh. QRS does not know it either: a lane as
+        // for a deleted task, with the execution.
+        expect(app.lanes().get(NEW_TASK)).toBeUndefined();
+        expect(app.metadataWanted()).toBe(true);
+        await app.refreshMetadata();
+        expect(app.metadataWanted()).toBe(false);
 
         const d1 = app.drainDelta();
         expect(d1).toEqual({
@@ -980,25 +996,44 @@ describe('live updates', () => {
         expect(tasks.slice(7).map((t) => t.name)).toEqual(['Reload Content Monitor (nightly)', 'Reload New Sales']);
     });
 
-    test('a new task executing before the metadata refresh gets a lane, which the refresh then completes', async () => {
+    test('a task created after start-up gets its lane from the metadata refresh its first run asks for', async () => {
         const stub = createQrsStub(now);
         const app = makeApp(stub, makeConfig({ sources: 'qrs' }));
         await app.init();
+        const { page, gaps, publish } = makePage(app);
 
-        stub.rows.push(newTaskRow({ status: 2, modifiedAt: NOW + MIN + 600 }));
-        clock = NOW + 90 * 1000;
+        // A new reload task and a new user sync task (hidden by --task-type) run before the metadata knows them
+        const NEW_SYNC = '12121212-3434-4565-8787-909090909090';
+        const syncRun = {
+            ...newTaskRow({ status: 7, stoppedAt: NOW + 2 * MIN, modifiedAt: NOW + 2 * MIN + 100 }),
+            id: '13131313-2424-4535-8646-757575757575',
+            taskID: NEW_SYNC,
+            executionID: '13131313-2424-4535-8646-868686868686',
+            appID: '00000000-0000-0000-0000-000000000000',
+        };
+        stub.rows.push(newTaskRow({ status: 2, modifiedAt: NOW + MIN + 600 }), syncRun);
+        stub.tasks = [...baseTasks(), newTask(), { id: NEW_SYNC, name: 'User sync HR', taskType: 2, enabled: true, app: null, tags: [] }];
+        clock = NOW + 3 * MIN;
         await pollChanges(app);
-        expect(app.drainDelta().lanes).toEqual([expect.objectContaining({ idx: 7, id: NEW_TASK })]);
+        publish({ changed: true, statusChanged: false });
 
-        stub.tasks = [
-            ...baseTasks(),
-            { id: NEW_TASK, name: 'Reload New Sales', taskType: 0, enabled: true, app: { id: NEW_APP, name: 'New Sales' }, tags: [] },
-        ];
+        // Not lanes of deleted tasks of unknown type, which would also pass --task-type: they wait for the metadata
+        expect(app.lanes().get(NEW_TASK)).toBeUndefined();
+        expect(app.lanes().get(NEW_SYNC)).toBeUndefined();
+        expect(app.metadataWanted()).toBe(true);
+
         expect(await app.refreshMetadata()).toBe(true);
+        publish({ changed: true, statusChanged: false });
 
-        expect(app.drainDelta().lanes).toEqual([
-            expect.objectContaining({ idx: 7, id: NEW_TASK, name: 'Reload New Sales', taskType: 0, enabled: true, deleted: false }),
-        ]);
+        expect(app.metadataWanted()).toBe(false);
+        expect(app.lanes().get(NEW_TASK)).toMatchObject({ idx: 7, name: 'Reload New Sales', taskType: 0, deleted: false, visible: true });
+        expect(app.lanes().get(NEW_SYNC)).toMatchObject({ idx: 8, name: 'User sync HR', taskType: 2, deleted: false, visible: false });
+        // The page got the new lane, with the run that earlier deltas left out, and nothing of the hidden task
+        expect(gaps).toEqual([]);
+        expect(page.lane(7)).toMatchObject({ id: NEW_TASK, name: 'Reload New Sales', deleted: false });
+        expect(page.row(NEW_KEY)).toMatchObject({ lane: 7, status: 2 });
+        expect(page.row(`r:${syncRun.id}`)).toBeUndefined();
+        expect(page.lane(8)).toBeUndefined();
     });
 
     // BUG: drainDelta() only sends the node table when it grew during that call. refreshMetadata() registers new
@@ -1013,6 +1048,7 @@ describe('live updates', () => {
 
         // One poller tick: changes, then the 10-minute metadata refresh, then apply and publish the delta
         stub.schedulers = [...baseSchedulers(), scheduler('Sense-Node2.example.com', 1, 2)];
+        stub.tasks = [...baseTasks(), newTask()];
         stub.rows.push(newTaskRow({ status: 2, modifiedAt: NOW + MIN + 600 }));
         clock = NOW + 90 * 1000;
         const { records, cursor } = await app.qrs.changesSince(app.cursor);
@@ -1067,16 +1103,27 @@ describe('live updates', () => {
         expect(app.liveStatus().qrs).toMatchObject({ state: 'degraded', message: 'Live update failed' });
     });
 
-    // What a page keeps of the snapshot and the live deltas (as the page's client store does): rows by key, the node
-    // name table and the revision. A delta whose prevRev is ahead of the page's revision is a gap the page cannot apply.
+    // What a page keeps of the snapshot and the live deltas (as the page's client store does): lanes by number, rows by
+    // key, the node name table and the revision. A delta whose prevRev is ahead of the page's revision is a gap the page
+    // cannot apply: like the real page, it then loads a fresh snapshot.
     const makePage = (app) => {
-        const snap = JSON.parse(JSON.stringify(app.snapshot()));
-        const state = { rev: snap.rev, nodes: snap.nodes, rows: new Map() };
+        let state;
         const applyCols = (cols) => {
             cols.key.forEach((key, i) => state.rows.set(key, { lane: cols.lane[i], status: cols.status[i], node: cols.node[i] }));
         };
-        applyCols(snap.cols);
-        const page = { snapshot: () => state, row: (key) => state.rows.get(key), nodes: () => state.nodes };
+        const load = () => {
+            const snap = JSON.parse(JSON.stringify(app.snapshot()));
+            state = { rev: snap.rev, nodes: snap.nodes, lanes: new Map(snap.lanes.map((l) => [l.idx, l])), rows: new Map() };
+            applyCols(snap.cols);
+        };
+        load();
+        const page = {
+            snapshot: () => state,
+            row: (key) => state.rows.get(key),
+            lane: (idx) => state.lanes.get(idx),
+            lanes: () => [...state.lanes.values()],
+            nodes: () => state.nodes,
+        };
         const gaps = [];
         const deltas = [];
         const sse = {
@@ -1087,8 +1134,10 @@ describe('live updates', () => {
                 deltas.push(delta);
                 if (delta.prevRev > state.rev) {
                     gaps.push(delta);
+                    load();
                 } else if (delta.rev >= state.rev) {
                     if (delta.nodes) state.nodes = delta.nodes;
+                    for (const lane of delta.lanes) state.lanes.set(lane.idx, lane);
                     for (const key of delta.removed) state.rows.delete(key);
                     applyCols(delta.cols);
                     state.rev = delta.rev;
@@ -1148,8 +1197,9 @@ describe('live updates', () => {
         await app.init();
         const { page, gaps, publish } = makePage(app);
 
-        // Poll 1: only the metadata refresh finds a new node
+        // Poll 1: only the metadata refresh finds a new node (and a new task)
         stub.schedulers = [...baseSchedulers(), scheduler('Sense-Node2.example.com', 1, 2)];
+        stub.tasks = [...baseTasks(), newTask()];
         clock = NOW + 10 * MIN;
         await app.refreshMetadata();
         await pollChanges(app);
@@ -1164,6 +1214,149 @@ describe('live updates', () => {
         expect(gaps).toEqual([]);
         const row = page.row(NEW_KEY);
         expect(page.nodes()[row.node]).toBe(NODE2);
+    });
+
+    test('a task deleted in QRS while Ctrl-Q runs is marked deleted by the next refresh, and pages hear of it', async () => {
+        const stub = createQrsStub(now);
+        const app = makeApp(stub, makeConfig({ sources: 'qrs' }));
+        await app.init();
+        const { page, gaps, publish } = makePage(app);
+
+        stub.tasks = stub.tasks.filter((t) => t.id !== CAL_PERF_1);
+        clock = NOW + 10 * MIN;
+        expect(await app.refreshMetadata()).toBe(true);
+        publish({ changed: true, statusChanged: false });
+
+        expect(gaps).toEqual([]);
+        expect(page.lane(LANE[CAL_PERF_1])).toMatchObject({ id: CAL_PERF_1, name: 'Reload Calendar perf 1', deleted: true });
+        // Its runs stay
+        expect(page.row(`r:${ROWS.find((r) => r.taskID === CAL_PERF_1).id}`)).toMatchObject({ lane: LANE[CAL_PERF_1] });
+    });
+
+    test('--app-tag is resolved again at every refresh: an app tagged later gets its lane, with its earlier runs', async () => {
+        const stub = createQrsStub(now);
+        stub.apps = [{ id: appOf(CONTENT_MONITOR) }];
+        const app = makeApp(stub, makeConfig({ sources: 'qrs', appTag: 'Monitoring' }));
+        await app.init();
+        const { page, gaps, publish } = makePage(app);
+        expect(page.lanes().map((l) => l.id)).toEqual([CONTENT_MONITOR]);
+
+        // The tag is added to the Operations Monitor app
+        stub.apps = [{ id: appOf(CONTENT_MONITOR) }, { id: appOf(OPS_MONITOR) }];
+        clock = NOW + 10 * MIN;
+        expect(await app.refreshMetadata()).toBe(true);
+        publish({ changed: true, statusChanged: false });
+
+        expect(callsTo(stub, '/qrs/app')).toHaveLength(2);
+        expect(gaps).toEqual([]);
+        expect(page.lanes().map((l) => l.id)).toEqual([CONTENT_MONITOR, OPS_MONITOR]);
+        expect(page.row(OM_KEY)).toMatchObject({ lane: LANE[OPS_MONITOR], status: 7 });
+    });
+
+    test('a lane that turns hidden makes pages load a fresh snapshot, as a delta cannot take a lane off', async () => {
+        const stub = createQrsStub(now);
+        const app = makeApp(stub, makeConfig({ sources: 'qrs', taskTag: 'monitoring' }));
+        await app.init();
+        const { page, gaps, deltas, publish } = makePage(app);
+        expect(page.lanes().map((l) => l.id)).toEqual([CONTENT_MONITOR, OPS_MONITOR]);
+
+        // The tag is taken off Content Monitor
+        stub.tasks = baseTasks().map((t) => (t.id === CONTENT_MONITOR ? { ...t, tags: [] } : t));
+        clock = NOW + 10 * MIN;
+        expect(await app.refreshMetadata()).toBe(true);
+        publish({ changed: true, statusChanged: false });
+
+        // The delta claims to follow a revision no page has, so the page reloads
+        expect(gaps).toHaveLength(1);
+        expect(deltas[0].prevRev).toBeGreaterThan(1);
+        expect(page.lanes().map((l) => l.id)).toEqual([OPS_MONITOR]);
+        expect(page.row(CM_KEY)).toBeUndefined();
+        expect(page.snapshot().rev).toBe(app.store.rev());
+
+        // Later deltas follow on from the fresh snapshot
+        const om = structuredClone(ROWS.find((r) => `r:${r.id}` === OM_KEY));
+        Object.assign(om, {
+            id: '88888888-9999-4aaa-8bbb-dddddddddddd',
+            modifiedDate: iso(NOW + 11 * MIN),
+            startTime: iso(NOW + 10 * MIN),
+            stopTime: iso(NOW + 11 * MIN),
+            details: [],
+        });
+        stub.rows.push(om);
+        clock = NOW + 12 * MIN;
+        await pollChanges(app);
+        publish({ changed: true, statusChanged: false });
+        expect(gaps).toHaveLength(1);
+        expect(page.row(`r:${om.id}`)).toMatchObject({ lane: LANE[OPS_MONITOR] });
+    });
+
+    test("executions evicted while live updates run: pages get the lanes' new coverage, so the evicted time is unknown", async () => {
+        const stub = createQrsStub(now);
+        const app = makeApp(stub, makeConfig({ sources: 'qrs' }), silentLogger, { maxRecords: 8 });
+        await app.init();
+        const { page, gaps, publish } = makePage(app);
+        expect(page.lane(LANE[CONTENT_MONITOR]).coverage).toEqual([[CM_TRIGGERED, NOW]]);
+
+        // Four more runs push the store over its cap of 8
+        for (let i = 0; i < 4; i += 1) {
+            const run = structuredClone(ROWS.find((r) => r.taskID === CAL_PERF_2));
+            const t = NOW + 2000 + i * 1000;
+            Object.assign(run, {
+                id: `99999999-aaaa-4bbb-8ccc-00000000000${i}`,
+                executionID: `99999999-aaaa-4bbb-8ccc-10000000000${i}`,
+                status: 7,
+                startTime: iso(t),
+                stopTime: iso(t + 500),
+                modifiedDate: iso(t + 600),
+                details: [],
+            });
+            stub.rows.push(run);
+        }
+        clock = NOW + 10 * 1000;
+        await pollChanges(app);
+        publish({ changed: true, statusChanged: false });
+
+        const completeFrom = app.coverage.completeFrom();
+        expect(completeFrom).toBeGreaterThan(CM_TRIGGERED);
+        expect(gaps).toEqual([]);
+        for (const lane of app.snapshot().lanes) {
+            expect(page.lane(lane.idx).coverage).toEqual(lane.coverage);
+            expect(lane.coverage.every(([a]) => a >= completeFrom)).toBe(true);
+        }
+    });
+
+    test('the eviction warning never hides a more serious history state, and survives the QRS badge recovering', async () => {
+        const warning = expect.stringMatching(/Too many executions to keep in memory/);
+
+        // An unusable history directory stays an error
+        const blocker = path.join(dir, 'not-a-directory');
+        fs.writeFileSync(blocker, 'x');
+        const a = makeApp(createQrsStub(now), makeConfig({ historyDir: blocker }), silentLogger, { maxRecords: 5 });
+        await a.init();
+        expect(a.statuses()[1]).toMatchObject({ state: 'error', message: expect.stringContaining('cannot use history directory') });
+        expect(a.statuses()[1].message).toEqual(warning);
+
+        // Without the history file, it is a message on the QRS badge, and live updates still count as fine
+        const stub = createQrsStub(now);
+        const b = makeApp(stub, makeConfig({ sources: 'qrs' }), silentLogger, { maxRecords: 5 });
+        await b.init();
+        expect(b.statuses()[0]).toMatchObject({ state: 'ok', message: warning });
+        expect(b.liveStatus().qrs).toMatchObject({ state: 'ok', message: warning });
+
+        // A failed poll and a good one, which resets the QRS state
+        const poller = createQrsPoller({ app: b, intervalMs: 10000, logger: silentLogger, onUpdate: () => {}, now, random: () => 0.5 });
+        stub.failures.set('/qrs/executionresult/full', new Error('ECONNRESET'));
+        clock += 10000;
+        await poller.tickNow();
+        expect(b.statuses()[0]).toMatchObject({
+            state: 'degraded',
+            message: expect.stringMatching(/^Live update failed .*; Too many executions/),
+        });
+        stub.failures.clear();
+        clock += 30000;
+        await poller.tickNow();
+        await poller.stop();
+        expect(b.statuses()[0]).toMatchObject({ state: 'ok', message: warning });
     });
 
     test.each([
