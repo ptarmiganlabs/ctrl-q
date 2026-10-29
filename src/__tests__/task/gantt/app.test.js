@@ -1757,6 +1757,56 @@ describe('failures', () => {
         expect(fs.readdirSync(hostDir())).toEqual([]);
     });
 
+    // A request function whose requests to one path fail at once, while those to another take until they are aborted,
+    // like the bulk reads of a large site, which may take minutes. Other requests go to the stub.
+    const failFastWhileSlow = (stub, { fail, slow }) => {
+        const state = { waiting: 0, failing: false };
+        state.request = (options, req) => {
+            if (!state.failing) return stub.request(options, req);
+            if (req.path === fail) return Promise.reject(Object.assign(new Error(`QRS GET ${fail} failed: HTTP 403`), { status: 403 }));
+            if (req.path !== slow) return stub.request(options, req);
+            state.waiting += 1;
+            return new Promise((resolve, reject) => {
+                req.signal?.addEventListener('abort', () => {
+                    state.waiting -= 1;
+                    reject(new Error('aborted'));
+                });
+            });
+        };
+        return state;
+    };
+
+    test.each([
+        ['the metadata', { fail: '/qrs/servicecluster/full', slow: '/qrs/task/full' }],
+        ['the execution results', { fail: '/qrs/executionsession/full', slow: '/qrs/executionresult/full' }],
+    ])('a request for %s that fails at once ends the start at once: the slow one beside it is aborted', async (_name, paths) => {
+        const stub = createQrsStub(now);
+        const qrs = failFastWhileSlow(stub, paths);
+        qrs.failing = true;
+        const app = makeApp(stub, makeConfig(), silentLogger, { request: qrs.request });
+
+        await expect(app.init()).rejects.toThrow('HTTP 403');
+
+        // Nothing is left that would keep the process running, for up to the 5-minute timeout of the bulk reads
+        expect(qrs.waiting).toBe(0);
+        expect(fs.existsSync(path.join(hostDir(), '.lock'))).toBe(false);
+    });
+
+    test('a failing metadata refresh ends once all its requests have: the slow ones beside the failure are aborted', async () => {
+        const stub = createQrsStub(now);
+        stub.apps = [{ id: appOf(CONTENT_MONITOR) }];
+        const qrs = failFastWhileSlow(stub, { fail: '/qrs/app', slow: '/qrs/task/full' });
+        const app = makeApp(stub, makeConfig({ sources: 'qrs', appTag: 'Monitoring' }), silentLogger, { request: qrs.request });
+        await app.init();
+        qrs.failing = true;
+
+        clock = NOW + 10 * MIN;
+        await expect(app.refreshMetadata()).rejects.toThrow('HTTP 403');
+
+        // Its retry, after the backoff, does not run beside a load still under way
+        expect(qrs.waiting).toBe(0);
+    });
+
     test('a history file that cannot be read: Ctrl-Q starts on QRS alone, says so, and writes nothing to it', async () => {
         writeHistory('2026-10-05', [oldCmLine()]);
         const readFile = fsp.readFile;

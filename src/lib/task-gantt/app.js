@@ -5,7 +5,7 @@ import { createLaneRegistry } from './model/lanes.js';
 import { createQrsSource } from './sources/qrs-source.js';
 import { buildSnapshot, buildAnalytics, createNodeTable, encodeLanes, encodeRecords, isStale } from './api/snapshot.js';
 import { SOURCE, SOURCE_BIT, HISTORY_READ_MARGIN_MS, MAX_RECORDS } from './defaults.js';
-import { qrsRequestJson } from '../util/qseow/qrs-json.js';
+import { allOrAbort, qrsRequestJson } from '../util/qseow/qrs-json.js';
 
 // How often the history file records that Ctrl-Q was watching (an { t: 'obs' } line)
 const OBSERVATION_WRITE_MS = 5 * 60 * 1000;
@@ -31,12 +31,13 @@ export function newSourceStatus(id, state) {
  * @param {object} options - Ctrl-Q options.
  * @param {string[]} appTags - App tag names.
  * @param {Function} request - QRS request function.
+ * @param {AbortSignal} [signal] - Aborts the request.
  * @returns {Promise<Set<string>>} Ids of apps with any of the tags.
  */
-async function appIdsWithTags(options, appTags, request) {
+async function appIdsWithTags(options, appTags, request, signal) {
     if (!appTags?.length) return new Set();
     const filter = appTags.map((t) => `tags.name eq '${String(t).replace(/'/g, "''")}'`).join(' or ');
-    const res = await request(options, { method: 'get', path: '/qrs/app', query: { filter } });
+    const res = await request(options, { method: 'get', path: '/qrs/app', query: { filter }, ...(signal ? { signal } : {}) });
     return new Set((res.data || []).map((a) => a.id));
 }
 
@@ -475,16 +476,17 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
 
     /**
      * Reload task metadata, --app-tag apps and scheduler capacity, e.g. to pick up new, renamed, re-tagged or deleted
-     * tasks.
+     * tasks. When one request fails, the others are aborted, and the refresh rejects once all have ended: its retry
+     * does not run alongside them.
      *
      * @returns {Promise<boolean>} True if any lane or capacity changed.
      */
     const refreshMetadata = async () => {
         // Tasks first seen while the requests are under way wait for the next refresh, unless the answer lists them
         const asked = [...unknownTasks];
-        const [meta, appIdsFromTags] = await Promise.all([
-            qrs.loadMetadata(),
-            appIdsWithTags(config.qseow, config.filters.appTags, qrsRequest),
+        const [meta, appIdsFromTags] = await allOrAbort([
+            (signal) => qrs.loadMetadata({ signal }),
+            (signal) => appIdsWithTags(config.qseow, config.filters.appTags, qrsRequest, signal),
         ]);
         metaTasks = meta.tasks;
         const lanesBefore = laneChanges;
