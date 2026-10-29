@@ -13,6 +13,7 @@ import {
     validateVariableGetOptions,
     validateVariableDeleteOptions,
     validateUserActivityBucketsCPName,
+    validateVisTaskOptions,
 } from '../../../lib/util/qseow/assert-options.js';
 
 // ---------------------------------------------------------------------------
@@ -273,5 +274,60 @@ describe('validateUserActivityBucketsCPName', () => {
     test('returns invalid for empty string', () => {
         const result = validateUserActivityBucketsCPName({ customPropertyName: '' });
         expect(result.valid).toBe(false);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// validateVisTaskOptions
+// ---------------------------------------------------------------------------
+
+describe('validateVisTaskOptions', () => {
+    test.each(['3000', '0', '65535', ' 8080 '])('returns valid for --vis-port %j', (visPort) => {
+        expect(validateVisTaskOptions({ visPort })).toEqual({ valid: true });
+    });
+
+    test.each(['65536', '-1', 'abc', '3000x', '30.5', '', undefined])('returns invalid for --vis-port %j', (visPort) => {
+        const result = validateVisTaskOptions({ visPort });
+        expect(result.valid).toBe(false);
+        expect(result.error).toBe(`--vis-port must be a port number (0-65535), got "${visPort}".`);
+    });
+
+    const remoteHostError = (host) =>
+        `--vis-host ${host} makes the page reachable from other computers. Add --vis-allow-remote to confirm; the page is then protected by a random access token.`;
+
+    test.each(['0.0.0.0', '::', '10.0.0.1', 'sense-admin.example.com'])(
+        'a non-loopback --vis-host %s needs --vis-allow-remote',
+        (visHost) => {
+            expect(validateVisTaskOptions({ visPort: '3000', visHost })).toEqual({ valid: false, error: remoteHostError(visHost) });
+        }
+    );
+
+    test.each([false, 'false', '0', 'no', 'off', ''])('--vis-allow-remote %j does not count as confirmation', (visAllowRemote) => {
+        expect(validateVisTaskOptions({ visPort: '3000', visHost: '0.0.0.0', visAllowRemote })).toEqual({
+            valid: false,
+            error: remoteHostError('0.0.0.0'),
+        });
+    });
+
+    test.each([true, 'true', 'TRUE', '1', 'yes', 'on'])('--vis-allow-remote %j confirms a non-loopback --vis-host', (visAllowRemote) => {
+        expect(validateVisTaskOptions({ visPort: '3000', visHost: '0.0.0.0', visAllowRemote })).toEqual({ valid: true });
+    });
+
+    test.each(['localhost', '127.0.0.1', '::1', '[::1]'])('a loopback --vis-host %s needs no confirmation', (visHost) => {
+        expect(validateVisTaskOptions({ visPort: '3000', visHost })).toEqual({ valid: true });
+        expect(validateVisTaskOptions({ visPort: '3000', visHost, visAllowRemote: true })).toEqual({ valid: true });
+    });
+
+    test('an unclear --vis-allow-remote value is an error, whatever the host', () => {
+        expect(validateVisTaskOptions({ visPort: '3000', visHost: 'localhost', visAllowRemote: 'maybe' })).toEqual({
+            valid: false,
+            error: '--vis-allow-remote must be true or false, got "maybe".',
+        });
+    });
+
+    test('a refused host from CTRLQ_VIS_HOST says where it came from', () => {
+        const result = validateVisTaskOptions({ visPort: '3000', visHost: '0.0.0.0' }, { fromEnv: new Set(['visHost']) });
+
+        expect(result.error).toBe(remoteHostError('0.0.0.0 (from CTRLQ_VIS_HOST)'));
     });
 });

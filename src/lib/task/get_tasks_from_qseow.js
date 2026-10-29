@@ -130,7 +130,7 @@ export async function extGetTasksFromQseow(_, logger) {
         _.clear();
         for (let i = 0; i < tasks.length; i += 1) {
             if (tasks[i].schemaPath === 'ReloadTask' || tasks[i].schemaPath === 'ExternalProgramTask') {
-                _.addTask('from_qseow', tasks[i], anonymizeTaskNames);
+                await _.addTask('from_qseow', tasks[i], anonymizeTaskNames);
             }
         }
         resolve(_.taskList);
