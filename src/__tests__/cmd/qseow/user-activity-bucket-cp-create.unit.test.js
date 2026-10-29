@@ -129,6 +129,8 @@ describe('qseow user-activity-bucket-cp-create', () => {
         const help = qseow.commands[0].helpInformation();
 
         expect(help).toContain('--auth-jwt <jwt>');
-        expect(help).not.toContain('--jwt <JWT>');
+
+        // No option line in the help starts with --jwt, whatever its placeholder
+        expect(help).not.toMatch(/^\s*--jwt\b/m);
     });
 });

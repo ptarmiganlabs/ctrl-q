@@ -134,4 +134,18 @@ describe('QlikSenseTasks.getTasksFromQseow', () => {
         await expect(settled(qlikSenseTasks.getTasksFromQseow())).rejects.toThrow('QRS unavailable');
         expect(axios.request).toHaveBeenCalledTimes(1);
     });
+
+    test('should reject without touching the task list when getting the external program tasks fails', async () => {
+        axios.request
+            .mockResolvedValueOnce(qrsResponse([makeQrsTask('ReloadTask', 'reload-1')]))
+            .mockRejectedValueOnce(new Error('QRS unavailable'));
+        const init = jest.spyOn(QlikSenseTask.prototype, 'init');
+
+        const qlikSenseTasks = await newQlikSenseTasks();
+        const clear = jest.spyOn(qlikSenseTasks, 'clear');
+
+        await expect(settled(qlikSenseTasks.getTasksFromQseow())).rejects.toThrow('QRS unavailable');
+        expect(clear).not.toHaveBeenCalled();
+        expect(init).not.toHaveBeenCalled();
+    });
 });

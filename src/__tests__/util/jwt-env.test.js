@@ -275,34 +275,46 @@ describe('ctrl-q', () => {
         ];
         await import('../../ctrl-q.js');
 
-        const options = await settled(connectionTested, 5000);
+        // Well within the test's own timeout, so that a command that never runs fails here, saying so
+        const options = await settled(connectionTested, 2000);
         return { options, warnings: warn.mock.calls.map(([message]) => message) };
     };
 
-    test('should run a command with the JWT from CTRLQ_JWT, warning that it is deprecated', async () => {
-        process.env.CTRLQ_JWT = 'legacy-jwt';
+    // Loading every module of ctrl-q.js afresh can take a while on a slow machine
+    const RUN_CTRL_Q_TIMEOUT = 15000;
 
-        const { options, warnings } = await runCtrlQ(['--auth-type', 'jwt']);
+    test(
+        'should run a command with the JWT from CTRLQ_JWT, warning that it is deprecated',
+        async () => {
+            process.env.CTRLQ_JWT = 'legacy-jwt';
 
-        expect(options.authJwt).toBe('legacy-jwt');
-        expect(warnings).toEqual([DEPRECATED_WARNING]);
-    });
+            const { options, warnings } = await runCtrlQ(['--auth-type', 'jwt']);
 
-    test('should not warn about CTRLQ_JWT for a command that authenticates with a certificate', async () => {
-        process.env.CTRLQ_JWT = 'legacy-jwt';
+            expect(options.authJwt).toBe('legacy-jwt');
+            expect(warnings).toEqual([DEPRECATED_WARNING]);
+        },
+        RUN_CTRL_Q_TIMEOUT
+    );
 
-        // Any existing files will do, as nothing connects
-        const certFiles = [
-            '--auth-cert-file',
-            'package.json',
-            '--auth-cert-key-file',
-            'package.json',
-            '--auth-root-cert-file',
-            'package.json',
-        ];
-        const { options, warnings } = await runCtrlQ(['--auth-type', 'cert', ...certFiles]);
+    test(
+        'should not warn about CTRLQ_JWT for a command that authenticates with a certificate',
+        async () => {
+            process.env.CTRLQ_JWT = 'legacy-jwt';
 
-        expect(options.authType).toBe('cert');
-        expect(warnings).toEqual([]);
-    });
+            // Any existing files will do, as nothing connects
+            const certFiles = [
+                '--auth-cert-file',
+                'package.json',
+                '--auth-cert-key-file',
+                'package.json',
+                '--auth-root-cert-file',
+                'package.json',
+            ];
+            const { options, warnings } = await runCtrlQ(['--auth-type', 'cert', ...certFiles]);
+
+            expect(options.authType).toBe('cert');
+            expect(warnings).toEqual([]);
+        },
+        RUN_CTRL_Q_TIMEOUT
+    );
 });
