@@ -114,8 +114,8 @@ describe('createQrsPoller', () => {
 
             expect(app.applyQrsChanges).toHaveBeenCalledWith(records);
             expect(app.markLive).toHaveBeenCalledWith(T0 + 5 * SEC);
-            // Only the time of the last good poll changes; the state was already ok
-            expect(app.setStatus.mock.calls).toEqual([['qrs', { lastOkAt: T0 + 5 * SEC }]]);
+            // The state was already ok. The app records the time of the good poll itself, on the Sense clock (markLive).
+            expect(app.setStatus).not.toHaveBeenCalled();
         });
 
         test('a successful tick schedules the next one after the normal interval', async () => {
@@ -293,8 +293,8 @@ describe('createQrsPoller', () => {
 
             clock = T0 + 30 * SEC;
             await poller.tickNow();
-            expect(app.setStatus).toHaveBeenCalledWith('qrs', expect.objectContaining({ state: 'ok', hint: '' }));
-            expect(app.setStatus).toHaveBeenLastCalledWith('qrs', { lastOkAt: T0 + 30 * SEC });
+            expect(app.setStatus).toHaveBeenLastCalledWith('qrs', expect.objectContaining({ state: 'ok', hint: '' }));
+            expect(app.markLive).toHaveBeenLastCalledWith(T0 + 30 * SEC);
         });
     });
 
@@ -508,7 +508,7 @@ describe('createQrsPoller', () => {
             await poller.tickNow(); // recovers 15 min + 1 ms after the last good tick
 
             expect(app.breakLiveCoverage).toHaveBeenCalledTimes(1);
-            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 2 * MIN, T0 + 17 * MIN + 1);
+            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 17 * MIN + 1);
             // The new live range must start after the split, so the split comes first
             expect(app.markLive).toHaveBeenLastCalledWith(T0 + 17 * MIN + 1);
             expect(app.breakLiveCoverage.mock.invocationCallOrder[0]).toBeLessThan(app.markLive.mock.invocationCallOrder.at(-1));
@@ -544,7 +544,7 @@ describe('createQrsPoller', () => {
             clock = T0 + 16 * MIN;
             await poller.tickNow();
 
-            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0, T0 + 16 * MIN);
+            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 16 * MIN);
         });
 
         test('a QRS error shows its short reason in the status, and its hint as the hint', async () => {
@@ -574,7 +574,7 @@ describe('createQrsPoller', () => {
             clock = T0 + 30 * MIN;
             await poller.tickNow();
 
-            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0, T0 + 30 * MIN);
+            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 30 * MIN);
         });
 
         test('without failures, a gap up to the poll interval plus 15 minutes keeps coverage whole (long poll intervals)', async () => {
@@ -588,7 +588,7 @@ describe('createQrsPoller', () => {
 
             clock = T0 + 90 * MIN + 1;
             await poller.tickNow();
-            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 45 * MIN, T0 + 90 * MIN + 1);
+            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 90 * MIN + 1);
         });
     });
 

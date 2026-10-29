@@ -9,6 +9,8 @@ import { qrsRequestJson } from '../util/qseow/qrs-json.js';
 
 // How often the history file records that Ctrl-Q was watching (an { t: 'obs' } line)
 const OBSERVATION_WRITE_MS = 5 * 60 * 1000;
+// How long a QRS response counts towards the estimate of the Sense clock
+const CLOCK_SAMPLE_MS = 10 * 60 * 1000;
 
 /**
  * Create a source status object, shown as a badge on the page.
@@ -44,15 +46,34 @@ const taskSignature = (t) => JSON.stringify([t.name, t.taskType, t.appId, t.appN
  * @param {object} param - Parameters.
  * @param {object} param.config - Command configuration, see validateTaskGanttOptions().
  * @param {object} param.logger - Winston-style logger.
- * @param {Function} [param.now] - Clock.
+ * @param {Function} [param.now] - This computer's clock. The Sense clock is estimated from it and QRS responses.
  * @param {Function} [param.request] - QRS request function (for tests).
  * @param {number} [param.maxRecords] - Most executions kept in memory (for tests).
  * @returns {object} The app.
  */
 export function createGanttApp({ config, logger, now = () => Date.now(), request = qrsRequestJson, maxRecords = MAX_RECORDS }) {
+    // Execution times come from the Sense clock, so coverage, the time window and the page's clock use it too. Each QRS
+    // response's Date header gives a lower bound for the Sense clock minus this computer's clock: the header has whole
+    // seconds and was written before the response arrived. The highest bound of the last few minutes is the estimate,
+    // so one slow response does not drag it down, and a clock adjusted on either side is picked up.
+    const clockSamples = [];
+    let clockOffset = 0;
+    const qrsRequest = async (options, req) => {
+        const res = await request(options, req);
+        if (typeof res?.serverDate === 'number') {
+            const t = now();
+            clockSamples.push([t, res.serverDate - t]);
+            while (t - clockSamples[0][0] > CLOCK_SAMPLE_MS) clockSamples.shift();
+            clockOffset = Math.max(...clockSamples.map(([, offset]) => offset));
+        }
+        return res;
+    };
+    const toServerTime = (t) => t + clockOffset;
+    const serverNow = () => toServerTime(now());
+
     const store = createExecutionStore({ maxRecords });
     const coverage = createCoverage();
-    const qrs = createQrsSource({ options: config.qseow, logger, request });
+    const qrs = createQrsSource({ options: config.qseow, logger, request: qrsRequest });
     const statuses = new Map();
     const nodes = createNodeTable();
     const changedLanes = new Set();
@@ -69,6 +90,8 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     // End of the current live coverage: the time of the latest successful poll
     let liveTo = null;
     let lastObservationWrite = 0;
+    // End of the last observation line written for the current live range
+    let observedTo = null;
     // Set when the oldest executions had to be evicted from memory; data before it is incomplete
     let incompleteBefore = null;
     // What the history file already holds: record key -> "status:stoppedAt", and task id -> task signature. Used to
@@ -84,10 +107,8 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         Object.assign(statuses.get(id), patch);
     };
 
-    const windowNow = () => {
-        const t = now();
-        return { from: t - config.lookbackMs, to: t };
-    };
+    const windowAt = (t) => ({ from: t - config.lookbackMs, to: t });
+    const windowNow = () => windowAt(serverNow());
 
     const upsertLane = (task) => {
         const { lane, changed } = lanes.upsert(task);
@@ -162,7 +183,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
                 'Could not read the Sense cluster id, so history files of another Sense site with the same host name are not detected.'
             );
         }
-        filters = { ...config.filters, appIdsFromTags: await appIdsWithTags(config.qseow, config.filters.appTags, request) };
+        filters = { ...config.filters, appIdsFromTags: await appIdsWithTags(config.qseow, config.filters.appTags, qrsRequest) };
         lanes = createLaneRegistry(filters);
         for (const t of meta.tasks) upsertLane(t);
         for (const s of schedulers) nodes.idx(s.nodeName);
@@ -208,7 +229,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
                         .filter(Boolean)
                         .join('; '),
                     records: loaded.records.length,
-                    lastOkAt: now(),
+                    lastOkAt: serverNow(),
                     coverage: covTo > covFrom ? { fromMs: covFrom, toMs: covTo } : null,
                 });
                 logger.info(`History file: ${loaded.records.length} executions loaded from ${history.dir}`);
@@ -228,7 +249,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         setStatus(SOURCE.QRS, {
             state: 'ok',
             records: snap.records.length,
-            lastOkAt: now(),
+            lastOkAt: serverNow(),
             coverage: Number.isFinite(oldestQrs) ? { fromMs: oldestQrs, toMs: snap.serverTime } : null,
             message: 'QRS keeps only the last few executions of each task',
         });
@@ -301,45 +322,56 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         return changedLanes.size > lanesBefore || before !== JSON.stringify(schedulers);
     };
 
+    // Write the current live range to the history file, if it grew since the last line. It ends at the latest successful
+    // poll: what happened after that was not seen, e.g. during an outage or after live updates stopped.
+    const writeObservation = () => {
+        if (liveFrom === null || liveTo <= (observedTo ?? liveFrom)) return;
+        history?.appendObservation(liveFrom, liveTo);
+        observedTo = liveTo;
+    };
+
     /**
-     * Record that Ctrl-Q has been watching QRS without interruption until a time.
+     * Record that Ctrl-Q has been watching QRS without interruption until a poll.
      *
-     * @param {number} t - Time of the latest successful poll.
+     * @param {number} t - When the latest successful poll asked QRS, on this computer's clock.
      */
     const markLive = (t) => {
         if (liveFrom === null) return;
-        liveTo = t;
-        coverage.setLive(liveFrom, t);
-        if (history?.mode() === 'readwrite' && t - lastObservationWrite >= OBSERVATION_WRITE_MS) {
-            history.appendObservation(liveFrom, t);
-            lastObservationWrite = t;
+        // On the Sense clock, and never backwards: its estimate can move a little
+        liveTo = Math.max(liveTo, toServerTime(t));
+        coverage.setLive(liveFrom, liveTo);
+        setStatus(SOURCE.QRS, { lastOkAt: liveTo });
+        if (liveTo - lastObservationWrite >= OBSERVATION_WRITE_MS) {
+            writeObservation();
+            lastObservationWrite = liveTo;
         }
         history?.flush().catch((err) => logger.warn(`History file: ${err.message}`));
     };
 
     /**
-     * End the current live coverage range after an outage, and start a new one.
+     * End the current live coverage range at the last successful poll, after an outage, and start a new one.
      *
-     * @param {number} lastOk - Last successful poll before the outage.
-     * @param {number} t - Now.
+     * @param {number} t - When the poll that ended the outage asked QRS, on this computer's clock.
      */
-    const breakLiveCoverage = (lastOk, t) => {
+    const breakLiveCoverage = (t) => {
         if (liveFrom === null) return;
-        coverage.addGlobal(liveFrom, lastOk);
-        history?.appendObservation(liveFrom, lastOk);
+        coverage.addGlobal(liveFrom, liveTo);
+        writeObservation();
         coverage.setLive(null);
-        liveFrom = t;
-        liveTo = t;
+        liveFrom = Math.max(liveTo, toServerTime(t));
+        liveTo = liveFrom;
+        observedTo = null;
     };
 
     /**
      * State of live updates, sent to the page after every poll. The page treats time after `coveredTo` as unknown, and
      * reloads its snapshot when `from` changes (coverage was split by an outage) or `rev` is ahead of it (missed deltas).
+     * Times are on the Sense clock; the page sets its own clock from `now`.
      *
      * @returns {object} { rev, now, from, coveredTo, qrs: { state, message, lastOkAt }, staleKeys }.
      */
     const liveStatus = () => {
-        const t = now();
+        const t = serverNow();
         const { state, message, lastOkAt } = statuses.get(SOURCE.QRS);
         // Runs that turned stale since they were sent, e.g. their engine session vanished
         const staleKeys = [];
@@ -358,10 +390,10 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
      */
     const drainDelta = () => {
         const { rev, changed, removed } = store.drainChanges();
-        const { from, to } = windowNow();
-        const t = now();
+        const t = serverNow();
+        const { from, to } = windowAt(t);
         const records = changed.map((k) => store.get(k)).filter(Boolean);
-        const cols = encodeRecords(records, { laneByTask: visibleLaneMap(), nodeIdx: nodes.idx, runningResultIds, from, to, now: t });
+        const cols = encodeRecords(records, { laneByTask: visibleLaneMap(), nodeIdx: nodes.idx, runningResultIds, from, now: t });
         const laneList = [...changedLanes].map((id) => lanes.get(id)).filter((l) => l?.visible);
         changedLanes.clear();
         const delta = {
@@ -377,15 +409,18 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         return delta;
     };
 
-    const analyticsParams = () => ({
-        records: store.all(),
-        lanes,
-        schedulers,
-        runningResultIds,
-        window: windowNow(),
-        now: now(),
-        completeFrom: coverage.completeFrom(),
-    });
+    const analyticsParams = () => {
+        const t = serverNow();
+        return {
+            records: store.all(),
+            lanes,
+            schedulers,
+            runningResultIds,
+            window: windowAt(t),
+            now: t,
+            completeFrom: coverage.completeFrom(),
+        };
+    };
 
     /**
      * Analytics and source statuses for the live update stream.
@@ -440,14 +475,12 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     };
 
     /**
-     * Record the final observation range, flush the history file and release its lock.
+     * Record the final observation range (up to the last successful poll), flush the history file and release its lock.
      *
      * @returns {Promise<void>}
      */
     const close = async () => {
-        if (history?.mode() === 'readwrite' && liveFrom !== null) {
-            history.appendObservation(liveFrom, now());
-        }
+        writeObservation();
         if (history) await history.close();
     };
 
@@ -471,7 +504,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         statuses: () => [...statuses.values()],
         setStatus,
         history: () => history,
-        hasRunning: () => store.running().some((r) => !isStale(r, runningResultIds, now())),
+        hasRunning: () => store.running().some((r) => !isStale(r, runningResultIds, serverNow())),
         setRunningResultIds: (ids) => {
             runningResultIds = ids;
         },

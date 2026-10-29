@@ -7,6 +7,7 @@ import { createGanttApp, newSourceStatus } from '../../../lib/task-gantt/app.js'
 import { validateTaskGanttOptions } from '../../../lib/task-gantt/options.js';
 import { mergeIntervals } from '../../../lib/task-gantt/shared/sweep.js';
 import { FLAG_STALE } from '../../../lib/task-gantt/api/snapshot.js';
+import { createQrsPoller } from '../../../lib/task-gantt/live/qrs-poller.js';
 import { createLivePublisher } from '../../../lib/cmd/qseow/taskgantt.js';
 import { silentLogger } from '../../util/web/web-test-helpers.mjs';
 
@@ -102,7 +103,7 @@ const newTaskRow = ({ status, stoppedAt = null, modifiedAt }) => ({
  * answers from mutable state, so a test can change tasks, capacity and execution results between calls.
  *
  * @param {Function} clock - Clock used for the response's server date.
- * @returns {object} Stub state, with .request and .calls.
+ * @returns {object} Stub state, with .request and .calls. Set .skewMs for a Sense clock that is ahead (or behind).
  */
 function createQrsStub(clock) {
     const stub = {
@@ -114,11 +115,12 @@ function createQrsStub(clock) {
         apps: [],
         failures: new Map(),
         calls: [],
+        skewMs: 0,
     };
     stub.request = async (options, { method = 'get', path: p, query = {} }) => {
         stub.calls.push({ options, method, path: p, query: { ...query } });
         if (stub.failures.has(p)) throw stub.failures.get(p);
-        const reply = (data) => ({ status: 200, data: structuredClone(data), serverDate: clock() });
+        const reply = (data) => ({ status: 200, data: structuredClone(data), serverDate: clock() + stub.skewMs });
         switch (p) {
             case '/qrs/task/full':
                 return reply(stub.tasks);
@@ -425,7 +427,7 @@ describe('createGanttApp init and snapshot', () => {
         await app.init();
 
         app.markLive(NOW + MIN);
-        app.breakLiveCoverage(NOW + MIN, NOW + 20 * MIN);
+        app.breakLiveCoverage(NOW + 20 * MIN);
         clock = NOW + 30 * MIN;
         await app.close();
 
@@ -768,7 +770,7 @@ describe('history file', () => {
         expect(app.snapshot().cols.key).toHaveLength(6);
 
         app.markLive(NOW + MIN);
-        app.breakLiveCoverage(NOW + MIN, NOW + 20 * MIN);
+        app.breakLiveCoverage(NOW + 20 * MIN);
         await app.close();
         expect(fs.readdirSync(dir)).toEqual([]);
     });
@@ -1027,7 +1029,7 @@ describe('live updates', () => {
 
         // An outage splits the live range: pages see the new start and reload their snapshot
         clock = NOW + 180 * MIN;
-        app.breakLiveCoverage(NOW + 120 * MIN, clock);
+        app.breakLiveCoverage(clock);
         expect(app.liveStatus()).toMatchObject({ from: clock, coveredTo: clock });
         app.setStatus('qrs', { state: 'degraded', message: 'Live update failed' });
         expect(app.liveStatus().qrs).toMatchObject({ state: 'degraded', message: 'Live update failed' });
@@ -1132,6 +1134,69 @@ describe('live updates', () => {
         expect(page.nodes()[row.node]).toBe(NODE2);
     });
 
+    test.each([
+        ['ahead of', 30 * 1000],
+        ['behind', -30 * 1000],
+    ])('with the Sense clock 30 s %s this computer, a short run still reaches live pages', async (_name, skewMs) => {
+        const stub = createQrsStub(now);
+        stub.skewMs = skewMs;
+        const config = makeConfig({ sources: 'qrs' });
+        const app = makeApp(stub, config);
+        await app.init();
+        const { page, gaps, publish } = makePage(app);
+        const poller = createQrsPoller({ app, intervalMs: config.pollIntervalMs, logger: silentLogger, onUpdate: publish, now });
+
+        // A 5-second reload, triggered 20 s after the start on the Sense clock. QRS lists it once it has finished.
+        const run = structuredClone(ROWS.find((r) => r.taskID === CAL_PERF_1));
+        const trig = NOW + skewMs + 20 * 1000;
+        Object.assign(run, {
+            id: '99999999-aaaa-4bbb-8ccc-dddddddddddd',
+            executionID: '99999999-aaaa-4bbb-8ccc-eeeeeeeeeeee',
+            status: 7,
+            startTime: iso(trig),
+            stopTime: iso(trig + 5000),
+            modifiedDate: iso(trig + 5100),
+            details: [],
+        });
+        for (let t = NOW + 10 * 1000; t <= NOW + 60 * 1000; t += 10 * 1000) {
+            clock = t;
+            if (!stub.rows.includes(run) && clock + skewMs >= trig + 5100) stub.rows.push(run);
+            await poller.tickNow();
+        }
+        await poller.stop();
+
+        expect(gaps).toEqual([]);
+        expect(page.row(`r:${run.id}`)).toMatchObject({ lane: LANE[CAL_PERF_1], status: 7 });
+    });
+
+    test.each([
+        ['ahead of', 2 * MIN],
+        ['behind', -2 * MIN],
+    ])('coverage, the window and the page clock follow the Sense clock when it is 2 minutes %s this computer', async (_name, skewMs) => {
+        const stub = createQrsStub(now);
+        stub.skewMs = skewMs;
+        const app = makeApp(stub);
+        await app.init();
+        const SENSE_NOW = NOW + skewMs;
+
+        // The page sets its clock from generatedAt and live.now
+        const snap = app.snapshot();
+        expect(snap.generatedAt).toBe(SENSE_NOW);
+        expect(snap.window).toEqual({ from: SENSE_NOW - 30 * DAY, to: SENSE_NOW });
+        expect(snap.live).toMatchObject({ now: SENSE_NOW, from: SENSE_NOW, coveredTo: SENSE_NOW });
+
+        // A successful poll 15 s later by this computer's clock
+        clock = NOW + 15 * 1000;
+        app.markLive(clock);
+        expect(app.coverage.live()).toEqual([SENSE_NOW, SENSE_NOW + 15 * 1000]);
+        expect(app.liveStatus()).toMatchObject({ now: SENSE_NOW + 15 * 1000, from: SENSE_NOW, coveredTo: SENSE_NOW + 15 * 1000 });
+        expect(app.statuses()[0].lastOkAt).toBe(SENSE_NOW + 15 * 1000);
+
+        // The history file records what was watched on the Sense clock too
+        await app.close();
+        expect(ofType(historyLines('2026-10-06'), 'obs').map((l) => [l.from, l.to])).toEqual([[SENSE_NOW, SENSE_NOW + 15 * 1000]]);
+    });
+
     test('markLive and breakLiveCoverage extend and split the coverage, and record it in the history', async () => {
         const app = makeApp(createQrsStub(now));
         await app.init();
@@ -1149,7 +1214,7 @@ describe('live updates', () => {
 
         // An outage: the range up to the last good poll is kept, a new one starts
         clock = NOW + 20 * MIN;
-        app.breakLiveCoverage(NOW + 2 * MIN, clock);
+        app.breakLiveCoverage(clock);
         clock = NOW + 21 * MIN;
         app.markLive(clock);
         expect(app.coverage.globalRanges()).toEqual([
@@ -1161,17 +1226,17 @@ describe('live updates', () => {
             [NOW + 20 * MIN, NOW + 21 * MIN],
         ]);
 
+        // Closed a minute after the last poll: that minute was not watched, and the range up to the poll is written already
         clock = NOW + 22 * MIN;
         await app.close();
         const obs = await waitFor(() => {
             const lines = ofType(historyLines('2026-10-06'), 'obs');
-            return lines.length >= 4 ? lines : null;
+            return lines.length >= 3 ? lines : null;
         });
         expect(obs.map((l) => [l.from, l.to]).sort((a, b) => a[0] - b[0] || a[1] - b[1])).toEqual([
             [NOW, NOW + MIN],
             [NOW, NOW + 2 * MIN],
             [NOW + 20 * MIN, NOW + 21 * MIN],
-            [NOW + 20 * MIN, NOW + 22 * MIN],
         ]);
 
         // The next run knows when Ctrl-Q was watching, gap included
@@ -1181,10 +1246,48 @@ describe('live updates', () => {
         expect(next.coverage.globalRanges()).toEqual(
             mergeIntervals([
                 [NOW, NOW + 2 * MIN],
-                [NOW + 20 * MIN, NOW + 22 * MIN],
+                [NOW + 20 * MIN, NOW + 21 * MIN],
             ])
         );
-        expect(next.statuses()[1].coverage).toEqual({ fromMs: OLDEST_TRIGGERED, toMs: NOW + 22 * MIN });
+        expect(next.statuses()[1].coverage).toEqual({ fromMs: OLDEST_TRIGGERED, toMs: NOW + 21 * MIN });
+    });
+
+    // The poller and the app together, as the command runs them: polls that fail, or stop for good, do not count as
+    // watched time, whenever Ctrl-Q is closed afterwards
+    test.each([
+        ['QRS is unreachable for two hours', Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' })],
+        ['live updates stopped (HTTP 401)', Object.assign(new Error('QRS GET failed: HTTP 401'), { status: 401 })],
+    ])('closing Ctrl-Q after %s records the watched time up to the last successful poll only', async (_name, failure) => {
+        const stub = createQrsStub(now);
+        const config = makeConfig();
+        const app = makeApp(stub, config);
+        await app.init();
+        const poller = createQrsPoller({
+            app,
+            intervalMs: config.pollIntervalMs,
+            logger: silentLogger,
+            onUpdate: () => {},
+            now,
+            random: () => 0.5,
+        });
+
+        clock = NOW + MIN;
+        await poller.tickNow();
+        stub.failures.set('/qrs/executionresult/full', failure);
+        clock = NOW + 30 * MIN;
+        await poller.tickNow();
+        clock = NOW + 90 * MIN;
+        await poller.tickNow();
+        await poller.stop();
+        clock = NOW + 120 * MIN;
+        await app.close();
+
+        const obs = ofType(historyLines('2026-10-06'), 'obs');
+        expect(obs.map((l) => [l.from, l.to])).toEqual([[NOW, NOW + MIN]]);
+        clock = NOW + 121 * MIN;
+        const next = makeApp(createQrsStub(now), config);
+        await next.init();
+        expect(next.coverage.globalRanges()).toEqual([[NOW, NOW + MIN]]);
     });
 });
 

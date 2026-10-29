@@ -44,6 +44,9 @@ export function createQrsPoller({ app, intervalMs, logger, onUpdate, now = () =>
 
     const tick = async () => {
         if (stopped) return;
+        // When this poll asks QRS: its answer holds everything that happened before. On this computer's clock, like all
+        // times here; the app converts what it records to the Sense clock.
+        const t = now();
         try {
             const { records, cursor } = await app.qrs.changesSince(app.cursor);
             ticks += 1;
@@ -62,9 +65,8 @@ export function createQrsPoller({ app, intervalMs, logger, onUpdate, now = () =>
             const changes = app.applyQrsChanges(records);
             // Only now that the records are applied: a failed tick re-reads them next time
             app.cursor = cursor;
-            const t = now();
             if (t - lastOkAt > (failures > 0 ? COVERAGE_BREAK_MS : intervalMs + COVERAGE_BREAK_MS)) {
-                app.breakLiveCoverage(lastOkAt, t);
+                app.breakLiveCoverage(t);
             }
             const recovered = failures > 0;
             if (recovered) {
@@ -74,9 +76,9 @@ export function createQrsPoller({ app, intervalMs, logger, onUpdate, now = () =>
                     hint: '',
                 });
             }
-            app.setStatus('qrs', { lastOkAt: t });
             failures = 0;
             lastOkAt = t;
+            // The app also keeps this as the QRS status's lastOkAt
             app.markLive(t);
             onUpdate({ changed: changes > 0 || metaChanged, statusChanged: recovered });
             schedule(intervalMs);
