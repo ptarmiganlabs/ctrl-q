@@ -1,5 +1,8 @@
 # Things related to documentation of Ctrl-Q
 
+This folder is developer material. User documentation is drafted in [`to-doc-site/`](../to-doc-site/README.md), in the same commit as
+the change it describes, and published to <https://ctrl-q.ptarmiganlabs.com> from there.
+
 - [Things related to documentation of Ctrl-Q](#things-related-to-documentation-of-ctrl-q)
   - [Process for creating terminal captures](#process-for-creating-terminal-captures)
 
