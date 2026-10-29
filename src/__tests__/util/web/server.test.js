@@ -161,6 +161,8 @@ describe('startWebServer (no token)', () => {
                         throw new Error('boom with secret detail');
                     },
                 },
+                // Rejects with nothing at all, as Promise.reject() does
+                { path: '/api/reject-nothing', handler: () => Promise.reject() },
                 {
                     method: 'POST',
                     path: '/api/refresh',
@@ -338,6 +340,12 @@ describe('startWebServer (no token)', () => {
         expect(after.status).toBe(200);
     });
 
+    test('a handler that rejects with nothing still gets a 500, not a dropped connection', async () => {
+        const res = await rawRequest({ port: web.port, path: '/api/reject-nothing' });
+
+        expect(res.status).toBe(500);
+    });
+
     test('POST routes need the CSRF header', async () => {
         const without = await rawRequest({ port: web.port, method: 'POST', path: '/api/refresh' });
         const withHeader = await rawRequest({ port: web.port, method: 'POST', path: '/api/refresh', headers: { [CSRF_HEADER]: '1' } });
@@ -414,6 +422,45 @@ describe('startWebServer static file caching', () => {
 });
 
 describe('startWebServer on localhost', () => {
+    test('takes the host as written in a URL or with stray spaces', async () => {
+        const padded = await startWebServer({ host: ' localhost ', port: 0, assets: makeAssets(), logger: silentLogger });
+        try {
+            expect(padded.url).toBe(`http://localhost:${padded.port}/`);
+            expect((await rawRequest({ port: padded.port, path: '/' })).status).toBe(200);
+        } finally {
+            await padded.close();
+        }
+        if (hasIpv6Loopback) {
+            const bracketed = await startWebServer({ host: '[::1]', port: 0, assets: makeAssets(), logger: silentLogger });
+            try {
+                expect(bracketed.url).toBe(`http://[::1]:${bracketed.port}/`);
+                expect(
+                    (await rawRequest({ host: '::1', port: bracketed.port, path: '/', headers: { Host: `[::1]:${bracketed.port}` } }))
+                        .status
+                ).toBe(200);
+            } finally {
+                await bracketed.close();
+            }
+        }
+    });
+
+    test('refuses a port that another program serves on all addresses (0.0.0.0)', async () => {
+        // On macOS and Windows listening on 127.0.0.1 would succeed, and take over the other program's local traffic
+        const other = http.createServer((req, res) => res.end('other program'));
+        await new Promise((resolve) => {
+            other.listen(0, '0.0.0.0', resolve);
+        });
+        const { port } = other.address();
+        try {
+            await expect(startWebServer({ host: 'localhost', port, logger: silentLogger })).rejects.toThrow(/already in use/);
+            expect((await rawRequest({ port, path: '/' })).body).toBe('other program');
+        } finally {
+            await new Promise((resolve) => {
+                other.close(resolve);
+            });
+        }
+    });
+
     test('answers on 127.0.0.1, and on ::1 where the computer has it', async () => {
         const web = await startWebServer({ host: 'localhost', port: 0, assets: makeAssets(), logger: silentLogger });
         try {
