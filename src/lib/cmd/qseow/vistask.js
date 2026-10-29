@@ -1,6 +1,7 @@
 import { appVersion, logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { QlikSenseTasks } from '../../task/class_alltasks.js';
 import { findCircularTaskChains } from '../../task/find_circular_task_chain.js';
+import { parseFlag } from '../../task-gantt/options.js';
 import { catchLog, redactOptions } from '../../util/log.js';
 import { createAssetCatalog } from '../../util/web/assets.js';
 import { startWebServer, createAccessToken, isLoopbackHost } from '../../util/web/server.js';
@@ -341,8 +342,9 @@ export async function visTask(
     }
 
     const visHost = String(options.visHost || 'localhost');
-    // The page is reachable from other computers unless the server listens on a loopback address. It then needs a token.
-    const token = isLoopbackHost(visHost) ? null : createAccessToken();
+    // A token is needed, and only makes sense, when other computers can reach the page. Without --vis-allow-remote a
+    // non-loopback host gets none, and the web server refuses to start.
+    const token = parseFlag(options.visAllowRemote) && !isLoopbackHost(visHost) ? createAccessToken() : null;
 
     const shutdown = createShutdownManager({ processRef, logger });
     const web = await startWebServer({

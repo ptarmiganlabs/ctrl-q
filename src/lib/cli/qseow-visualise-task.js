@@ -8,10 +8,12 @@ export function setupQseowVisualiseTaskCommand(qseow) {
     qseow
         .command('task-vis')
         .description('visualise task network')
-        .action(async (options) => {
+        .action(async (options, command) => {
             try {
                 await qseowSharedParamAssertOptions(options);
-                await visTaskAssertOptions(options);
+                // So that a refused --vis-host can say it came from CTRLQ_VIS_HOST, which task-gantt reads too
+                const fromEnv = new Set(Object.keys(options).filter((name) => command.getOptionValueSource(name) === 'env'));
+                await visTaskAssertOptions(options, { fromEnv });
 
                 if (!(await visTask(options))) {
                     process.exitCode = 1;
@@ -88,13 +90,12 @@ export function setupQseowVisualiseTaskCommand(qseow) {
                 'CTRLQ_APP_TAG'
             )
         )
+        .addOption(new Option('--vis-host <host>', 'host for visualisation server').default('localhost').env('CTRLQ_VIS_HOST'))
+        .addOption(new Option('--vis-port <port>', 'port for visualisation server').default('3000').env('CTRLQ_VIS_PORT'))
         .addOption(
             new Option(
-                '--vis-host <host>',
-                'host for visualisation server; a non-loopback host makes the page reachable from other computers, protected by a random access token'
-            )
-                .default('localhost')
-                .env('CTRLQ_VIS_HOST')
-        )
-        .addOption(new Option('--vis-port <port>', 'port for visualisation server').default('3000').env('CTRLQ_VIS_PORT'));
+                '--vis-allow-remote [true|false]',
+                'allow --vis-host to be a non-loopback address; the page is then protected by a random access token'
+            ).env('CTRLQ_VIS_ALLOW_REMOTE')
+        );
 }

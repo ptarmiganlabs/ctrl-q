@@ -5,11 +5,12 @@ import { Command } from 'commander';
 // which web server options reach visTask(), and the exit code when it fails.
 
 const visTask = jest.fn(async () => ({ url: 'http://localhost:3000/', port: 3000, close: async () => {} }));
+const visTaskAssertOptions = jest.fn(async () => true);
 jest.unstable_mockModule('../../../lib/cmd/qseow/vistask.js', () => ({ visTask }));
 jest.unstable_mockModule('../../../lib/util/qseow/assert-options.js', () => ({
     // The shared checks look for certificate files, and the task-vis checks ask QRS about task ids; not needed here
     qseowSharedParamAssertOptions: jest.fn(async () => {}),
-    visTaskAssertOptions: jest.fn(async () => true),
+    visTaskAssertOptions,
 }));
 
 const { setupQseowVisualiseTaskCommand } = await import('../../../lib/cli/qseow-visualise-task.js');
@@ -24,6 +25,7 @@ beforeEach(() => {
         if (name.startsWith('CTRLQ_')) delete process.env[name];
     }
     visTask.mockClear();
+    visTaskAssertOptions.mockClear();
 });
 
 afterEach(() => {
@@ -62,6 +64,23 @@ describe('qseow task-vis command line', () => {
             visHost: 'myhost.example.com',
             visPort: '4444',
         });
+    });
+
+    test('--vis-allow-remote is off by default, and on when given without a value', async () => {
+        expect((await run()).visAllowRemote).toBeUndefined();
+        expect(await run(['--vis-host', '0.0.0.0', '--vis-allow-remote'])).toMatchObject({ visHost: '0.0.0.0', visAllowRemote: true });
+    });
+
+    test('--vis-allow-remote also comes from CTRLQ_VIS_ALLOW_REMOTE, as for task-gantt', async () => {
+        expect((await run([], { CTRLQ_VIS_ALLOW_REMOTE: 'true' })).visAllowRemote).toBe('true');
+    });
+
+    test('the option checks learn which options came from environment variables', async () => {
+        await run(['--vis-port', '3333'], { CTRLQ_VIS_HOST: '0.0.0.0' });
+        const { fromEnv } = visTaskAssertOptions.mock.calls.at(-1)[1];
+
+        expect(fromEnv.has('visHost')).toBe(true);
+        expect(fromEnv.has('visPort')).toBe(false);
     });
 
     test('the exit code is 1 when the task network cannot be loaded', async () => {

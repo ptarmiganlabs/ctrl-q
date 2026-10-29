@@ -448,9 +448,9 @@ describe('--vis-host and --vis-port', () => {
         expect((await get(vis.port, '/api/network')).status).toBe(200);
     });
 
-    test('a non-loopback host gets an access token, which every request must present', async () => {
+    test('with --vis-allow-remote, a non-loopback host gets an access token, which every request must present', async () => {
         const info = jest.spyOn(logger, 'info');
-        const vis = await start({ visHost: '0.0.0.0' });
+        const vis = await start({ visHost: '0.0.0.0', visAllowRemote: true });
         const m = /^http:\/\/localhost:(\d+)\/\?token=([A-Za-z0-9_-]{32})$/.exec(vis.url);
 
         expect(m).not.toBeNull();
@@ -476,6 +476,26 @@ describe('--vis-host and --vis-port', () => {
             `Task visualization, from other computers: http://${os.hostname().toLowerCase()}:${vis.port}/?token=${token}`
         );
         expect(lines.some((l) => l.startsWith('The page is reachable from other computers. Share one of the URLs above'))).toBe(true);
+    });
+
+    test.each([undefined, false, 'false'])('with --vis-allow-remote %j, a non-loopback host does not start', async (visAllowRemote) => {
+        const listen = jest.spyOn(net.Server.prototype, 'listen');
+
+        await expect(start({ visHost: '0.0.0.0', visAllowRemote })).rejects.toThrow(
+            'Binding the web server to "0.0.0.0" makes it reachable from other computers, which requires an access token'
+        );
+        expect(listen).not.toHaveBeenCalled();
+    });
+
+    test('a loopback host gets no token, and no claim that other computers can reach it, even with --vis-allow-remote', async () => {
+        const info = jest.spyOn(logger, 'info');
+        const vis = await start({ visHost: '127.0.0.1', visAllowRemote: true });
+
+        expect(vis.url).toBe(`http://127.0.0.1:${vis.port}/`);
+        expect((await get(vis.port, '/')).status).toBe(200);
+        const lines = info.mock.calls.map((c) => String(c[0]));
+        expect(lines).toContain(`Task visualization: ${vis.url}`);
+        expect(lines.some((l) => l.includes('reachable from other computers'))).toBe(false);
     });
 
     test('a port in use rejects with a helpful error', async () => {
