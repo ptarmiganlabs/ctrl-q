@@ -460,7 +460,11 @@ async function showExecution(key) {
                       )
                   ),
               ]
-            : el('p', { class: 'hint', text: 'Detailed state changes are only available while QRS still holds this execution.' })
+            : el('p', {
+                  class: 'hint',
+                  // Why QRS gave no details, when it failed rather than no longer holding the execution
+                  text: data.qrsError ?? 'Detailed state changes are only available while QRS still holds this execution.',
+              })
     );
 }
 
