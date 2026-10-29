@@ -184,4 +184,4 @@ export async function deleteVariable(options) {
     } catch (err) {
         catchLog('Error in deleteVariable', err);
     }
-};
+}

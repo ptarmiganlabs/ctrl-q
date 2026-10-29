@@ -171,12 +171,16 @@ describe('QlikSenseTask.init — from_qseow ReloadTask', () => {
         expect(t.taskLastStatus).toBe('FinishedSuccess'); // status 7
 
         const t2 = new QlikSenseTask();
-        await t2.init('from_qseow', makeQseowReloadTask({
-            operational: {
-                ...makeQseowReloadTask().operational,
-                lastExecutionResult: { ...makeQseowReloadTask().operational.lastExecutionResult, status: 8 },
-            },
-        }), false);
+        await t2.init(
+            'from_qseow',
+            makeQseowReloadTask({
+                operational: {
+                    ...makeQseowReloadTask().operational,
+                    lastExecutionResult: { ...makeQseowReloadTask().operational.lastExecutionResult, status: 8 },
+                },
+            }),
+            false
+        );
         expect(t2.taskLastStatus).toBe('FinishedFail');
     });
 
@@ -208,9 +212,13 @@ describe('QlikSenseTask.init — from_qseow ReloadTask', () => {
 
     test('should set appStream to empty string when app is unpublished', async () => {
         const t = new QlikSenseTask();
-        await t.init('from_qseow', makeQseowReloadTask({
-            app: { id: 'a1', name: 'Private', published: false, stream: { name: 'ShouldBeIgnored' } },
-        }), false);
+        await t.init(
+            'from_qseow',
+            makeQseowReloadTask({
+                app: { id: 'a1', name: 'Private', published: false, stream: { name: 'ShouldBeIgnored' } },
+            }),
+            false
+        );
         expect(t.appStream).toBe('');
     });
 
