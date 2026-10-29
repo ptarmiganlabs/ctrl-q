@@ -28,6 +28,10 @@ describe('mimeTypeFor', () => {
         expect(mimeTypeFor('archive.zip')).toBe(DEFAULT_MIME_TYPE);
         expect(mimeTypeFor(undefined)).toBe(DEFAULT_MIME_TYPE);
     });
+
+    test('does not mistake Object.prototype members for MIME types', () => {
+        expect(mimeTypeFor('x.constructor')).toBe(DEFAULT_MIME_TYPE);
+    });
 });
 
 describe('isTextMimeType', () => {

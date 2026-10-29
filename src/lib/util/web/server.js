@@ -11,6 +11,13 @@ const gzip = promisify(zlib.gzip);
 // Responses smaller than this are not worth compressing
 const MIN_COMPRESS_BYTES = 1024;
 
+// 'localhost' means both loopback addresses. Listening on the one the name resolves to first (::1 on macOS) would leave
+// http://127.0.0.1:<port> unanswered, and the other address free for another program to take the same port.
+const LOCALHOST_ADDRESSES = ['127.0.0.1', '::1'];
+
+// Listening on ::1 fails with these when the computer has no IPv6 loopback address; 127.0.0.1 is then all there is
+const NO_IPV6_CODES = new Set(['EADDRNOTAVAIL', 'EAFNOSUPPORT']);
+
 // Header that state-changing (non-GET) API calls must carry. Browsers cannot add custom headers to cross-site form
 // posts, and cross-origin fetch() with custom headers needs a CORS preflight, which this server never approves.
 export const CSRF_HEADER = 'x-ctrlq-csrf';
@@ -124,6 +131,45 @@ export function createAccessToken() {
     return crypto.randomBytes(24).toString('base64url');
 }
 
+/**
+ * Does an Accept-Encoding request header accept gzip? A coding with q=0 is refused, and '*' stands for every coding the
+ * header does not name.
+ *
+ * @param {string} [header] - Accept-Encoding header value, e.g. 'gzip, deflate, br'.
+ * @returns {boolean} True if a gzip-compressed response is acceptable.
+ */
+export function acceptsGzip(header) {
+    let gzipQ = null;
+    let anyQ = null;
+    for (const part of String(header || '').split(',')) {
+        const [coding, ...params] = part.split(';').map((s) => s.trim().toLowerCase());
+        const qParam = params.find((p) => p.startsWith('q='));
+        // A q value that is not a number counts as 0: the plain response is always acceptable
+        const q = qParam === undefined ? 1 : Number(qParam.slice(2)) || 0;
+        if (coding === 'gzip' || coding === 'x-gzip') {
+            gzipQ = Math.max(gzipQ ?? 0, q);
+        } else if (coding === '*') {
+            anyQ = q;
+        }
+    }
+    return (gzipQ ?? anyQ ?? 0) > 0;
+}
+
+/**
+ * Does an If-None-Match request header match an entity tag? If-None-Match compares weakly, so a W/ prefix does not
+ * matter, and '*' matches any representation.
+ *
+ * @param {string} [header] - If-None-Match header value: one or more entity tags, or '*'.
+ * @param {string} etag - Entity tag of the representation that would be sent, e.g. '"3f2a"'.
+ * @returns {boolean} True if the client's copy is current, so 304 can be sent.
+ */
+export function matchesIfNoneMatch(header, etag) {
+    const opaque = (tag) => tag.trim().replace(/^W\//, '');
+    return String(header || '')
+        .split(',')
+        .some((tag) => tag.trim() === '*' || opaque(tag) === opaque(etag));
+}
+
 function friendlyListenError(err, host, port) {
     if (err.code === 'EADDRINUSE') {
         return new Error(
@@ -178,6 +224,8 @@ function isCrossSiteRequest(req, allowedHosts, hasToken) {
  * - Restrictive security headers (CSP, nosniff, no referrer, no framing) on every response.
  * - Request URLs are logged without their query string, so the token never reaches the log.
  *
+ * 'localhost' listens on both 127.0.0.1 and ::1 (::1 only where the computer has it), and fails if either is taken.
+ *
  * @param {object} param - Parameters.
  * @param {string} param.host - Host/address to listen on, e.g. 'localhost'.
  * @param {number|string} param.port - Port to listen on. 0 picks a free port.
@@ -190,9 +238,10 @@ function isCrossSiteRequest(req, allowedHosts, hasToken) {
  * @param {string|null} [param.token] - Access token. Required when host is not a loopback address.
  * @param {string} [param.csp] - Content-Security-Policy header value.
  * @param {object} [param.logger] - Winston-style logger.
- * @returns {Promise<{server: http.Server, port: number, url: string, close: Function}>} The running server.
+ * @returns {Promise<{server: http.Server, servers: http.Server[], port: number, url: string, close: Function}>} The
+ *   running server. servers holds one http.Server per address listened on; server is the first of them.
  */
-export function startWebServer({
+export async function startWebServer({
     host,
     port,
     assets,
@@ -203,12 +252,10 @@ export function startWebServer({
     logger = defaultLogger,
 } = {}) {
     if (!host || typeof host !== 'string') {
-        return Promise.reject(new Error('startWebServer: host is required, e.g. "localhost"'));
+        throw new Error('startWebServer: host is required, e.g. "localhost"');
     }
     if (!isLoopbackHost(host) && !token) {
-        return Promise.reject(
-            new Error(`Binding the web server to "${host}" makes it reachable from other computers, which requires an access token`)
-        );
+        throw new Error(`Binding the web server to "${host}" makes it reachable from other computers, which requires an access token`);
     }
 
     const routes = new Map();
@@ -229,7 +276,8 @@ export function startWebServer({
     let allowed = new Set();
     // Cookies are not isolated per port, so the cookie name includes the port
     const tokenCookieName = () => `ctrlq_token_${actualPort}`;
-    const assetCache = new Map();
+    // Static files with their hash and compressed copy, by URL. See loadStatic().
+    const staticCache = new Map();
     // Responses a handler has started sending, so the server does not send a second one
     const responding = new WeakSet();
 
@@ -242,11 +290,14 @@ export function startWebServer({
         'Cross-Origin-Opener-Policy': 'same-origin',
     };
 
-    const acceptsGzip = (req) => /\bgzip\b/.test(String(req.headers['accept-encoding'] || ''));
-
     const writeResponse = (req, res, status, headers, payload) => {
-        if (res.headersSent || res.writableEnded || res.destroyed) {
+        if (res.headersSent || res.writableEnded) {
             logger.warn(`Web server: a second response for one request was dropped (${req.method} ${status})`);
+            return;
+        }
+        if (res.destroyed) {
+            // The browser closed the connection first, e.g. because the page was reloaded
+            logger.verbose(`Web server: the client closed the connection before the response was sent (${req.method} ${status})`);
             return;
         }
         res.writeHead(status, headers);
@@ -257,10 +308,13 @@ export function startWebServer({
         responding.add(res);
         let payload = body;
         const outHeaders = { ...baseHeaders, ...headers };
-        if (payload.length >= MIN_COMPRESS_BYTES && isTextMimeType(outHeaders['Content-Type']) && acceptsGzip(req)) {
-            payload = await gzip(payload);
-            outHeaders['Content-Encoding'] = 'gzip';
+        if (payload.length >= MIN_COMPRESS_BYTES && isTextMimeType(outHeaders['Content-Type'])) {
+            // Varies by Accept-Encoding whichever encoding this client gets
             outHeaders.Vary = 'Accept-Encoding';
+            if (acceptsGzip(req.headers['accept-encoding'])) {
+                payload = await gzip(payload);
+                outHeaders['Content-Encoding'] = 'gzip';
+            }
         }
         outHeaders['Content-Length'] = payload.length;
         writeResponse(req, res, status, outHeaders, payload);
@@ -276,35 +330,52 @@ export function startWebServer({
             ...extraHeaders,
         });
 
-    const sendStatic = async (req, res, route) => {
-        responding.add(res);
+    // A static file with its hash, and its compressed copy once one was asked for. Embedded (SEA) files cannot change,
+    // so they are loaded and hashed once. Files on disk are read on every request, so edits show; the compressed copy
+    // is kept while the content is unchanged.
+    const loadStatic = async (route) => {
+        const cached = staticCache.get(route.url);
+        if (cached && assets.immutable) {
+            return cached;
+        }
         const content = await assets.load(route);
         const hash = crypto.createHash('sha1').update(content).digest('hex');
-        const etag = `"${hash}"`;
-        const headers = { ...baseHeaders, 'Content-Type': route.mimeType, 'Cache-Control': 'no-cache', ETag: etag };
+        if (cached?.hash === hash) {
+            return cached;
+        }
+        const entry = {
+            content,
+            hash,
+            compressible: content.length >= MIN_COMPRESS_BYTES && isTextMimeType(route.mimeType),
+            gzipped: null,
+        };
+        staticCache.set(route.url, entry);
+        return entry;
+    };
 
-        if (req.headers['if-none-match'] === etag) {
+    const sendStatic = async (req, res, route) => {
+        responding.add(res);
+        const entry = await loadStatic(route);
+        const useGzip = entry.compressible && acceptsGzip(req.headers['accept-encoding']);
+        // The compressed and the plain copy are different representations, so each has its own entity tag
+        const etag = useGzip ? `"${entry.hash}-gzip"` : `"${entry.hash}"`;
+        const headers = { ...baseHeaders, 'Content-Type': route.mimeType, 'Cache-Control': 'no-cache', ETag: etag };
+        if (entry.compressible) {
+            headers.Vary = 'Accept-Encoding';
+        }
+
+        if (matchesIfNoneMatch(req.headers['if-none-match'], etag)) {
             writeResponse(req, res, 304, headers);
             return;
         }
-
-        // Static files are compressed once per content version
-        if (content.length >= MIN_COMPRESS_BYTES && isTextMimeType(route.mimeType) && acceptsGzip(req)) {
-            let cached = assetCache.get(route.url);
-            if (!cached || cached.hash !== hash) {
-                cached = { hash, data: await gzip(content) };
-                assetCache.set(route.url, cached);
+        if (useGzip) {
+            if (!entry.gzipped) {
+                entry.gzipped = await gzip(entry.content);
             }
-            writeResponse(
-                req,
-                res,
-                200,
-                { ...headers, 'Content-Encoding': 'gzip', Vary: 'Accept-Encoding', 'Content-Length': cached.data.length },
-                cached.data
-            );
+            writeResponse(req, res, 200, { ...headers, 'Content-Encoding': 'gzip', 'Content-Length': entry.gzipped.length }, entry.gzipped);
             return;
         }
-        writeResponse(req, res, 200, { ...headers, 'Content-Length': content.length }, content);
+        writeResponse(req, res, 200, { ...headers, 'Content-Length': entry.content.length }, entry.content);
     };
 
     // Returns extra response headers to send (e.g. Set-Cookie), or null if the request is not authorized
@@ -423,41 +494,66 @@ export function startWebServer({
         }
     };
 
-    const server = http.createServer((req, res) => {
-        requestHandler(req, res).catch((err) => {
-            logger.error(`Web server: unexpected error: ${err.message}`);
-            res.destroy();
+    // Malformed requests are left to Node: it answers 400 (431 for oversized headers, 408 for a request that took too
+    // long), and never writes that into a response that is already being sent.
+    const createServer = () =>
+        http.createServer((req, res) => {
+            requestHandler(req, res).catch((err) => {
+                logger.error(`Web server: unexpected error: ${err.message}`);
+                res.destroy();
+            });
         });
-    });
 
-    server.on('clientError', (err, socket) => {
-        if (socket.writable) {
-            socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+    const listen = (srv, address, listenPort) =>
+        new Promise((resolve, reject) => {
+            srv.once('error', reject);
+            srv.listen(listenPort, address, () => {
+                srv.off('error', reject);
+                srv.on('error', (err) => logger.error(`Web server error: ${err.message}`));
+                resolve();
+            });
+        });
+
+    const servers = [];
+    const close = () =>
+        Promise.all(
+            servers.map(
+                (srv) =>
+                    new Promise((resolveClose) => {
+                        srv.close(() => resolveClose());
+                        srv.closeAllConnections();
+                    })
+            )
+        ).then(() => {});
+
+    const [firstAddress, ...otherAddresses] = host.toLowerCase() === 'localhost' ? LOCALHOST_ADDRESSES : [host];
+    try {
+        const first = createServer();
+        await listen(first, firstAddress, Number(port));
+        servers.push(first);
+        // Known as soon as the first address answers: requests may arrive from then on
+        actualPort = first.address().port;
+        allowed = buildAllowedHosts(host, actualPort, allowedHosts);
+
+        for (const address of otherAddresses) {
+            const other = createServer();
+            try {
+                await listen(other, address, actualPort);
+                servers.push(other);
+            } catch (err) {
+                if (!NO_IPV6_CODES.has(err.code)) {
+                    throw err;
+                }
+                logger.verbose(`Web server: ${address} is not available on this computer, listening on ${firstAddress} only`);
+            }
         }
-        socket.destroy();
-    });
+    } catch (err) {
+        await close();
+        throw friendlyListenError(err, host, actualPort);
+    }
 
-    return new Promise((resolve, reject) => {
-        const onStartupError = (err) => reject(friendlyListenError(err, host, port));
-        server.once('error', onStartupError);
+    const urlHost = host === '0.0.0.0' || host === '::' ? 'localhost' : formatHostForUrl(host);
+    const url = `http://${urlHost}:${actualPort}/${token ? `?token=${encodeURIComponent(token)}` : ''}`;
 
-        server.listen(Number(port), host, () => {
-            server.off('error', onStartupError);
-            server.on('error', (err) => logger.error(`Web server error: ${err.message}`));
-
-            actualPort = server.address().port;
-            allowed = buildAllowedHosts(host, actualPort, allowedHosts);
-
-            const urlHost = host === '0.0.0.0' || host === '::' ? 'localhost' : formatHostForUrl(host);
-            const url = `http://${urlHost}:${actualPort}/${token ? `?token=${encodeURIComponent(token)}` : ''}`;
-
-            const close = () =>
-                new Promise((resolveClose) => {
-                    server.close(() => resolveClose());
-                    server.closeAllConnections();
-                });
-
-            resolve({ server, port: actualPort, url, close });
-        });
-    });
+    return { server: servers[0], servers, port: actualPort, url, close };
 }
