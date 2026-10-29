@@ -140,7 +140,6 @@ export function setupQrsConnection(options, param) {
         };
     } else if (options.authType === 'jwt') {
         logger.verbose(`Using JWT for authentication with QRS`);
-        logger.debug(`QRS host: ${options.host}`);
         logger.debug(`Reject unauthorized certificate: ${secure}`);
 
         // No CA is given: the certificate of the Sense proxy is checked against the CAs Node.js trusts
