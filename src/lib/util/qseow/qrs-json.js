@@ -4,15 +4,16 @@ import { setupQrsConnection } from './qrs.js';
 
 /**
  * Error from a QRS request. Carries the HTTP status, if there was a response, the short reason and a hint on what to
- * check. The message holds all of it.
+ * check. The message holds all of it. `aborted` is true for a request its caller aborted, which is no failure of QRS.
  */
 export class QrsRequestError extends Error {
-    constructor(message, status, { reason = '', hint = '' } = {}) {
+    constructor(message, status, { reason = '', hint = '', aborted = false } = {}) {
         super(hint ? `${message}. ${hint}` : message);
         this.name = 'QrsRequestError';
         this.status = status ?? null;
         this.reason = reason || message;
         this.hint = hint;
+        this.aborted = aborted;
     }
 }
 
@@ -62,6 +63,18 @@ export function qrsErrorHint(options, status, code) {
 // Proxy session of each JWT connection, per options object: { cookies, login }. See requestWithProxySession().
 const proxySessions = new WeakMap();
 
+// Wait until a login under way has ended, or until the request waiting for it is aborted
+const loginEnded = (login, signal) =>
+    new Promise((resolve) => {
+        const done = () => {
+            signal?.removeEventListener('abort', done);
+            resolve();
+        };
+        signal?.addEventListener('abort', done);
+        if (signal?.aborted) done();
+        login.then(done, done);
+    });
+
 /**
  * The cookies a response sets, as the value of a Cookie header ('name=value; name2=value2'). The response to a JWT
  * login sets the proxy session cookie. Its name is the virtual proxy's "Session cookie header name", which the Sense
@@ -90,6 +103,9 @@ export function proxySessionCookies(headers) {
  * from that response are sent instead of the JWT until the proxy answers 401 (the session has ended), and then the JWT
  * is sent again. Requests made while a login is under way wait for it, so that they share its session.
  *
+ * Every request carries the config's abort signal, and one aborted while it waits for a login ends at once, leaving the
+ * session alone: the login may be another caller's.
+ *
  * @param {object} options - Ctrl-Q options. The session is kept per options object.
  * @param {object} config - Axios request config from setupQrsConnection(), with the JWT in the Authorization header.
  * @returns {Promise<object>} Axios response.
@@ -97,12 +113,14 @@ export function proxySessionCookies(headers) {
 async function requestWithProxySession(options, config) {
     if (!proxySessions.has(options)) proxySessions.set(options, { cookies: null, login: null });
     const session = proxySessions.get(options);
+    const { signal } = config;
     const withCookies = (cookies) => {
         const { Authorization, ...headers } = config.headers;
         return { ...config, headers: { ...headers, Cookie: cookies } };
     };
 
-    if (session.login) await session.login.catch(() => {});
+    if (session.login) await loginEnded(session.login, signal);
+    signal?.throwIfAborted();
     const cookies = session.cookies;
     if (cookies) {
         try {
@@ -111,7 +129,8 @@ async function requestWithProxySession(options, config) {
             if (err.response?.status !== 401) throw err;
             // The session has ended. Log in again, unless a parallel request already did.
             if (session.cookies === cookies) session.cookies = null;
-            if (session.login) await session.login.catch(() => {});
+            if (session.login) await loginEnded(session.login, signal);
+            signal?.throwIfAborted();
             if (session.cookies) return axios.request(withCookies(session.cookies));
         }
     }
@@ -143,9 +162,11 @@ async function requestWithProxySession(options, config) {
  * @param {object} [request.query] - Query parameters, e.g. { filter: "name eq 'x'" }. Empty values are left out.
  * @param {*} [request.body] - Request body.
  * @param {number} [request.timeoutMs] - Timeout, overrides the default 60 s.
+ * @param {AbortSignal} [request.signal] - Aborts the request. It then rejects with a QrsRequestError whose `aborted` is
+ *   true.
  * @returns {Promise<{status: number, data: *, serverDate: number|null}>} Parsed response, plus the server's Date header.
  */
-export async function qrsRequestJson(options, { method = 'get', path, query = {}, body, timeoutMs } = {}) {
+export async function qrsRequestJson(options, { method = 'get', path, query = {}, body, timeoutMs, signal } = {}) {
     const queryParameters = Object.entries(query)
         .filter(([, value]) => value !== undefined && value !== null && value !== '')
         .map(([name, value]) => ({ name, value: encodeURIComponent(String(value)) }));
@@ -153,17 +174,27 @@ export async function qrsRequestJson(options, { method = 'get', path, query = {}
     if (timeoutMs) {
         config.timeout = timeoutMs;
     }
+    if (signal) {
+        config.signal = signal;
+    }
 
     let res;
     try {
         res = options.authType === 'jwt' ? await requestWithProxySession(options, config) : await axios.request(config);
     } catch (err) {
+        const where = `${options.host}:${options.qrsPort ?? options.port}`;
+        // Aborted by the caller, e.g. because another request of its group failed (see allOrAbort()): no failure of QRS
+        if (signal?.aborted) {
+            throw new QrsRequestError(`QRS ${method.toUpperCase()} ${path} on ${where} was aborted`, null, {
+                reason: 'aborted',
+                aborted: true,
+            });
+        }
         // axios error messages hold no request headers, so they are safe to show
         const status = err.response?.status;
         let reason = err.message || err.code || 'unknown error';
         if (status) reason = `HTTP ${status}`;
         else if (err.code && !reason.includes(err.code)) reason = `${err.code}: ${reason}`;
-        const where = `${options.host}:${options.qrsPort ?? options.port}`;
         throw new QrsRequestError(`QRS ${method.toUpperCase()} ${path} on ${where} failed: ${reason}`, status, {
             reason,
             hint: qrsErrorHint(options, status, err.code),
@@ -180,4 +211,36 @@ export async function qrsRequestJson(options, { method = 'get', path, query = {}
     }
     const serverDate = res.headers?.date ? Date.parse(res.headers.date) : null;
     return { status: res.status, data, serverDate: Number.isNaN(serverDate) ? null : serverDate };
+}
+
+/**
+ * Send requests side by side, like Promise.all(), but abort the others when one fails. Left to run, they would keep a
+ * failed start waiting for minutes (bulk reads may take that long), and a failed refresh running while its retry
+ * starts. Settles once every request has ended, and rejects with the failure that caused the aborts, not with them.
+ *
+ * @param {Array<Function>} requests - Functions (signal) => Promise, each passing the signal on to its requests.
+ * @param {AbortSignal} [signal] - Aborts all of them, e.g. when a group they are part of fails.
+ * @returns {Promise<Array>} Their results, in order.
+ */
+export async function allOrAbort(requests, signal) {
+    const controller = new AbortController();
+    const groupSignal = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
+    let failed = false;
+    let failure;
+    const settled = await Promise.allSettled(
+        requests.map(async (send) => {
+            try {
+                return await send(groupSignal);
+            } catch (err) {
+                if (!failed) {
+                    failed = true;
+                    failure = err;
+                    controller.abort();
+                }
+                throw err;
+            }
+        })
+    );
+    if (failed) throw failure;
+    return settled.map((s) => s.value);
 }

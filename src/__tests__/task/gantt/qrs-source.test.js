@@ -46,6 +46,31 @@ function stubRequest(handler, { serverDate = null } = {}) {
     return jest.fn(async (options, req) => ({ status: 200, data: await handler(req), serverDate }));
 }
 
+/**
+ * Stub for the request function whose requests to some paths fail at once, while those to others take until they are
+ * aborted, like the reads of a large site. All other requests get an empty answer.
+ *
+ * @param {object} param - Parameters.
+ * @param {object} param.fail - Path -> error.
+ * @param {string[]} param.slow - Paths whose requests take until they are aborted.
+ * @returns {{request: Function, waiting: Function}} jest mock, and the number of requests still waiting.
+ */
+function failingRequest({ fail, slow }) {
+    let waiting = 0;
+    const request = jest.fn((options, req) => {
+        if (fail[req.path]) return Promise.reject(fail[req.path]);
+        if (!slow.includes(req.path)) return Promise.resolve({ status: 200, data: [], serverDate: null });
+        waiting += 1;
+        return new Promise((resolve, reject) => {
+            req.signal?.addEventListener('abort', () => {
+                waiting -= 1;
+                reject(new QrsRequestError(`QRS GET ${req.path} was aborted`, null, { reason: 'aborted', aborted: true }));
+            });
+        });
+    });
+    return { request, waiting: () => waiting };
+}
+
 /** QRS task (GET /qrs/task/full) for each task in the fixture: reloads with an app, plus one user sync task. */
 function fixtureTasks() {
     const reloads = [...new Set(ROWS.filter((r) => r.taskID !== USER_SYNC).map((r) => r.taskID))].map((taskID, i) => ({
@@ -254,6 +279,37 @@ describe('createQrsSource.loadMetadata', () => {
 
         await expect(source.loadMetadata()).rejects.toMatchObject({ name: 'QrsRequestError', status: 403 });
     });
+
+    test('a request that fails aborts the others, and it rejects with that failure once they have ended', async () => {
+        const refused = new QrsRequestError('QRS GET /qrs/servicecluster/full failed: HTTP 403', 403);
+        const { request, waiting } = failingRequest({
+            fail: { '/qrs/servicecluster/full': refused },
+            slow: ['/qrs/task/full', '/qrs/schedulerservice/full'],
+        });
+        const source = createQrsSource({ options: OPTIONS, logger: quietLogger(), request });
+
+        await expect(source.loadMetadata()).rejects.toBe(refused);
+
+        expect(waiting()).toBe(0);
+        expect(request.mock.calls.map(([, req]) => [req.path, req.signal?.aborted])).toEqual([
+            ['/qrs/task/full', true],
+            ['/qrs/schedulerservice/full', true],
+            ['/qrs/servicecluster/full', true],
+        ]);
+    });
+
+    test('a signal given aborts all of its requests', async () => {
+        const { request, waiting } = failingRequest({ fail: {}, slow: ['/qrs/task/full', '/qrs/schedulerservice/full'] });
+        const source = createQrsSource({ options: OPTIONS, logger: quietLogger(), request });
+        const controller = new AbortController();
+
+        const loading = source.loadMetadata({ signal: controller.signal }).catch((err) => err);
+        controller.abort();
+
+        const stillLoading = new Promise((resolve) => setTimeout(() => resolve('still loading'), 1000).unref());
+        expect(await Promise.race([loading, stillLoading])).toMatchObject({ aborted: true });
+        expect(waiting()).toBe(0);
+    });
 });
 
 describe('createQrsSource.snapshot', () => {
@@ -290,14 +346,35 @@ describe('createQrsSource.snapshot', () => {
 
         const calls = request.mock.calls.map(([, req]) => req);
         expect(calls).toHaveLength(2);
-        // With a generous timeout: on a large site the start-up snapshot takes far longer than the default 60 s
+        // With a generous timeout: on a large site the start-up snapshot takes far longer than the default 60 s. And
+        // with a signal, which aborts one when the other fails.
         expect(calls).toContainEqual({
             method: 'get',
             path: '/qrs/executionresult/full',
             query: { filter: 'status ne NeverStarted' },
             timeoutMs: 5 * 60 * 1000,
+            signal: expect.any(AbortSignal),
         });
-        expect(calls).toContainEqual({ method: 'get', path: '/qrs/executionsession/full', query: undefined, timeoutMs: 5 * 60 * 1000 });
+        expect(calls).toContainEqual({
+            method: 'get',
+            path: '/qrs/executionsession/full',
+            query: undefined,
+            timeoutMs: 5 * 60 * 1000,
+            signal: expect.any(AbortSignal),
+        });
+    });
+
+    test('when one request fails, the other is aborted, and it rejects with that failure once both have ended', async () => {
+        const hungUp = new QrsRequestError('QRS GET /qrs/executionsession/full failed: socket hang up', null);
+        const { request, waiting } = failingRequest({
+            fail: { '/qrs/executionsession/full': hungUp },
+            slow: ['/qrs/executionresult/full'],
+        });
+        const source = createQrsSource({ options: OPTIONS, logger: quietLogger(), request });
+
+        await expect(source.snapshot()).rejects.toBe(hungUp);
+
+        expect(waiting()).toBe(0);
     });
 
     test('normalises the lab fixture: records, task types, running ids, cursor, coverage and server time', async () => {
@@ -417,6 +494,8 @@ describe('createQrsSource.changesSince', () => {
             method: 'get',
             path: '/qrs/executionresult/full',
             query: { filter: "modifiedDate gt '2026-10-06T06:30:55.000Z'" },
+            // The first poll after a long outage can return as many results as the start-up snapshot
+            timeoutMs: 5 * 60 * 1000,
         });
         expect(res.records.map((r) => r.taskId).sort()).toEqual(
             [CONTENT_MONITOR, OPERATIONS_MONITOR, '8d2c5d0c-12e2-4dc8-9832-de1ae367a373', '5fee7b84-76f8-4cc1-ba4f-466d8eefa8be'].sort()
@@ -743,6 +822,32 @@ describe('qrsRequestJson', () => {
         expect(qrsErrorHint(cert, undefined, 'UNABLE_TO_VERIFY_LEAF_SIGNATURE')).toMatch(/--auth-root-cert-file.*--secure false/);
         expect(qrsErrorHint(cert, 500)).toBe('');
         expect(qrsErrorHint(cert, undefined, 'EWHATEVER')).toBe('');
+    });
+
+    test('an aborted request rejects as aborted, without a reason to check: it is no failure of QRS', async () => {
+        axiosRequest.mockImplementation(
+            (config) =>
+                new Promise((resolve, reject) => {
+                    if (!config.signal) return reject(new Error('no signal'));
+                    // As axios does
+                    config.signal.addEventListener('abort', () => reject(Object.assign(new Error('canceled'), { code: 'ERR_CANCELED' })));
+                })
+        );
+        const controller = new AbortController();
+
+        const sending = qrsRequestJson({ ...JWT_OPTIONS }, { path: '/qrs/task/full', signal: controller.signal });
+        controller.abort();
+        const err = await sending.catch((e) => e);
+
+        expect(axiosRequest.mock.calls[0][0].signal).toBe(controller.signal);
+        expect(err).toBeInstanceOf(QrsRequestError);
+        expect(err).toMatchObject({
+            aborted: true,
+            status: null,
+            reason: 'aborted',
+            hint: '',
+            message: 'QRS GET /qrs/task/full on qlik.example.com:4242 was aborted',
+        });
     });
 
     test('timeoutMs overrides the default timeout', async () => {

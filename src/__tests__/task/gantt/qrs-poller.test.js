@@ -270,8 +270,8 @@ describe('createQrsPoller', () => {
             expect(app.markLive).toHaveBeenCalledWith(T0 + 10 * MIN);
             expect(delays()).toEqual([INTERVAL]);
             expect(app.setStatus).not.toHaveBeenCalled();
+            // A message only: the QRS state is the state of live updates, which still work
             expect(app.setIssue).toHaveBeenCalledWith('qrs', 'metadata', {
-                state: 'degraded',
                 message: 'Task names, tags and capacity could not be refreshed (ECONNABORTED: timeout), retrying in 60 s',
                 hint: 'Check it',
             });
