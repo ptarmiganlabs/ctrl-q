@@ -1,4 +1,5 @@
 import { test, expect, describe, afterEach } from '@jest/globals';
+import { EventEmitter } from 'node:events';
 import http from 'node:http';
 
 import { createSseHub } from '../../../lib/util/web/sse.js';
@@ -244,5 +245,59 @@ describe('createSseHub', () => {
         expect(late.received.status).toBe(200);
         expect(late.received.text).toBe('retry: 1234\n\n');
         expect(hub.clientCount()).toBe(0);
+    });
+});
+
+describe('createSseHub with clients that never read', () => {
+    // A response whose bytes are never sent, as for a browser that stopped reading: its backlog grows with every write
+    const stalledResponse = () =>
+        Object.assign(new EventEmitter(), {
+            writableLength: 0,
+            writableEnded: false,
+            destroyed: false,
+            chunks: [],
+            writeHead() {},
+            write(chunk) {
+                this.chunks.push(chunk);
+                this.writableLength += chunk.length;
+                return false;
+            },
+            end() {
+                this.writableEnded = true;
+            },
+            destroy() {
+                this.destroyed = true;
+                this.emit('close');
+            },
+        });
+    const request = { method: 'GET' };
+
+    test('bases the hard limit on recent events, so one large event does not loosen it for good', async () => {
+        const hub = createSseHub({ logger: silentLogger, maxBufferedBytes: 1000, largeEventWindowMs: 50, pingIntervalMs: 0 });
+        hub.handle(request, stalledResponse());
+        hub.broadcast('big', { x: 'x'.repeat(100000) });
+        // Within the 10 s grace period, and below the limit plus twice that event
+        expect(hub.clientCount()).toBe(1);
+
+        await sleep(100);
+        // The large event is no longer recent: the limit is now about 1000 bytes plus twice a 1 KB event
+        hub.broadcast('small', { x: 'y'.repeat(1000) });
+
+        expect(hub.clientCount()).toBe(0);
+        hub.close();
+    });
+
+    test('sends every client the same encoded event, rather than encoding it again for each', () => {
+        const hub = createSseHub({ logger: silentLogger, pingIntervalMs: 0 });
+        const a = stalledResponse();
+        const b = stalledResponse();
+        hub.handle(request, a);
+        hub.handle(request, b);
+        hub.broadcast('delta', { rev: 1 });
+
+        expect(Buffer.isBuffer(a.chunks.at(-1))).toBe(true);
+        expect(b.chunks.at(-1)).toBe(a.chunks.at(-1));
+        expect(a.chunks.at(-1).toString()).toBe('event: delta\ndata: {"rev":1}\n\n');
+        hub.close();
     });
 });
