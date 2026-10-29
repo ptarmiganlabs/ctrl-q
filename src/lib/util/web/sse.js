@@ -1,3 +1,5 @@
+import { performance } from 'node:perf_hooks';
+
 import { logger as defaultLogger } from '../../../globals.js';
 
 // A client whose backlog (bytes buffered but not yet sent) stays above this for longer than the grace period below is
@@ -6,6 +8,8 @@ const DEFAULT_MAX_BUFFERED_BYTES = 8 * 1024 * 1024;
 
 // How long a backlog may stay above the limit. Right after one large event, or several sent together, a client that
 // reads fine is above it too, until its socket has drained; only a backlog that lasts means the client is not reading.
+// A backlog above the limit plus twice the largest event so far is dropped at once: a client that reads has drained
+// everything but the latest events, so the grace period never lets a stalled client hold more memory than that.
 const DEFAULT_SLOW_CLIENT_GRACE_MS = 10000;
 
 /**
@@ -20,7 +24,7 @@ const DEFAULT_SLOW_CLIENT_GRACE_MS = 10000;
  * @param {number} [param.retryMs] - Reconnect delay suggested to browsers.
  * @param {number} [param.maxBufferedBytes] - Backlog of unsent bytes above which a client counts as falling behind.
  * @param {number} [param.slowClientGraceMs] - A client whose backlog stays above maxBufferedBytes for longer than this
- *   is disconnected.
+ *   is disconnected, and one whose backlog passes maxBufferedBytes plus twice the largest event at once.
  * @returns {{handle: Function, broadcast: Function, clientCount: Function, close: Function}} The hub.
  */
 export function createSseHub({
@@ -35,6 +39,8 @@ export function createSseHub({
     const clients = new Map();
     let pingTimer = null;
     let closed = false;
+    // Size in bytes of the largest event broadcast so far
+    let largestChunk = 0;
 
     const dropClient = (res) => {
         if (clients.delete(res)) {
@@ -51,12 +57,17 @@ export function createSseHub({
             dropClient(res);
             return;
         }
-        // Judged before writing: the chunk about to be queued says nothing about whether the client reads
+        // Judged before writing: the chunk about to be queued says nothing about whether the client reads. The clock is
+        // monotonic, so a computer waking from sleep does not count the sleep as time spent behind.
         const client = clients.get(res);
-        const now = Date.now();
-        if (res.writableLength <= maxBufferedBytes) {
+        const now = performance.now();
+        const backlog = res.writableLength;
+        if (backlog <= maxBufferedBytes) {
             client.behindSince = null;
-        } else if (client.behindSince !== null && now - client.behindSince > slowClientGraceMs) {
+        } else if (
+            backlog > maxBufferedBytes + 2 * largestChunk ||
+            (client.behindSince !== null && now - client.behindSince > slowClientGraceMs)
+        ) {
             logger.warn('SSE: dropping a client that is not keeping up');
             res.destroy();
             dropClient(res);
@@ -88,10 +99,9 @@ export function createSseHub({
      * @param {object} [headers] - Extra response headers, e.g. the web server's security headers (ctx.baseHeaders).
      */
     const handle = (req, res, headers = {}) => {
-        // After close() the hub never broadcasts again, so a browser reconnecting during shutdown is turned away
-        if (closed || clients.size >= maxClients) {
+        if (clients.size >= maxClients) {
             res.writeHead(503, { ...headers, 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '30' });
-            res.end(closed ? 'Shutting down' : 'Too many connected clients');
+            res.end('Too many connected clients');
             return;
         }
 
@@ -102,6 +112,14 @@ export function createSseHub({
             Connection: 'keep-alive',
             'X-Accel-Buffering': 'no',
         };
+
+        // After close() the hub never broadcasts again. The stream ends at once, as close() ends the others, and the
+        // browser reconnects later, to a restarted server or to none. An error status would make it give up for good.
+        if (closed) {
+            res.writeHead(200, streamHeaders);
+            res.end(`retry: ${retryMs}\n\n`);
+            return;
+        }
 
         // HEAD gets the headers only, and does not occupy a client slot
         if (req.method === 'HEAD') {
@@ -137,6 +155,7 @@ export function createSseHub({
         const idLine = id === undefined || id === null ? '' : `id: ${id}\n`;
         // JSON.stringify never emits raw newlines, so the payload always fits on one 'data:' line
         const chunk = `${idLine}event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+        largestChunk = Math.max(largestChunk, Buffer.byteLength(chunk));
         for (const res of [...clients.keys()]) {
             write(res, chunk);
         }
