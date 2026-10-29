@@ -1,9 +1,11 @@
 import http from 'node:http';
+import net from 'node:net';
 import crypto from 'node:crypto';
 import zlib from 'node:zlib';
 import { promisify } from 'node:util';
 
 import { logger as defaultLogger, isSea } from '../../../globals.js';
+import { describeError } from './describe-error.js';
 import { isTextMimeType } from './mime.js';
 
 const gzip = promisify(zlib.gzip);
@@ -17,6 +19,31 @@ const LOCALHOST_ADDRESSES = ['127.0.0.1', '::1'];
 
 // Listening on ::1 fails with these when the computer has no IPv6 loopback address; 127.0.0.1 is then all there is
 const NO_IPV6_CODES = new Set(['EADDRNOTAVAIL', 'EAFNOSUPPORT']);
+
+// Port 0 asks for a free port, but it is picked for the first address only. When another program holds that number on
+// the second address, a new port is picked, this many times at most.
+const PORT_0_ATTEMPTS = 5;
+
+/**
+ * Does a program accept connections on this address and port? On macOS and Windows, listening on 127.0.0.1 succeeds
+ * even when another program listens on 0.0.0.0 with the same port, and then takes over its local traffic, silently.
+ *
+ * @param {string} address - IP address, e.g. '127.0.0.1'.
+ * @param {number} port - Port.
+ * @returns {Promise<boolean>} True if a connection was accepted.
+ */
+function acceptsConnections(address, port) {
+    return new Promise((resolve) => {
+        const socket = net.connect({ host: address, port });
+        const done = (result) => {
+            socket.destroy();
+            resolve(result);
+        };
+        socket.once('connect', () => done(true));
+        socket.once('error', () => done(false));
+        socket.setTimeout(1000, () => done(false));
+    });
+}
 
 // Header that state-changing (non-GET) API calls must carry. Browsers cannot add custom headers to cross-site form
 // posts, and cross-origin fetch() with custom headers needs a CORS preflight, which this server never approves.
@@ -254,7 +281,9 @@ export async function startWebServer({
     if (!host || typeof host !== 'string') {
         throw new Error('startWebServer: host is required, e.g. "localhost"');
     }
-    if (!isLoopbackHost(host) && !token) {
+    // As written in a URL or an environment variable: '[::1]' is the address ::1, and stray spaces are not part of it
+    const bindHost = host.trim().replace(/^\[(.*)\]$/, '$1');
+    if (!isLoopbackHost(bindHost) && !token) {
         throw new Error(`Binding the web server to "${host}" makes it reachable from other computers, which requires an access token`);
     }
 
@@ -482,8 +511,8 @@ export async function startWebServer({
             await sendText(req, res, 404, 'Not found');
         } catch (err) {
             // Never log req.url: it may carry the access token
-            logger.error(`Web server: error while handling ${req.method} ${pathname}: ${err.message}`);
-            if (!isSea && err.stack) {
+            logger.error(`Web server: error while handling ${req.method} ${pathname}: ${describeError(err)}`);
+            if (!isSea && err?.stack) {
                 logger.debug(err.stack);
             }
             if (!res.headersSent) {
@@ -499,7 +528,7 @@ export async function startWebServer({
     const createServer = () =>
         http.createServer((req, res) => {
             requestHandler(req, res).catch((err) => {
-                logger.error(`Web server: unexpected error: ${err.message}`);
+                logger.error(`Web server: unexpected error: ${describeError(err)}`);
                 res.destroy();
             });
         });
@@ -526,33 +555,49 @@ export async function startWebServer({
             )
         ).then(() => {});
 
-    const [firstAddress, ...otherAddresses] = host.toLowerCase() === 'localhost' ? LOCALHOST_ADDRESSES : [host];
-    try {
-        const first = createServer();
-        await listen(first, firstAddress, Number(port));
-        servers.push(first);
-        // Known as soon as the first address answers: requests may arrive from then on
-        actualPort = first.address().port;
-        allowed = buildAllowedHosts(host, actualPort, allowedHosts);
-
-        for (const address of otherAddresses) {
-            const other = createServer();
-            try {
-                await listen(other, address, actualPort);
-                servers.push(other);
-            } catch (err) {
-                if (!NO_IPV6_CODES.has(err.code)) {
-                    throw err;
-                }
-                logger.verbose(`Web server: ${address} is not available on this computer, listening on ${firstAddress} only`);
+    const [firstAddress, ...otherAddresses] = bindHost.toLowerCase() === 'localhost' ? LOCALHOST_ADDRESSES : [bindHost];
+    const requestedPort = Number(port);
+    if (requestedPort !== 0) {
+        for (const address of [firstAddress, ...otherAddresses].filter(isLoopbackHost)) {
+            if (await acceptsConnections(address, requestedPort)) {
+                throw friendlyListenError({ code: 'EADDRINUSE' }, bindHost, requestedPort);
             }
         }
-    } catch (err) {
-        await close();
-        throw friendlyListenError(err, host, actualPort);
     }
 
-    const urlHost = host === '0.0.0.0' || host === '::' ? 'localhost' : formatHostForUrl(host);
+    for (let attempt = 1; ; attempt += 1) {
+        try {
+            const first = createServer();
+            await listen(first, firstAddress, requestedPort);
+            servers.push(first);
+            // Known as soon as the first address answers: requests may arrive from then on
+            actualPort = first.address().port;
+            allowed = buildAllowedHosts(bindHost, actualPort, allowedHosts);
+
+            for (const address of otherAddresses) {
+                const other = createServer();
+                try {
+                    await listen(other, address, actualPort);
+                    servers.push(other);
+                } catch (err) {
+                    if (!NO_IPV6_CODES.has(err.code)) {
+                        throw err;
+                    }
+                    logger.verbose(`Web server: ${address} is not available on this computer, listening on ${firstAddress} only`);
+                }
+            }
+            break;
+        } catch (err) {
+            await close();
+            servers.length = 0;
+            if (requestedPort === 0 && err.code === 'EADDRINUSE' && attempt < PORT_0_ATTEMPTS) {
+                continue;
+            }
+            throw friendlyListenError(err, bindHost, actualPort);
+        }
+    }
+
+    const urlHost = bindHost === '0.0.0.0' || bindHost === '::' ? 'localhost' : formatHostForUrl(bindHost);
     const url = `http://${urlHost}:${actualPort}/${token ? `?token=${encodeURIComponent(token)}` : ''}`;
 
     return { server: servers[0], servers, port: actualPort, url, close };

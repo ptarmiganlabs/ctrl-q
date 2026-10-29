@@ -57,9 +57,10 @@ export function createLivePublisher(app, sse) {
  * @param {object} [param] - Parameters.
  * @param {boolean} [param.installSignalHandlers] - Install Ctrl-C handlers. Tests pass false.
  * @param {Function} [param.request] - QRS request function. Tests pass a stub; defaults to qrsRequestJson.
+ * @param {object} [param.processRef] - The process whose signals are handled. Tests pass a stand-in.
  * @returns {Promise<{url: string, port: number, close: Function, app: object}>} The running page server.
  */
-export async function taskGantt(config, { installSignalHandlers = true, request } = {}) {
+export async function taskGantt(config, { installSignalHandlers = true, request, processRef = process } = {}) {
     const assets = createAssetCatalog({ routes: TASK_GANTT_ROUTES });
     const assetCheck = await assets.verifyAll();
     if (!assetCheck.ok) {
@@ -67,7 +68,20 @@ export async function taskGantt(config, { installSignalHandlers = true, request 
     }
 
     const app = createGanttApp({ config, logger, ...(request ? { request } : {}) });
-    await app.init();
+
+    // Closers are registered as resources come up, and Ctrl-C is handled from the start: start-up can take minutes on a
+    // large site, and holds the history file's lock while it waits for QRS
+    const shutdown = createShutdownManager({ processRef, logger });
+    shutdown.register('history file', () => app.close());
+    if (installSignalHandlers) {
+        shutdown.install();
+    }
+    try {
+        await app.init();
+    } catch (err) {
+        await shutdown.shutdown('start-up failed');
+        throw err;
+    }
 
     const live = config.pollIntervalMs > 0;
     const sse = live ? createSseHub({ logger }) : null;
@@ -80,9 +94,6 @@ export async function taskGantt(config, { installSignalHandlers = true, request 
         pollIntervalMs: config.pollIntervalMs,
         sources: config.sources,
     };
-
-    const shutdown = createShutdownManager({ logger });
-    shutdown.register('history file', () => app.close());
 
     let web;
     try {
@@ -105,10 +116,6 @@ export async function taskGantt(config, { installSignalHandlers = true, request 
         const poller = createQrsPoller({ app, intervalMs: config.pollIntervalMs, logger, onUpdate: createLivePublisher(app, sse) });
         shutdown.register('QRS poller', () => poller.stop());
         poller.start();
-    }
-
-    if (installSignalHandlers) {
-        shutdown.install();
     }
 
     logger.info('');

@@ -9,6 +9,9 @@ import { isLoopbackHost } from '../util/web/server.js';
 const UNIT_MS = { m: 60 * 1000, h: 60 * 60 * 1000, d: 24 * 60 * 60 * 1000, w: 7 * 24 * 60 * 60 * 1000 };
 const MIN_LOOKBACK_MS = 10 * 60 * 1000;
 const MIN_POLL_INTERVAL_S = 5;
+// An hour. Far longer would overflow setTimeout() (about 24.8 days), which then fires at once: QRS would be polled
+// back to back.
+const MAX_POLL_INTERVAL_S = 3600;
 
 // Sources selectable with --sources, in the order they become available
 export const SELECTABLE_SOURCES = [SOURCE.QRS, SOURCE.HISTORY];
@@ -107,6 +110,8 @@ export function validateTaskGanttOptions(options, { fromEnv = new Set() } = {}) 
         errors.push(`--poll-interval must be a whole number of seconds, got "${options.pollInterval}".`);
     } else if (pollIntervalS > 0 && pollIntervalS < MIN_POLL_INTERVAL_S) {
         errors.push(`--poll-interval must be 0 (no live updates) or at least ${MIN_POLL_INTERVAL_S} seconds.`);
+    } else if (pollIntervalS > MAX_POLL_INTERVAL_S) {
+        errors.push(`--poll-interval must be at most ${MAX_POLL_INTERVAL_S} seconds (an hour), got "${options.pollInterval}".`);
     }
 
     const retentionDays = isWholeNumber(options.historyRetentionDays) ? Number(options.historyRetentionDays) : NaN;
@@ -170,7 +175,14 @@ export function validateTaskGanttOptions(options, { fromEnv = new Set() } = {}) 
             pollIntervalMs: pollIntervalS * 1000,
             historyDir: expandHome(options.historyDir || DEFAULT_HISTORY_DIR),
             historyRetentionDays: retentionDays,
-            filters: { taskTypes, taskIds, taskTags: tagList('taskTag'), appIds, appTags: tagList('appTag') },
+            // QRS gives ids in lower case. Upper case ones are valid GUIDs too, but would match nothing.
+            filters: {
+                taskTypes,
+                taskIds: taskIds.map((id) => id.toLowerCase()),
+                taskTags: tagList('taskTag'),
+                appIds: appIds.map((id) => id.toLowerCase()),
+                appTags: tagList('appTag'),
+            },
             visHost,
             visPort,
             allowRemote,

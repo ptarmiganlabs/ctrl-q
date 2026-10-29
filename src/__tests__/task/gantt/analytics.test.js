@@ -256,7 +256,10 @@ describe('findEpisodes', () => {
         );
 
         expect(findEpisodes(conc2.points, new Map([[NODE, 10]]), RECORDS, { now: NOW, from: FROM, to: TO })).toEqual([]);
-        expect(relaxed.length).toBeGreaterThanOrEqual(0);
+        // Episodes come from the concurrency points: with queueing in them there is still one, but runs without a queue
+        // time add no wait to it
+        expect(relaxed).toHaveLength(1);
+        expect(relaxed[0]).toMatchObject({ peakQueued: 2, waitMs: 0 });
     });
 
     test('episodes are clipped to the window', () => {
@@ -285,5 +288,23 @@ describe('computeTaskStats', () => {
 
     test('ignores executions outside the window', () => {
         expect(computeTaskStats(RECORDS, { now: NOW, from: TO + 1, to: TO + 1000 }).size).toBe(0);
+    });
+
+    // Nearest rank: the smallest duration that at least p % of the runs did not exceed
+    test.each([
+        [[60000, 600000], 60000, 600000],
+        [[1, 2, 3, 4], 2, 4],
+        [Array.from({ length: 20 }, (_, i) => (i + 1) * 1000), 10000, 19000],
+        [[5000], 5000, 5000],
+    ])('p50 and p95 of the run times %j are %i and %i', (durations, p50, p95) => {
+        const runs = durations.map((d, i) => ({
+            taskId: 't',
+            status: 7,
+            triggeredAt: i * 1e6,
+            startedAt: i * 1e6,
+            stoppedAt: i * 1e6 + d,
+        }));
+
+        expect(computeTaskStats(runs, { now: 1e12, from: 0, to: 1e12 }).get('t')).toMatchObject({ p50Ms: p50, p95Ms: p95 });
     });
 });

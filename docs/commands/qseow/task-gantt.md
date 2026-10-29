@@ -71,10 +71,14 @@ The certificate user `INTERNAL\sa_api` has all of that.
 
 With JWT, Ctrl-Q connects through the Sense proxy, so use the proxy port (usually 443) and a virtual proxy that accepts JWTs.
 
-Two things to know when Ctrl-Q runs for a long time with a JWT:
+Ctrl-Q checks the proxy's TLS certificate before it sends the JWT, just as it checks the QRS certificate with certificate authentication. The certificate must be valid for the name in `--host`, and issued by a certificate authority (CA) that this computer trusts. If the proxy still uses the certificate Sense created at installation, which Sense's own CA issued, either
 
-- Ctrl-Q does **not** check the server's TLS certificate on JWT connections (`--secure` has no effect for JWT). The token is sent with every poll, so only use JWT on a network you trust, or use certificate authentication.
-- Ctrl-Q sends the JWT with each request and does not reuse the proxy's session cookie. If the virtual proxy opens a session per request, many proxy sessions can build up; keep an eye on them, or use certificate authentication.
+- make Ctrl-Q trust that CA: set the environment variable `NODE_EXTRA_CA_CERTS` to a PEM file with the CA's certificate, e.g. the `root.pem` of a certificate export from the QMC, or
+- turn the check off with `--secure false`, on a network you trust only. Ctrl-Q then sends the JWT to whatever answers at `--host`.
+
+Ctrl-Q sends the JWT only to log in. The proxy answers with a session cookie, named in the virtual proxy's "Session cookie header name" (e.g. `X-Qlik-Session-jwt`), and Ctrl-Q sends the cookies it got instead of the JWT with all later requests and polls. A long run therefore uses one proxy session. Without the cookie every request would open a new session, lasting until the virtual proxy's session inactivity timeout, and Sense allows a user with a professional, analyzer, user or login access pass at most five parallel sessions.
+
+When the session ends, e.g. after the session inactivity timeout or a restart of the proxy, Sense answers 401 and Ctrl-Q logs in with the JWT again. An expired JWT therefore only matters when Ctrl-Q has to log in again.
 
 ## Where the history comes from
 
@@ -160,7 +164,8 @@ When several of `--task-id`, `--task-tag`, `--app-id` and `--app-tag` are given,
 - To make it reachable from other computers, use e.g. `--vis-host 0.0.0.0 --vis-allow-remote`. Ctrl-Q then creates a random **access token** and prints URLs containing it: one for this computer (with `localhost`), and for other computers one with this computer's name and one per IP address. Without the token the page and its data cannot be loaded. Treat the URL like a password.
 - On a loopback address (`localhost`, `127.0.0.1`, `::1`) the page has no token, also with `--vis-allow-remote`.
 - The page only reads data; it cannot change anything in Qlik Sense.
-- Credentials (`--auth-jwt`, certificate contents) are never written to the log.
+- Ctrl-Q checks the TLS certificate of Sense, with certificate as well as JWT authentication, unless `--secure false` turns the check off. A JWT is only sent to log in to the proxy; later requests carry the proxy session cookie, see [JWT Authentication](#jwt-authentication).
+- Credentials (`--auth-jwt`, the proxy session cookie, certificate contents) are never written to the log.
 
 ## History file
 
@@ -269,6 +274,7 @@ Ctrl-Q could not read the tasks at startup, so it stops. The message ends with w
 
 - `connect ECONNREFUSED` or `socket hang up`: wrong port, or a firewall. Certificate authentication uses the QRS port, usually 4242; JWT goes through the proxy, usually `--qrs-port 443` with `--virtual-proxy`.
 - `ENOTFOUND`: check the host name in `--host`.
+- `UNABLE_TO_VERIFY_LEAF_SIGNATURE`, `SELF_SIGNED_CERT_IN_CHAIN`, `ERR_TLS_CERT_ALTNAME_INVALID` or a similar code: Ctrl-Q could not verify the TLS certificate of Sense, so it sent no request. With JWT, see [JWT Authentication](#jwt-authentication). With certificates, check that `--auth-root-cert-file` is the root certificate of this Sense site and that `--host` is the name in the server's certificate.
 - `HTTP 401` or `HTTP 403`: the certificate, user or JWT was rejected.
 - `ECONNABORTED: timeout ...`: Sense did not answer in time.
 

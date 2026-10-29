@@ -631,7 +631,7 @@ describe('--vis-allow-remote', () => {
 describe('history file and shutdown', () => {
     test('close() resolves, releases the history lock and leaves the finished executions on disk', async () => {
         const gantt = await start();
-        expect(fs.readFileSync(lockPath(), 'utf8')).toBe(String(process.pid));
+        expect(JSON.parse(fs.readFileSync(lockPath(), 'utf8'))).toMatchObject({ pid: process.pid, host: os.hostname() });
 
         await expect(gantt.close()).resolves.toBeUndefined();
 
@@ -674,7 +674,7 @@ describe('history file and shutdown', () => {
         const statuses = Object.fromEntries(snap.sources.map((s) => [s.id, s]));
         expect(statuses['history-file']).toMatchObject({ state: 'ok', records: BURST_ROWS.length });
         expect(statuses.qrs).toMatchObject({ state: 'ok', records: 0 });
-        expect(fs.readFileSync(lockPath(), 'utf8')).toBe(String(process.pid));
+        expect(JSON.parse(fs.readFileSync(lockPath(), 'utf8'))).toMatchObject({ pid: process.pid, host: os.hostname() });
     });
 
     test('when another running Ctrl-Q holds the history lock, the history is read-only and its lock is left alone', async () => {
