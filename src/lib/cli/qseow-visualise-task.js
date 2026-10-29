@@ -13,9 +13,12 @@ export function setupQseowVisualiseTaskCommand(qseow) {
                 await qseowSharedParamAssertOptions(options);
                 await visTaskAssertOptions(options);
 
-                await visTask(options);
+                if (!(await visTask(options))) {
+                    process.exitCode = 1;
+                }
             } catch (err) {
                 catchLog('VISUALISE TASK', err);
+                process.exitCode = 1;
             }
         })
         .addOption(
@@ -85,6 +88,13 @@ export function setupQseowVisualiseTaskCommand(qseow) {
                 'CTRLQ_APP_TAG'
             )
         )
-        .addOption(new Option('--vis-host <host>', 'host for visualisation server').default('localhost').env('CTRLQ_VIS_HOST'))
+        .addOption(
+            new Option(
+                '--vis-host <host>',
+                'host for visualisation server; a non-loopback host makes the page reachable from other computers, protected by a random access token'
+            )
+                .default('localhost')
+                .env('CTRLQ_VIS_HOST')
+        )
         .addOption(new Option('--vis-port <port>', 'port for visualisation server').default('3000').env('CTRLQ_VIS_PORT'));
 }

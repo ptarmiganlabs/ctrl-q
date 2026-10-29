@@ -169,6 +169,15 @@ export const getBookmarkAssertOptions = (options) => {
     //
 };
 
+export function validateVisTaskOptions(options) {
+    // Port for the web page server. 0 picks a free port.
+    if (!/^\s*\d+\s*$/.test(String(options.visPort ?? '')) || Number(options.visPort) > 65535) {
+        return { valid: false, error: `--vis-port must be a port number (0-65535), got "${options.visPort}".` };
+    }
+
+    return { valid: true };
+}
+
 /**
  * Assert options for qseow task-vis command.
  *
@@ -177,6 +186,12 @@ export const getBookmarkAssertOptions = (options) => {
  * @returns {boolean} - True if options are valid, false otherwise.
  */
 export async function visTaskAssertOptions(options) {
+    const result = validateVisTaskOptions(options);
+    if (!result.valid) {
+        logger.error(result.error);
+        process.exit(1);
+    }
+
     // Verify all task IDs are valid uuids
     // Warn if they do not exist in the Qlik Sense environment
     if (options.taskId) {

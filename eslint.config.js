@@ -16,7 +16,7 @@ const compat = new FlatCompat({
 // export default [...compat.extends("airbnb-base", "prettier"), {
 export default [
     // Vendored third-party bundles are not linted
-    { ignores: ['src/static/vendor/**', 'src/static/*.min.js'] },
+    { ignores: ['src/static/vendor/**'] },
     ...compat.extends('prettier'),
     {
         plugins: {
@@ -43,6 +43,16 @@ export default [
             globals: {
                 ...globals.browser,
                 echarts: 'readonly',
+            },
+        },
+    },
+    {
+        // Browser code of the task-vis web page; vis-network is loaded as a global by the page
+        files: ['src/static/task-vis/**/*.js'],
+        languageOptions: {
+            globals: {
+                ...globals.browser,
+                vis: 'readonly',
             },
         },
     },

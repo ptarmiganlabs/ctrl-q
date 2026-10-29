@@ -125,15 +125,4 @@ describe('checkSeaConfig', () => {
         expect(problems[0]).toContain('points to "./src/static/demo/other.html"');
         expect(problems[1]).toContain('missing sea-config asset "/static/demo/app.js"');
     });
-
-    test('the existing task-vis files in sea-config.json point at the right files', () => {
-        const seaConfig = JSON.parse(fs.readFileSync(path.join(defaultSrcRoot(), '..', 'sea-config.json'), 'utf8'));
-        const taskVisRoutes = ['index.html', '404.html', 'vis-network.min.js', 'ctrl-q.png', 'favicon.ico'].map((f) => ({
-            url: `/${f}`,
-            file: `static/${f}`,
-            seaKey: `/${f}`,
-        }));
-
-        expect(checkSeaConfig(taskVisRoutes, seaConfig.assets)).toEqual([]);
-    });
 });

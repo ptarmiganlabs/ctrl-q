@@ -13,6 +13,7 @@ import {
     validateVariableGetOptions,
     validateVariableDeleteOptions,
     validateUserActivityBucketsCPName,
+    validateVisTaskOptions,
 } from '../../../lib/util/qseow/assert-options.js';
 
 // ---------------------------------------------------------------------------
@@ -273,5 +274,21 @@ describe('validateUserActivityBucketsCPName', () => {
     test('returns invalid for empty string', () => {
         const result = validateUserActivityBucketsCPName({ customPropertyName: '' });
         expect(result.valid).toBe(false);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// validateVisTaskOptions
+// ---------------------------------------------------------------------------
+
+describe('validateVisTaskOptions', () => {
+    test.each(['3000', '0', '65535', ' 8080 '])('returns valid for --vis-port %j', (visPort) => {
+        expect(validateVisTaskOptions({ visPort })).toEqual({ valid: true });
+    });
+
+    test.each(['65536', '-1', 'abc', '3000x', '30.5', '', undefined])('returns invalid for --vis-port %j', (visPort) => {
+        const result = validateVisTaskOptions({ visPort });
+        expect(result.valid).toBe(false);
+        expect(result.error).toBe(`--vis-port must be a port number (0-65535), got "${visPort}".`);
     });
 });

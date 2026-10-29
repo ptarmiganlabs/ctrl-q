@@ -15,7 +15,6 @@ export const TASK_GANTT_ROUTES = [
     { url: '/vendor/echarts/LICENSE-d3.txt', file: 'static/vendor/echarts/LICENSE-d3.txt' },
     { url: '/vendor/echarts/LICENSE-zrender.txt', file: 'static/vendor/echarts/LICENSE-zrender.txt' },
     { url: '/vendor/echarts/LICENSE-tslib.txt', file: 'static/vendor/echarts/LICENSE-tslib.txt' },
-    // Shared with task-vis, so these keep their existing SEA keys
-    { url: '/ctrl-q.png', file: 'static/ctrl-q.png', seaKey: '/ctrl-q.png' },
-    { url: '/favicon.ico', file: 'static/favicon.ico', seaKey: '/favicon.ico' },
+    { url: '/ctrl-q.png', file: 'static/ctrl-q.png' },
+    { url: '/favicon.ico', file: 'static/favicon.ico' },
 ];

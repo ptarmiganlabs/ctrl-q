@@ -4,17 +4,6 @@
     "disableExperimentalSEAWarning": true,
     "assets": {
         "package.json": "./package.json",
-        "/404.html": "./src/static/404.html",
-        "/android-chrome-192x192.png": "./src/static/android-chrome-192x192.png",
-        "/android-chrome-512x512.png": "./src/static/android-chrome-512x512.png",
-        "/apple-touch-icon.png": "./src/static/apple-touch-icon.png",
-        "/ctrl-q.png": "./src/static/ctrl-q.png",
-        "/favicon-16x16.png": "./src/static/favicon-16x16.png",
-        "/favicon-32x32.png": "./src/static/favicon-32x32.png",
-        "/favicon.ico": "./src/static/favicon.ico",
-        "/index.html": "./src/static/index.html",
-        "/vis-network.min.js": "./src/static/vis-network.min.js",
-        "/vis-network.min.js.map": "./src/static/vis-network.min.js",
         "enigma_schema_12.170.2.json": "./node_modules/enigma.js/schemas/12.170.2.json",
         "enigma_schema_12.612.0.json": "./node_modules/enigma.js/schemas/12.612.0.json",
         "enigma_schema_12.936.0.json": "./node_modules/enigma.js/schemas/12.936.0.json",
@@ -23,6 +12,8 @@
         "enigma_schema_12.1657.0.json": "./node_modules/enigma.js/schemas/12.1657.0.json",
         "enigma_schema_12.1823.0.json": "./node_modules/enigma.js/schemas/12.1823.0.json",
         "enigma_schema_12.2015.0.json": "./node_modules/enigma.js/schemas/12.2015.0.json",
+        "/static/ctrl-q.png": "./src/static/ctrl-q.png",
+        "/static/favicon.ico": "./src/static/favicon.ico",
         "/static/task-gantt/index.html": "./src/static/task-gantt/index.html",
         "/static/task-gantt/styles.css": "./src/static/task-gantt/styles.css",
         "/static/task-gantt/main.js": "./src/static/task-gantt/main.js",
@@ -35,6 +26,14 @@
         "/static/vendor/echarts/NOTICE.txt": "./src/static/vendor/echarts/NOTICE.txt",
         "/static/vendor/echarts/LICENSE-d3.txt": "./src/static/vendor/echarts/LICENSE-d3.txt",
         "/static/vendor/echarts/LICENSE-zrender.txt": "./src/static/vendor/echarts/LICENSE-zrender.txt",
-        "/static/vendor/echarts/LICENSE-tslib.txt": "./src/static/vendor/echarts/LICENSE-tslib.txt"
+        "/static/vendor/echarts/LICENSE-tslib.txt": "./src/static/vendor/echarts/LICENSE-tslib.txt",
+        "/static/task-vis/index.html": "./src/static/task-vis/index.html",
+        "/static/task-vis/styles.css": "./src/static/task-vis/styles.css",
+        "/static/task-vis/main.js": "./src/static/task-vis/main.js",
+        "/static/vendor/vis-network/vis-network.min.js": "./src/static/vendor/vis-network/vis-network.min.js",
+        "/static/vendor/vis-network/vis-network.min.css": "./src/static/vendor/vis-network/vis-network.min.css",
+        "/static/vendor/vis-network/LICENSE-APACHE-2.0.txt": "./src/static/vendor/vis-network/LICENSE-APACHE-2.0.txt",
+        "/static/vendor/vis-network/LICENSE-MIT.txt": "./src/static/vendor/vis-network/LICENSE-MIT.txt",
+        "/static/vendor/vis-network/LICENSE-bundled.txt": "./src/static/vendor/vis-network/LICENSE-bundled.txt"
     }
 }

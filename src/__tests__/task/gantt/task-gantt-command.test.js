@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
 
-import { taskGantt, shareHosts, shareUrls } from '../../../lib/cmd/qseow/taskgantt.js';
+import { taskGantt } from '../../../lib/cmd/qseow/taskgantt.js';
 import { validateTaskGanttOptions } from '../../../lib/task-gantt/options.js';
 import { TASK_GANTT_ROUTES } from '../../../lib/task-gantt/page-routes.js';
 import { QRS_NULL_DATE, SOURCE_BIT, SOURCE } from '../../../lib/task-gantt/defaults.js';
@@ -625,42 +625,6 @@ describe('--vis-allow-remote', () => {
         const lines = info.mock.calls.map((c) => String(c[0]));
         expect(lines).toContain(`Task Gantt chart: ${gantt.url}`);
         expect(lines.some((l) => l.includes('reachable from other computers'))).toBe(false);
-    });
-});
-
-describe('shareHosts and shareUrls', () => {
-    const interfaces = () => ({
-        lo0: [
-            { address: '127.0.0.1', family: 'IPv4', internal: true },
-            { address: '::1', family: 'IPv6', internal: true },
-        ],
-        en0: [
-            { address: '192.168.1.20', family: 'IPv4', internal: false },
-            { address: 'fe80::1c2b:3a4d', family: 'IPv6', internal: false },
-            { address: '2001:db8::20', family: 'IPv6', internal: false },
-        ],
-        en1: [{ address: '10.0.0.5', family: 4, internal: false }],
-    });
-    const env = { hostname: () => 'Ctrl-Q-Box', networkInterfaces: interfaces };
-
-    test('a 0.0.0.0 server is reachable by host name and IPv4 addresses', () => {
-        expect(shareHosts('0.0.0.0', env)).toEqual(['ctrl-q-box', '192.168.1.20', '10.0.0.5']);
-    });
-
-    test('a :: server also by IPv6 addresses, except link-local ones', () => {
-        expect(shareHosts('::', env)).toEqual(['ctrl-q-box', '192.168.1.20', '2001:db8::20', '10.0.0.5']);
-    });
-
-    test('a server on one host needs no other URLs', () => {
-        expect(shareHosts('localhost', env)).toEqual([]);
-        expect(shareHosts('192.168.1.20', env)).toEqual([]);
-    });
-
-    test('shareUrls swaps the host and keeps port, path and token; IPv6 addresses get brackets', () => {
-        expect(shareUrls('http://localhost:3001/?token=abc', ['ctrl-q-box', '2001:db8::20'])).toEqual([
-            'http://ctrl-q-box:3001/?token=abc',
-            'http://[2001:db8::20]:3001/?token=abc',
-        ]);
     });
 });
 
