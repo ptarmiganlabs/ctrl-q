@@ -5,34 +5,34 @@ const JWT_ENV_VAR = 'CTRLQ_AUTH_JWT';
 const DEPRECATED_JWT_ENV_VAR = 'CTRLQ_JWT';
 
 /**
- * Falls back to the deprecated CTRLQ_JWT environment variable for the options of a command that take a JWT.
+ * Lets the deprecated CTRLQ_JWT environment variable stand in for CTRLQ_AUTH_JWT, when only CTRLQ_JWT is set.
  *
- * Meant to be called from a preAction hook, once Commander has parsed the command line and applied CTRLQ_AUTH_JWT.
- * Follows Commander's own precedence: a JWT given on the command line or in CTRLQ_AUTH_JWT wins over CTRLQ_JWT,
- * which in turn wins over an option's default value.
+ * Call it before Commander parses the command line. Commander then applies the JWT like any other environment
+ * variable: a JWT given on the command line wins over it, it wins over an option's default, and it satisfies a
+ * mandatory option.
  *
- * @param {Command} command - The Commander command about to run.
- * @returns {string|undefined} A warning to show the user when CTRLQ_JWT is set and the command takes a JWT, otherwise undefined.
+ * @param {object} [env] - The environment to read and update. Defaults to process.env.
+ * @returns {string|undefined} A warning to show when CTRLQ_JWT is set, otherwise undefined.
  */
-export function applyDeprecatedJwtEnvVar(command) {
-    const jwtOptions = command.options.filter((option) => option.envVar === JWT_ENV_VAR);
-
-    if (jwtOptions.length === 0 || !(DEPRECATED_JWT_ENV_VAR in process.env)) {
+export function aliasDeprecatedJwtEnvVar(env = process.env) {
+    if (!(DEPRECATED_JWT_ENV_VAR in env)) {
         return undefined;
     }
 
-    if (JWT_ENV_VAR in process.env) {
+    if (JWT_ENV_VAR in env) {
         return `Environment variable ${DEPRECATED_JWT_ENV_VAR} is deprecated and ignored, as ${JWT_ENV_VAR} is also set.`;
     }
 
-    jwtOptions.forEach((option) => {
-        const key = option.attributeName();
-
-        // Same rule Commander uses when applying an environment variable: never override a value from the command line
-        if (command.getOptionValue(key) === undefined || ['default', 'config'].includes(command.getOptionValueSource(key))) {
-            command.setOptionValueWithSource(key, process.env[DEPRECATED_JWT_ENV_VAR], 'env');
-        }
-    });
-
+    env[JWT_ENV_VAR] = env[DEPRECATED_JWT_ENV_VAR];
     return `Environment variable ${DEPRECATED_JWT_ENV_VAR} is deprecated, use ${JWT_ENV_VAR} instead.`;
+}
+
+/**
+ * Whether a command authenticates with a JWT, and so whether a warning about CTRLQ_JWT concerns it.
+ *
+ * @param {Command} command - A Commander command whose options have been parsed.
+ * @returns {boolean} True when the command takes a JWT from CTRLQ_AUTH_JWT and its auth type is jwt.
+ */
+export function usesJwtAuth(command) {
+    return command.options.some((option) => option.envVar === JWT_ENV_VAR) && command.opts().authType === 'jwt';
 }

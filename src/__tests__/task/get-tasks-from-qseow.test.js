@@ -7,6 +7,7 @@
  */
 
 import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
+import { settled } from '../helpers/settled.mjs';
 
 // Mock axios before importing the modules under test (ESM hoisting)
 jest.unstable_mockModule('axios', () => ({
@@ -49,23 +50,6 @@ const makeQrsTask = (schemaPath, id) => ({
  * A QRS response listing the given tasks, as axios returns it.
  */
 const qrsResponse = (tasks) => ({ status: 200, data: JSON.stringify(tasks) });
-
-/**
- * Wait for a promise, failing at once if it hasn't settled within the given time rather than when
- * the test times out.
- */
-const settled = async (promise, ms = 1000) => {
-    let timer;
-    const timeout = new Promise((resolve, reject) => {
-        timer = setTimeout(() => reject(new Error(`did not settle within ${ms} ms`)), ms);
-    });
-
-    try {
-        return await Promise.race([promise, timeout]);
-    } finally {
-        clearTimeout(timer);
-    }
-};
 
 const options = { authType: 'jwt', authJwt: 'test-jwt', host: 'qlik.example.com', port: '443', virtualProxy: '' };
 

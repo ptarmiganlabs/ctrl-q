@@ -1,7 +1,7 @@
 import { Command, Option } from 'commander';
 import { logger, appVersion, setLoggingLevel, setCliOptions } from './globals.js';
 import { logStartupInfo } from './lib/util/log.js';
-import { applyDeprecatedJwtEnvVar } from './lib/util/jwt-env.js';
+import { aliasDeprecatedJwtEnvVar, usesJwtAuth } from './lib/util/jwt-env.js';
 
 // Import command setup functions
 // QSEoW
@@ -44,6 +44,10 @@ program.configureHelp({
     sortSubcommands: true,
 });
 
+// CTRLQ_JWT is the deprecated name of CTRLQ_AUTH_JWT. Alias it before the command line is parsed,
+// so that Commander applies it like any other environment variable
+const jwtEnvWarning = aliasDeprecatedJwtEnvVar();
+
 /**
  * Top level async function.
  * Workaround to deal with the fact that Node.js doesn't currently support top level async functions...
@@ -57,9 +61,6 @@ program.configureHelp({
             `Ctrl-Q is a command line utility for interacting with client-managed Qlik Sense Enterprise on Windows servers.\nAmong other things the tool does bulk import of apps and tasks, manipulates master items and scrambles in-app data.\n\nVersion: ${appVersion}`
         )
         .hook('preAction', (thisCommand, actionCommand) => {
-            // Use the deprecated CTRLQ_JWT env var for a JWT not given on the command line or in CTRLQ_AUTH_JWT
-            const jwtEnvWarning = applyDeprecatedJwtEnvVar(actionCommand);
-
             const options = actionCommand.opts();
 
             // Store CLI options in global variable
@@ -69,7 +70,8 @@ program.configureHelp({
             setLoggingLevel(options.logLevel);
             logStartupInfo(options, actionCommand._name, actionCommand._description);
 
-            if (jwtEnvWarning) {
+            // Only a command that authenticates with a JWT is concerned by CTRLQ_JWT
+            if (jwtEnvWarning && usesJwtAuth(actionCommand)) {
                 logger.warn(jwtEnvWarning);
             }
 

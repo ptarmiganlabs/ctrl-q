@@ -1,16 +1,19 @@
 /**
- * Unit tests for src/lib/util/jwt-env.js — applyDeprecatedJwtEnvVar()
+ * Unit tests for src/lib/util/jwt-env.js, and for how src/ctrl-q.js uses it.
  *
  * Every command option that takes a JWT reads it from CTRLQ_AUTH_JWT. CTRLQ_JWT, which
- * some commands used to read instead, still works as a deprecated fallback when the JWT
- * is not given on the command line or in CTRLQ_AUTH_JWT.
+ * some commands used to read instead, still works as a deprecated stand-in for it.
  */
 
-import { test, expect, describe, beforeEach, afterAll } from '@jest/globals';
+import { jest, test, expect, describe, beforeEach, afterEach, afterAll } from '@jest/globals';
 import fs from 'node:fs';
 import { Command, Option } from 'commander';
+import { settled } from '../helpers/settled.mjs';
 
-const { applyDeprecatedJwtEnvVar } = await import('../../lib/util/jwt-env.js');
+const { aliasDeprecatedJwtEnvVar, usesJwtAuth } = await import('../../lib/util/jwt-env.js');
+
+const DEPRECATED_WARNING = 'Environment variable CTRLQ_JWT is deprecated, use CTRLQ_AUTH_JWT instead.';
+const IGNORED_WARNING = 'Environment variable CTRLQ_JWT is deprecated and ignored, as CTRLQ_AUTH_JWT is also set.';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -54,34 +57,36 @@ const getCliJwtOptions = async () =>
     );
 
 /**
- * Parse args with a command shaped like the real ones, applying the CTRLQ_JWT fallback in a
- * preAction hook the way src/ctrl-q.js does. Returns the options the action handler received
- * and the warning, if any.
+ * Alias CTRLQ_JWT the way src/ctrl-q.js does, then parse args with a command that has the given
+ * options. Returns the options the action handler received and the warning, if any.
  */
-const run = async (args, jwtOption = new Option('--auth-jwt <jwt>', 'JWT').env('CTRLQ_AUTH_JWT')) => {
-    const result = {};
-    const program = new Command().exitOverride();
+const run = async (args, ...options) => {
+    const warning = aliasDeprecatedJwtEnvVar();
+    const result = { warning };
 
-    program.hook('preAction', (thisCommand, actionCommand) => {
-        result.warning = applyDeprecatedJwtEnvVar(actionCommand);
+    const command = new Command('task-get').exitOverride().action((parsedOptions) => {
+        result.options = parsedOptions;
     });
+    options.forEach((option) => command.addOption(option));
 
-    program
-        .command('task-get')
-        .addOption(jwtOption)
-        .action((options) => {
-            result.options = options;
-        });
-
-    await program.parseAsync(['task-get', ...args], { from: 'user' });
+    await command.parseAsync(args, { from: 'user' });
     return result;
 };
 
+const jwtOption = () => new Option('--auth-jwt <jwt>', 'JWT').env('CTRLQ_AUTH_JWT');
+const authTypeOption = () => new Option('-a, --auth-type <type>', 'authentication type').choices(['cert', 'jwt']).default('cert');
+
 const originalEnv = { CTRLQ_JWT: process.env.CTRLQ_JWT, CTRLQ_AUTH_JWT: process.env.CTRLQ_AUTH_JWT };
+const originalArgv = process.argv;
 
 beforeEach(() => {
     delete process.env.CTRLQ_JWT;
     delete process.env.CTRLQ_AUTH_JWT;
+});
+
+afterEach(() => {
+    process.argv = originalArgv;
+    jest.restoreAllMocks();
 });
 
 afterAll(() => {
@@ -124,66 +129,180 @@ describe('CLI options that take a JWT', () => {
             .map(({ file, command }) => `${file}: ${command.name()}`);
         expect(withoutAuthJwt).toEqual([]);
     });
+});
 
-    test('should not be mandatory, as Commander checks mandatory options before the CTRLQ_JWT fallback runs', async () => {
-        const mandatory = (await getCliJwtOptions()).filter(({ option }) => option.mandatory).map(({ file }) => file);
-        expect(mandatory).toEqual([]);
+// ---------------------------------------------------------------------------
+// aliasDeprecatedJwtEnvVar
+// ---------------------------------------------------------------------------
+
+describe('aliasDeprecatedJwtEnvVar', () => {
+    test('should copy CTRLQ_JWT to CTRLQ_AUTH_JWT when only CTRLQ_JWT is set, and warn that it is deprecated', () => {
+        const env = { CTRLQ_JWT: 'legacy-jwt' };
+
+        expect(aliasDeprecatedJwtEnvVar(env)).toBe(DEPRECATED_WARNING);
+        expect(env).toEqual({ CTRLQ_JWT: 'legacy-jwt', CTRLQ_AUTH_JWT: 'legacy-jwt' });
+    });
+
+    test('should leave CTRLQ_AUTH_JWT alone when both are set, and warn that CTRLQ_JWT is ignored', () => {
+        const env = { CTRLQ_JWT: 'legacy-jwt', CTRLQ_AUTH_JWT: 'current-jwt' };
+
+        expect(aliasDeprecatedJwtEnvVar(env)).toBe(IGNORED_WARNING);
+        expect(env).toEqual({ CTRLQ_JWT: 'legacy-jwt', CTRLQ_AUTH_JWT: 'current-jwt' });
+    });
+
+    test('should change nothing and not warn when CTRLQ_JWT is not set', () => {
+        const neither = {};
+        expect(aliasDeprecatedJwtEnvVar(neither)).toBeUndefined();
+        expect(neither).toEqual({});
+
+        const current = { CTRLQ_AUTH_JWT: 'current-jwt' };
+        expect(aliasDeprecatedJwtEnvVar(current)).toBeUndefined();
+        expect(current).toEqual({ CTRLQ_AUTH_JWT: 'current-jwt' });
+    });
+
+    test('should use process.env by default', () => {
+        process.env.CTRLQ_JWT = 'legacy-jwt';
+
+        expect(aliasDeprecatedJwtEnvVar()).toBe(DEPRECATED_WARNING);
+        expect(process.env.CTRLQ_AUTH_JWT).toBe('legacy-jwt');
     });
 });
 
 // ---------------------------------------------------------------------------
-// CTRLQ_JWT fallback
+// Commander, once CTRLQ_JWT is aliased
 // ---------------------------------------------------------------------------
 
-describe('applyDeprecatedJwtEnvVar', () => {
-    test('should use CTRLQ_JWT when the JWT is not given any other way, and warn that it is deprecated', async () => {
+describe('A command parsed after aliasing CTRLQ_JWT', () => {
+    test('should get its JWT from CTRLQ_JWT when it is not given any other way', async () => {
         process.env.CTRLQ_JWT = 'legacy-jwt';
 
-        const { options, warning } = await run([]);
+        const { options } = await run([], jwtOption());
         expect(options.authJwt).toBe('legacy-jwt');
-        expect(warning).toBe('Environment variable CTRLQ_JWT is deprecated, use CTRLQ_AUTH_JWT instead.');
     });
 
-    test('should prefer CTRLQ_AUTH_JWT over CTRLQ_JWT, and warn that CTRLQ_JWT is ignored', async () => {
+    test('should prefer CTRLQ_AUTH_JWT over CTRLQ_JWT', async () => {
         process.env.CTRLQ_JWT = 'legacy-jwt';
         process.env.CTRLQ_AUTH_JWT = 'current-jwt';
 
-        const { options, warning } = await run([]);
+        const { options } = await run([], jwtOption());
         expect(options.authJwt).toBe('current-jwt');
-        expect(warning).toBe('Environment variable CTRLQ_JWT is deprecated and ignored, as CTRLQ_AUTH_JWT is also set.');
     });
 
     test('should prefer --auth-jwt on the command line over CTRLQ_JWT', async () => {
         process.env.CTRLQ_JWT = 'legacy-jwt';
 
-        const { options, warning } = await run(['--auth-jwt', 'cli-jwt']);
+        const { options } = await run(['--auth-jwt', 'cli-jwt'], jwtOption());
         expect(options.authJwt).toBe('cli-jwt');
-        expect(warning).toBe('Environment variable CTRLQ_JWT is deprecated, use CTRLQ_AUTH_JWT instead.');
     });
 
     test('should prefer CTRLQ_JWT over an option default', async () => {
         process.env.CTRLQ_JWT = 'legacy-jwt';
 
-        const { options } = await run([], new Option('--jwt <JWT>', 'JWT').default('').env('CTRLQ_AUTH_JWT'));
-        expect(options.jwt).toBe('legacy-jwt');
+        const { options } = await run([], jwtOption().default(''));
+        expect(options.authJwt).toBe('legacy-jwt');
     });
 
-    test('should change nothing and not warn when CTRLQ_JWT is not set', async () => {
-        const neither = await run([]);
-        expect(neither.options.authJwt).toBeUndefined();
-        expect(neither.warning).toBeUndefined();
-
-        process.env.CTRLQ_AUTH_JWT = 'current-jwt';
-        const current = await run([]);
-        expect(current.options.authJwt).toBe('current-jwt');
-        expect(current.warning).toBeUndefined();
-    });
-
-    test('should not warn for a command that takes no JWT', async () => {
+    test('should accept CTRLQ_JWT for a mandatory JWT option', async () => {
         process.env.CTRLQ_JWT = 'legacy-jwt';
 
-        const { options, warning } = await run([], new Option('--host <host>', 'host'));
-        expect(options).toEqual({});
-        expect(warning).toBeUndefined();
+        const { options } = await run([], jwtOption().makeOptionMandatory());
+        expect(options.authJwt).toBe('legacy-jwt');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// usesJwtAuth
+// ---------------------------------------------------------------------------
+
+describe('usesJwtAuth', () => {
+    const parse = (args, ...options) => {
+        const command = new Command('task-get').exitOverride().action(() => {});
+        options.forEach((option) => command.addOption(option));
+        command.parse(args, { from: 'user' });
+        return command;
+    };
+
+    test('should be true for a command that takes a JWT and authenticates with one', () => {
+        expect(usesJwtAuth(parse(['--auth-type', 'jwt'], jwtOption(), authTypeOption()))).toBe(true);
+    });
+
+    test('should be false for a command that authenticates with a certificate', () => {
+        expect(usesJwtAuth(parse(['--auth-type', 'cert'], jwtOption(), authTypeOption()))).toBe(false);
+        expect(usesJwtAuth(parse([], jwtOption(), authTypeOption()))).toBe(false);
+    });
+
+    test('should be false for a command that takes no JWT', () => {
+        expect(usesJwtAuth(parse(['--auth-type', 'jwt'], authTypeOption()))).toBe(false);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// src/ctrl-q.js
+// ---------------------------------------------------------------------------
+
+describe('ctrl-q', () => {
+    /**
+     * Run src/ctrl-q.js itself as `ctrl-q qseow connection-test <args>`, with the connection test mocked.
+     * Returns the options that reached the connection test and the warnings logged.
+     */
+    const runCtrlQ = async (args) => {
+        let ran;
+        let exited;
+        const connectionTested = new Promise((resolve, reject) => {
+            ran = resolve;
+            exited = reject;
+        });
+
+        jest.unstable_mockModule('../../lib/cmd/qseow/testconnection.js', () => ({
+            testConnection: jest.fn(async (options) => ran(options)),
+        }));
+        jest.spyOn(process, 'exit').mockImplementation((code) => exited(new Error(`ctrl-q exited with code ${code}`)));
+
+        // The same, freshly loaded, logger that ctrl-q.js is about to import
+        const { logger } = await import('../../globals.js');
+        const warn = jest.spyOn(logger, 'warn').mockImplementation(() => {});
+
+        process.argv = [
+            process.argv[0],
+            'ctrl-q.js',
+            'qseow',
+            'connection-test',
+            '--host',
+            'qlik.example.com',
+            '--log-level',
+            'error',
+            ...args,
+        ];
+        await import('../../ctrl-q.js');
+
+        const options = await settled(connectionTested, 5000);
+        return { options, warnings: warn.mock.calls.map(([message]) => message) };
+    };
+
+    test('should run a command with the JWT from CTRLQ_JWT, warning that it is deprecated', async () => {
+        process.env.CTRLQ_JWT = 'legacy-jwt';
+
+        const { options, warnings } = await runCtrlQ(['--auth-type', 'jwt']);
+
+        expect(options.authJwt).toBe('legacy-jwt');
+        expect(warnings).toEqual([DEPRECATED_WARNING]);
+    });
+
+    test('should not warn about CTRLQ_JWT for a command that authenticates with a certificate', async () => {
+        process.env.CTRLQ_JWT = 'legacy-jwt';
+
+        // Any existing files will do, as nothing connects
+        const certFiles = [
+            '--auth-cert-file',
+            'package.json',
+            '--auth-cert-key-file',
+            'package.json',
+            '--auth-root-cert-file',
+            'package.json',
+        ];
+        const { options, warnings } = await runCtrlQ(['--auth-type', 'cert', ...certFiles]);
+
+        expect(options.authType).toBe('cert');
+        expect(warnings).toEqual([]);
     });
 });
