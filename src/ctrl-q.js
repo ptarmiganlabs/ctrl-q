@@ -24,6 +24,7 @@ import { setupQseowExportAppCommand } from './lib/cli/qseow-export-app-to-file.j
 import { setupQseowTestConnectionCommand } from './lib/cli/qseow-test-connection.js';
 import { setupQseowShowVersionCommand } from './lib/cli/qseow-show-version.js';
 import { setupQseowVisualiseTaskCommand } from './lib/cli/qseow-visualise-task.js';
+import { setupQseowTaskGanttCommand } from './lib/cli/qseow-task-gantt.js';
 import { setupQseowGetProxySessionsCommand } from './lib/cli/qseow-get-proxy-session.js';
 import { setupQseowDeleteProxySessionsCommand } from './lib/cli/qseow-delete-proxy-session.js';
 
@@ -134,6 +135,9 @@ program.configureHelp({
 
         // QSEoW: Visualise task network
         setupQseowVisualiseTaskCommand(qseow);
+
+        // QSEoW: Gantt chart of task executions
+        setupQseowTaskGanttCommand(qseow);
 
         // QSEoW: Get proxy sessions
         setupQseowGetProxySessionsCommand(qseow);

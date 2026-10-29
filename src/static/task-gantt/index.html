@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Ctrl-Q task Gantt</title>
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="stylesheet" href="/task-gantt/styles.css" />
+        <script src="/vendor/echarts/echarts.min.js"></script>
+        <script type="module" src="/task-gantt/main.js"></script>
+    </head>
+    <body>
+        <header class="topbar">
+            <a class="brand" href="https://ctrl-q.ptarmiganlabs.com" target="_blank" rel="noopener noreferrer">
+                <img src="/ctrl-q.png" alt="Ctrl-Q" height="32" />
+            </a>
+            <div class="title">
+                <h1>Reload task Gantt</h1>
+                <div class="subtitle"><span id="senseHost">…</span> · Ctrl-Q <span id="appVersion"></span></div>
+            </div>
+            <div id="liveIndicator" class="live" title="Live updates"><span class="dot"></span><span id="liveText">loading</span></div>
+            <div id="sourceBadges" class="badges" aria-live="polite"></div>
+        </header>
+
+        <nav class="toolbar" aria-label="Chart controls">
+            <div class="group" role="group" aria-label="Time range">
+                <button type="button" data-range="6h">6h</button>
+                <button type="button" data-range="24h" class="active">24h</button>
+                <button type="button" data-range="3d">3d</button>
+                <button type="button" data-range="7d">7d</button>
+                <button type="button" data-range="all">All</button>
+            </div>
+            <label class="check"><input type="checkbox" id="followLive" checked /> Follow live</label>
+            <div class="searchBox">
+                <input
+                    type="search"
+                    id="search"
+                    maxlength="1000"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="Filter tasks… (/)"
+                    aria-label="Filter tasks by name, app, stream or tag"
+                    aria-describedby="searchHelp"
+                    title="All words must match, e.g. finance -test tag:nightly. Quote a phrase, put - before a word to exclude it, and tag:, app:, stream: or name: before it to look in one field."
+                />
+                <div id="searchHelp" class="searchHelp">
+                    All words must match: <code>finance -test tag:nightly</code><br />
+                    <code>"two words"</code> a phrase · <code>-word</code> excludes the word<br />
+                    <code>tag:</code> <code>app:</code> <code>stream:</code> <code>name:</code> look in one field only
+                </div>
+            </div>
+            <div class="popwrap">
+                <button
+                    type="button"
+                    id="tagsButton"
+                    class="popbutton"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="tagPopover"
+                >
+                    Tags<span class="count hidden"></span>
+                </button>
+                <div id="tagPopover" class="popover hidden" role="dialog" aria-label="Filter by tag">
+                    <div class="popoverHead">
+                        <input
+                            type="search"
+                            id="tagSearch"
+                            autocomplete="off"
+                            spellcheck="false"
+                            placeholder="Find a tag"
+                            aria-label="Find a tag"
+                        />
+                        <button type="button" id="tagClear">Clear</button>
+                    </div>
+                    <p class="hint">Click a tag to show only tasks with it, again to hide tasks with it, and once more to stop using it.</p>
+                    <div id="tagList" class="tagList" role="group" aria-label="Tags"></div>
+                    <div id="tagStatus" class="srOnly" role="status"></div>
+                </div>
+            </div>
+            <div class="popwrap">
+                <button
+                    type="button"
+                    id="statusButton"
+                    class="popbutton"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="statusPopover"
+                >
+                    Status<span class="count hidden"></span>
+                </button>
+                <div id="statusPopover" class="popover hidden" role="dialog" aria-label="Filter by status">
+                    <fieldset>
+                        <legend>Runs in view</legend>
+                        <label title="Also runs whose state is unknown: still running long after they were triggered"
+                            ><input type="checkbox" name="runState" value="problems" /> Failed / aborted / error</label
+                        >
+                        <label><input type="checkbox" name="runState" value="waited" /> Waited in queue</label>
+                        <label><input type="checkbox" name="runState" value="running" /> Running now</label>
+                        <label><input type="checkbox" name="runState" value="success" /> Succeeded</label>
+                        <label><input type="checkbox" name="runState" value="skipped" /> Skipped</label>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Task</legend>
+                        <label
+                            title="The latest run the page holds for the task failed, was aborted or ended with an error, or its state is unknown"
+                            ><input type="checkbox" name="taskState" value="last-failed" /> Last run failed</label
+                        >
+                        <label><input type="checkbox" name="taskState" value="disabled" /> Disabled in Sense</label>
+                        <label><input type="checkbox" name="taskState" value="deleted" /> Deleted in Sense</label>
+                    </fieldset>
+                    <p class="hint">
+                        Ticked states in a group combine with OR, the two groups with AND. Run states also choose which runs are drawn.
+                    </p>
+                </div>
+            </div>
+            <label class="check" title="Only tasks involved in a congestion episode in the time range shown"
+                ><input type="checkbox" id="congestionOnly" /> Only tasks in congestion</label
+            >
+            <label class="check"><input type="checkbox" id="onlyWithRuns" checked /> Only tasks with runs</label>
+            <label
+                >Node
+                <select id="nodeFilter">
+                    <option value="">All nodes</option>
+                </select>
+            </label>
+            <label
+                >Sort
+                <select id="sort">
+                    <option value="first">First start</option>
+                    <option value="wait">Total queue wait</option>
+                    <option value="fails">Failures</option>
+                    <option value="runtime">Total run time</option>
+                    <option value="name">Name</option>
+                </select>
+            </label>
+            <div class="group" role="group" aria-label="Time zone">
+                <button type="button" data-tz="local" class="active">Local</button>
+                <button type="button" data-tz="utc">UTC</button>
+            </div>
+            <button type="button" id="brushButton" title="Select a time range to list the tasks running in it (B)">Select range</button>
+            <button type="button" id="csvButton" title="Download the executions shown as CSV">CSV</button>
+            <button type="button" id="refreshButton" title="Reload all data from Ctrl-Q">Refresh</button>
+        </nav>
+
+        <div id="retentionBanner" class="banner" role="note">
+            <span
+                >QRS keeps only the last few runs of each task. Hatched areas mean <strong>no data</strong>, not idle. History grows while
+                Ctrl-Q runs.</span
+            >
+            <button type="button" id="dismissBanner" aria-label="Dismiss">×</button>
+        </div>
+
+        <main class="layout">
+            <section class="chartArea">
+                <div id="summary" class="summary"></div>
+                <div id="chart" class="chart" role="img" aria-label="Gantt chart of task executions"></div>
+                <div id="empty" class="empty hidden"></div>
+            </section>
+            <aside class="side" aria-label="Details">
+                <div class="tabs" role="tablist">
+                    <button type="button" role="tab" data-tab="episodes" class="active">Congestion</button>
+                    <button type="button" role="tab" data-tab="execution">Execution</button>
+                    <button type="button" role="tab" data-tab="task">Task</button>
+                    <button type="button" role="tab" data-tab="range">Range</button>
+                </div>
+                <div id="panel-episodes" class="panel" role="tabpanel">
+                    <h2 id="episodesTitle">Congestion</h2>
+                    <label class="panelOption hidden"
+                        ><input type="checkbox" id="episodesShownOnly" /> Only episodes with shown tasks</label
+                    >
+                    <div id="episodeList"></div>
+                </div>
+                <div id="panel-execution" class="panel hidden" role="tabpanel"></div>
+                <div id="panel-task" class="panel hidden" role="tabpanel"></div>
+                <div id="panel-range" class="panel hidden" role="tabpanel"></div>
+            </aside>
+        </main>
+
+        <footer class="legend" id="legend" aria-label="Legend"></footer>
+        <noscript>This page needs JavaScript.</noscript>
+    </body>
+</html>

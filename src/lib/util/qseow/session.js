@@ -5,7 +5,7 @@ import yesno from 'yesno';
 import { logger, execPath } from '../../../globals.js';
 import { setupQpsConnection } from './qps.js';
 import { setupQrsConnection } from './qrs.js';
-import { catchLog } from '../log.js';
+import { catchLog, redactAxiosConfig } from '../log.js';
 import { getProxiesFromQseow } from './proxy.js';
 
 const consoleProxiesTableConfig = {
@@ -99,7 +99,7 @@ export const getSessionsFromQseow = async (options, sessionCookie) => {
 
     // Get virtual proxies from QRS
     try {
-        logger.debug(`Config: ${JSON.stringify(axiosConfig)}`);
+        logger.debug(`Config: ${JSON.stringify(redactAxiosConfig(axiosConfig))}`);
         const result = await axios.request(axiosConfig);
 
         if (result.status === 200) {

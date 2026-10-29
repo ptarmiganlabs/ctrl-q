@@ -1,5 +1,43 @@
 import { logger, appVersion, isSea, execPath } from '../../globals.js';
 
+// Option names holding credentials, e.g. authJwt, jwt and apikey. Their values must never reach the log.
+const SENSITIVE_KEY = /jwt|apikey|api_key|password|secret|token|authorization/i;
+const REDACTED = '<redacted>';
+
+/**
+ * Returns a shallow copy of a CLI options object where values of credential-like options are replaced.
+ *
+ * @param {Object} options - CLI options, e.g. from commander.
+ * @returns {Object} Copy of the options object that is safe to log.
+ */
+export const redactOptions = (options) => {
+    if (!options || typeof options !== 'object') {
+        return options;
+    }
+
+    const redacted = {};
+    for (const [key, value] of Object.entries(options)) {
+        redacted[key] = SENSITIVE_KEY.test(key) && value !== undefined && value !== null && value !== '' ? REDACTED : value;
+    }
+    return redacted;
+};
+
+/**
+ * Returns a copy of an axios request config that is safe to log.
+ * Credential-like headers (Authorization etc.) are replaced, and the https agent (holding certificates) is left out.
+ *
+ * @param {Object} axiosConfig - Axios request config, e.g. from setupQrsConnection().
+ * @returns {Object} Copy of the config that is safe to log.
+ */
+export const redactAxiosConfig = (axiosConfig) => {
+    if (!axiosConfig || typeof axiosConfig !== 'object') {
+        return axiosConfig;
+    }
+
+    const { httpsAgent, headers, ...rest } = axiosConfig;
+    return { ...rest, headers: redactOptions(headers), httpsAgent: httpsAgent ? '<https agent>' : undefined };
+};
+
 /**
  * Logs startup information for the Ctrl-Q application.
  *
@@ -29,7 +67,7 @@ export const logStartupInfo = (options, cmd, cmdDesc) => {
     logger.info(``);
     logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
     logger.verbose(`Ctrl-Q was started from ${execPath}`);
-    logger.verbose(`Options: ${JSON.stringify(options, null, 2)}`);
+    logger.verbose(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
     logger.verbose(``);
 };
 
