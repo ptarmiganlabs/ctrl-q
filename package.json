@@ -8,7 +8,7 @@
         "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPatterns='src/__tests__/util' --testPathPatterns='src/__tests__/cmd' --testPathPatterns='src/__tests__/task'",
         "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testPathPatterns='src/__tests__/integration' --passWithNoTests --runInBand",
         "test:release-kit": "node --test scripts/test/release-kit.test.js",
-        "lint": "npx eslint ./src/**/*.js",
+        "lint": "npx eslint src",
         "pc": "pre-commit run --all-files"
     },
     "homepage": "https://github.com/ptarmiganlabs/ctrl-q",
