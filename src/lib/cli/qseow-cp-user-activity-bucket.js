@@ -1,5 +1,6 @@
 import { Option, InvalidArgumentError } from 'commander';
 
+import { logger } from '../../globals.js';
 import { catchLog } from '../util/log.js';
 import { qseowSharedParamAssertOptions, userActivityBucketsCustomPropertyAssertOptions } from '../util/qseow/assert-options.js';
 import { createUserActivityBucketsCustomProperty } from '../cmd/qseow/createuseractivitycp.js';
@@ -21,9 +22,19 @@ export function setupQseowUserActivityCustomPropertyCommand(qseow) {
         .description(
             'create custom property and populate it with values ("activity buckets") indicating how long ago users last logged into Sense'
         )
-        .action(async (options) => {
+        .action(async (options, command) => {
             try {
                 const newOptions = options;
+
+                // --jwt is the old name of --auth-jwt, still accepted so that scripts using it keep working.
+                // On the command line it wins over CTRLQ_AUTH_JWT, but not over --auth-jwt
+                if (newOptions.jwt !== undefined) {
+                    logger.warn('Option --jwt is deprecated, use --auth-jwt instead.');
+
+                    if (command.getOptionValueSource('authJwt') !== 'cli') {
+                        newOptions.authJwt = newOptions.jwt;
+                    }
+                }
 
                 await qseowSharedParamAssertOptions(newOptions);
                 await userActivityBucketsCustomPropertyAssertOptions(newOptions);
@@ -78,7 +89,10 @@ export function setupQseowUserActivityCustomPropertyCommand(qseow) {
                 .default('./cert/root.pem')
                 .env('CTRLQ_ROOT_CERT_FILE')
         )
-        .addOption(new Option('--jwt <JWT>', 'JSON Web Token (JWT) to use for authenticating with Qlik Sense').default('').env('CTRLQ_JWT'))
+        .addOption(
+            new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_AUTH_JWT')
+        )
+        .addOption(new Option('--jwt <JWT>', 'deprecated, use --auth-jwt').hideHelp())
         .addOption(
             new Option('--user-directory <name...>', 'name of user directories whose users will be updated with activity info')
                 .default('')

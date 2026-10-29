@@ -42,7 +42,7 @@ export async function tagExistByName(tagName, optionsParam) {
 }
 
 export function getTagsFromQseow(options) {
-    return new Promise((resolve, _reject) => {
+    return new Promise((resolve, reject) => {
         logger.verbose(`Getting tags from QSEoW...`);
 
         const axiosConfig = setupQrsConnection(options, {
@@ -65,6 +65,7 @@ export function getTagsFromQseow(options) {
             })
             .catch((err) => {
                 catchLog('GET TAGS FROM QSEoW', err);
+                reject(err);
             });
     });
 }

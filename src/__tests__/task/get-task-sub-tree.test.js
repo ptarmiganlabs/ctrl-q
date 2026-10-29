@@ -264,3 +264,23 @@ describe('extGetTaskSubTree - Task Types', () => {
         expect(result).toBeDefined();
     });
 });
+
+describe('extGetTaskSubTree - Tree Icons', () => {
+    test.each([
+        ['FinishedSuccess', '✅'],
+        ['FinishedFail', '❌'],
+        ['Skipped', '🚫'],
+        ['Aborted', '🛑'],
+        ['NeverStarted', '💤'],
+        ['Started', '❔'],
+        ['?', '❔'],
+    ])('should show a task whose last status is %s with %s', (taskLastStatus, icon) => {
+        const logger = createMockLogger();
+        const task = { ...createTask('task-1', 'Task 1'), taskLastStatus };
+        const mockObj = { ...createMockTaskNetwork([task], []), options: { treeIcons: true } };
+
+        const result = extGetTaskSubTree(mockObj, task, 0, null, logger);
+
+        expect(result[0].text).toBe(`${icon} Task 1`);
+    });
+});

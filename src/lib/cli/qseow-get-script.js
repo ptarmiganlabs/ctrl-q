@@ -78,6 +78,6 @@ export function setupGetScriptCommand(qseow) {
                 .env('CTRLQ_ROOT_CERT_FILE')
         )
         .addOption(
-            new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_JWT')
+            new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_AUTH_JWT')
         );
 }

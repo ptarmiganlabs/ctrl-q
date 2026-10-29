@@ -126,7 +126,7 @@ describe('MeasureIntelExtractor - extract() label expressions', () => {
             measures: [
                 {
                     qInfo: { qId: 'meas-1' },
-                    qMeasure: { qLabelExpression: '=\'Sales: \' & Num(Sum(Sales))' },
+                    qMeasure: { qLabelExpression: "='Sales: ' & Num(Sum(Sales))" },
                     qMetaDef: {},
                 },
             ],
@@ -135,7 +135,7 @@ describe('MeasureIntelExtractor - extract() label expressions', () => {
         const result = extractor.extract(metadata);
         const exprs = result.filter((item) => item.type === IntelType.EXPRESSION);
         expect(exprs).toHaveLength(1);
-        expect(exprs[0].value).toBe('=\'Sales: \' & Num(Sum(Sales))');
+        expect(exprs[0].value).toBe("='Sales: ' & Num(Sum(Sales))");
         expect(exprs[0].path).toBe('measures[0].qMeasure.qLabelExpression');
     });
 });

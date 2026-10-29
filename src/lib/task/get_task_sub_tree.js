@@ -1,5 +1,5 @@
 import { catchLog } from '../util/log.js';
-import { mapRuleState } from '../util/qseow/lookups.js';
+import { mapRuleState, getTaskExecutionStatusIcon } from '../util/qseow/lookups.js';
 
 /**
  * Function to get a subtree of a task tree from a given task.
@@ -140,9 +140,7 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
         });
 
         // Now sort the downstream tasks by task name
-        uniqueDownstreamTasks.sort((a, b) =>
-            (a?.downstreamTask?.taskName ?? '').localeCompare(b?.downstreamTask?.taskName ?? '')
-        );
+        uniqueDownstreamTasks.sort((a, b) => (a?.downstreamTask?.taskName ?? '').localeCompare(b?.downstreamTask?.taskName ?? ''));
 
         for (const uniqueDownstreamTask of uniqueDownstreamTasks) {
             if (_.taskCyclicStack.has(uniqueDownstreamTask.downstreamTask.id)) {
@@ -194,20 +192,7 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
             }
 
             if (_.options?.treeIcons) {
-                if (task.taskLastStatus === 'FinishedSuccess') {
-                    subTree.text = `✅ ${task.taskName}`;
-                    // subTree.text = _.options.textColor ? `✅ \x1b[0m${task.taskName}\x1b[0m` : `✅ ${task.taskName}`;
-                } else if (task.taskLastStatus === 'FinishedFail') {
-                    subTree.text = `❌ ${task.taskName}`;
-                } else if (task.taskLastStatus === 'Skipped') {
-                    subTree.text = `🚫 ${task.taskName}`;
-                } else if (task.taskLastStatus === 'Aborted') {
-                    subTree.text = `🛑 ${task.taskName}`;
-                } else if (task.taskLastStatus === 'Never started') {
-                    subTree.text = `💤 ${task.taskName}`;
-                } else {
-                    subTree.text = `❔ ${task.taskName}`;
-                }
+                subTree.text = `${getTaskExecutionStatusIcon(task.taskLastStatus)} ${task.taskName}`;
             } else {
                 subTree.text = task.taskName;
             }

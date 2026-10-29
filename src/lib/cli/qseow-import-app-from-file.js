@@ -69,7 +69,9 @@ export function setupQseowImportAppFromFileCommand(qseow) {
                 .default('./cert/root.pem')
                 .env('CTRLQ_ROOT_CERT_FILE')
         )
-        .addOption(new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_JWT'))
+        .addOption(
+            new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_AUTH_JWT')
+        )
         .addOption(new Option('-t, --file-type <type>', 'source file type').choices(['excel']).default('excel').env('CTRLQ_FILE_TYPE'))
         .addOption(new Option('--file-name <filename>', 'file containing app definitions').makeOptionMandatory().env('CTRLQ_FILE_NAME'))
         .addOption(
