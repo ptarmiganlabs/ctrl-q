@@ -39,10 +39,12 @@ function makeApp() {
         hasRunning: jest.fn(() => false),
         setRunningResultIds: jest.fn(),
         refreshMetadata: jest.fn(async () => false),
+        metadataWanted: jest.fn(() => false),
         applyQrsChanges: jest.fn(() => 0),
         markLive: jest.fn(),
         breakLiveCoverage: jest.fn(),
         setStatus: jest.fn(),
+        setIssue: jest.fn(),
     };
 }
 
@@ -114,8 +116,8 @@ describe('createQrsPoller', () => {
 
             expect(app.applyQrsChanges).toHaveBeenCalledWith(records);
             expect(app.markLive).toHaveBeenCalledWith(T0 + 5 * SEC);
-            // Only the time of the last good poll changes; the state was already ok
-            expect(app.setStatus.mock.calls).toEqual([['qrs', { lastOkAt: T0 + 5 * SEC }]]);
+            // The state was already ok. The app records the time of the good poll itself, on the Sense clock (markLive).
+            expect(app.setStatus).not.toHaveBeenCalled();
         });
 
         test('a successful tick schedules the next one after the normal interval', async () => {
@@ -247,6 +249,116 @@ describe('createQrsPoller', () => {
             expect(app.refreshMetadata).toHaveBeenCalledTimes(1);
             expect(onUpdate).toHaveBeenLastCalledWith({ changed: false, statusChanged: false });
         });
+
+        test('a failing refresh does not hold up the execution updates; it shows on the QRS badge and has its own backoff', async () => {
+            const app = makeApp();
+            const timeout = Object.assign(new Error('QRS GET /qrs/task/full on h:4242 failed: ECONNABORTED: timeout. Check it'), {
+                reason: 'ECONNABORTED: timeout',
+                hint: 'Check it',
+            });
+            app.refreshMetadata.mockRejectedValueOnce(timeout).mockRejectedValueOnce(timeout).mockResolvedValue(false);
+            const records = [rec('a')];
+            app.qrs.changesSince.mockResolvedValue({ records, cursor: T0 });
+            const { poller, onUpdate, logger } = makePoller(app);
+            const refreshes = () => app.refreshMetadata.mock.calls.length;
+
+            clock = T0 + 10 * MIN;
+            await poller.tickNow();
+
+            // The poll itself went through as usual
+            expect(app.applyQrsChanges).toHaveBeenCalledWith(records);
+            expect(app.markLive).toHaveBeenCalledWith(T0 + 10 * MIN);
+            expect(delays()).toEqual([INTERVAL]);
+            expect(app.setStatus).not.toHaveBeenCalled();
+            expect(app.setIssue).toHaveBeenCalledWith('qrs', 'metadata', {
+                state: 'degraded',
+                message: 'Task names, tags and capacity could not be refreshed (ECONNABORTED: timeout), retrying in 60 s',
+                hint: 'Check it',
+            });
+            expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Task metadata refresh failed'));
+            expect(onUpdate).toHaveBeenLastCalledWith({ changed: false, statusChanged: true });
+
+            // Retried after a minute, then after two
+            clock = T0 + 10 * MIN + 30 * SEC;
+            await poller.tickNow();
+            expect(refreshes()).toBe(1);
+            clock = T0 + 11 * MIN;
+            await poller.tickNow();
+            expect(refreshes()).toBe(2);
+            expect(app.setIssue).toHaveBeenLastCalledWith(
+                'qrs',
+                'metadata',
+                expect.objectContaining({ message: expect.stringContaining('retrying in 120 s') })
+            );
+            clock = T0 + 12 * MIN;
+            await poller.tickNow();
+            expect(refreshes()).toBe(2);
+            clock = T0 + 13 * MIN;
+            await poller.tickNow();
+            expect(refreshes()).toBe(3);
+            expect(app.setIssue).toHaveBeenLastCalledWith('qrs', 'metadata', null);
+            expect(onUpdate).toHaveBeenLastCalledWith({ changed: false, statusChanged: true });
+
+            // Then every 10 minutes again
+            clock = T0 + 22 * MIN;
+            await poller.tickNow();
+            expect(refreshes()).toBe(3);
+            clock = T0 + 23 * MIN;
+            await poller.tickNow();
+            expect(refreshes()).toBe(4);
+            // Every one of the 7 polls applied its records
+            expect(app.applyQrsChanges).toHaveBeenCalledTimes(7);
+        });
+
+        test('a slow refresh runs alongside the polls, which carry on at their interval', async () => {
+            const app = makeApp();
+            const slow = deferred();
+            app.refreshMetadata.mockReturnValueOnce(slow.promise);
+            const { poller, onUpdate } = makePoller(app);
+
+            clock = T0 + 10 * MIN;
+            poller.start();
+            jest.advanceTimersByTime(INTERVAL);
+            await flush();
+            expect(app.refreshMetadata).toHaveBeenCalledTimes(1);
+
+            jest.advanceTimersByTime(INTERVAL);
+            await flush();
+            jest.advanceTimersByTime(INTERVAL);
+            await flush();
+            expect(app.qrs.changesSince).toHaveBeenCalledTimes(3);
+            expect(app.refreshMetadata).toHaveBeenCalledTimes(1);
+
+            slow.resolve(true);
+            await flush();
+            expect(onUpdate).toHaveBeenLastCalledWith({ changed: true, statusChanged: false });
+        });
+
+        test('executions of tasks the metadata does not know bring the refresh forward, but not closer than a minute', async () => {
+            const app = makeApp();
+            app.metadataWanted.mockReturnValue(true);
+            const { poller } = makePoller(app);
+
+            clock = T0 + 10 * SEC;
+            await poller.tickNow();
+            expect(app.refreshMetadata).toHaveBeenCalledTimes(1);
+
+            clock = T0 + 40 * SEC;
+            await poller.tickNow();
+            expect(app.refreshMetadata).toHaveBeenCalledTimes(1);
+            clock = T0 + 70 * SEC;
+            await poller.tickNow();
+            expect(app.refreshMetadata).toHaveBeenCalledTimes(2);
+
+            // Known again: back to every 10 minutes
+            app.metadataWanted.mockReturnValue(false);
+            clock = T0 + 5 * MIN;
+            await poller.tickNow();
+            expect(app.refreshMetadata).toHaveBeenCalledTimes(2);
+            clock = T0 + 70 * SEC + 10 * MIN;
+            await poller.tickNow();
+            expect(app.refreshMetadata).toHaveBeenCalledTimes(3);
+        });
     });
 
     describe('onUpdate', () => {
@@ -293,8 +405,8 @@ describe('createQrsPoller', () => {
 
             clock = T0 + 30 * SEC;
             await poller.tickNow();
-            expect(app.setStatus).toHaveBeenCalledWith('qrs', expect.objectContaining({ state: 'ok', hint: '' }));
-            expect(app.setStatus).toHaveBeenLastCalledWith('qrs', { lastOkAt: T0 + 30 * SEC });
+            expect(app.setStatus).toHaveBeenLastCalledWith('qrs', expect.objectContaining({ state: 'ok', hint: '' }));
+            expect(app.markLive).toHaveBeenLastCalledWith(T0 + 30 * SEC);
         });
     });
 
@@ -508,7 +620,7 @@ describe('createQrsPoller', () => {
             await poller.tickNow(); // recovers 15 min + 1 ms after the last good tick
 
             expect(app.breakLiveCoverage).toHaveBeenCalledTimes(1);
-            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 2 * MIN, T0 + 17 * MIN + 1);
+            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 17 * MIN + 1);
             // The new live range must start after the split, so the split comes first
             expect(app.markLive).toHaveBeenLastCalledWith(T0 + 17 * MIN + 1);
             expect(app.breakLiveCoverage.mock.invocationCallOrder[0]).toBeLessThan(app.markLive.mock.invocationCallOrder.at(-1));
@@ -544,7 +656,7 @@ describe('createQrsPoller', () => {
             clock = T0 + 16 * MIN;
             await poller.tickNow();
 
-            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0, T0 + 16 * MIN);
+            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 16 * MIN);
         });
 
         test('a QRS error shows its short reason in the status, and its hint as the hint', async () => {
@@ -574,7 +686,7 @@ describe('createQrsPoller', () => {
             clock = T0 + 30 * MIN;
             await poller.tickNow();
 
-            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0, T0 + 30 * MIN);
+            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 30 * MIN);
         });
 
         test('without failures, a gap up to the poll interval plus 15 minutes keeps coverage whole (long poll intervals)', async () => {
@@ -588,7 +700,7 @@ describe('createQrsPoller', () => {
 
             clock = T0 + 90 * MIN + 1;
             await poller.tickNow();
-            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 45 * MIN, T0 + 90 * MIN + 1);
+            expect(app.breakLiveCoverage).toHaveBeenCalledWith(T0 + 90 * MIN + 1);
         });
     });
 

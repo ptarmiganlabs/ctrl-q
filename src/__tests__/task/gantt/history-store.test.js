@@ -1,5 +1,6 @@
-import { test, expect, describe, beforeEach, afterEach } from '@jest/globals';
+import { jest, test, expect, describe, beforeEach, afterEach } from '@jest/globals';
 import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -36,6 +37,7 @@ beforeEach(() => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ctrlq-history-'));
 });
 afterEach(() => {
+    jest.restoreAllMocks();
     fs.rmSync(dir, { recursive: true, force: true });
 });
 
@@ -47,8 +49,21 @@ const make = (over = {}) =>
         retentionDays: 90,
         logger: silent,
         now: () => NOW,
+        hostname: 'this-computer',
         ...over,
     });
+
+const MIN = 60000;
+const lockFile = (base = dir) => path.join(base, 'sense.example.com', '.lock');
+const readLock = (base = dir) => JSON.parse(fs.readFileSync(lockFile(base), 'utf8'));
+
+// Write a lock as another instance would, last refreshed some time before NOW
+const writeLock = (holder, { refreshedAgo = 0, base = dir } = {}) => {
+    fs.mkdirSync(path.dirname(lockFile(base)), { recursive: true });
+    fs.writeFileSync(lockFile(base), JSON.stringify({ token: 'their-token', since: new Date(NOW - DAY).toISOString(), ...holder }));
+    const t = new Date(NOW - refreshedAgo);
+    fs.utimesSync(lockFile(base), t, t);
+};
 
 describe('helpers', () => {
     test('hostSlug and utcDay', () => {
@@ -113,8 +128,7 @@ describe('createHistoryStore', () => {
     test('a second instance opens read-only and writes nothing', async () => {
         const writer = make();
         await writer.open();
-        const reader = make({ pidAlive: () => true });
-        fs.writeFileSync(path.join(dir, 'sense.example.com', '.lock'), '999999');
+        const reader = make({ pid: 999999, pidAlive: () => true });
 
         expect((await reader.open()).mode).toBe('readonly');
         reader.appendRecords([rec()]);
@@ -123,15 +137,121 @@ describe('createHistoryStore', () => {
         await writer.close();
     });
 
-    test('a stale lock from a dead process is taken over', async () => {
-        fs.mkdirSync(path.join(dir, 'sense.example.com'), { recursive: true });
-        fs.writeFileSync(path.join(dir, 'sense.example.com', '.lock'), '999999');
+    test('a lock left by a process of this computer that no longer runs is taken over at once', async () => {
+        writeLock({ pid: 999999, host: 'this-computer' });
         const store = make({ pidAlive: () => false });
 
         expect((await store.open()).mode).toBe('readwrite');
-        expect(fs.readFileSync(path.join(dir, 'sense.example.com', '.lock'), 'utf8')).toBe(String(process.pid));
+        expect(readLock()).toEqual({
+            pid: process.pid,
+            host: 'this-computer',
+            token: expect.stringMatching(/^[0-9a-f]{16}$/),
+            since: new Date(NOW).toISOString(),
+        });
         await store.close();
-        expect(fs.existsSync(path.join(dir, 'sense.example.com', '.lock'))).toBe(false);
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('the lock is refreshed while the store writes: its modification time is the heartbeat', async () => {
+        let now = NOW;
+        const store = make({ now: () => now });
+        await store.open();
+        expect(fs.statSync(lockFile()).mtimeMs).toBe(NOW);
+
+        now = NOW + MIN;
+        await store.heartbeat();
+        expect(fs.statSync(lockFile()).mtimeMs).toBe(NOW + MIN);
+        await store.close();
+    });
+
+    test('a lock of another computer is respected while it is refreshed, whatever its process id, and taken over once it is not', async () => {
+        // Its process id means nothing here (here it does not even exist): two writers would share --history-dir
+        writeLock({ pid: 4242, host: 'other-computer' }, { refreshedAgo: 4 * MIN });
+        const reader = make({ pidAlive: () => false });
+
+        const opened = await reader.open();
+        expect(opened.mode).toBe('readonly');
+        // Which instance, which file, and when it is safe to delete it
+        expect(opened.message).toBe(
+            `another Ctrl-Q instance is writing this history (process 4242 on other-computer); opened read-only. Delete ${lockFile()} if that instance is no longer running; Ctrl-Q also takes over a lock that has not been refreshed for 5 minutes.`
+        );
+        await reader.close();
+        expect(readLock()).toMatchObject({ pid: 4242, host: 'other-computer' });
+
+        // Not refreshed for more than 5 minutes: that instance is gone
+        writeLock({ pid: 4242, host: 'other-computer' }, { refreshedAgo: 6 * MIN });
+        const next = make({ pidAlive: () => false });
+        expect((await next.open()).mode).toBe('readwrite');
+        expect(readLock()).toMatchObject({ pid: process.pid, host: 'this-computer' });
+        await next.close();
+    });
+
+    test('a lock whose process id now belongs to another process is taken over once it has not been refreshed for 5 minutes', async () => {
+        // Left by a crash; after a restart (or on Windows, soon) another process got the same id
+        writeLock({ pid: 999999, host: 'this-computer' }, { refreshedAgo: 4 * MIN });
+        const early = make({ pidAlive: () => true });
+        expect((await early.open()).mode).toBe('readonly');
+        await early.close();
+
+        writeLock({ pid: 999999, host: 'this-computer' }, { refreshedAgo: 6 * MIN });
+        const later = make({ pidAlive: () => true });
+        expect((await later.open()).mode).toBe('readwrite');
+        await later.close();
+    });
+
+    test("two containers with the same process id and computer name do not take over each other's lock", async () => {
+        // Both run Ctrl-Q as process 1. A process id equal to its own no longer passes for a crashed earlier run.
+        writeLock({ pid: 1, host: 'this-computer' });
+        const second = make({ pid: 1, pidAlive: () => true });
+
+        expect((await second.open()).mode).toBe('readonly');
+        await second.close();
+        expect(readLock()).toMatchObject({ pid: 1, token: 'their-token' });
+    });
+
+    test('close() leaves a lock alone that another instance has taken over meanwhile', async () => {
+        const store = make();
+        await store.open();
+        // Another instance took the lock for stale, e.g. while this computer slept
+        writeLock({ pid: 4242, host: 'other-computer' });
+
+        await store.close();
+
+        expect(readLock()).toMatchObject({ pid: 4242, token: 'their-token' });
+    });
+
+    test('the heartbeat notices that another instance took the lock over, and the store stops writing', async () => {
+        const warn = jest.fn();
+        const store = make({ logger: { ...silent, warn } });
+        await store.open();
+        store.appendRecords([rec()]);
+        writeLock({ pid: 4242, host: 'other-computer' });
+
+        await store.heartbeat();
+
+        expect(store.mode()).toBe('readonly');
+        expect(store.message()).toBe(
+            `another Ctrl-Q instance took over writing this history while this one was not responding (see ${lockFile()}); read-only from now on`
+        );
+        expect(warn).toHaveBeenCalledWith(`History file: ${store.message()}`);
+        store.appendRecords([rec({ resultId: 'res-2' })]);
+        expect(await store.flush()).toBe(0);
+        expect(fs.readdirSync(path.join(dir, 'sense.example.com'))).toEqual(['.lock']);
+        await store.close();
+        expect(readLock()).toMatchObject({ pid: 4242 });
+    });
+
+    test('a lock deleted by hand while the store writes is taken again at the next heartbeat', async () => {
+        const store = make();
+        await store.open();
+        fs.rmSync(lockFile());
+
+        await store.heartbeat();
+
+        expect(store.mode()).toBe('readwrite');
+        expect(readLock()).toMatchObject({ pid: process.pid, host: 'this-computer' });
+        await store.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
     });
 
     test('torn lines are skipped and counted', async () => {
@@ -306,7 +426,7 @@ describe('createHistoryStore', () => {
         await store.close();
 
         const reader = make({ retentionDays: 1, now: () => NOW + 2 * DAY, pidAlive: () => true });
-        fs.writeFileSync(path.join(hostDir, '.lock'), '999999');
+        writeLock({ pid: 999999, host: 'this-computer' }, { refreshedAgo: -2 * DAY });
         await reader.open();
         expect(await reader.pruneExpired()).toBe(0);
         expect(fs.existsSync(path.join(hostDir, '2026-09-07.ndjson'))).toBe(true);
@@ -348,6 +468,128 @@ describe('createHistoryStore', () => {
         await next.close();
     });
 
+    // A write that fails part-way, e.g. when the disk fills up: the first appendFile call writes some bytes, then fails
+    const failAppendAfter = (bytes) => {
+        const appendFile = fsp.appendFile;
+        let calls = 0;
+        return jest.spyOn(fsp, 'appendFile').mockImplementation(async (file, data, opts) => {
+            calls += 1;
+            if (calls > 1) return appendFile(file, data, opts);
+            await appendFile(file, String(data).slice(0, bytes), opts);
+            throw Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' });
+        });
+    };
+    const dayFile = () => path.join(dir, 'sense.example.com', '2026-10-06.ndjson');
+
+    test('an append that fails part-way into a new file: the torn header is written again, and no line is lost', async () => {
+        const store = make();
+        await store.open();
+        failAppendAfter(10);
+        store.appendRecords([rec({ resultId: 'first' }), rec({ resultId: 'second' })]);
+        await expect(store.flush()).rejects.toThrow('ENOSPC');
+
+        expect(await store.flush()).toBe(2);
+
+        const header = JSON.stringify({ v: 1, host: 'Sense.Example.com', clusterId: 'cluster-1' });
+        const lines = [rec({ resultId: 'first' }), rec({ resultId: 'second' })].map((r) => JSON.stringify(recordToLine(r)));
+        expect(fs.readFileSync(dayFile(), 'utf8')).toBe(`${header}\n${lines.join('\n')}\n`);
+        const loaded = await store.load(NOW - DAY, NOW);
+        expect(loaded.records.map((r) => r.resultId).sort()).toEqual(['first', 'second']);
+        expect(loaded.skippedLines).toBe(0);
+        await store.close();
+    });
+
+    test('an append that fails part-way into an existing file: the retry starts on a new line, and no line is lost', async () => {
+        const store = make();
+        await store.open();
+        store.appendRecords([rec({ resultId: 'earlier' })]);
+        await store.flush();
+        failAppendAfter(12);
+        store.appendRecords([rec({ resultId: 'first' }), rec({ resultId: 'second' })]);
+        await expect(store.flush()).rejects.toThrow('ENOSPC');
+
+        expect(await store.flush()).toBe(2);
+
+        const loaded = await store.load(NOW - DAY, NOW);
+        expect(loaded.records.map((r) => r.resultId).sort()).toEqual(['earlier', 'first', 'second']);
+        // The torn part of the failed append
+        expect(loaded.skippedLines).toBe(1);
+        await store.close();
+    });
+
+    test('an expired file that cannot be deleted is a warning: the store opens for writing, and the next prune tries again', async () => {
+        const hostDir = path.join(dir, 'sense.example.com');
+        fs.mkdirSync(hostDir, { recursive: true });
+        fs.writeFileSync(path.join(hostDir, '2026-06-01.ndjson'), '');
+        fs.writeFileSync(path.join(hostDir, '2026-10-01.ndjson'), '');
+        const rm = fsp.rm;
+        // As on Windows while a virus scanner or OneDrive has the file open
+        const busy = jest.spyOn(fsp, 'rm').mockImplementation(async (file, opts) => {
+            if (String(file).endsWith('2026-06-01.ndjson')) {
+                throw Object.assign(new Error(`EBUSY: resource busy or locked, unlink '${file}'`), { code: 'EBUSY' });
+            }
+            return rm(file, opts);
+        });
+        const warn = jest.fn();
+        const store = make({ retentionDays: 30, logger: { ...silent, warn } });
+
+        expect(await store.open()).toEqual({ mode: 'readwrite', message: '' });
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('cannot delete expired 2026-06-01.ndjson (EBUSY'));
+
+        // Later the same day: tried again, warned about once
+        expect(await store.pruneExpired()).toBe(0);
+        expect(warn).toHaveBeenCalledTimes(1);
+        busy.mockRestore();
+        expect(await store.pruneExpired()).toBe(1);
+        expect(fs.readdirSync(hostDir).sort()).toEqual(['.lock', '2026-10-01.ndjson']);
+        // Nothing left to retry
+        expect(await store.pruneExpired()).toBe(0);
+        await store.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('coverage is written from the retention cutoff on, so a longer retention later does not count older time as covered', async () => {
+        // A short retention: QRS still holds a run of 5 days ago, which is not written, and Ctrl-Q watched for 10 days
+        const short = make({ retentionDays: 2 });
+        await short.open();
+        short.appendRecords([
+            rec({ resultId: 'old', triggeredAt: NOW - 5 * DAY, startedAt: NOW - 5 * DAY, stoppedAt: NOW - 5 * DAY + 1000 }),
+        ]);
+        short.appendCoverage(new Map([['task-1', NOW - 5 * DAY]]), NOW);
+        short.appendObservation(NOW - 10 * DAY, NOW);
+        await short.close();
+
+        // The retention raised to 90 days
+        const long = make({ retentionDays: 90 });
+        await long.open();
+        const loaded = await long.load(NOW - 30 * DAY, NOW);
+
+        const cutoff = Date.UTC(2026, 9, 4);
+        expect(loaded.records).toEqual([]);
+        expect(loaded.coverage.tasks.get('task-1')).toEqual([[cutoff, NOW]]);
+        expect(loaded.coverage.global).toEqual([[cutoff, NOW]]);
+        await long.close();
+    });
+
+    test('load returns the signatures of every record read, also of the days read before the range', async () => {
+        const store = make();
+        await store.open();
+        store.appendRecords([
+            rec({ resultId: 'in-range' }),
+            rec({ resultId: 'before', triggeredAt: NOW - 3 * DAY, startedAt: NOW - 3 * DAY, stoppedAt: NOW - 3 * DAY + 5000 }),
+        ]);
+        await store.flush();
+
+        const loaded = await store.load(NOW - DAY, NOW);
+
+        expect(loaded.records.map((r) => r.resultId)).toEqual(['in-range']);
+        expect([...loaded.signatures].sort()).toEqual([
+            ['r:before', `7:${NOW - 3 * DAY + 5000}`],
+            ['r:in-range', `7:${NOW - 3500000}`],
+        ]);
+        await store.close();
+    });
+
     test("a same-day file of another cluster is left alone; this cluster's lines go to a file of their own", async () => {
         const hostDir = path.join(dir, 'sense.example.com');
         fs.mkdirSync(hostDir, { recursive: true });
@@ -384,7 +626,7 @@ describe('createHistoryStore', () => {
         for (let i = 0; i < 20; i += 1) {
             const hostDir = path.join(dir, `run-${i}`);
             fs.mkdirSync(path.join(hostDir, 'sense.example.com'), { recursive: true });
-            fs.writeFileSync(path.join(hostDir, 'sense.example.com', '.lock'), '999999');
+            writeLock({ pid: 999999, host: 'this-computer' }, { base: hostDir });
             const alive = (pid) => pid === 1001 || pid === 1002;
             const a = make({ dir: hostDir, pid: 1001, pidAlive: alive });
             const b = make({ dir: hostDir, pid: 1002, pidAlive: alive });
@@ -392,11 +634,52 @@ describe('createHistoryStore', () => {
             const [ma, mb] = (await Promise.all([a.open(), b.open()])).map((r) => r.mode);
             expect([ma, mb].sort()).toEqual(['readonly', 'readwrite']);
             // The lock names the instance that writes
-            const lock = fs.readFileSync(path.join(hostDir, 'sense.example.com', '.lock'), 'utf8');
-            expect(lock).toBe(ma === 'readwrite' ? '1001' : '1002');
+            expect(readLock(hostDir).pid).toBe(ma === 'readwrite' ? 1001 : 1002);
             await a.close();
             await b.close();
         }
+    });
+
+    test('close() during an open() still under way waits for it, and releases the lock it took', async () => {
+        const store = make();
+
+        const opening = store.open();
+        await store.close();
+
+        expect((await opening).mode).toBe('readwrite');
+        expect(store.mode()).toBe('closed');
+        expect(fs.existsSync(path.join(dir, 'sense.example.com', '.lock'))).toBe(false);
+    });
+
+    test('past the limit of lines waiting to be written, the store stops writing for the session and says why', async () => {
+        const warn = jest.fn();
+        const store = make({ maxPendingLines: 3, logger: { ...silent, warn } });
+        await store.open();
+        const append = jest
+            .spyOn(fsp, 'appendFile')
+            .mockRejectedValue(Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' }));
+
+        store.appendRecords([rec({ resultId: 'a' }), rec({ resultId: 'b' })]);
+        await expect(store.flush()).rejects.toThrow('ENOSPC');
+        expect(store.pending()).toBe(2);
+        store.appendRecords([rec({ resultId: 'c' })]);
+        expect(store.mode()).toBe('readwrite');
+
+        // A fourth line would pass the limit. Dropping only some lines would leave coverage lines written later
+        // claiming the time of the dropped executions, so nothing more is written at all.
+        store.appendRecords([rec({ resultId: 'd' })]);
+        expect(store.mode()).toBe('error');
+        expect(store.pending()).toBe(0);
+        expect(store.message()).toBe(
+            `stopped writing to ${path.join(dir, 'sense.example.com')} until Ctrl-Q is restarted: 3 lines could not be written (ENOSPC: no space left on device, write)`
+        );
+        expect(warn).toHaveBeenCalledWith(`History file: ${store.message()}`);
+
+        append.mockRestore();
+        store.appendRecords([rec({ resultId: 'e' })]);
+        expect(await store.flush()).toBe(0);
+        await store.close();
+        expect(fs.readdirSync(path.join(dir, 'sense.example.com'))).toEqual([]);
     });
 
     test('an unusable directory gives mode error, and load returns nothing', async () => {

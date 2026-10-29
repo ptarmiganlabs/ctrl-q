@@ -52,11 +52,19 @@ describe('createShutdownManager', () => {
         mgr.register('a', () => order.push('a'));
         mgr.register('b', () => Promise.reject());
         mgr.register('c', () => Promise.reject('gave up'));
+        // Neither can be put in a template string as it is
+        mgr.register('d', () => Promise.reject(Symbol('odd')));
+        mgr.register('e', () => Promise.reject(Object.create(null)));
 
         await mgr.shutdown();
 
         expect(order).toEqual(['a']);
-        expect(warnings).toEqual(['Shutdown: "c" failed: gave up', 'Shutdown: "b" failed: undefined']);
+        expect(warnings).toEqual([
+            'Shutdown: "e" failed: [Object: null prototype] {}',
+            'Shutdown: "d" failed: Symbol(odd)',
+            'Shutdown: "c" failed: gave up',
+            'Shutdown: "b" failed: undefined',
+        ]);
     });
 
     test('a hanging closer is abandoned after the timeout', async () => {
@@ -116,18 +124,23 @@ describe('createShutdownManager', () => {
         expect(proc.exit).toHaveBeenCalledWith(0);
     });
 
-    test('console write errors end the process as usual before shutdown, and are ignored once it has begun', async () => {
+    test('a failed console write runs the closers and exits with 1, also before the SIGHUP that says why', async () => {
         const proc = fakeProcess();
         const mgr = createShutdownManager({ processRef: proc, logger: silentLogger });
+        const closer = jest.fn();
+        mgr.register('history file', closer);
         mgr.install();
 
-        expect(() => proc.stdout.emit('error', new Error('write EPIPE'))).toThrow('write EPIPE');
-
-        // The terminal has gone: writing to it fails with EIO
+        // The terminal has gone: writing to it fails with EIO, and that can arrive before SIGHUP does
+        expect(() => proc.stdout.emit('error', Object.assign(new Error('write EIO'), { code: 'EIO' }))).not.toThrow();
         proc.emit('SIGHUP');
-        expect(() => proc.stdout.emit('error', new Error('write EIO'))).not.toThrow();
         expect(() => proc.stderr.emit('error', new Error('write EIO'))).not.toThrow();
         await mgr.shutdown();
+        await flush();
+
+        expect(closer).toHaveBeenCalledTimes(1);
+        expect(proc.exit).toHaveBeenCalledTimes(1);
+        expect(proc.exit).toHaveBeenCalledWith(1);
     });
 
     test('leaves SIGHUP alone when output does not go to a terminal, e.g. under nohup', () => {

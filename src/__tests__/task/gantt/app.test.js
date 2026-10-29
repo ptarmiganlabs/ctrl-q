@@ -1,5 +1,7 @@
 import { jest, test, expect, describe, beforeEach, afterEach } from '@jest/globals';
+import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -7,7 +9,9 @@ import { createGanttApp, newSourceStatus } from '../../../lib/task-gantt/app.js'
 import { validateTaskGanttOptions } from '../../../lib/task-gantt/options.js';
 import { mergeIntervals } from '../../../lib/task-gantt/shared/sweep.js';
 import { FLAG_STALE } from '../../../lib/task-gantt/api/snapshot.js';
-import { createLivePublisher } from '../../../lib/cmd/qseow/taskgantt.js';
+import { createQrsPoller } from '../../../lib/task-gantt/live/qrs-poller.js';
+import { createLivePublisher, taskGantt } from '../../../lib/cmd/qseow/taskgantt.js';
+import { logger as globalLogger } from '../../../globals.js';
 import { silentLogger } from '../../util/web/web-test-helpers.mjs';
 
 // Real QRS rows (anonymised) from a lab run: 6 reload tasks triggered at 06:29:45 on one node with
@@ -97,12 +101,22 @@ const newTaskRow = ({ status, stoppedAt = null, modifiedAt }) => ({
     ],
 });
 
+// NEW_TASK as GET /qrs/task/full lists it, once it is known
+const newTask = () => ({
+    id: NEW_TASK,
+    name: 'Reload New Sales',
+    taskType: 0,
+    enabled: true,
+    app: { id: NEW_APP, name: 'New Sales' },
+    tags: [],
+});
+
 /**
  * A fake QRS. The request function has the same signature as qrsRequestJson(options, { method, path, query }) and
  * answers from mutable state, so a test can change tasks, capacity and execution results between calls.
  *
  * @param {Function} clock - Clock used for the response's server date.
- * @returns {object} Stub state, with .request and .calls.
+ * @returns {object} Stub state, with .request and .calls. Set .skewMs for a Sense clock that is ahead (or behind).
  */
 function createQrsStub(clock) {
     const stub = {
@@ -114,11 +128,12 @@ function createQrsStub(clock) {
         apps: [],
         failures: new Map(),
         calls: [],
+        skewMs: 0,
     };
     stub.request = async (options, { method = 'get', path: p, query = {} }) => {
         stub.calls.push({ options, method, path: p, query: { ...query } });
         if (stub.failures.has(p)) throw stub.failures.get(p);
-        const reply = (data) => ({ status: 200, data: structuredClone(data), serverDate: clock() });
+        const reply = (data) => ({ status: 200, data: structuredClone(data), serverDate: clock() + stub.skewMs });
         switch (p) {
             case '/qrs/task/full':
                 return reply(stub.tasks);
@@ -160,6 +175,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
+    jest.restoreAllMocks();
     for (const app of apps) await app.close().catch(() => {});
     fs.rmSync(dir, { recursive: true, force: true });
 });
@@ -425,7 +441,7 @@ describe('createGanttApp init and snapshot', () => {
         await app.init();
 
         app.markLive(NOW + MIN);
-        app.breakLiveCoverage(NOW + MIN, NOW + 20 * MIN);
+        app.breakLiveCoverage(NOW + 20 * MIN);
         clock = NOW + 30 * MIN;
         await app.close();
 
@@ -471,6 +487,16 @@ describe('lane filters', () => {
         expect(none.snapshot().lanes).toEqual([]);
     });
 
+    test.each([
+        ['--task-id', { taskId: [CONTENT_MONITOR.toUpperCase()] }],
+        ['--app-id', { appId: [appOf(CONTENT_MONITOR).toUpperCase()] }],
+    ])('%s given in upper case shows its lane', async (_name, over) => {
+        const app = makeApp(createQrsStub(now), makeConfig({ sources: 'qrs', ...over }));
+        await app.init();
+
+        expect(app.snapshot().lanes.map((l) => l.id)).toEqual([CONTENT_MONITOR]);
+    });
+
     // BUG: lanes.js isTaskVisible() only looks at the resolved app ids. When no app carries the tag the set is empty,
     // so no filter is considered active and every task gets a lane, while --task-tag no-such-tag shows none.
     test('--app-tag that matches no app shows no lanes, like --task-tag does', async () => {
@@ -489,7 +515,7 @@ describe('history file', () => {
         const app = makeApp(createQrsStub(now));
         await app.init();
 
-        expect(fs.readFileSync(path.join(hostDir(), '.lock'), 'utf8')).toBe(String(process.pid));
+        expect(JSON.parse(fs.readFileSync(path.join(hostDir(), '.lock'), 'utf8'))).toMatchObject({ pid: process.pid, host: os.hostname() });
         await app.close();
         expect(fs.readdirSync(hostDir()).sort()).toEqual(['2026-09-09.ndjson', '2026-09-30.ndjson', '2026-10-06.ndjson']);
 
@@ -587,6 +613,30 @@ describe('history file', () => {
         expect(historyLines('2026-09-09')).toHaveLength(2);
     });
 
+    test('a QRS result from the two days read before the window is not appended again on every start', async () => {
+        // --lookback 7d: the window starts 2026-09-29T07:00, and the files from 2026-09-27 on are read
+        const run = structuredClone(ROWS.find((r) => r.taskID === CAL_PERF_3));
+        Object.assign(run, {
+            id: '99999999-aaaa-4bbb-8ccc-eeeeeeeeeeee',
+            executionID: '99999999-aaaa-4bbb-8ccc-ffffffffffff',
+            status: 7,
+            startTime: '2026-09-28T10:00:00.000Z',
+            stopTime: '2026-09-28T10:01:00.000Z',
+            modifiedDate: '2026-09-28T10:01:00.100Z',
+            details: [],
+        });
+        for (let start = 1; start <= 3; start += 1) {
+            clock = NOW + start * 10 * MIN;
+            const stub = createQrsStub(now);
+            stub.rows.push(structuredClone(run));
+            const app = makeApp(stub, makeConfig({ lookback: '7d' }));
+            await app.init();
+            await app.close();
+        }
+
+        expect(ofType(historyLines('2026-09-28'), 'r')).toHaveLength(1);
+    });
+
     // BUG: open() deletes daily files older than --history-retention-days, then persist() writes QRS results older than
     // that to new daily files, so expired files are re-created on every start.
     test('QRS results older than --history-retention-days do not re-create expired daily files', async () => {
@@ -680,7 +730,9 @@ describe('history file', () => {
     test('opens read-only while another live Ctrl-Q holds the lock: reads, but writes nothing', async () => {
         writeHistory('2026-10-04', [oldCmLine()]);
         const lockFile = path.join(hostDir(), '.lock');
-        fs.writeFileSync(lockFile, String(process.ppid));
+        // The parent process stands in for the other instance
+        const lock = JSON.stringify({ pid: process.ppid, host: os.hostname(), token: 'other', since: iso(NOW - DAY) });
+        fs.writeFileSync(lockFile, lock);
         const app = makeApp(createQrsStub(now));
 
         await app.init();
@@ -689,7 +741,9 @@ describe('history file', () => {
         expect(app.statuses()[1]).toMatchObject({
             state: 'degraded',
             records: 1,
-            message: 'another Ctrl-Q instance is writing this history; opened read-only',
+            message: expect.stringContaining(
+                `another Ctrl-Q instance is writing this history (process ${process.ppid} on ${os.hostname()}); opened read-only. Delete ${lockFile} if`
+            ),
         });
         const snap = app.snapshot();
         expect(snap.cols.key).toContain(`r:${OLD_CM_RESULT}`);
@@ -701,7 +755,7 @@ describe('history file', () => {
         await app.close();
         expect(fs.readdirSync(hostDir()).sort()).toEqual(['.lock', '2026-10-04.ndjson']);
         expect(historyLines('2026-10-04')).toHaveLength(2);
-        expect(fs.readFileSync(lockFile, 'utf8')).toBe(String(process.ppid));
+        expect(fs.readFileSync(lockFile, 'utf8')).toBe(lock);
     });
 
     test('init copes with history files holding more coverage lines than fit in one function call', async () => {
@@ -768,7 +822,7 @@ describe('history file', () => {
         expect(app.snapshot().cols.key).toHaveLength(6);
 
         app.markLive(NOW + MIN);
-        app.breakLiveCoverage(NOW + MIN, NOW + 20 * MIN);
+        app.breakLiveCoverage(NOW + 20 * MIN);
         await app.close();
         expect(fs.readdirSync(dir)).toEqual([]);
     });
@@ -837,6 +891,12 @@ describe('live updates', () => {
         expect(await pollChanges(app)).toBe(1);
         expect(app.cursor).toBe(NOW + MIN + 600);
         expect(app.hasRunning()).toBe(true);
+        // The metadata does not know the task, so its lane waits for a refresh. QRS does not know it either: a lane as
+        // for a deleted task, with the execution.
+        expect(app.lanes().get(NEW_TASK)).toBeUndefined();
+        expect(app.metadataWanted()).toBe(true);
+        await app.refreshMetadata();
+        expect(app.metadataWanted()).toBe(false);
 
         const d1 = app.drainDelta();
         expect(d1).toEqual({
@@ -946,25 +1006,44 @@ describe('live updates', () => {
         expect(tasks.slice(7).map((t) => t.name)).toEqual(['Reload Content Monitor (nightly)', 'Reload New Sales']);
     });
 
-    test('a new task executing before the metadata refresh gets a lane, which the refresh then completes', async () => {
+    test('a task created after start-up gets its lane from the metadata refresh its first run asks for', async () => {
         const stub = createQrsStub(now);
         const app = makeApp(stub, makeConfig({ sources: 'qrs' }));
         await app.init();
+        const { page, gaps, publish } = makePage(app);
 
-        stub.rows.push(newTaskRow({ status: 2, modifiedAt: NOW + MIN + 600 }));
-        clock = NOW + 90 * 1000;
+        // A new reload task and a new user sync task (hidden by --task-type) run before the metadata knows them
+        const NEW_SYNC = '12121212-3434-4565-8787-909090909090';
+        const syncRun = {
+            ...newTaskRow({ status: 7, stoppedAt: NOW + 2 * MIN, modifiedAt: NOW + 2 * MIN + 100 }),
+            id: '13131313-2424-4535-8646-757575757575',
+            taskID: NEW_SYNC,
+            executionID: '13131313-2424-4535-8646-868686868686',
+            appID: '00000000-0000-0000-0000-000000000000',
+        };
+        stub.rows.push(newTaskRow({ status: 2, modifiedAt: NOW + MIN + 600 }), syncRun);
+        stub.tasks = [...baseTasks(), newTask(), { id: NEW_SYNC, name: 'User sync HR', taskType: 2, enabled: true, app: null, tags: [] }];
+        clock = NOW + 3 * MIN;
         await pollChanges(app);
-        expect(app.drainDelta().lanes).toEqual([expect.objectContaining({ idx: 7, id: NEW_TASK })]);
+        publish({ changed: true, statusChanged: false });
 
-        stub.tasks = [
-            ...baseTasks(),
-            { id: NEW_TASK, name: 'Reload New Sales', taskType: 0, enabled: true, app: { id: NEW_APP, name: 'New Sales' }, tags: [] },
-        ];
+        // Not lanes of deleted tasks of unknown type, which would also pass --task-type: they wait for the metadata
+        expect(app.lanes().get(NEW_TASK)).toBeUndefined();
+        expect(app.lanes().get(NEW_SYNC)).toBeUndefined();
+        expect(app.metadataWanted()).toBe(true);
+
         expect(await app.refreshMetadata()).toBe(true);
+        publish({ changed: true, statusChanged: false });
 
-        expect(app.drainDelta().lanes).toEqual([
-            expect.objectContaining({ idx: 7, id: NEW_TASK, name: 'Reload New Sales', taskType: 0, enabled: true, deleted: false }),
-        ]);
+        expect(app.metadataWanted()).toBe(false);
+        expect(app.lanes().get(NEW_TASK)).toMatchObject({ idx: 7, name: 'Reload New Sales', taskType: 0, deleted: false, visible: true });
+        expect(app.lanes().get(NEW_SYNC)).toMatchObject({ idx: 8, name: 'User sync HR', taskType: 2, deleted: false, visible: false });
+        // The page got the new lane, with the run that earlier deltas left out, and nothing of the hidden task
+        expect(gaps).toEqual([]);
+        expect(page.lane(7)).toMatchObject({ id: NEW_TASK, name: 'Reload New Sales', deleted: false });
+        expect(page.row(NEW_KEY)).toMatchObject({ lane: 7, status: 2 });
+        expect(page.row(`r:${syncRun.id}`)).toBeUndefined();
+        expect(page.lane(8)).toBeUndefined();
     });
 
     // BUG: drainDelta() only sends the node table when it grew during that call. refreshMetadata() registers new
@@ -979,6 +1058,7 @@ describe('live updates', () => {
 
         // One poller tick: changes, then the 10-minute metadata refresh, then apply and publish the delta
         stub.schedulers = [...baseSchedulers(), scheduler('Sense-Node2.example.com', 1, 2)];
+        stub.tasks = [...baseTasks(), newTask()];
         stub.rows.push(newTaskRow({ status: 2, modifiedAt: NOW + MIN + 600 }));
         clock = NOW + 90 * 1000;
         const { records, cursor } = await app.qrs.changesSince(app.cursor);
@@ -1027,22 +1107,33 @@ describe('live updates', () => {
 
         // An outage splits the live range: pages see the new start and reload their snapshot
         clock = NOW + 180 * MIN;
-        app.breakLiveCoverage(NOW + 120 * MIN, clock);
+        app.breakLiveCoverage(clock);
         expect(app.liveStatus()).toMatchObject({ from: clock, coveredTo: clock });
         app.setStatus('qrs', { state: 'degraded', message: 'Live update failed' });
         expect(app.liveStatus().qrs).toMatchObject({ state: 'degraded', message: 'Live update failed' });
     });
 
-    // What a page keeps of the snapshot and the live deltas (as the page's client store does): rows by key, the node
-    // name table and the revision. A delta whose prevRev is ahead of the page's revision is a gap the page cannot apply.
+    // What a page keeps of the snapshot and the live deltas (as the page's client store does): lanes by number, rows by
+    // key, the node name table and the revision. A delta whose prevRev is ahead of the page's revision is a gap the page
+    // cannot apply: like the real page, it then loads a fresh snapshot.
     const makePage = (app) => {
-        const snap = JSON.parse(JSON.stringify(app.snapshot()));
-        const state = { rev: snap.rev, nodes: snap.nodes, rows: new Map() };
+        let state;
         const applyCols = (cols) => {
             cols.key.forEach((key, i) => state.rows.set(key, { lane: cols.lane[i], status: cols.status[i], node: cols.node[i] }));
         };
-        applyCols(snap.cols);
-        const page = { snapshot: () => state, row: (key) => state.rows.get(key), nodes: () => state.nodes };
+        const load = () => {
+            const snap = JSON.parse(JSON.stringify(app.snapshot()));
+            state = { rev: snap.rev, nodes: snap.nodes, lanes: new Map(snap.lanes.map((l) => [l.idx, l])), rows: new Map() };
+            applyCols(snap.cols);
+        };
+        load();
+        const page = {
+            snapshot: () => state,
+            row: (key) => state.rows.get(key),
+            lane: (idx) => state.lanes.get(idx),
+            lanes: () => [...state.lanes.values()],
+            nodes: () => state.nodes,
+        };
         const gaps = [];
         const deltas = [];
         const sse = {
@@ -1053,8 +1144,10 @@ describe('live updates', () => {
                 deltas.push(delta);
                 if (delta.prevRev > state.rev) {
                     gaps.push(delta);
+                    load();
                 } else if (delta.rev >= state.rev) {
                     if (delta.nodes) state.nodes = delta.nodes;
+                    for (const lane of delta.lanes) state.lanes.set(lane.idx, lane);
                     for (const key of delta.removed) state.rows.delete(key);
                     applyCols(delta.cols);
                     state.rev = delta.rev;
@@ -1114,8 +1207,9 @@ describe('live updates', () => {
         await app.init();
         const { page, gaps, publish } = makePage(app);
 
-        // Poll 1: only the metadata refresh finds a new node
+        // Poll 1: only the metadata refresh finds a new node (and a new task)
         stub.schedulers = [...baseSchedulers(), scheduler('Sense-Node2.example.com', 1, 2)];
+        stub.tasks = [...baseTasks(), newTask()];
         clock = NOW + 10 * MIN;
         await app.refreshMetadata();
         await pollChanges(app);
@@ -1130,6 +1224,212 @@ describe('live updates', () => {
         expect(gaps).toEqual([]);
         const row = page.row(NEW_KEY);
         expect(page.nodes()[row.node]).toBe(NODE2);
+    });
+
+    test('a task deleted in QRS while Ctrl-Q runs is marked deleted by the next refresh, and pages hear of it', async () => {
+        const stub = createQrsStub(now);
+        const app = makeApp(stub, makeConfig({ sources: 'qrs' }));
+        await app.init();
+        const { page, gaps, publish } = makePage(app);
+
+        stub.tasks = stub.tasks.filter((t) => t.id !== CAL_PERF_1);
+        clock = NOW + 10 * MIN;
+        expect(await app.refreshMetadata()).toBe(true);
+        publish({ changed: true, statusChanged: false });
+
+        expect(gaps).toEqual([]);
+        expect(page.lane(LANE[CAL_PERF_1])).toMatchObject({ id: CAL_PERF_1, name: 'Reload Calendar perf 1', deleted: true });
+        // Its runs stay
+        expect(page.row(`r:${ROWS.find((r) => r.taskID === CAL_PERF_1).id}`)).toMatchObject({ lane: LANE[CAL_PERF_1] });
+    });
+
+    test('--app-tag is resolved again at every refresh: an app tagged later gets its lane, with its earlier runs', async () => {
+        const stub = createQrsStub(now);
+        stub.apps = [{ id: appOf(CONTENT_MONITOR) }];
+        const app = makeApp(stub, makeConfig({ sources: 'qrs', appTag: 'Monitoring' }));
+        await app.init();
+        const { page, gaps, publish } = makePage(app);
+        expect(page.lanes().map((l) => l.id)).toEqual([CONTENT_MONITOR]);
+
+        // The tag is added to the Operations Monitor app
+        stub.apps = [{ id: appOf(CONTENT_MONITOR) }, { id: appOf(OPS_MONITOR) }];
+        clock = NOW + 10 * MIN;
+        expect(await app.refreshMetadata()).toBe(true);
+        publish({ changed: true, statusChanged: false });
+
+        expect(callsTo(stub, '/qrs/app')).toHaveLength(2);
+        expect(gaps).toEqual([]);
+        expect(page.lanes().map((l) => l.id)).toEqual([CONTENT_MONITOR, OPS_MONITOR]);
+        expect(page.row(OM_KEY)).toMatchObject({ lane: LANE[OPS_MONITOR], status: 7 });
+    });
+
+    test('a lane that turns hidden makes pages load a fresh snapshot, as a delta cannot take a lane off', async () => {
+        const stub = createQrsStub(now);
+        const app = makeApp(stub, makeConfig({ sources: 'qrs', taskTag: 'monitoring' }));
+        await app.init();
+        const { page, gaps, deltas, publish } = makePage(app);
+        expect(page.lanes().map((l) => l.id)).toEqual([CONTENT_MONITOR, OPS_MONITOR]);
+
+        // The tag is taken off Content Monitor
+        stub.tasks = baseTasks().map((t) => (t.id === CONTENT_MONITOR ? { ...t, tags: [] } : t));
+        clock = NOW + 10 * MIN;
+        expect(await app.refreshMetadata()).toBe(true);
+        publish({ changed: true, statusChanged: false });
+
+        // The delta claims to follow a revision no page has, so the page reloads
+        expect(gaps).toHaveLength(1);
+        expect(deltas[0].prevRev).toBeGreaterThan(1);
+        expect(page.lanes().map((l) => l.id)).toEqual([OPS_MONITOR]);
+        expect(page.row(CM_KEY)).toBeUndefined();
+        expect(page.snapshot().rev).toBe(app.store.rev());
+
+        // Later deltas follow on from the fresh snapshot
+        const om = structuredClone(ROWS.find((r) => `r:${r.id}` === OM_KEY));
+        Object.assign(om, {
+            id: '88888888-9999-4aaa-8bbb-dddddddddddd',
+            modifiedDate: iso(NOW + 11 * MIN),
+            startTime: iso(NOW + 10 * MIN),
+            stopTime: iso(NOW + 11 * MIN),
+            details: [],
+        });
+        stub.rows.push(om);
+        clock = NOW + 12 * MIN;
+        await pollChanges(app);
+        publish({ changed: true, statusChanged: false });
+        expect(gaps).toHaveLength(1);
+        expect(page.row(`r:${om.id}`)).toMatchObject({ lane: LANE[OPS_MONITOR] });
+    });
+
+    test("executions evicted while live updates run: pages get the lanes' new coverage, so the evicted time is unknown", async () => {
+        const stub = createQrsStub(now);
+        const app = makeApp(stub, makeConfig({ sources: 'qrs' }), silentLogger, { maxRecords: 8 });
+        await app.init();
+        const { page, gaps, publish } = makePage(app);
+        expect(page.lane(LANE[CONTENT_MONITOR]).coverage).toEqual([[CM_TRIGGERED, NOW]]);
+
+        // Four more runs push the store over its cap of 8
+        for (let i = 0; i < 4; i += 1) {
+            const run = structuredClone(ROWS.find((r) => r.taskID === CAL_PERF_2));
+            const t = NOW + 2000 + i * 1000;
+            Object.assign(run, {
+                id: `99999999-aaaa-4bbb-8ccc-00000000000${i}`,
+                executionID: `99999999-aaaa-4bbb-8ccc-10000000000${i}`,
+                status: 7,
+                startTime: iso(t),
+                stopTime: iso(t + 500),
+                modifiedDate: iso(t + 600),
+                details: [],
+            });
+            stub.rows.push(run);
+        }
+        clock = NOW + 10 * 1000;
+        await pollChanges(app);
+        publish({ changed: true, statusChanged: false });
+
+        const completeFrom = app.coverage.completeFrom();
+        expect(completeFrom).toBeGreaterThan(CM_TRIGGERED);
+        expect(gaps).toEqual([]);
+        for (const lane of app.snapshot().lanes) {
+            expect(page.lane(lane.idx).coverage).toEqual(lane.coverage);
+            expect(lane.coverage.every(([a]) => a >= completeFrom)).toBe(true);
+        }
+    });
+
+    test('the eviction warning never hides a more serious history state, and survives the QRS badge recovering', async () => {
+        const warning = expect.stringMatching(/Too many executions to keep in memory/);
+
+        // An unusable history directory stays an error
+        const blocker = path.join(dir, 'not-a-directory');
+        fs.writeFileSync(blocker, 'x');
+        const a = makeApp(createQrsStub(now), makeConfig({ historyDir: blocker }), silentLogger, { maxRecords: 5 });
+        await a.init();
+        expect(a.statuses()[1]).toMatchObject({ state: 'error', message: expect.stringContaining('cannot use history directory') });
+        expect(a.statuses()[1].message).toEqual(warning);
+
+        // Without the history file, it is a message on the QRS badge, and live updates still count as fine
+        const stub = createQrsStub(now);
+        const b = makeApp(stub, makeConfig({ sources: 'qrs' }), silentLogger, { maxRecords: 5 });
+        await b.init();
+        expect(b.statuses()[0]).toMatchObject({ state: 'ok', message: warning });
+        expect(b.liveStatus().qrs).toMatchObject({ state: 'ok', message: warning });
+
+        // A failed poll and a good one, which resets the QRS state
+        const poller = createQrsPoller({ app: b, intervalMs: 10000, logger: silentLogger, onUpdate: () => {}, now, random: () => 0.5 });
+        stub.failures.set('/qrs/executionresult/full', new Error('ECONNRESET'));
+        clock += 10000;
+        await poller.tickNow();
+        expect(b.statuses()[0]).toMatchObject({
+            state: 'degraded',
+            message: expect.stringMatching(/^Live update failed .*; Too many executions/),
+        });
+        stub.failures.clear();
+        clock += 30000;
+        await poller.tickNow();
+        await poller.stop();
+        expect(b.statuses()[0]).toMatchObject({ state: 'ok', message: warning });
+    });
+
+    test.each([
+        ['ahead of', 30 * 1000],
+        ['behind', -30 * 1000],
+    ])('with the Sense clock 30 s %s this computer, a short run still reaches live pages', async (_name, skewMs) => {
+        const stub = createQrsStub(now);
+        stub.skewMs = skewMs;
+        const config = makeConfig({ sources: 'qrs' });
+        const app = makeApp(stub, config);
+        await app.init();
+        const { page, gaps, publish } = makePage(app);
+        const poller = createQrsPoller({ app, intervalMs: config.pollIntervalMs, logger: silentLogger, onUpdate: publish, now });
+
+        // A 5-second reload, triggered 20 s after the start on the Sense clock. QRS lists it once it has finished.
+        const run = structuredClone(ROWS.find((r) => r.taskID === CAL_PERF_1));
+        const trig = NOW + skewMs + 20 * 1000;
+        Object.assign(run, {
+            id: '99999999-aaaa-4bbb-8ccc-dddddddddddd',
+            executionID: '99999999-aaaa-4bbb-8ccc-eeeeeeeeeeee',
+            status: 7,
+            startTime: iso(trig),
+            stopTime: iso(trig + 5000),
+            modifiedDate: iso(trig + 5100),
+            details: [],
+        });
+        for (let t = NOW + 10 * 1000; t <= NOW + 60 * 1000; t += 10 * 1000) {
+            clock = t;
+            if (!stub.rows.includes(run) && clock + skewMs >= trig + 5100) stub.rows.push(run);
+            await poller.tickNow();
+        }
+        await poller.stop();
+
+        expect(gaps).toEqual([]);
+        expect(page.row(`r:${run.id}`)).toMatchObject({ lane: LANE[CAL_PERF_1], status: 7 });
+    });
+
+    test.each([
+        ['ahead of', 2 * MIN],
+        ['behind', -2 * MIN],
+    ])('coverage, the window and the page clock follow the Sense clock when it is 2 minutes %s this computer', async (_name, skewMs) => {
+        const stub = createQrsStub(now);
+        stub.skewMs = skewMs;
+        const app = makeApp(stub);
+        await app.init();
+        const SENSE_NOW = NOW + skewMs;
+
+        // The page sets its clock from generatedAt and live.now
+        const snap = app.snapshot();
+        expect(snap.generatedAt).toBe(SENSE_NOW);
+        expect(snap.window).toEqual({ from: SENSE_NOW - 30 * DAY, to: SENSE_NOW });
+        expect(snap.live).toMatchObject({ now: SENSE_NOW, from: SENSE_NOW, coveredTo: SENSE_NOW });
+
+        // A successful poll 15 s later by this computer's clock
+        clock = NOW + 15 * 1000;
+        app.markLive(clock);
+        expect(app.coverage.live()).toEqual([SENSE_NOW, SENSE_NOW + 15 * 1000]);
+        expect(app.liveStatus()).toMatchObject({ now: SENSE_NOW + 15 * 1000, from: SENSE_NOW, coveredTo: SENSE_NOW + 15 * 1000 });
+        expect(app.statuses()[0].lastOkAt).toBe(SENSE_NOW + 15 * 1000);
+
+        // The history file records what was watched on the Sense clock too
+        await app.close();
+        expect(ofType(historyLines('2026-10-06'), 'obs').map((l) => [l.from, l.to])).toEqual([[SENSE_NOW, SENSE_NOW + 15 * 1000]]);
     });
 
     test('markLive and breakLiveCoverage extend and split the coverage, and record it in the history', async () => {
@@ -1149,7 +1449,7 @@ describe('live updates', () => {
 
         // An outage: the range up to the last good poll is kept, a new one starts
         clock = NOW + 20 * MIN;
-        app.breakLiveCoverage(NOW + 2 * MIN, clock);
+        app.breakLiveCoverage(clock);
         clock = NOW + 21 * MIN;
         app.markLive(clock);
         expect(app.coverage.globalRanges()).toEqual([
@@ -1161,17 +1461,17 @@ describe('live updates', () => {
             [NOW + 20 * MIN, NOW + 21 * MIN],
         ]);
 
+        // Closed a minute after the last poll: that minute was not watched, and the range up to the poll is written already
         clock = NOW + 22 * MIN;
         await app.close();
         const obs = await waitFor(() => {
             const lines = ofType(historyLines('2026-10-06'), 'obs');
-            return lines.length >= 4 ? lines : null;
+            return lines.length >= 3 ? lines : null;
         });
         expect(obs.map((l) => [l.from, l.to]).sort((a, b) => a[0] - b[0] || a[1] - b[1])).toEqual([
             [NOW, NOW + MIN],
             [NOW, NOW + 2 * MIN],
             [NOW + 20 * MIN, NOW + 21 * MIN],
-            [NOW + 20 * MIN, NOW + 22 * MIN],
         ]);
 
         // The next run knows when Ctrl-Q was watching, gap included
@@ -1181,10 +1481,48 @@ describe('live updates', () => {
         expect(next.coverage.globalRanges()).toEqual(
             mergeIntervals([
                 [NOW, NOW + 2 * MIN],
-                [NOW + 20 * MIN, NOW + 22 * MIN],
+                [NOW + 20 * MIN, NOW + 21 * MIN],
             ])
         );
-        expect(next.statuses()[1].coverage).toEqual({ fromMs: OLDEST_TRIGGERED, toMs: NOW + 22 * MIN });
+        expect(next.statuses()[1].coverage).toEqual({ fromMs: OLDEST_TRIGGERED, toMs: NOW + 21 * MIN });
+    });
+
+    // The poller and the app together, as the command runs them: polls that fail, or stop for good, do not count as
+    // watched time, whenever Ctrl-Q is closed afterwards
+    test.each([
+        ['QRS is unreachable for two hours', Object.assign(new Error('connect ECONNREFUSED'), { code: 'ECONNREFUSED' })],
+        ['live updates stopped (HTTP 401)', Object.assign(new Error('QRS GET failed: HTTP 401'), { status: 401 })],
+    ])('closing Ctrl-Q after %s records the watched time up to the last successful poll only', async (_name, failure) => {
+        const stub = createQrsStub(now);
+        const config = makeConfig();
+        const app = makeApp(stub, config);
+        await app.init();
+        const poller = createQrsPoller({
+            app,
+            intervalMs: config.pollIntervalMs,
+            logger: silentLogger,
+            onUpdate: () => {},
+            now,
+            random: () => 0.5,
+        });
+
+        clock = NOW + MIN;
+        await poller.tickNow();
+        stub.failures.set('/qrs/executionresult/full', failure);
+        clock = NOW + 30 * MIN;
+        await poller.tickNow();
+        clock = NOW + 90 * MIN;
+        await poller.tickNow();
+        await poller.stop();
+        clock = NOW + 120 * MIN;
+        await app.close();
+
+        const obs = ofType(historyLines('2026-10-06'), 'obs');
+        expect(obs.map((l) => [l.from, l.to])).toEqual([[NOW, NOW + MIN]]);
+        clock = NOW + 121 * MIN;
+        const next = makeApp(createQrsStub(now), config);
+        await next.init();
+        expect(next.coverage.globalRanges()).toEqual([[NOW, NOW + MIN]]);
     });
 });
 
@@ -1220,9 +1558,20 @@ describe('executionDetails', () => {
         expect(gone.record.key).toBe(CM_KEY);
         expect(gone.qrs).toBeNull();
 
-        // QRS errors reach the caller
-        stub.failures.set('/qrs/executionresult/full', new Error('QRS GET /qrs/executionresult/full failed: HTTP 500'));
-        await expect(app.executionDetails(OM_KEY)).rejects.toThrow('HTTP 500');
+        // QRS cannot answer: the stored record is still there, and the reason why the details are not
+        const warn = jest.spyOn(silentLogger, 'warn');
+        stub.failures.set(
+            '/qrs/executionresult/full',
+            Object.assign(new Error('QRS GET /qrs/executionresult/full on h:4242 failed: HTTP 500'), { status: 500, reason: 'HTTP 500' })
+        );
+        const failed = await app.executionDetails(OM_KEY);
+        expect(failed).toEqual({
+            record: expect.objectContaining({ key: OM_KEY, taskId: OPS_MONITOR, status: 7 }),
+            task: { id: OPS_MONITOR, name: 'Reload Operations Monitor', appName: 'Operations Monitor', stream: 'Monitoring apps' },
+            qrs: null,
+            qrsError: 'The details of this execution could not be read from QRS: HTTP 500',
+        });
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('HTTP 500'));
     });
 });
 
@@ -1236,15 +1585,139 @@ describe('failures', () => {
         expect(fs.readdirSync(dir)).toEqual([]);
     });
 
-    test('when the QRS snapshot fails, init fails and close() still releases the history lock', async () => {
+    test('when the QRS snapshot fails, init fails and releases the history lock itself', async () => {
         const stub = createQrsStub(now);
         stub.failures.set('/qrs/executionsession/full', new Error('socket hang up'));
         const app = makeApp(stub);
 
         await expect(app.init()).rejects.toThrow('socket hang up');
-        expect(fs.existsSync(path.join(hostDir(), '.lock'))).toBe(true);
+        expect(fs.readdirSync(hostDir())).toEqual([]);
 
+        // close() afterwards does no harm
         await app.close();
         expect(fs.readdirSync(hostDir())).toEqual([]);
+    });
+
+    test('a history file that cannot be read: Ctrl-Q starts on QRS alone, says so, and writes nothing to it', async () => {
+        writeHistory('2026-10-05', [oldCmLine()]);
+        const readFile = fsp.readFile;
+        jest.spyOn(fsp, 'readFile').mockImplementation(async (file, ...rest) => {
+            if (String(file).endsWith('2026-10-05.ndjson')) {
+                throw Object.assign(new Error(`EACCES: permission denied, open '${file}'`), { code: 'EACCES' });
+            }
+            return readFile(file, ...rest);
+        });
+        const app = makeApp(createQrsStub(now));
+
+        await app.init();
+
+        const [qrs, history] = app.statuses();
+        expect(qrs.state).toBe('ok');
+        expect(history).toMatchObject({ state: 'error', hint: 'Check --history-dir.', message: expect.stringContaining('EACCES') });
+        expect(app.snapshot().cols.key).toHaveLength(6);
+        // The lock is released at once, and nothing is written
+        expect(fs.existsSync(path.join(hostDir(), '.lock'))).toBe(false);
+        clock = NOW + 10 * MIN;
+        app.markLive(clock);
+        await app.close();
+        expect(fs.readdirSync(hostDir())).toEqual(['2026-10-05.ndjson']);
+    });
+
+    test('a history file that cannot be written: Ctrl-Q starts, the badge shows it until a write works, and nothing is lost', async () => {
+        const append = jest
+            .spyOn(fsp, 'appendFile')
+            .mockRejectedValue(Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' }));
+        const warn = jest.fn();
+        const app = makeApp(createQrsStub(now), makeConfig(), { ...silentLogger, warn });
+
+        await app.init();
+
+        expect(app.statuses()[1]).toMatchObject({
+            state: 'error',
+            message: 'cannot write to the history file: ENOSPC: no space left on device, write',
+        });
+        const waiting = app.history().pending();
+        expect(waiting).toBeGreaterThan(0);
+
+        // Still failing at the next poll: the lines stay queued, and the warning is not repeated
+        clock = NOW + MIN;
+        app.markLive(clock);
+        await waitFor(() => append.mock.calls.length >= 2);
+        expect(warn.mock.calls.filter(([m]) => m.includes('ENOSPC'))).toHaveLength(1);
+
+        // The disk has room again
+        append.mockRestore();
+        clock = NOW + 2 * MIN;
+        app.markLive(clock);
+        await waitFor(() => app.statuses()[1].state === 'ok');
+        expect(app.statuses()[1].message).toBe('');
+        await app.close();
+        expect(ofType(historyLines('2026-10-06'), 'r')).toHaveLength(6);
+        expect(ofType(historyLines('2026-10-06'), 'task')).toHaveLength(7);
+    });
+
+    test('once the history store stops writing (too many lines waiting), the badge says so for the rest of the session', async () => {
+        const app = makeApp(createQrsStub(now));
+        await app.init();
+        expect(app.statuses()[1].state).toBe('ok');
+
+        jest.spyOn(app.history(), 'mode').mockReturnValue('error');
+        jest.spyOn(app.history(), 'message').mockReturnValue('stopped writing to the history directory until Ctrl-Q is restarted');
+        clock = NOW + MIN;
+        app.markLive(clock);
+
+        await waitFor(() => app.statuses()[1].state === 'error');
+        expect(app.statuses()[1].message).toBe('stopped writing to the history directory until Ctrl-Q is restarted');
+    });
+
+    test('when another instance takes the history lock over, the badge says so and this one writes nothing more', async () => {
+        const app = makeApp(createQrsStub(now));
+        await app.init();
+        const lockFile = path.join(hostDir(), '.lock');
+        fs.writeFileSync(lockFile, JSON.stringify({ pid: 4242, host: 'other-computer', token: 'theirs' }));
+
+        await app.history().heartbeat();
+        clock = NOW + 10 * MIN;
+        app.markLive(clock);
+
+        await waitFor(() => app.statuses()[1].state === 'degraded');
+        expect(app.statuses()[1].message).toMatch(/^another Ctrl-Q instance took over writing this history/);
+        await app.close();
+        expect(ofType(historyLines('2026-10-06'), 'obs')).toEqual([]);
+        expect(JSON.parse(fs.readFileSync(lockFile, 'utf8'))).toMatchObject({ token: 'theirs' });
+    });
+
+    test('Ctrl-C while start-up waits for QRS releases the history lock', async () => {
+        const stub = createQrsStub(now);
+        let fail;
+        const snapshotSent = new Promise((resolve, reject) => {
+            fail = reject;
+        });
+        const request = async (options, req) => {
+            if (req.path === '/qrs/executionresult/full') await snapshotSent;
+            return stub.request(options, req);
+        };
+        const proc = Object.assign(new EventEmitter(), {
+            platform: 'linux',
+            stdout: new EventEmitter(),
+            stderr: new EventEmitter(),
+            exit: jest.fn(),
+        });
+        for (const level of ['info', 'warn']) jest.spyOn(globalLogger, level).mockImplementation(() => {});
+
+        const result = taskGantt(makeConfig(), { request, processRef: proc }).then(
+            () => 'started',
+            (err) => err.message
+        );
+        await waitFor(() => fs.existsSync(path.join(hostDir(), '.lock')));
+
+        proc.emit('SIGINT');
+        await waitFor(() => proc.exit.mock.calls.length > 0);
+        expect(proc.exit).toHaveBeenCalledWith(0);
+        expect(fs.existsSync(path.join(hostDir(), '.lock'))).toBe(false);
+
+        // The process would have ended here. Let the stalled request fail, so nothing else starts.
+        fail(new Error('process exited'));
+        expect(await result).toBe('process exited');
     });
 });

@@ -308,13 +308,16 @@ describe('encodeRecords', () => {
         expect(nodes.names).toEqual([NODE]);
     });
 
-    test('keeps records overlapping the window, including ones touching its edges', () => {
+    test('keeps records that have not ended before the window start, including ones touching its edges or after its end', () => {
         const T = (id) => makeRec({ taskId: CONTENT_MONITOR, resultId: id, ...KEEP[id] });
         const KEEP = {
             'ends-at-from': { triggeredAt: FROM - 10 * MINUTE, startedAt: FROM - 10 * MINUTE, stoppedAt: FROM, status: 7 },
             'begins-at-to': { triggeredAt: TO, startedAt: TO, stoppedAt: TO + MINUTE, status: 7 },
             'running-across': { triggeredAt: FROM - 60 * MINUTE, startedAt: FROM - 60 * MINUTE, stoppedAt: null },
             'start-time-only': { triggeredAt: null, startedAt: FROM + MINUTE, stoppedAt: FROM + 2 * MINUTE, status: 7 },
+            // The window ends at Ctrl-Q's estimate of the Sense clock, which can be a little behind the times QRS gives. A
+            // live delta that left such a record out would lose it for good.
+            'began-after': { triggeredAt: TO + 1, startedAt: TO + 1, stoppedAt: TO + MINUTE, status: 7 },
         };
         const DROP = [
             makeRec({
@@ -324,7 +327,6 @@ describe('encodeRecords', () => {
                 stoppedAt: FROM - 1,
                 status: 7,
             }),
-            makeRec({ resultId: 'began-after', triggeredAt: TO + 1, startedAt: TO + 1, stoppedAt: TO + MINUTE, status: 7 }),
             makeRec({ resultId: 'no-begin', triggeredAt: null, startedAt: null, queuedAt: FROM + MINUTE, stoppedAt: null, status: 3 }),
             makeRec({ resultId: 'hidden-lane', taskId: HIDDEN_A }),
             makeRec({ resultId: 'unknown-task', taskId: UNREGISTERED }),
@@ -332,9 +334,9 @@ describe('encodeRecords', () => {
 
         const { cols } = encode([DROP[0], ...Object.keys(KEEP).map(T), ...DROP.slice(1)]);
 
-        expect(cols.key).toEqual(['r:ends-at-from', 'r:begins-at-to', 'r:running-across', 'r:start-time-only']);
+        expect(cols.key).toEqual(['r:ends-at-from', 'r:begins-at-to', 'r:running-across', 'r:start-time-only', 'r:began-after']);
         for (const values of Object.values(cols)) {
-            expect(values).toHaveLength(4);
+            expect(values).toHaveLength(5);
         }
         // Running executions are sent with a null stop time; the page extends them to "now"
         expect(cols.stoppedAt[2]).toBeNull();
