@@ -1,7 +1,7 @@
 import enigma from 'enigma.js';
 import setupEnigmaConnection from '../../util/qseow/enigma_util.js';
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 /**
  *
@@ -16,7 +16,7 @@ export async function createMasterDimension(options) {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Create master dimension');
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         // Configure Enigma.js
         const configEnigma = await setupEnigmaConnection(options);
