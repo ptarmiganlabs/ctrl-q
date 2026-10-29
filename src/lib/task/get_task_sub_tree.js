@@ -1,5 +1,5 @@
 import { catchLog } from '../util/log.js';
-import { mapRuleState, mapTaskExecutionStatusIcon } from '../util/qseow/lookups.js';
+import { mapRuleState, getTaskExecutionStatusIcon } from '../util/qseow/lookups.js';
 
 /**
  * Function to get a subtree of a task tree from a given task.
@@ -192,7 +192,7 @@ export function extGetTaskSubTree(_, task, parentTreeLevel, parentTask, logger) 
             }
 
             if (_.options?.treeIcons) {
-                subTree.text = `${mapTaskExecutionStatusIcon.get(task.taskLastStatus) ?? '❔'} ${task.taskName}`;
+                subTree.text = `${getTaskExecutionStatusIcon(task.taskLastStatus)} ${task.taskName}`;
             } else {
                 subTree.text = task.taskName;
             }

@@ -11,7 +11,7 @@ import {
     mapIncrementOption,
     mapDaylightSavingTime,
     mapRuleState,
-    mapTaskExecutionStatusIcon,
+    getTaskExecutionStatusIcon,
 } from '../../util/qseow/lookups.js';
 import { getTagsFromQseow } from '../../util/qseow/tag.js';
 import { catchLog } from '../../util/log.js';
@@ -102,7 +102,7 @@ function compareTable(a, b) {
 }
 
 // Exported for unit testing
-export { cleanupTaskTree, compareTree, compareTable };
+export { cleanupTaskTree, compareTree, compareTable, parseTable };
 
 /**
  * CLI command: qseow get-task
@@ -242,7 +242,7 @@ async function parseTable(options, qlikSenseTasks, tags) {
             // Get icon for task status
             let taskStatus = '';
             if (task.taskLastStatus) {
-                taskStatus = `${mapTaskExecutionStatusIcon.get(task.taskLastStatus) ?? '❔'} ${task.taskLastStatus}`;
+                taskStatus = `${getTaskExecutionStatusIcon(task.taskLastStatus)} ${task.taskLastStatus}`;
             }
 
             if (task.completeTaskObject.schemaPath === 'ReloadTask') {

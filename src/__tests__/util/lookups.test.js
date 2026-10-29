@@ -17,6 +17,7 @@ import {
     mapRuleState,
     mapTaskExecutionStatus,
     mapTaskExecutionStatusIcon,
+    getTaskExecutionStatusIcon,
     mapTaskType,
     taskFileColumnHeaders,
     appFileColumnHeaders,
@@ -371,5 +372,21 @@ describe('mapTaskExecutionStatusIcon', () => {
 
     test('should show a task that has never run (status 0) as 💤', () => {
         expect(mapTaskExecutionStatusIcon.get(mapTaskExecutionStatus.get(0))).toBe('💤');
+    });
+});
+
+/**
+ * Tests for getTaskExecutionStatusIcon - the icon for a status, with ❔ for any status that has none
+ */
+describe('getTaskExecutionStatusIcon', () => {
+    test('should return the icon for a status that has one', () => {
+        expect(getTaskExecutionStatusIcon('FinishedSuccess')).toBe('✅');
+        expect(getTaskExecutionStatusIcon('NeverStarted')).toBe('💤');
+    });
+
+    test('should return ❔ for a status without an icon, an unknown status, or none', () => {
+        expect(getTaskExecutionStatusIcon('Started')).toBe('❔');
+        expect(getTaskExecutionStatusIcon('?')).toBe('❔');
+        expect(getTaskExecutionStatusIcon(undefined)).toBe('❔');
     });
 });
