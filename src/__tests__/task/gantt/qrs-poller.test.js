@@ -310,6 +310,35 @@ describe('createQrsPoller', () => {
             expect(app.applyQrsChanges).toHaveBeenCalledTimes(7);
         });
 
+        test('a refresh and a poll that reject with nothing at all are reported, and polling carries on', async () => {
+            // Reading .message, .reason, .hint or .status off undefined would throw inside the error handling
+            const app = makeApp();
+            app.refreshMetadata.mockRejectedValueOnce(undefined);
+            app.qrs.changesSince.mockRejectedValueOnce(undefined);
+            const { poller, logger } = makePoller(app);
+
+            // The poll fails
+            clock = T0 + 10 * MIN;
+            await expect(poller.tickNow()).resolves.toBeUndefined();
+            expect(app.setStatus).toHaveBeenCalledWith(
+                'qrs',
+                expect.objectContaining({ state: 'degraded', message: expect.stringContaining('(undefined)') })
+            );
+            expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Live update failed: undefined'));
+
+            // The next poll goes through, and the metadata refresh it starts fails
+            clock = T0 + 10 * MIN + 30 * SEC;
+            await poller.tickNow();
+            await flush();
+            expect(app.markLive).toHaveBeenCalledWith(T0 + 10 * MIN + 30 * SEC);
+            expect(app.setIssue).toHaveBeenCalledWith(
+                'qrs',
+                'metadata',
+                expect.objectContaining({ message: expect.stringContaining('(undefined)') })
+            );
+            expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Task metadata refresh failed: undefined'));
+        });
+
         test('a slow refresh runs alongside the polls, which carry on at their interval', async () => {
             const app = makeApp();
             const slow = deferred();

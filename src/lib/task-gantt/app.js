@@ -6,6 +6,7 @@ import { createQrsSource } from './sources/qrs-source.js';
 import { buildSnapshot, buildAnalytics, createNodeTable, encodeLanes, encodeRecords, isStale } from './api/snapshot.js';
 import { SOURCE, SOURCE_BIT, HISTORY_READ_MARGIN_MS, MAX_RECORDS } from './defaults.js';
 import { allOrAbort, qrsRequestJson } from '../util/qseow/qrs-json.js';
+import { describeError } from '../util/describe-error.js';
 
 // How often the history file records that Ctrl-Q was watching (an { t: 'obs' } line)
 const OBSERVATION_WRITE_MS = 5 * 60 * 1000;
@@ -252,10 +253,10 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
             const wasFailing = issues.get(SOURCE.HISTORY).has('write');
             setIssue(SOURCE.HISTORY, 'write', {
                 state: 'error',
-                message: `cannot write to the history file: ${err.message}`,
+                message: `cannot write to the history file: ${describeError(err)}`,
                 hint: 'Check --history-dir.',
             });
-            if (!wasFailing) logger.warn(`History file: ${err.message}. The lines are kept and written once the file works again.`);
+            if (!wasFailing) logger.warn(`History file: ${describeError(err)}. The lines are kept and written once the file works again.`);
         }
         // Not after close(), which ends the writing too
         if (writingHistory && history.mode() !== 'readwrite') {
@@ -291,10 +292,10 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         writingHistory = false;
         setStatus(SOURCE.HISTORY, {
             state,
-            message: `cannot read the history file, so it is not updated: ${err.message}`,
+            message: `cannot read the history file, so it is not updated: ${describeError(err)}`,
             hint: 'Check --history-dir.',
         });
-        logger.warn(`History file: cannot read it, so it is not updated: ${err.message}`);
+        logger.warn(`History file: cannot read it, so it is not updated: ${describeError(err)}`);
         await history.close().catch(() => {});
     };
 
@@ -516,7 +517,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         for (const key of persisted.keys()) {
             if (!store.get(key)) persisted.delete(key);
         }
-        await history?.pruneExpired().catch((err) => logger.warn(`History file: ${err.message}`));
+        await history?.pruneExpired().catch((err) => logger.warn(`History file: ${describeError(err)}`));
         return laneChanges > lanesBefore || before !== JSON.stringify(schedulers);
     };
 
@@ -694,8 +695,8 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
             try {
                 qrsDetails = await qrs.executionDetails(rec.resultId);
             } catch (err) {
-                qrsError = `The details of this execution could not be read from QRS: ${err.reason ?? err.message}`;
-                logger.warn(`Execution details: ${err.message}`);
+                qrsError = `The details of this execution could not be read from QRS: ${err?.reason ?? describeError(err)}`;
+                logger.warn(`Execution details: ${describeError(err)}`);
             }
         }
         return {
