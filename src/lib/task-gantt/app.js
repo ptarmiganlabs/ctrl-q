@@ -58,12 +58,20 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     // response's Date header gives a lower bound for the Sense clock minus this computer's clock: the header has whole
     // seconds and was written before the response arrived. The highest bound of the last few minutes is the estimate,
     // so one slow response does not drag it down, and a clock adjusted on either side is picked up.
+    //
+    // The header was also written after the request was sent, which gives an upper bound: the lower one plus the
+    // header's second plus the round trip. When even that is below the estimate, a clock has been stepped (this
+    // computer's forward, or the Sense clock back), and the bounds kept from before the step are void: they would keep
+    // coverage and the page's clock ahead of the polls by the step, for minutes. A slow response cannot pass for a step,
+    // as its round trip widens its bounds by as much as it lowers the lower one.
     const clockSamples = [];
     let clockOffset = 0;
     const qrsRequest = async (options, req) => {
+        const sent = now();
         const res = await request(options, req);
         if (typeof res?.serverDate === 'number') {
             const t = now();
+            if (res.serverDate + 1000 - sent < clockOffset) clockSamples.length = 0;
             clockSamples.push([t, res.serverDate - t]);
             while (t - clockSamples[0][0] > CLOCK_SAMPLE_MS) clockSamples.shift();
             clockOffset = Math.max(...clockSamples.map(([, offset]) => offset));
@@ -472,7 +480,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
      * @returns {Promise<boolean>} True if any lane or capacity changed.
      */
     const refreshMetadata = async () => {
-        // Tasks first seen while the requests are under way wait for the next refresh
+        // Tasks first seen while the requests are under way wait for the next refresh, unless the answer lists them
         const asked = [...unknownTasks];
         const [meta, appIdsFromTags] = await Promise.all([
             qrs.loadMetadata(),
@@ -496,6 +504,9 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         for (const [taskId, rec] of asked) {
             unknownTasks.delete(taskId);
             ensureLanesForRecords([rec]);
+        }
+        for (const taskId of unknownTasks.keys()) {
+            if (lanes.get(taskId)) unknownTasks.delete(taskId);
         }
         persistTasks(meta.tasks);
         // Keep memory bounded when Ctrl-Q runs for a long time
@@ -550,8 +561,9 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     };
 
     /**
-     * State of live updates, sent to the page after every poll. The page treats time after `coveredTo` as unknown, and
-     * reloads its snapshot when `from` changes (coverage was split by an outage) or `rev` is ahead of it (missed deltas).
+     * State of live updates, sent to the page after every poll. The page adds the range from `from` to `coveredTo` to the
+     * coverage of every lane and treats time after it as unknown. It reloads its snapshot when `from` changes (coverage
+     * was split by an outage, or executions evicted from memory reach into it) or `rev` is ahead of it (missed deltas).
      * Times are on the Sense clock; the page sets its own clock from `now`.
      *
      * @returns {object} { rev, now, from, coveredTo, qrs: { state, message, lastOkAt }, staleKeys }.
@@ -564,7 +576,11 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         for (const r of store.running()) {
             if (lanes?.get(r.taskId)?.visible && isStale(r, runningResultIds, t)) staleKeys.push(r.key);
         }
-        return { rev: store.rev(), now: t, from: liveFrom, coveredTo: liveTo, qrs: { state, message, lastOkAt }, staleKeys };
+        // Time before the executions kept in memory is unknown, also within the live range (see checkEviction()). The
+        // history file holds those executions, so its observation lines keep the whole range.
+        const completeFrom = coverage.completeFrom();
+        const from = liveFrom === null || completeFrom === null ? liveFrom : Math.max(liveFrom, completeFrom);
+        return { rev: store.rev(), now: t, from, coveredTo: liveTo, qrs: { state, message, lastOkAt }, staleKeys };
     };
 
     const visibleLaneMap = () => new Map(lanes.visible().map((l) => [l.id, l.idx]));

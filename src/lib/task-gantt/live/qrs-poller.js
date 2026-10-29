@@ -19,7 +19,7 @@ const COVERAGE_BREAK_MS = 15 * 60 * 1000;
  *
  * Task metadata is refreshed every 10 minutes, and sooner when executions of unknown tasks arrive. The refresh runs
  * alongside the polls: on a large site it can take minutes, and a failing one must not hold up the execution updates.
- * It has its own backoff, and shows on the QRS badge while it fails.
+ * It has its own backoff, and its message shows on the QRS badge while it fails.
  *
  * @param {object} param - Parameters.
  * @param {object} param.app - The task-gantt app.
@@ -57,8 +57,8 @@ export function createQrsPoller({ app, intervalMs, logger, onUpdate, now = () =>
             const retryMs = Math.min(METADATA_REFRESH_MS, METADATA_RETRY_MS * 2 ** (metaFailures - 1));
             nextMetaAt = now() + retryMs;
             earliestMetaAt = nextMetaAt;
+            // Only a message, without a state: the page reads the QRS state as the state of live updates, which still work
             app.setIssue('qrs', 'metadata', {
-                state: 'degraded',
                 message: `Task names, tags and capacity could not be refreshed (${err.reason ?? err.message}), retrying in ${Math.round(retryMs / 1000)} s`,
                 hint: err.hint ?? '',
             });

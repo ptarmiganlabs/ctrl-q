@@ -1076,6 +1076,36 @@ describe('live updates', () => {
         expect(page.lane(8)).toBeUndefined();
     });
 
+    test('a task first seen while a refresh waits for QRS is known once that refresh lists it: no early refresh follows', async () => {
+        const stub = createQrsStub(now);
+        let release = null;
+        const request = async (options, req) => {
+            if (req.path === '/qrs/task/full' && release === false) {
+                await new Promise((resolve) => {
+                    release = resolve;
+                });
+            }
+            return stub.request(options, req);
+        };
+        const app = makeApp(stub, makeConfig({ sources: 'qrs' }), silentLogger, { request });
+        await app.init();
+
+        // The 10-minute refresh waits for the tasks. Meanwhile the task is created, and its first run polled.
+        release = false;
+        clock = NOW + 10 * MIN;
+        const refreshed = app.refreshMetadata();
+        await waitFor(() => typeof release === 'function');
+        stub.tasks = [...baseTasks(), newTask()];
+        stub.rows.push(newTaskRow({ status: 7, stoppedAt: NOW + 2 * MIN, modifiedAt: NOW + 2 * MIN + 100 }));
+        await pollChanges(app);
+        expect(app.metadataWanted()).toBe(true);
+        release();
+        await refreshed;
+
+        expect(app.lanes().get(NEW_TASK)).toMatchObject({ name: 'Reload New Sales', deleted: false });
+        expect(app.metadataWanted()).toBe(false);
+    });
+
     // BUG: drainDelta() only sends the node table when it grew during that call. refreshMetadata() registers new
     // scheduler nodes in the shared table first, so the next delta has no `nodes`, and pages that loaded the snapshot
     // earlier cannot resolve the node index of executions on the new node (tooltip, node filter).
@@ -1330,38 +1360,60 @@ describe('live updates', () => {
         expect(page.row(`r:${om.id}`)).toMatchObject({ lane: LANE[OPS_MONITOR] });
     });
 
-    test("executions evicted while live updates run: pages get the lanes' new coverage, so the evicted time is unknown", async () => {
+    test("executions evicted while live updates run: pages get the lanes' new coverage and live range, so the evicted time is unknown", async () => {
         const stub = createQrsStub(now);
         const app = makeApp(stub, makeConfig({ sources: 'qrs' }), silentLogger, { maxRecords: 8 });
         await app.init();
         const { page, gaps, publish } = makePage(app);
         expect(page.lane(LANE[CONTENT_MONITOR]).coverage).toEqual([[CM_TRIGGERED, NOW]]);
+        // Runs of one task, each finished half a second after it started
+        const addRuns = (first, count) => {
+            for (let i = first; i < first + count; i += 1) {
+                const run = structuredClone(ROWS.find((r) => r.taskID === CAL_PERF_2));
+                const t = NOW + 2000 + i * 1000;
+                const n = String(i).padStart(12, '0');
+                Object.assign(run, {
+                    id: `99999999-aaaa-4bbb-8ccc-${n}`,
+                    executionID: `88888888-aaaa-4bbb-8ccc-${n}`,
+                    status: 7,
+                    startTime: iso(t),
+                    stopTime: iso(t + 500),
+                    modifiedDate: iso(t + 600),
+                    details: [],
+                });
+                stub.rows.push(run);
+            }
+        };
 
         // Four more runs push the store over its cap of 8
-        for (let i = 0; i < 4; i += 1) {
-            const run = structuredClone(ROWS.find((r) => r.taskID === CAL_PERF_2));
-            const t = NOW + 2000 + i * 1000;
-            Object.assign(run, {
-                id: `99999999-aaaa-4bbb-8ccc-00000000000${i}`,
-                executionID: `99999999-aaaa-4bbb-8ccc-10000000000${i}`,
-                status: 7,
-                startTime: iso(t),
-                stopTime: iso(t + 500),
-                modifiedDate: iso(t + 600),
-                details: [],
-            });
-            stub.rows.push(run);
-        }
+        addRuns(0, 4);
         clock = NOW + 10 * 1000;
         await pollChanges(app);
         publish({ changed: true, statusChanged: false });
 
-        const completeFrom = app.coverage.completeFrom();
+        let completeFrom = app.coverage.completeFrom();
         expect(completeFrom).toBeGreaterThan(CM_TRIGGERED);
         expect(gaps).toEqual([]);
         for (const lane of app.snapshot().lanes) {
             expect(page.lane(lane.idx).coverage).toEqual(lane.coverage);
             expect(lane.coverage.every(([a]) => a >= completeFrom)).toBe(true);
+        }
+
+        // Eight more: now runs of the live range are evicted too
+        addRuns(4, 8);
+        clock = NOW + 20 * 1000;
+        await pollChanges(app);
+        app.markLive(clock);
+        completeFrom = app.coverage.completeFrom();
+        expect(completeFrom).toBe(NOW + 2000 + 3 * 1000 + 500);
+
+        // The page adds the live range to every lane's coverage, so it starts after the evicted runs too
+        const { live } = app.snapshot();
+        expect(live).toMatchObject({ from: completeFrom, coveredTo: NOW + 20 * 1000 });
+        expect(app.liveStatus().from).toBe(completeFrom);
+        for (const lane of app.snapshot().lanes) {
+            const covered = mergeIntervals([...lane.coverage, [live.from, live.coveredTo]]);
+            expect(covered.filter(([a, b]) => a < completeFrom && b > NOW)).toEqual([]);
         }
     });
 
@@ -1397,6 +1449,28 @@ describe('live updates', () => {
         await poller.tickNow();
         await poller.stop();
         expect(b.statuses()[0]).toMatchObject({ state: 'ok', message: warning });
+    });
+
+    test('a failing metadata refresh is a message on the QRS badge: live updates, which still work, stay ok', async () => {
+        const stub = createQrsStub(now);
+        const config = makeConfig({ sources: 'qrs' });
+        const app = makeApp(stub, config);
+        await app.init();
+        const poller = createQrsPoller({ app, intervalMs: config.pollIntervalMs, logger: silentLogger, onUpdate: () => {}, now });
+        stub.failures.set(
+            '/qrs/task/full',
+            Object.assign(new Error('QRS GET /qrs/task/full on h:4242 failed: HTTP 500'), { status: 500, reason: 'HTTP 500' })
+        );
+
+        clock = NOW + 10 * MIN;
+        await poller.tickNow();
+        clock += 10 * 1000;
+        await poller.tickNow();
+        await poller.stop();
+
+        // The page shows "Sense not reachable" for any other state, and stops extending live coverage
+        expect(app.liveStatus().qrs).toMatchObject({ state: 'ok', message: expect.stringContaining('could not be refreshed (HTTP 500)') });
+        expect(app.statuses()[0]).toMatchObject({ state: 'ok', message: expect.stringContaining('retrying in 60 s') });
     });
 
     test.each([
@@ -1460,6 +1534,61 @@ describe('live updates', () => {
         // The history file records what was watched on the Sense clock too
         await app.close();
         expect(ofType(historyLines('2026-10-06'), 'obs').map((l) => [l.from, l.to])).toEqual([[SENSE_NOW, SENSE_NOW + 15 * 1000]]);
+    });
+
+    test.each([
+        ["this computer's clock is stepped forward", { local: 2 * MIN, sense: 0 }],
+        ['the Sense clock is stepped back', { local: 0, sense: -2 * MIN }],
+    ])('when %s by 2 minutes, coverage and the page clock do not run ahead of the polls', async (_name, step) => {
+        const stub = createQrsStub(now);
+        const app = makeApp(stub);
+        await app.init();
+        const senseNow = () => clock + stub.skewMs;
+        // A poll, as the poller makes it
+        const poll = async () => {
+            const t = now();
+            await pollChanges(app);
+            app.markLive(t);
+        };
+        clock = NOW + 10 * 1000;
+        await poll();
+        const beforeStep = senseNow();
+
+        clock += step.local;
+        stub.skewMs += step.sense - step.local;
+        for (let i = 0; i < 3; i += 1) {
+            clock += 10 * 1000;
+            await poll();
+            // The page's clock is the Sense clock. Coverage reaches the latest poll, and never back: after the Sense clock
+            // was put back it stays at the last poll before, until the Sense clock has passed that again.
+            expect(app.liveStatus()).toMatchObject({ now: senseNow(), coveredTo: Math.max(beforeStep, senseNow()) });
+        }
+
+        await app.close();
+        const obs = ofType(historyLines('2026-10-06'), 'obs');
+        expect(Math.max(...obs.map((l) => l.to))).toBe(Math.max(beforeStep, senseNow()));
+    });
+
+    test('a slow response is no clock step: the estimate of the Sense clock keeps its higher bounds', async () => {
+        const stub = createQrsStub(now);
+        let slowMs = 0;
+        // The answer arrives slowMs after QRS wrote its Date header
+        const request = async (options, req) => {
+            const res = await stub.request(options, req);
+            clock += slowMs;
+            return res;
+        };
+        const app = makeApp(stub, makeConfig({ sources: 'qrs' }), silentLogger, { request });
+        await app.init();
+
+        // A catch-up poll after an outage, which takes QRS 90 s to send
+        slowMs = 90 * 1000;
+        clock = NOW + 10 * 1000;
+        const t = now();
+        await pollChanges(app);
+        app.markLive(t);
+
+        expect(app.liveStatus()).toMatchObject({ now: NOW + 100 * 1000, coveredTo: NOW + 10 * 1000 });
     });
 
     test('markLive and breakLiveCoverage extend and split the coverage, and record it in the history', async () => {
