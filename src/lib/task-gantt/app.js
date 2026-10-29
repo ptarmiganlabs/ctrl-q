@@ -259,7 +259,8 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
             await historyUnreadable(err, 'error');
             return;
         }
-        for (const rec of loaded.records) persisted.set(rec.key, recordSignature(rec));
+        // Everything read, also the records of the days before the window: QRS may hold some of those still
+        for (const [key, sig] of loaded.signatures) persisted.set(key, sig);
         persistedTasks = new Map([...loaded.tasks].map(([id, t]) => [id, taskSignature({ ...t, id })]));
         store.upsertMany(loaded.records, SOURCE.HISTORY);
         ensureLanesForRecords(loaded.records, loaded.tasks);

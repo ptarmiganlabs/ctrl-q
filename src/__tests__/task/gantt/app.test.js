@@ -593,6 +593,30 @@ describe('history file', () => {
         expect(historyLines('2026-09-09')).toHaveLength(2);
     });
 
+    test('a QRS result from the two days read before the window is not appended again on every start', async () => {
+        // --lookback 7d: the window starts 2026-09-29T07:00, and the files from 2026-09-27 on are read
+        const run = structuredClone(ROWS.find((r) => r.taskID === CAL_PERF_3));
+        Object.assign(run, {
+            id: '99999999-aaaa-4bbb-8ccc-eeeeeeeeeeee',
+            executionID: '99999999-aaaa-4bbb-8ccc-ffffffffffff',
+            status: 7,
+            startTime: '2026-09-28T10:00:00.000Z',
+            stopTime: '2026-09-28T10:01:00.000Z',
+            modifiedDate: '2026-09-28T10:01:00.100Z',
+            details: [],
+        });
+        for (let start = 1; start <= 3; start += 1) {
+            clock = NOW + start * 10 * MIN;
+            const stub = createQrsStub(now);
+            stub.rows.push(structuredClone(run));
+            const app = makeApp(stub, makeConfig({ lookback: '7d' }));
+            await app.init();
+            await app.close();
+        }
+
+        expect(ofType(historyLines('2026-09-28'), 'r')).toHaveLength(1);
+    });
+
     // BUG: open() deletes daily files older than --history-retention-days, then persist() writes QRS results older than
     // that to new daily files, so expired files are re-created on every start.
     test('QRS results older than --history-retention-days do not re-create expired daily files', async () => {

@@ -468,6 +468,128 @@ describe('createHistoryStore', () => {
         await next.close();
     });
 
+    // A write that fails part-way, e.g. when the disk fills up: the first appendFile call writes some bytes, then fails
+    const failAppendAfter = (bytes) => {
+        const appendFile = fsp.appendFile;
+        let calls = 0;
+        return jest.spyOn(fsp, 'appendFile').mockImplementation(async (file, data, opts) => {
+            calls += 1;
+            if (calls > 1) return appendFile(file, data, opts);
+            await appendFile(file, String(data).slice(0, bytes), opts);
+            throw Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' });
+        });
+    };
+    const dayFile = () => path.join(dir, 'sense.example.com', '2026-10-06.ndjson');
+
+    test('an append that fails part-way into a new file: the torn header is written again, and no line is lost', async () => {
+        const store = make();
+        await store.open();
+        failAppendAfter(10);
+        store.appendRecords([rec({ resultId: 'first' }), rec({ resultId: 'second' })]);
+        await expect(store.flush()).rejects.toThrow('ENOSPC');
+
+        expect(await store.flush()).toBe(2);
+
+        const header = JSON.stringify({ v: 1, host: 'Sense.Example.com', clusterId: 'cluster-1' });
+        const lines = [rec({ resultId: 'first' }), rec({ resultId: 'second' })].map((r) => JSON.stringify(recordToLine(r)));
+        expect(fs.readFileSync(dayFile(), 'utf8')).toBe(`${header}\n${lines.join('\n')}\n`);
+        const loaded = await store.load(NOW - DAY, NOW);
+        expect(loaded.records.map((r) => r.resultId).sort()).toEqual(['first', 'second']);
+        expect(loaded.skippedLines).toBe(0);
+        await store.close();
+    });
+
+    test('an append that fails part-way into an existing file: the retry starts on a new line, and no line is lost', async () => {
+        const store = make();
+        await store.open();
+        store.appendRecords([rec({ resultId: 'earlier' })]);
+        await store.flush();
+        failAppendAfter(12);
+        store.appendRecords([rec({ resultId: 'first' }), rec({ resultId: 'second' })]);
+        await expect(store.flush()).rejects.toThrow('ENOSPC');
+
+        expect(await store.flush()).toBe(2);
+
+        const loaded = await store.load(NOW - DAY, NOW);
+        expect(loaded.records.map((r) => r.resultId).sort()).toEqual(['earlier', 'first', 'second']);
+        // The torn part of the failed append
+        expect(loaded.skippedLines).toBe(1);
+        await store.close();
+    });
+
+    test('an expired file that cannot be deleted is a warning: the store opens for writing, and the next prune tries again', async () => {
+        const hostDir = path.join(dir, 'sense.example.com');
+        fs.mkdirSync(hostDir, { recursive: true });
+        fs.writeFileSync(path.join(hostDir, '2026-06-01.ndjson'), '');
+        fs.writeFileSync(path.join(hostDir, '2026-10-01.ndjson'), '');
+        const rm = fsp.rm;
+        // As on Windows while a virus scanner or OneDrive has the file open
+        const busy = jest.spyOn(fsp, 'rm').mockImplementation(async (file, opts) => {
+            if (String(file).endsWith('2026-06-01.ndjson')) {
+                throw Object.assign(new Error(`EBUSY: resource busy or locked, unlink '${file}'`), { code: 'EBUSY' });
+            }
+            return rm(file, opts);
+        });
+        const warn = jest.fn();
+        const store = make({ retentionDays: 30, logger: { ...silent, warn } });
+
+        expect(await store.open()).toEqual({ mode: 'readwrite', message: '' });
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('cannot delete expired 2026-06-01.ndjson (EBUSY'));
+
+        // Later the same day: tried again, warned about once
+        expect(await store.pruneExpired()).toBe(0);
+        expect(warn).toHaveBeenCalledTimes(1);
+        busy.mockRestore();
+        expect(await store.pruneExpired()).toBe(1);
+        expect(fs.readdirSync(hostDir).sort()).toEqual(['.lock', '2026-10-01.ndjson']);
+        // Nothing left to retry
+        expect(await store.pruneExpired()).toBe(0);
+        await store.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('coverage is written from the retention cutoff on, so a longer retention later does not count older time as covered', async () => {
+        // A short retention: QRS still holds a run of 5 days ago, which is not written, and Ctrl-Q watched for 10 days
+        const short = make({ retentionDays: 2 });
+        await short.open();
+        short.appendRecords([
+            rec({ resultId: 'old', triggeredAt: NOW - 5 * DAY, startedAt: NOW - 5 * DAY, stoppedAt: NOW - 5 * DAY + 1000 }),
+        ]);
+        short.appendCoverage(new Map([['task-1', NOW - 5 * DAY]]), NOW);
+        short.appendObservation(NOW - 10 * DAY, NOW);
+        await short.close();
+
+        // The retention raised to 90 days
+        const long = make({ retentionDays: 90 });
+        await long.open();
+        const loaded = await long.load(NOW - 30 * DAY, NOW);
+
+        const cutoff = Date.UTC(2026, 9, 4);
+        expect(loaded.records).toEqual([]);
+        expect(loaded.coverage.tasks.get('task-1')).toEqual([[cutoff, NOW]]);
+        expect(loaded.coverage.global).toEqual([[cutoff, NOW]]);
+        await long.close();
+    });
+
+    test('load returns the signatures of every record read, also of the days read before the range', async () => {
+        const store = make();
+        await store.open();
+        store.appendRecords([
+            rec({ resultId: 'in-range' }),
+            rec({ resultId: 'before', triggeredAt: NOW - 3 * DAY, startedAt: NOW - 3 * DAY, stoppedAt: NOW - 3 * DAY + 5000 }),
+        ]);
+        await store.flush();
+
+        const loaded = await store.load(NOW - DAY, NOW);
+
+        expect(loaded.records.map((r) => r.resultId)).toEqual(['in-range']);
+        expect([...loaded.signatures].sort()).toEqual([
+            ['r:before', `7:${NOW - 3 * DAY + 5000}`],
+            ['r:in-range', `7:${NOW - 3500000}`],
+        ]);
+        await store.close();
+    });
+
     test("a same-day file of another cluster is left alone; this cluster's lines go to a file of their own", async () => {
         const hostDir = path.join(dir, 'sense.example.com');
         fs.mkdirSync(hostDir, { recursive: true });

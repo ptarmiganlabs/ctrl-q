@@ -332,27 +332,35 @@ export function createHistoryStore({
     const retentionCutoffDay = () => utcDay(now() - retentionDays * DAY_MS);
     const retentionCutoffMs = () => Date.parse(`${retentionCutoffDay()}T00:00:00.000Z`);
 
-    // Cutoff day of the last expiry run
+    // Cutoff day of the last expiry run that deleted every expired file
     let expiredBefore = null;
+    // Expired files that could not be deleted: warned about once, and tried again at every prune
+    const undeletable = new Set();
 
     const deleteExpired = async () => {
         const cutoff = retentionCutoffDay();
-        expiredBefore = cutoff;
         let deleted = 0;
         for (const name of await fs.readdir(hostDir)) {
             const m = FILE_RE.exec(name);
-            if (m && m[1] < cutoff) {
+            if (!m || m[1] >= cutoff) continue;
+            try {
                 await fs.rm(path.join(hostDir, name), { force: true });
                 fileState.delete(name);
+                undeletable.delete(name);
                 deleted += 1;
+            } catch (err) {
+                // E.g. EBUSY or EPERM on Windows, while a virus scanner, the search indexer or OneDrive has it open
+                if (!undeletable.has(name)) logger.warn(`History file: cannot delete expired ${name} (${err.message}), trying again later`);
+                undeletable.add(name);
             }
         }
+        expiredBefore = undeletable.size ? null : cutoff;
         return deleted;
     };
 
     /**
      * Delete expired daily files again once the retention cutoff has moved on to a new day, for instances that keep
-     * running for days.
+     * running for days, or when a file could not be deleted last time.
      *
      * @returns {Promise<number>} Number of files deleted.
      */
@@ -435,11 +443,20 @@ export function createHistoryStore({
      *
      * @param {number} from - Range start.
      * @param {number} to - Range end.
-     * @returns {Promise<object>} { records, tasks: Map, coverage: { global: [[from, to]], tasks: Map<taskId, [[from, to]]> },
-     *   skippedLines, ignoredFiles }. Coverage ranges are merged and clipped to what the files can actually hold.
+     * @returns {Promise<object>} { records, signatures, tasks: Map, coverage: { global: [[from, to]], tasks: Map<taskId,
+     *   [[from, to]]> }, skippedLines, ignoredFiles }. Records are those overlapping the range; signatures (key ->
+     *   signature, see recordSignature()) cover every record read, also those of the days read before the range.
+     *   Coverage ranges are merged and clipped to what the files can actually hold.
      */
     const load = async (from, to) => {
-        const result = { records: [], tasks: new Map(), coverage: { global: [], tasks: new Map() }, skippedLines: 0, ignoredFiles: 0 };
+        const result = {
+            records: [],
+            signatures: new Map(),
+            tasks: new Map(),
+            coverage: { global: [], tasks: new Map() },
+            skippedLines: 0,
+            ignoredFiles: 0,
+        };
         if (mode === 'error' || mode === 'closed') return result;
 
         const readFrom = from - HISTORY_READ_MARGIN_MS;
@@ -497,6 +514,7 @@ export function createHistoryStore({
         result.records = [...byKey.values()].filter(
             (r) => (r.stoppedAt ?? r.triggeredAt ?? 0) >= from && (r.triggeredAt ?? r.startedAt ?? 0) <= to
         );
+        for (const [key, rec] of byKey) result.signatures.set(key, recordSignature(rec));
         return result;
     };
 
@@ -566,9 +584,14 @@ export function createHistoryStore({
         for (const t of tasks) queue(day, { t: 'task', id: t.id, name: t.name, tt: t.taskType, app: t.appId, appName: t.appName });
     };
 
+    // Coverage lines start at the retention cutoff at the latest. Executions before it are not written (see
+    // appendRecords), so a line claiming that time would, once --history-retention-days is raised, make the time of
+    // those executions look covered and idle.
+    const coveredFrom = (from) => Math.max(from, retentionCutoffMs());
+
     /**
      * Queue the coverage ranges of a QRS snapshot: for each task, all its executions from `from` until `to` are known.
-     * Written as one line, however many tasks there are.
+     * Written as one line, however many tasks there are. Ranges start at the retention cutoff at the latest.
      *
      * @param {Map<string, number>|Array<[string, number]>} fromByTask - Task id -> start of its known range.
      * @param {number} to - End of all ranges, e.g. the snapshot time.
@@ -576,19 +599,19 @@ export function createHistoryStore({
     const appendCoverage = (fromByTask, to) => {
         const tasks = {};
         for (const [taskId, from] of fromByTask) {
-            if (to > from) tasks[taskId] = from;
+            if (to > coveredFrom(from)) tasks[taskId] = coveredFrom(from);
         }
         if (Object.keys(tasks).length) queue(utcDay(to), { t: 'covs', to, tasks });
     };
 
     /**
-     * Queue a range in which Ctrl-Q watched all tasks.
+     * Queue a range in which Ctrl-Q watched all tasks. It starts at the retention cutoff at the latest.
      *
      * @param {number} from - Start.
      * @param {number} to - End.
      */
     const appendObservation = (from, to) => {
-        if (to > from) queue(utcDay(to), { t: 'obs', from, to });
+        if (to > coveredFrom(from)) queue(utcDay(to), { t: 'obs', from: coveredFrom(from), to });
     };
 
     // Decide which file a day's lines go to: the day file, unless that belongs to another cluster. Returns the name and
@@ -605,13 +628,9 @@ export function createHistoryStore({
         } catch (err) {
             if (err.code !== 'ENOENT') throw err;
         }
-        if (content === null || content.length === 0) {
-            fileState.set(name, 'own-ready');
-            return { name, prefix: `${header()}\n` };
-        }
         let first = null;
         try {
-            first = JSON.parse(content.slice(0, content.indexOf('\n') >= 0 ? content.indexOf('\n') : undefined));
+            first = content ? JSON.parse(content.slice(0, content.indexOf('\n') >= 0 ? content.indexOf('\n') : undefined)) : null;
         } catch {
             // No readable header; append anyway
         }
@@ -620,7 +639,14 @@ export function createHistoryStore({
             return prepareFile(day);
         }
         fileState.set(name, 'own-ready');
-        // A crash may have left a torn last line; start ours on a new line so it is not glued onto it
+        if (!content?.includes('\n')) {
+            // A new file, or one without a single complete line: that is this store's own header, torn by an append
+            // that failed part-way (a full disk). Start the file again.
+            if (content) await fs.truncate(file, 0);
+            return { name, prefix: `${header()}\n` };
+        }
+        // A crash, or an append that failed part-way, may have left a torn last line; start ours on a new line so it is
+        // not glued onto it
         return { name, prefix: content.endsWith('\n') ? '' : '\n' };
     };
 
@@ -635,13 +661,18 @@ export function createHistoryStore({
             byDay.get(day).push(line);
         }
         const done = new Set();
+        let appending = null;
         try {
             for (const [day, lines] of byDay) {
                 const { name, prefix } = await prepareFile(day);
+                appending = name;
                 await fs.appendFile(path.join(hostDir, name), `${prefix}${lines.join('\n')}\n`, 'utf8');
+                appending = null;
                 done.add(day);
             }
         } catch (err) {
+            // The append may have written part of its lines: look at the file's tail again before the next one
+            if (appending) fileState.delete(appending);
             // Keep what was not written, in order, for the next flush (unless the store has stopped writing meanwhile)
             if (mode === 'readwrite') pending = [...batch.filter((b) => !done.has(b.day)), ...pending];
             lastWriteError = err.message;
