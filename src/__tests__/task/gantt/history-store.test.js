@@ -49,8 +49,21 @@ const make = (over = {}) =>
         retentionDays: 90,
         logger: silent,
         now: () => NOW,
+        hostname: 'this-computer',
         ...over,
     });
+
+const MIN = 60000;
+const lockFile = (base = dir) => path.join(base, 'sense.example.com', '.lock');
+const readLock = (base = dir) => JSON.parse(fs.readFileSync(lockFile(base), 'utf8'));
+
+// Write a lock as another instance would, last refreshed some time before NOW
+const writeLock = (holder, { refreshedAgo = 0, base = dir } = {}) => {
+    fs.mkdirSync(path.dirname(lockFile(base)), { recursive: true });
+    fs.writeFileSync(lockFile(base), JSON.stringify({ token: 'their-token', since: new Date(NOW - DAY).toISOString(), ...holder }));
+    const t = new Date(NOW - refreshedAgo);
+    fs.utimesSync(lockFile(base), t, t);
+};
 
 describe('helpers', () => {
     test('hostSlug and utcDay', () => {
@@ -115,8 +128,7 @@ describe('createHistoryStore', () => {
     test('a second instance opens read-only and writes nothing', async () => {
         const writer = make();
         await writer.open();
-        const reader = make({ pidAlive: () => true });
-        fs.writeFileSync(path.join(dir, 'sense.example.com', '.lock'), '999999');
+        const reader = make({ pid: 999999, pidAlive: () => true });
 
         expect((await reader.open()).mode).toBe('readonly');
         reader.appendRecords([rec()]);
@@ -125,15 +137,121 @@ describe('createHistoryStore', () => {
         await writer.close();
     });
 
-    test('a stale lock from a dead process is taken over', async () => {
-        fs.mkdirSync(path.join(dir, 'sense.example.com'), { recursive: true });
-        fs.writeFileSync(path.join(dir, 'sense.example.com', '.lock'), '999999');
+    test('a lock left by a process of this computer that no longer runs is taken over at once', async () => {
+        writeLock({ pid: 999999, host: 'this-computer' });
         const store = make({ pidAlive: () => false });
 
         expect((await store.open()).mode).toBe('readwrite');
-        expect(fs.readFileSync(path.join(dir, 'sense.example.com', '.lock'), 'utf8')).toBe(String(process.pid));
+        expect(readLock()).toEqual({
+            pid: process.pid,
+            host: 'this-computer',
+            token: expect.stringMatching(/^[0-9a-f]{16}$/),
+            since: new Date(NOW).toISOString(),
+        });
         await store.close();
-        expect(fs.existsSync(path.join(dir, 'sense.example.com', '.lock'))).toBe(false);
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('the lock is refreshed while the store writes: its modification time is the heartbeat', async () => {
+        let now = NOW;
+        const store = make({ now: () => now });
+        await store.open();
+        expect(fs.statSync(lockFile()).mtimeMs).toBe(NOW);
+
+        now = NOW + MIN;
+        await store.heartbeat();
+        expect(fs.statSync(lockFile()).mtimeMs).toBe(NOW + MIN);
+        await store.close();
+    });
+
+    test('a lock of another computer is respected while it is refreshed, whatever its process id, and taken over once it is not', async () => {
+        // Its process id means nothing here (here it does not even exist): two writers would share --history-dir
+        writeLock({ pid: 4242, host: 'other-computer' }, { refreshedAgo: 4 * MIN });
+        const reader = make({ pidAlive: () => false });
+
+        const opened = await reader.open();
+        expect(opened.mode).toBe('readonly');
+        // Which instance, which file, and when it is safe to delete it
+        expect(opened.message).toBe(
+            `another Ctrl-Q instance is writing this history (process 4242 on other-computer); opened read-only. Delete ${lockFile()} if that instance is no longer running; Ctrl-Q also takes over a lock that has not been refreshed for 5 minutes.`
+        );
+        await reader.close();
+        expect(readLock()).toMatchObject({ pid: 4242, host: 'other-computer' });
+
+        // Not refreshed for more than 5 minutes: that instance is gone
+        writeLock({ pid: 4242, host: 'other-computer' }, { refreshedAgo: 6 * MIN });
+        const next = make({ pidAlive: () => false });
+        expect((await next.open()).mode).toBe('readwrite');
+        expect(readLock()).toMatchObject({ pid: process.pid, host: 'this-computer' });
+        await next.close();
+    });
+
+    test('a lock whose process id now belongs to another process is taken over once it has not been refreshed for 5 minutes', async () => {
+        // Left by a crash; after a restart (or on Windows, soon) another process got the same id
+        writeLock({ pid: 999999, host: 'this-computer' }, { refreshedAgo: 4 * MIN });
+        const early = make({ pidAlive: () => true });
+        expect((await early.open()).mode).toBe('readonly');
+        await early.close();
+
+        writeLock({ pid: 999999, host: 'this-computer' }, { refreshedAgo: 6 * MIN });
+        const later = make({ pidAlive: () => true });
+        expect((await later.open()).mode).toBe('readwrite');
+        await later.close();
+    });
+
+    test("two containers with the same process id and computer name do not take over each other's lock", async () => {
+        // Both run Ctrl-Q as process 1. A process id equal to its own no longer passes for a crashed earlier run.
+        writeLock({ pid: 1, host: 'this-computer' });
+        const second = make({ pid: 1, pidAlive: () => true });
+
+        expect((await second.open()).mode).toBe('readonly');
+        await second.close();
+        expect(readLock()).toMatchObject({ pid: 1, token: 'their-token' });
+    });
+
+    test('close() leaves a lock alone that another instance has taken over meanwhile', async () => {
+        const store = make();
+        await store.open();
+        // Another instance took the lock for stale, e.g. while this computer slept
+        writeLock({ pid: 4242, host: 'other-computer' });
+
+        await store.close();
+
+        expect(readLock()).toMatchObject({ pid: 4242, token: 'their-token' });
+    });
+
+    test('the heartbeat notices that another instance took the lock over, and the store stops writing', async () => {
+        const warn = jest.fn();
+        const store = make({ logger: { ...silent, warn } });
+        await store.open();
+        store.appendRecords([rec()]);
+        writeLock({ pid: 4242, host: 'other-computer' });
+
+        await store.heartbeat();
+
+        expect(store.mode()).toBe('readonly');
+        expect(store.message()).toBe(
+            `another Ctrl-Q instance took over writing this history while this one was not responding (see ${lockFile()}); read-only from now on`
+        );
+        expect(warn).toHaveBeenCalledWith(`History file: ${store.message()}`);
+        store.appendRecords([rec({ resultId: 'res-2' })]);
+        expect(await store.flush()).toBe(0);
+        expect(fs.readdirSync(path.join(dir, 'sense.example.com'))).toEqual(['.lock']);
+        await store.close();
+        expect(readLock()).toMatchObject({ pid: 4242 });
+    });
+
+    test('a lock deleted by hand while the store writes is taken again at the next heartbeat', async () => {
+        const store = make();
+        await store.open();
+        fs.rmSync(lockFile());
+
+        await store.heartbeat();
+
+        expect(store.mode()).toBe('readwrite');
+        expect(readLock()).toMatchObject({ pid: process.pid, host: 'this-computer' });
+        await store.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
     });
 
     test('torn lines are skipped and counted', async () => {
@@ -308,7 +426,7 @@ describe('createHistoryStore', () => {
         await store.close();
 
         const reader = make({ retentionDays: 1, now: () => NOW + 2 * DAY, pidAlive: () => true });
-        fs.writeFileSync(path.join(hostDir, '.lock'), '999999');
+        writeLock({ pid: 999999, host: 'this-computer' }, { refreshedAgo: -2 * DAY });
         await reader.open();
         expect(await reader.pruneExpired()).toBe(0);
         expect(fs.existsSync(path.join(hostDir, '2026-09-07.ndjson'))).toBe(true);
@@ -386,7 +504,7 @@ describe('createHistoryStore', () => {
         for (let i = 0; i < 20; i += 1) {
             const hostDir = path.join(dir, `run-${i}`);
             fs.mkdirSync(path.join(hostDir, 'sense.example.com'), { recursive: true });
-            fs.writeFileSync(path.join(hostDir, 'sense.example.com', '.lock'), '999999');
+            writeLock({ pid: 999999, host: 'this-computer' }, { base: hostDir });
             const alive = (pid) => pid === 1001 || pid === 1002;
             const a = make({ dir: hostDir, pid: 1001, pidAlive: alive });
             const b = make({ dir: hostDir, pid: 1002, pidAlive: alive });
@@ -394,8 +512,7 @@ describe('createHistoryStore', () => {
             const [ma, mb] = (await Promise.all([a.open(), b.open()])).map((r) => r.mode);
             expect([ma, mb].sort()).toEqual(['readonly', 'readwrite']);
             // The lock names the instance that writes
-            const lock = fs.readFileSync(path.join(hostDir, 'sense.example.com', '.lock'), 'utf8');
-            expect(lock).toBe(ma === 'readwrite' ? '1001' : '1002');
+            expect(readLock(hostDir).pid).toBe(ma === 'readwrite' ? 1001 : 1002);
             await a.close();
             await b.close();
         }

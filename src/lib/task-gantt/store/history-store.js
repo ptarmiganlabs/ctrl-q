@@ -1,8 +1,16 @@
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
-import { HISTORY_MAX_PENDING_LINES, HISTORY_READ_MARGIN_MS, SOURCE, SOURCE_BIT } from '../defaults.js';
+import {
+    HISTORY_HEARTBEAT_MS,
+    HISTORY_LOCK_STALE_MS,
+    HISTORY_MAX_PENDING_LINES,
+    HISTORY_READ_MARGIN_MS,
+    SOURCE,
+    SOURCE_BIT,
+} from '../defaults.js';
 import { recordKey } from '../model/execution-record.js';
 import { mergeIntervals } from '../shared/sweep.js';
 
@@ -126,6 +134,12 @@ const isProcessAlive = (pid) => {
  * Coverage is merged when read, so loading stays fast however often Ctrl-Q is started. Only one Ctrl-Q instance
  * writes per host directory; others open the store read-only.
  *
+ * The writer holds the lock file .lock: { pid, host, token, since }, its process, its computer and a random token that
+ * tells its lock from any other, also from one with the same process id in another container. The writer refreshes the
+ * lock's modification time every HISTORY_HEARTBEAT_MS. A lock is stale, and taken over, when it comes from this
+ * computer and its process no longer runs, or when it has not been refreshed for HISTORY_LOCK_STALE_MS, whatever its
+ * process id: a writer on another computer sharing the directory, or a process id reused after a crash.
+ *
  * Lines that cannot be written stay queued for the next flush, up to maxPendingLines. Past that the store
  * stops writing until it is opened again, rather than drop some lines: a coverage line written later would claim the
  * time of executions that were dropped.
@@ -136,9 +150,10 @@ const isProcessAlive = (pid) => {
  * @param {string|null} param.clusterId - Sense service cluster id. Files from another cluster are ignored.
  * @param {number} param.retentionDays - Daily files older than this are deleted when the store is opened.
  * @param {object} param.logger - Winston-style logger.
- * @param {Function} [param.now] - Clock, for tests.
+ * @param {Function} [param.now] - Clock, for tests. Also the clock of the lock's heartbeat.
  * @param {Function} [param.pidAlive] - (pid) => boolean, for tests.
  * @param {number} [param.pid] - Process id written to the lock file, for tests.
+ * @param {string} [param.hostname] - Name of this computer written to the lock file, for tests.
  * @param {number} [param.maxPendingLines] - Most lines kept while writes fail, for tests.
  * @returns {object} The history store.
  */
@@ -151,6 +166,7 @@ export function createHistoryStore({
     now = () => Date.now(),
     pidAlive = isProcessAlive,
     pid: ownPid = process.pid,
+    hostname: ownHost = os.hostname(),
     maxPendingLines = HISTORY_MAX_PENDING_LINES,
 }) {
     const hostDir = path.join(dir, hostSlug(host));
@@ -162,6 +178,10 @@ export function createHistoryStore({
     let flushChain = Promise.resolve(0);
     // The write lock is this store's to release, whatever became of the mode since it was taken
     let ownsLock = false;
+    const token = crypto.randomBytes(8).toString('hex');
+    let heartbeat = null;
+    // A heartbeat under way, which close() waits for
+    let beating = null;
     // An open() under way, which close() waits for: it may be about to take the lock
     let opening = null;
     let lastWriteError = '';
@@ -178,8 +198,11 @@ export function createHistoryStore({
     // fails if the lock already exists. Two instances starting at the same time can therefore not both win.
     const tryCreateLock = async () => {
         const tmp = path.join(hostDir, `.lock-${ownPid}-${crypto.randomBytes(4).toString('hex')}`);
-        await fs.writeFile(tmp, String(ownPid));
+        const t = new Date(now());
+        await fs.writeFile(tmp, JSON.stringify({ pid: ownPid, host: ownHost, token, since: t.toISOString() }));
         try {
+            // The first heartbeat, on the clock of later ones
+            await fs.utimes(tmp, t, t);
             await fs.link(tmp, lockPath);
             return true;
         } catch (err) {
@@ -190,33 +213,119 @@ export function createHistoryStore({
         }
     };
 
-    const readLockPid = async (file) => Number.parseInt(await fs.readFile(file, 'utf8').catch(() => ''), 10);
-    // A lock holder that is running. Our own pid in a lock means a crashed earlier process that had the same pid.
-    const isLiveHolder = (pid) => Number.isInteger(pid) && pid > 0 && pid !== ownPid && pidAlive(pid);
+    // A lock's holder, and when it last refreshed the lock. Null if there is no lock.
+    const readLock = async (file) => {
+        let raw;
+        let stat;
+        try {
+            raw = await fs.readFile(file, 'utf8');
+            stat = await fs.stat(file);
+        } catch (err) {
+            if (err.code === 'ENOENT') return null;
+            throw err;
+        }
+        let holder = null;
+        try {
+            holder = JSON.parse(raw);
+        } catch {
+            // Not a lock written by Ctrl-Q: only its heartbeat tells whether its writer still runs
+        }
+        return { raw, pid: holder?.pid, host: holder?.host, token: holder?.token, heartbeatAt: stat.mtimeMs };
+    };
 
+    const isStale = (lock) =>
+        now() - lock.heartbeatAt > HISTORY_LOCK_STALE_MS ||
+        (lock.host === ownHost && !(Number.isInteger(lock.pid) && lock.pid > 0 && pidAlive(lock.pid)));
+
+    // Take the lock. Returns { taken }, and the lock that is in the way, if any.
     const acquireLock = async () => {
-        if (await tryCreateLock()) return true;
-        const stalePid = await readLockPid(lockPath);
-        if (isLiveHolder(stalePid)) return false;
+        if (await tryCreateLock()) return { taken: true };
+        const held = await readLock(lockPath);
+        if (!held) return { taken: await tryCreateLock() };
+        if (!isStale(held)) return { taken: false, holder: held };
 
-        // Stale lock from a process that is gone. Move it aside under a unique name, so that of several instances
-        // taking it over at the same time only one succeeds; the others then find the new lock.
+        // A stale lock. Move it aside under a unique name, so that of several instances taking it over at the same time
+        // only one succeeds; the others then find the new lock.
         const aside = path.join(hostDir, `.lock-stale-${ownPid}-${crypto.randomBytes(4).toString('hex')}`);
         try {
             await fs.rename(lockPath, aside);
         } catch (err) {
             if (err.code !== 'ENOENT') throw err;
-            return tryCreateLock();
+            return { taken: await tryCreateLock() };
         }
-        const movedPid = await readLockPid(aside);
-        if (movedPid !== stalePid && isLiveHolder(movedPid)) {
+        const moved = await readLock(aside);
+        if (moved && moved.raw !== held.raw && !isStale(moved)) {
             // Another instance took the stale lock over first, and this one moved its new lock aside: put it back
             await fs.link(aside, lockPath).catch(() => {});
             await fs.rm(aside, { force: true });
-            return false;
+            return { taken: false, holder: moved };
         }
         await fs.rm(aside, { force: true });
-        return tryCreateLock();
+        return { taken: await tryCreateLock() };
+    };
+
+    // Delete the lock if it is still this store's: another instance may have taken it over (see beat()). Done once;
+    // later calls wait for the same release.
+    let releasing = null;
+    const releaseLock = () => {
+        releasing ??= (async () => {
+            clearInterval(heartbeat);
+            await beating;
+            if (!ownsLock) return;
+            ownsLock = false;
+            const lock = await readLock(lockPath).catch(() => null);
+            if (lock?.token === token) await fs.rm(lockPath, { force: true });
+        })();
+        return releasing;
+    };
+
+    // Refresh the lock, and notice when another instance has taken it over. That can happen after this process was
+    // paused for longer than HISTORY_LOCK_STALE_MS, e.g. on a sleeping laptop: the other instance took the lock for
+    // stale, and writes from then on.
+    const beat = async () => {
+        const lock = await readLock(lockPath);
+        if (!ownsLock) return;
+        if (lock?.token === token) {
+            const t = new Date(now());
+            await fs.utimes(lockPath, t, t);
+            return;
+        }
+        // Deleted by hand while this instance runs: take it again
+        if (!lock && (await tryCreateLock())) return;
+        ownsLock = false;
+        clearInterval(heartbeat);
+        if (mode === 'readwrite') {
+            mode = 'readonly';
+            pending = [];
+            message = `another Ctrl-Q instance took over writing this history while this one was not responding (see ${lockPath}); read-only from now on`;
+            logger.warn(`History file: ${message}`);
+        }
+    };
+
+    /**
+     * Refresh the lock now, see beat(). The store does this every HISTORY_HEARTBEAT_MS by itself.
+     *
+     * @returns {Promise<void>} Resolves when done.
+     */
+    const heartbeatNow = () => {
+        if (!beating) {
+            beating = beat()
+                .catch((err) => logger.verbose(`History file: could not refresh ${lockPath}: ${err.message}`))
+                .finally(() => {
+                    beating = null;
+                });
+        }
+        return beating;
+    };
+
+    // Why the store opened read-only, and what to do about a lock left behind
+    const readOnlyMessage = (holder) => {
+        const who = holder?.host ? ` (process ${holder.pid} on ${holder.host})` : '';
+        const minutes = Math.round(HISTORY_LOCK_STALE_MS / 60000);
+        return (
+            `another Ctrl-Q instance is writing this history${who}; opened read-only. Delete ${lockPath} if that instance is no ` +
+            `longer running; Ctrl-Q also takes over a lock that has not been refreshed for ${minutes} minutes.`
+        );
     };
 
     // Oldest day kept: files of earlier days are deleted, and records of earlier days are not written
@@ -261,18 +370,22 @@ export function createHistoryStore({
         opening = (async () => {
             try {
                 await fs.mkdir(hostDir, { recursive: true });
-                if (await acquireLock()) {
+                const { taken, holder } = await acquireLock();
+                if (taken) {
                     ownsLock = true;
+                    heartbeat = setInterval(heartbeatNow, HISTORY_HEARTBEAT_MS);
+                    heartbeat.unref?.();
                     mode = 'readwrite';
                     const deleted = await deleteExpired();
                     message = deleted ? `deleted ${deleted} expired daily file(s)` : '';
                 } else {
                     mode = 'readonly';
-                    message = 'another Ctrl-Q instance is writing this history; opened read-only';
+                    message = readOnlyMessage(holder ?? (await readLock(lockPath).catch(() => null)));
                 }
             } catch (err) {
                 mode = 'error';
                 message = `cannot use history directory ${hostDir}: ${err.message}`;
+                await releaseLock().catch(() => {});
             }
             return { mode, message };
         })();
@@ -420,6 +533,8 @@ export function createHistoryStore({
             message = `stopped writing to ${hostDir} until Ctrl-Q is restarted: ${pending.length} lines could not be written${reason}`;
             pending = [];
             logger.warn(`History file: ${message}`);
+            // Another instance may write instead
+            releaseLock().catch(() => {});
             return;
         }
         pending.push({ day, line: JSON.stringify(obj) });
@@ -547,8 +662,8 @@ export function createHistoryStore({
     };
 
     /**
-     * Flush and release the write lock. Also releases a lock that an open() still under way is taking, e.g. when Ctrl-C
-     * arrives during start-up.
+     * Flush and release the write lock, unless another instance has taken it over meanwhile. Also releases a lock that
+     * an open() still under way is taking, e.g. when Ctrl-C arrives during start-up.
      *
      * @returns {Promise<void>}
      */
@@ -557,8 +672,7 @@ export function createHistoryStore({
         try {
             await flush();
         } finally {
-            if (ownsLock) await fs.rm(lockPath, { force: true });
-            ownsLock = false;
+            await releaseLock();
             mode = 'closed';
         }
     };
@@ -574,6 +688,7 @@ export function createHistoryStore({
         pruneExpired,
         flush,
         close,
+        heartbeat: heartbeatNow,
         mode: () => mode,
         message: () => message,
         pending: () => pending.length,

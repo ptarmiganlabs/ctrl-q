@@ -203,8 +203,8 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     };
 
     // Write the queued history lines. A failing write shows on the history badge until a later one succeeds, and its
-    // lines stay queued for it; once the history store stops writing (too many lines waiting) the badge says so for
-    // good. Never rejects: the history file is not essential.
+    // lines stay queued for it. Once the history store stops writing (too many lines waiting, or another instance took
+    // its lock over) the badge says so for good. Never rejects: the history file is not essential.
     const flushHistory = async () => {
         if (!writingHistory) return;
         const wasFailing = issues.get(SOURCE.HISTORY).has('write');
@@ -225,7 +225,8 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         // Not after close(), which ends the writing too
         if (writingHistory && history.mode() !== 'readwrite') {
             writingHistory = false;
-            setIssue(SOURCE.HISTORY, 'write', { state: 'error', message: history.message(), hint: 'Check --history-dir.' });
+            const state = history.mode() === 'readonly' ? 'degraded' : 'error';
+            setIssue(SOURCE.HISTORY, 'write', { state, message: history.message(), hint: 'Check --history-dir.' });
         }
     };
 

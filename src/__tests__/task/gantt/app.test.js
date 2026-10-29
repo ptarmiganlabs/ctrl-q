@@ -495,7 +495,7 @@ describe('history file', () => {
         const app = makeApp(createQrsStub(now));
         await app.init();
 
-        expect(fs.readFileSync(path.join(hostDir(), '.lock'), 'utf8')).toBe(String(process.pid));
+        expect(JSON.parse(fs.readFileSync(path.join(hostDir(), '.lock'), 'utf8'))).toMatchObject({ pid: process.pid, host: os.hostname() });
         await app.close();
         expect(fs.readdirSync(hostDir()).sort()).toEqual(['2026-09-09.ndjson', '2026-09-30.ndjson', '2026-10-06.ndjson']);
 
@@ -686,7 +686,9 @@ describe('history file', () => {
     test('opens read-only while another live Ctrl-Q holds the lock: reads, but writes nothing', async () => {
         writeHistory('2026-10-04', [oldCmLine()]);
         const lockFile = path.join(hostDir(), '.lock');
-        fs.writeFileSync(lockFile, String(process.ppid));
+        // The parent process stands in for the other instance
+        const lock = JSON.stringify({ pid: process.ppid, host: os.hostname(), token: 'other', since: iso(NOW - DAY) });
+        fs.writeFileSync(lockFile, lock);
         const app = makeApp(createQrsStub(now));
 
         await app.init();
@@ -695,7 +697,9 @@ describe('history file', () => {
         expect(app.statuses()[1]).toMatchObject({
             state: 'degraded',
             records: 1,
-            message: 'another Ctrl-Q instance is writing this history; opened read-only',
+            message: expect.stringContaining(
+                `another Ctrl-Q instance is writing this history (process ${process.ppid} on ${os.hostname()}); opened read-only. Delete ${lockFile} if`
+            ),
         });
         const snap = app.snapshot();
         expect(snap.cols.key).toContain(`r:${OLD_CM_RESULT}`);
@@ -707,7 +711,7 @@ describe('history file', () => {
         await app.close();
         expect(fs.readdirSync(hostDir()).sort()).toEqual(['.lock', '2026-10-04.ndjson']);
         expect(historyLines('2026-10-04')).toHaveLength(2);
-        expect(fs.readFileSync(lockFile, 'utf8')).toBe(String(process.ppid));
+        expect(fs.readFileSync(lockFile, 'utf8')).toBe(lock);
     });
 
     test('init copes with history files holding more coverage lines than fit in one function call', async () => {
@@ -1426,6 +1430,23 @@ describe('failures', () => {
 
         await waitFor(() => app.statuses()[1].state === 'error');
         expect(app.statuses()[1].message).toBe('stopped writing to the history directory until Ctrl-Q is restarted');
+    });
+
+    test('when another instance takes the history lock over, the badge says so and this one writes nothing more', async () => {
+        const app = makeApp(createQrsStub(now));
+        await app.init();
+        const lockFile = path.join(hostDir(), '.lock');
+        fs.writeFileSync(lockFile, JSON.stringify({ pid: 4242, host: 'other-computer', token: 'theirs' }));
+
+        await app.history().heartbeat();
+        clock = NOW + 10 * MIN;
+        app.markLive(clock);
+
+        await waitFor(() => app.statuses()[1].state === 'degraded');
+        expect(app.statuses()[1].message).toMatch(/^another Ctrl-Q instance took over writing this history/);
+        await app.close();
+        expect(ofType(historyLines('2026-10-06'), 'obs')).toEqual([]);
+        expect(JSON.parse(fs.readFileSync(lockFile, 'utf8'))).toMatchObject({ token: 'theirs' });
     });
 
     test('Ctrl-C while start-up waits for QRS releases the history lock', async () => {

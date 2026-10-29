@@ -24,8 +24,10 @@ export const MAX_EPISODES = 50;
 export const MAX_CONCURRENCY_BUCKETS = 20000;
 export const MIN_CONCURRENCY_BUCKET_MS = 60 * 1000;
 
-// History file
-export const HISTORY_FLUSH_INTERVAL_MS = 10 * 1000;
+// History file. Its writer refreshes the lock file this often, and another instance takes over a lock that has not been
+// refreshed for HISTORY_LOCK_STALE_MS. Generous, as computers sharing a history directory may disagree about the time.
+export const HISTORY_HEARTBEAT_MS = 10 * 1000;
+export const HISTORY_LOCK_STALE_MS = 5 * 60 * 1000;
 // Lines kept in memory while the history file cannot be written, e.g. on a full disk: a day or two of a busy site
 export const HISTORY_MAX_PENDING_LINES = 50000;
 // Records are stored in the daily file of their trigger day. Files this much older than the window start are read
