@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.5.2](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.5.1...ctrl-q-v4.5.2) (2026-10-29)
+
+
+### Documentation
+
+* correct where ctrl-q-docs is hosted and previewed ([6a074d6](https://github.com/ptarmiganlabs/ctrl-q/commit/6a074d66ec0dcedf70391b5f02be2f86c2441aa4))
+* point agents at the drafting rules in AGENTS.md ([c0cb27f](https://github.com/ptarmiganlabs/ctrl-q/commit/c0cb27f3a58e7ada9873db3e146818a7421a98f2))
+* stage user documentation drafts in to-doc-site/ ([6a20305](https://github.com/ptarmiganlabs/ctrl-q/commit/6a20305518c572a8fbbe9fcec4a1f5789a548410))
+
 ## [4.5.1](https://github.com/ptarmiganlabs/ctrl-q/compare/ctrl-q-v4.5.0...ctrl-q-v4.5.1) (2026-10-24)
 
 
