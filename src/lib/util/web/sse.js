@@ -8,9 +8,15 @@ const DEFAULT_MAX_BUFFERED_BYTES = 8 * 1024 * 1024;
 
 // How long a backlog may stay above the limit. Right after one large event, or several sent together, a client that
 // reads fine is above it too, until its socket has drained; only a backlog that lasts means the client is not reading.
-// A backlog above the limit plus twice the largest event so far is dropped at once: a client that reads has drained
+// A backlog above the limit plus twice the largest recent event is dropped at once: a client that reads has drained
 // everything but the latest events, so the grace period never lets a stalled client hold more memory than that.
 const DEFAULT_SLOW_CLIENT_GRACE_MS = 10000;
+
+// "Recent" events for that hard limit: the largest event of the last minute, not the largest ever, so that one
+// unusually large event does not loosen the limit for the rest of the session
+const DEFAULT_LARGE_EVENT_WINDOW_MS = 60000;
+
+const PING = Buffer.from(': ping\n\n');
 
 /**
  * Create a Server-Sent Events (SSE) hub. It keeps track of connected browsers and pushes events to all of them.
@@ -24,7 +30,8 @@ const DEFAULT_SLOW_CLIENT_GRACE_MS = 10000;
  * @param {number} [param.retryMs] - Reconnect delay suggested to browsers.
  * @param {number} [param.maxBufferedBytes] - Backlog of unsent bytes above which a client counts as falling behind.
  * @param {number} [param.slowClientGraceMs] - A client whose backlog stays above maxBufferedBytes for longer than this
- *   is disconnected, and one whose backlog passes maxBufferedBytes plus twice the largest event at once.
+ *   is disconnected, and one whose backlog passes maxBufferedBytes plus twice the largest recent event at once.
+ * @param {number} [param.largeEventWindowMs] - How far back "recent" reaches for that hard limit.
  * @returns {{handle: Function, broadcast: Function, clientCount: Function, close: Function}} The hub.
  */
 export function createSseHub({
@@ -34,13 +41,21 @@ export function createSseHub({
     retryMs = 5000,
     maxBufferedBytes = DEFAULT_MAX_BUFFERED_BYTES,
     slowClientGraceMs = DEFAULT_SLOW_CLIENT_GRACE_MS,
+    largeEventWindowMs = DEFAULT_LARGE_EVENT_WINDOW_MS,
 } = {}) {
     // Connected clients: response -> { behindSince }, when its backlog went above maxBufferedBytes, or null
     const clients = new Map();
     let pingTimer = null;
     let closed = false;
-    // Size in bytes of the largest event broadcast so far
-    let largestChunk = 0;
+    // The events broadcast within largeEventWindowMs, oldest first: { at, size } in performance.now() ms and bytes
+    const recentEvents = [];
+
+    const largestRecentEvent = (now) => {
+        while (recentEvents.length && now - recentEvents[0].at > largeEventWindowMs) {
+            recentEvents.shift();
+        }
+        return recentEvents.reduce((largest, event) => Math.max(largest, event.size), 0);
+    };
 
     const dropClient = (res) => {
         if (clients.delete(res)) {
@@ -65,7 +80,7 @@ export function createSseHub({
         if (backlog <= maxBufferedBytes) {
             client.behindSince = null;
         } else if (
-            backlog > maxBufferedBytes + 2 * largestChunk ||
+            backlog > maxBufferedBytes + 2 * largestRecentEvent(now) ||
             (client.behindSince !== null && now - client.behindSince > slowClientGraceMs)
         ) {
             logger.warn('SSE: dropping a client that is not keeping up');
@@ -85,7 +100,7 @@ export function createSseHub({
         }
         pingTimer = setInterval(() => {
             for (const res of clients.keys()) {
-                write(res, ': ping\n\n');
+                write(res, PING);
             }
         }, pingIntervalMs);
         pingTimer.unref();
@@ -153,9 +168,10 @@ export function createSseHub({
             return;
         }
         const idLine = id === undefined || id === null ? '' : `id: ${id}\n`;
-        // JSON.stringify never emits raw newlines, so the payload always fits on one 'data:' line
-        const chunk = `${idLine}event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-        largestChunk = Math.max(largestChunk, Buffer.byteLength(chunk));
+        // JSON.stringify never emits raw newlines, so the payload always fits on one 'data:' line. Encoded once: every
+        // client is sent the same bytes, rather than each re-encoding the text.
+        const chunk = Buffer.from(`${idLine}event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+        recentEvents.push({ at: performance.now(), size: chunk.length });
         for (const res of [...clients.keys()]) {
             write(res, chunk);
         }

@@ -1,5 +1,5 @@
 import { logger as defaultLogger } from '../../../globals.js';
-import { describeError } from './describe-error.js';
+import { describeError } from '../describe-error.js';
 
 /**
  * Create a shutdown manager for long-running commands, e.g. those running a web server.
