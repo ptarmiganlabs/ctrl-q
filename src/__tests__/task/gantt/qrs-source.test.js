@@ -738,6 +738,9 @@ describe('qrsRequestJson', () => {
         expect(qrsErrorHint(cert, undefined, 'ECONNREFUSED')).toMatch(/usually 4242/);
         expect(qrsErrorHint(jwt, undefined, 'ECONNRESET')).toMatch(/--qrs-port 443 with --virtual-proxy/);
         expect(qrsErrorHint(cert, undefined, 'ENOTFOUND')).toMatch(/--host/);
+        expect(qrsErrorHint(jwt, undefined, 'SELF_SIGNED_CERT_IN_CHAIN')).toMatch(/certificate of the Sense proxy.*--secure false/);
+        expect(qrsErrorHint(jwt, undefined, 'ERR_TLS_CERT_ALTNAME_INVALID')).toMatch(/NODE_EXTRA_CA_CERTS/);
+        expect(qrsErrorHint(cert, undefined, 'UNABLE_TO_VERIFY_LEAF_SIGNATURE')).toMatch(/--auth-root-cert-file.*--secure false/);
         expect(qrsErrorHint(cert, 500)).toBe('');
         expect(qrsErrorHint(cert, undefined, 'EWHATEVER')).toBe('');
     });
