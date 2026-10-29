@@ -487,6 +487,16 @@ describe('lane filters', () => {
         expect(none.snapshot().lanes).toEqual([]);
     });
 
+    test.each([
+        ['--task-id', { taskId: [CONTENT_MONITOR.toUpperCase()] }],
+        ['--app-id', { appId: [appOf(CONTENT_MONITOR).toUpperCase()] }],
+    ])('%s given in upper case shows its lane', async (_name, over) => {
+        const app = makeApp(createQrsStub(now), makeConfig({ sources: 'qrs', ...over }));
+        await app.init();
+
+        expect(app.snapshot().lanes.map((l) => l.id)).toEqual([CONTENT_MONITOR]);
+    });
+
     // BUG: lanes.js isTaskVisible() only looks at the resolved app ids. When no app carries the tag the set is empty,
     // so no filter is considered active and every task gets a lane, while --task-tag no-such-tag shows none.
     test('--app-tag that matches no app shows no lanes, like --task-tag does', async () => {
@@ -1548,9 +1558,20 @@ describe('executionDetails', () => {
         expect(gone.record.key).toBe(CM_KEY);
         expect(gone.qrs).toBeNull();
 
-        // QRS errors reach the caller
-        stub.failures.set('/qrs/executionresult/full', new Error('QRS GET /qrs/executionresult/full failed: HTTP 500'));
-        await expect(app.executionDetails(OM_KEY)).rejects.toThrow('HTTP 500');
+        // QRS cannot answer: the stored record is still there, and the reason why the details are not
+        const warn = jest.spyOn(silentLogger, 'warn');
+        stub.failures.set(
+            '/qrs/executionresult/full',
+            Object.assign(new Error('QRS GET /qrs/executionresult/full on h:4242 failed: HTTP 500'), { status: 500, reason: 'HTTP 500' })
+        );
+        const failed = await app.executionDetails(OM_KEY);
+        expect(failed).toEqual({
+            record: expect.objectContaining({ key: OM_KEY, taskId: OPS_MONITOR, status: 7 }),
+            task: { id: OPS_MONITOR, name: 'Reload Operations Monitor', appName: 'Operations Monitor', stream: 'Monitoring apps' },
+            qrs: null,
+            qrsError: 'The details of this execution could not be read from QRS: HTTP 500',
+        });
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('HTTP 500'));
     });
 });
 

@@ -619,23 +619,31 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         });
 
     /**
-     * Details for one execution: the stored record, plus the QRS state changes and messages if it came from QRS.
+     * Details for one execution: the stored record, plus the QRS state changes and messages if it came from QRS. If QRS
+     * cannot give those, the record is still returned, with qrs null and the reason in qrsError.
      *
      * @param {string} key - Record key.
-     * @returns {Promise<object|null>} Details, or null if the key is unknown.
+     * @returns {Promise<object|null>} { record, task, qrs, qrsError? }, or null if the key is unknown.
      */
     const executionDetails = async (key) => {
         const rec = store.get(key);
         if (!rec) return null;
         const lane = lanes.get(rec.taskId);
         let qrsDetails = null;
+        let qrsError = null;
         if (rec.resultId && rec.src & SOURCE_BIT[SOURCE.QRS]) {
-            qrsDetails = await qrs.executionDetails(rec.resultId);
+            try {
+                qrsDetails = await qrs.executionDetails(rec.resultId);
+            } catch (err) {
+                qrsError = `The details of this execution could not be read from QRS: ${err.reason ?? err.message}`;
+                logger.warn(`Execution details: ${err.message}`);
+            }
         }
         return {
             record: rec,
             task: lane ? { id: lane.id, name: lane.name, appName: lane.appName, stream: lane.stream } : null,
             qrs: qrsDetails,
+            ...(qrsError ? { qrsError } : {}),
         };
     };
 

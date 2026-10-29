@@ -109,6 +109,13 @@ describe('isTaskVisible', () => {
             expect(isTaskVisible(extProgramTask(), filters)).toBe(false);
         });
 
+        test('task and app ids of a task match the lower case filters whatever their case', () => {
+            const task = reloadTask({ id: reloadTask().id.toUpperCase(), appId: CONTENT_MONITOR_APP.toUpperCase() });
+
+            expect(isTaskVisible(task, { taskIds: [reloadTask().id] })).toBe(true);
+            expect(isTaskVisible(task, { appIds: [CONTENT_MONITOR_APP] })).toBe(true);
+        });
+
         test('task tag filter matches any of the task tags', () => {
             const filters = { taskTags: ['Infra', 'Hourly'] };
 

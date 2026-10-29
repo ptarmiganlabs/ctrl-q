@@ -205,6 +205,8 @@ describe('createQrsSource.loadMetadata', () => {
             expect(opts).toBe(OPTIONS);
             expect(req.method).toBe('get');
             expect(req.query).toBeUndefined();
+            // All tasks of a large site take far longer than the default 60 s
+            expect(req.timeoutMs).toBe(5 * 60 * 1000);
         }
         expect(meta.clusterId).toBe('c0ffee00-0000-4000-8000-000000000001');
         expect(meta.schedulers).toEqual([{ nodeName: 'sense-node1.example.com', type: 1, maxConcurrentEngines: 4 }]);
@@ -288,8 +290,14 @@ describe('createQrsSource.snapshot', () => {
 
         const calls = request.mock.calls.map(([, req]) => req);
         expect(calls).toHaveLength(2);
-        expect(calls).toContainEqual({ method: 'get', path: '/qrs/executionresult/full', query: { filter: 'status ne NeverStarted' } });
-        expect(calls).toContainEqual({ method: 'get', path: '/qrs/executionsession/full', query: undefined });
+        // With a generous timeout: on a large site the start-up snapshot takes far longer than the default 60 s
+        expect(calls).toContainEqual({
+            method: 'get',
+            path: '/qrs/executionresult/full',
+            query: { filter: 'status ne NeverStarted' },
+            timeoutMs: 5 * 60 * 1000,
+        });
+        expect(calls).toContainEqual({ method: 'get', path: '/qrs/executionsession/full', query: undefined, timeoutMs: 5 * 60 * 1000 });
     });
 
     test('normalises the lab fixture: records, task types, running ids, cursor, coverage and server time', async () => {
@@ -533,10 +541,12 @@ describe('createQrsSource.executionDetails', () => {
         const source = createQrsSource({ options: OPTIONS, logger: quietLogger(), request });
 
         expect(await source.executionDetails('570f641f-6e79-455b-bc1a-533a99bbb5a7')).toBeNull();
+        // The page waits for the answer: a short timeout, not the default 60 s
         expect(request).toHaveBeenCalledWith(OPTIONS, {
             method: 'get',
             path: '/qrs/executionresult/full',
             query: { filter: 'id eq 570f641f-6e79-455b-bc1a-533a99bbb5a7' },
+            timeoutMs: 10 * 1000,
         });
 
         const nullData = createQrsSource({ options: OPTIONS, logger: quietLogger(), request: stubRequest(() => null) });
