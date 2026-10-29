@@ -61,7 +61,10 @@ export class QlikSenseTask {
                 this.taskCustomProperties = task.customProperties;
                 this.taskCustomPropertiesFriendly = task.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`);
 
-                if (task?.operational?.lastExecutionResult?.status) {
+                if (
+                    task?.operational?.lastExecutionResult?.status !== undefined &&
+                    task?.operational?.lastExecutionResult?.status !== null
+                ) {
                     this.taskLastStatus = mapTaskExecutionStatus.get(task?.operational?.lastExecutionResult?.status);
                 } else {
                     this.taskLastStatus = '?';
@@ -104,7 +107,10 @@ export class QlikSenseTask {
                 this.taskCustomProperties = task.customProperties;
                 this.taskCustomPropertiesFriendly = task.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`);
 
-                if (task?.operational?.lastExecutionResult?.status) {
+                if (
+                    task?.operational?.lastExecutionResult?.status !== undefined &&
+                    task?.operational?.lastExecutionResult?.status !== null
+                ) {
                     this.taskLastStatus = mapTaskExecutionStatus.get(task?.operational?.lastExecutionResult?.status);
                 } else {
                     this.taskLastStatus = '?';
