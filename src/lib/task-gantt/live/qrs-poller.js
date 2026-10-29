@@ -1,4 +1,5 @@
 import { isTerminalStatus } from '../model/status.js';
+import { describeError } from '../../util/describe-error.js';
 
 const MAX_BACKOFF_MS = 5 * 60 * 1000;
 const METADATA_REFRESH_MS = 10 * 60 * 1000;
@@ -59,10 +60,10 @@ export function createQrsPoller({ app, intervalMs, logger, onUpdate, now = () =>
             earliestMetaAt = nextMetaAt;
             // Only a message, without a state: the page reads the QRS state as the state of live updates, which still work
             app.setIssue('qrs', 'metadata', {
-                message: `Task names, tags and capacity could not be refreshed (${err.reason ?? err.message}), retrying in ${Math.round(retryMs / 1000)} s`,
-                hint: err.hint ?? '',
+                message: `Task names, tags and capacity could not be refreshed (${err?.reason ?? describeError(err)}), retrying in ${Math.round(retryMs / 1000)} s`,
+                hint: err?.hint ?? '',
             });
-            logger.warn(`Task metadata refresh failed: ${err.message}. Retrying in ${Math.round(retryMs / 1000)} s`);
+            logger.warn(`Task metadata refresh failed: ${describeError(err)}. Retrying in ${Math.round(retryMs / 1000)} s`);
             onUpdate({ changed: false, statusChanged: true });
         }
     };
@@ -119,13 +120,13 @@ export function createQrsPoller({ app, intervalMs, logger, onUpdate, now = () =>
             schedule(intervalMs);
         } catch (err) {
             failures += 1;
-            if (err.status === 401 || err.status === 403) {
+            if (err?.status === 401 || err?.status === 403) {
                 app.setStatus('qrs', {
                     state: 'error',
                     message: `Sense refused the request (HTTP ${err.status}). Live updates stopped.`,
                     hint: 'Check the certificate or JWT, then restart Ctrl-Q.',
                 });
-                logger.error(`Live updates stopped: ${err.message}`);
+                logger.error(`Live updates stopped: ${describeError(err)}`);
                 onUpdate({ changed: false, statusChanged: true });
                 stopped = true;
                 return;
@@ -133,10 +134,10 @@ export function createQrsPoller({ app, intervalMs, logger, onUpdate, now = () =>
             const backoff = Math.round(Math.min(MAX_BACKOFF_MS, intervalMs * 2 ** Math.min(failures, 5)) * (0.8 + random() * 0.4));
             app.setStatus('qrs', {
                 state: 'degraded',
-                message: `Live update failed (${err.reason ?? err.message}), retrying in ${Math.round(backoff / 1000)} s`,
-                hint: err.hint ?? '',
+                message: `Live update failed (${err?.reason ?? describeError(err)}), retrying in ${Math.round(backoff / 1000)} s`,
+                hint: err?.hint ?? '',
             });
-            logger.warn(`Live update failed: ${err.message}. Retrying in ${Math.round(backoff / 1000)} s`);
+            logger.warn(`Live update failed: ${describeError(err)}. Retrying in ${Math.round(backoff / 1000)} s`);
             onUpdate({ changed: false, statusChanged: true });
             schedule(backoff);
         }

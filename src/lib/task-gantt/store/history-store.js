@@ -13,6 +13,7 @@ import {
 } from '../defaults.js';
 import { recordKey } from '../model/execution-record.js';
 import { mergeIntervals } from '../shared/sweep.js';
+import { describeError } from '../../util/describe-error.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 // Daily files: 2026-10-06.ndjson, or 2026-10-06.<cluster>.ndjson when a same-day file belongs to another cluster
@@ -358,7 +359,7 @@ export function createHistoryStore({
     const heartbeatNow = () => {
         if (!beating) {
             beating = beat()
-                .catch((err) => logger.verbose(`History file: could not refresh ${lockPath}: ${err.message}`))
+                .catch((err) => logger.verbose(`History file: could not refresh ${lockPath}: ${describeError(err)}`))
                 .finally(() => {
                     beating = null;
                 });
@@ -397,7 +398,8 @@ export function createHistoryStore({
                 deleted += 1;
             } catch (err) {
                 // E.g. EBUSY or EPERM on Windows, while a virus scanner, the search indexer or OneDrive has it open
-                if (!undeletable.has(name)) logger.warn(`History file: cannot delete expired ${name} (${err.message}), trying again later`);
+                if (!undeletable.has(name))
+                    logger.warn(`History file: cannot delete expired ${name} (${describeError(err)}), trying again later`);
                 undeletable.add(name);
             }
         }
@@ -446,7 +448,7 @@ export function createHistoryStore({
                 }
             } catch (err) {
                 mode = 'error';
-                message = `cannot use history directory ${hostDir}: ${err.message}`;
+                message = `cannot use history directory ${hostDir}: ${describeError(err)}`;
                 await releaseLock().catch(() => {});
             }
             return { mode, message };
@@ -739,7 +741,7 @@ export function createHistoryStore({
                 pending = [...batch.filter((b) => !done.has(b.day)), ...pending];
                 backlog ??= 0;
             }
-            lastWriteError = err.message;
+            lastWriteError = describeError(err);
             throw err;
         }
         backlog = null;
