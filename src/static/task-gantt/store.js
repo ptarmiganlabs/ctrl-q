@@ -97,7 +97,7 @@ export const SORTS = ['first', 'wait', 'fails', 'runtime', 'name'];
 export const MAX_SEARCH_LENGTH = 1000;
 
 /**
- * The filter and view settings the page starts with.
+ * The filter and view settings the page starts with. An empty location hash stands for these.
  *
  * @returns {object} { search, tagsInclude, tagsExclude, runStates, taskStates, congestionOnly, onlyWithRuns, node, sort,
  *   episodesShownOnly }, a new object (with new arrays) each time.
@@ -270,6 +270,67 @@ export function filtersActive(f) {
         Boolean(f.congestionOnly) ||
         Boolean(f.node)
     );
+}
+
+// A location hash may hold these characters as they are (RFC 3986), which keeps links with tag:x or a,b readable.
+// Spaces become + as in a query string; & = + # % and the rest are percent-encoded.
+const hashValue = (value) =>
+    encodeURIComponent(value)
+        .replace(/%20/g, '+')
+        .replace(/%(3A|2C|2F|40)/gi, (m) => decodeURIComponent(m));
+
+/**
+ * Encode the filter and view settings for the location hash. They never go in the query string: that may hold the
+ * page's access token, and the server gets it with every request. Settings at their default are left out, so the
+ * default view has no hash at all. Tag names may contain any character, so every value is a parameter of its own
+ * (tag=a&tag=b).
+ *
+ * @param {object} f - Settings, see defaultFilters().
+ * @returns {string} '#...', or '' when every setting is at its default.
+ */
+export function encodeFilterHash(f) {
+    const parts = [];
+    const add = (key, value) => parts.push(`${key}=${hashValue(value)}`);
+    const search = String(f.search ?? '').trim();
+    if (search) add('q', search);
+    for (const tag of new Set(f.tagsInclude)) add('tag', tag);
+    for (const tag of new Set(f.tagsExclude)) add('notag', tag);
+    for (const state of RUN_STATES) if (f.runStates.includes(state)) add('run', state);
+    for (const state of TASK_STATES) if (f.taskStates.includes(state)) add('task', state);
+    if (f.congestionOnly) add('congestion', '1');
+    if (f.onlyWithRuns === false) add('withruns', '0');
+    if (f.node) add('node', f.node);
+    if (f.sort !== 'first' && SORTS.includes(f.sort)) add('sort', f.sort);
+    if (f.episodesShownOnly) add('episodes', 'shown');
+    return parts.length ? `#${parts.join('&')}` : '';
+}
+
+/**
+ * Decode the settings in a location hash, see encodeFilterHash(). Unknown parameters and values, and contradictions
+ * (a tag both included and excluded), are ignored, so a damaged or foreign hash leaves those settings at their defaults.
+ *
+ * @param {string} hash - location.hash, with or without the leading #.
+ * @returns {object} Complete settings, see defaultFilters().
+ */
+export function decodeFilterHash(hash) {
+    const f = defaultFilters();
+    const p = new URLSearchParams(String(hash ?? '').replace(/^#/, ''));
+    const values = (key) => new Set(p.getAll(key).filter(Boolean));
+    f.search = (p.get('q') ?? '').slice(0, MAX_SEARCH_LENGTH).trim();
+    const include = values('tag');
+    const exclude = values('notag');
+    f.tagsInclude = [...include].filter((tag) => !exclude.has(tag));
+    f.tagsExclude = [...exclude].filter((tag) => !include.has(tag));
+    const runs = values('run');
+    f.runStates = RUN_STATES.filter((state) => runs.has(state));
+    const tasks = values('task');
+    f.taskStates = TASK_STATES.filter((state) => tasks.has(state));
+    f.congestionOnly = p.get('congestion') === '1';
+    f.onlyWithRuns = p.get('withruns') !== '0';
+    f.node = p.get('node') ?? '';
+    if (SORTS.includes(p.get('sort'))) f.sort = p.get('sort');
+    f.episodesShownOnly = p.get('episodes') === 'shown';
+    return f;
 }
 
 const tagCollator = new Intl.Collator(undefined, { sensitivity: 'base' });

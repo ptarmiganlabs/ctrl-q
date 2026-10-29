@@ -4,18 +4,21 @@ import {
     createClientStore,
     parseSearch,
     defaultFilters,
+    encodeFilterHash,
+    decodeFilterHash,
     filtersActive,
     lanesInEpisodes,
     episodesWithLanes,
     rowBegin,
     RUN_STATES,
     TASK_STATES,
+    SORTS,
     MAX_SEARCH_LENGTH,
 } from '../../../static/task-gantt/store.js';
 import { FLAG_STALE, PROBLEM_BUCKETS, statusInfo } from '../../../static/task-gantt/format.js';
 
 // The lane filters of the task Gantt page: the search syntax, the tag picker, run and task states, "Only tasks in
-// congestion" and the episode list. All of it is in store.js, which runs in Node as it is.
+// congestion", the episode list and the location hash. All of it is in store.js, which runs in Node as it is.
 
 const COLS = ['key', 'lane', 'status', 'triggeredAt', 'queuedAt', 'startedAt', 'stoppedAt', 'node', 'src', 'flags'];
 const SEC = 1000;
@@ -495,6 +498,141 @@ describe('filtersActive', () => {
         { node: NODES[0] },
     ])('%j is a filter', (over) => {
         expect(filtersActive({ ...defaultFilters(), ...over })).toBe(true);
+    });
+});
+
+describe('location hash', () => {
+    const ALL = {
+        search: 'finance -test tag:nightly "two words"',
+        tagsInclude: ['Nightly', 'Finance dept'],
+        tagsExclude: ['Test'],
+        runStates: ['problems', 'waited'],
+        taskStates: ['last-failed', 'deleted'],
+        congestionOnly: true,
+        onlyWithRuns: false,
+        node: 'sense-node2.example.com',
+        sort: 'wait',
+        episodesShownOnly: true,
+    };
+
+    test('the defaults have no hash, and no hash gives the defaults', () => {
+        expect(encodeFilterHash(defaultFilters())).toBe('');
+        for (const hash of ['', '#', undefined, null]) expect(decodeFilterHash(hash)).toEqual(defaultFilters());
+    });
+
+    test('every setting survives the round trip', () => {
+        expect(decodeFilterHash(encodeFilterHash(ALL))).toEqual(ALL);
+    });
+
+    test.each([
+        ...RUN_STATES.map((s) => ({ runStates: [s] })),
+        ...TASK_STATES.map((s) => ({ taskStates: [s] })),
+        ...SORTS.map((s) => ({ sort: s })),
+        { congestionOnly: true },
+        { onlyWithRuns: false },
+        { episodesShownOnly: true },
+        { node: 'sense-node1.example.com' },
+        { search: 'x' },
+        { tagsInclude: ['a'] },
+        { tagsExclude: ['b'] },
+    ])('%j survives the round trip on its own', (over) => {
+        const f = { ...defaultFilters(), ...over };
+        expect(decodeFilterHash(encodeFilterHash(f))).toEqual(f);
+    });
+
+    test('a typical hash is readable', () => {
+        expect(
+            encodeFilterHash({
+                ...defaultFilters(),
+                search: 'finance -test tag:nightly',
+                tagsInclude: ['Nightly'],
+                runStates: ['problems'],
+            })
+        ).toBe('#q=finance+-test+tag:nightly&tag=Nightly&run=problems');
+        expect(encodeFilterHash(ALL)).toBe(
+            '#q=finance+-test+tag:nightly+%22two+words%22&tag=Nightly&tag=Finance+dept&notag=Test&run=problems&run=waited' +
+                '&task=last-failed&task=deleted&congestion=1&withruns=0&node=sense-node2.example.com&sort=wait&episodes=shown'
+        );
+    });
+
+    test('tag names, search text and node names with any character survive', () => {
+        const odd = ['A,B & C=D', 'x=1&y=2', '100%', 'C++', 'a+b', '#hash', 'ques?tion', 'a/b\\c', '"quoted"', "it's", ' spaced '];
+        const intl = ['Försäljning', 'Ünïcödé', '日本語', '😀 emoji', 'tab\there'];
+        const f = {
+            ...defaultFilters(),
+            search: 'C++ & "50%" #1 a=b ?x %41',
+            tagsInclude: odd,
+            tagsExclude: intl,
+            node: 'node #2 & co',
+        };
+        const hash = encodeFilterHash(f);
+
+        expect(decodeFilterHash(hash)).toEqual(f);
+        // One # only, and nothing that would end the hash or split a value
+        expect(hash.indexOf('#', 1)).toBe(-1);
+        expect(hash).not.toMatch(/\s/);
+    });
+
+    test('states come out in a fixed order, once each', () => {
+        const f = { ...defaultFilters(), runStates: ['waited', 'problems', 'waited'], taskStates: ['deleted', 'last-failed'] };
+
+        expect(encodeFilterHash(f)).toBe('#run=problems&run=waited&task=last-failed&task=deleted');
+        expect(decodeFilterHash('#run=waited&run=problems&run=waited').runStates).toEqual(['problems', 'waited']);
+    });
+
+    test('the search is trimmed, and blank search text is left out', () => {
+        expect(encodeFilterHash({ ...defaultFilters(), search: '  finance  ' })).toBe('#q=finance');
+        expect(encodeFilterHash({ ...defaultFilters(), search: '   ' })).toBe('');
+        expect(decodeFilterHash('#q=++finance++').search).toBe('finance');
+    });
+
+    test('only filter and view settings are encoded', () => {
+        expect(encodeFilterHash({ ...defaultFilters(), utc: true, followLive: false, statusFilter: 'problems' })).toBe('');
+    });
+
+    test('unknown parameters and values are ignored', () => {
+        expect(
+            decodeFilterHash('#foo=bar&run=bogus&run=waited&task=nope&sort=sideways&congestion=yes&withruns=maybe&episodes=all')
+        ).toEqual({ ...defaultFilters(), runStates: ['waited'] });
+        expect(decodeFilterHash('#sort=NAME&congestion=true&withruns=false').sort).toBe('first');
+    });
+
+    test('a contradiction or a repetition is ignored', () => {
+        expect(decodeFilterHash('#tag=A&notag=A&tag=B&tag=B&notag=C&notag=C')).toEqual({
+            ...defaultFilters(),
+            tagsInclude: ['B'],
+            tagsExclude: ['C'],
+        });
+    });
+
+    test('empty values are ignored', () => {
+        expect(decodeFilterHash('#q=&tag=&notag=&run=&task=&node=&sort=')).toEqual(defaultFilters());
+    });
+
+    test('a damaged or foreign hash gives the defaults, and does not throw', () => {
+        expect(decodeFilterHash('#section-2')).toEqual(defaultFilters());
+        expect(decodeFilterHash('#%')).toEqual(defaultFilters());
+        expect(decodeFilterHash('#&&&==&')).toEqual(defaultFilters());
+        // Broken percent-encoding: what can be decoded is used
+        const f = decodeFilterHash('#q=%E0%A4%A&tag=%zz&run=waited');
+        expect(f.runStates).toEqual(['waited']);
+        expect(f.tagsInclude).toEqual(['%zz']);
+        expect(typeof f.search).toBe('string');
+    });
+
+    test('works with or without the leading #', () => {
+        expect(decodeFilterHash('q=finance&tag=Nightly')).toEqual(decodeFilterHash('#q=finance&tag=Nightly'));
+    });
+
+    test(`a search longer than ${MAX_SEARCH_LENGTH} characters is cut`, () => {
+        expect(decodeFilterHash(`#q=${'x'.repeat(5000)}`).search).toHaveLength(MAX_SEARCH_LENGTH);
+    });
+
+    test('defaultFilters() gives new arrays each time', () => {
+        const a = defaultFilters();
+        a.tagsInclude.push('x');
+        a.runStates.push('waited');
+        expect(defaultFilters()).toEqual({ ...a, tagsInclude: [], runStates: [] });
     });
 });
 

@@ -147,6 +147,8 @@ Ticked states in one group combine with OR, the two groups with AND.
 
 Different filters combine with AND. While any of them is active, the line above the chart says how many tasks are shown, e.g. "Showing 37 of 2,140 tasks". On the **Congestion** tab, **Only episodes with shown tasks** lists only the episodes that involve a task in the chart.
 
+The filters, the node and the sort order are kept in the page address, after the `#`. A reload keeps them, and a bookmark or a link sent to a colleague opens the same view. That part of the address is never sent to Ctrl-Q, and the access token stays where it is (see [Security](#security)).
+
 ## Options
 
 ### Time window and sources

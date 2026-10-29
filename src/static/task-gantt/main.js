@@ -1,6 +1,16 @@
 /* global echarts */
 // Ctrl-Q task Gantt page: loads the snapshot from the Ctrl-Q server, draws it with ECharts, and shows details.
-import { createClientStore, laneGaps, rowBegin, rowWait, defaultFilters, filtersActive, episodesWithLanes } from './store.js';
+import {
+    createClientStore,
+    laneGaps,
+    rowBegin,
+    rowWait,
+    defaultFilters,
+    decodeFilterHash,
+    encodeFilterHash,
+    filtersActive,
+    episodesWithLanes,
+} from './store.js';
 import { buildChartOption, createPatterns, lanesThatFit, visibleRange } from './chart.js';
 import {
     el,
@@ -27,7 +37,7 @@ const TAG_STATE_TEXT = { include: 'included', exclude: 'excluded', off: 'not use
 const $ = (id) => document.getElementById(id);
 
 const store = createClientStore();
-// The filter and view settings
+// The filter and view settings. The filters are also kept in the location hash, see saveHash().
 const ui = { ...defaultFilters(), utc: false, followLive: true };
 let config = null;
 let chart = null;
@@ -323,14 +333,19 @@ function updateNodeFilter() {
     const select = $('nodeFilter');
     const nodes = (store.snapshot()?.capacity?.nodes || []).map((n) => n.name);
     for (const n of store.nodes()) if (n && !nodes.includes(n)) nodes.push(n);
-    const current = select.value;
     setChildren(
         select,
         el('option', { value: '', text: 'All nodes' }),
         nodes.map((n) => el('option', { value: n, text: n }))
     );
-    select.value = nodes.includes(current) ? current : '';
-    select.closest('label').classList.toggle('hidden', nodes.length < 2);
+    const offered = nodes.length >= 2;
+    select.closest('label').classList.toggle('hidden', !offered);
+    // A node this site does not have (e.g. from a link), or a filter whose control is hidden, would hide lanes for good
+    if (ui.node && store.snapshot() && !(offered && nodes.includes(ui.node))) {
+        ui.node = '';
+        saveHash();
+    }
+    select.value = ui.node;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -746,8 +761,41 @@ function downloadCsv() {
 // ---------------------------------------------------------------------------------------------------------------
 // Filters
 
-// After a filter changed: draw the lanes it shows from the top
+// Keep the filters in the location hash, so a filtered view survives a reload and can be bookmarked or sent. Never in
+// the query string: that holds the access token, and goes to the server with every request.
+function saveHash() {
+    const hash = encodeFilterHash(ui);
+    if (hash === location.hash) return;
+    history.replaceState(history.state, '', `${location.pathname}${location.search}${hash}`);
+}
+
+// Take the filters from the location hash: when the page loads, and when a link or a hand edit changes the hash
+function applyHash() {
+    clearTimeout(searchTimer);
+    Object.assign(ui, decodeFilterHash(location.hash));
+    syncControls();
+    // Write back what the page understood, without the parts it ignored
+    saveHash();
+}
+
+// Show the settings in the controls
+function syncControls() {
+    $('search').value = ui.search;
+    $('sort').value = ui.sort;
+    $('onlyWithRuns').checked = ui.onlyWithRuns;
+    $('congestionOnly').checked = ui.congestionOnly;
+    $('episodesShownOnly').checked = ui.episodesShownOnly;
+    // Until the snapshot has loaded the node has no option yet; updateNodeFilter() selects it then
+    $('nodeFilter').value = ui.node;
+    for (const box of document.querySelectorAll('input[name="runState"]')) box.checked = ui.runStates.includes(box.value);
+    for (const box of document.querySelectorAll('input[name="taskState"]')) box.checked = ui.taskStates.includes(box.value);
+    updateFilterButtons();
+    if (openPop?.panel === $('tagPopover')) renderTagList();
+}
+
+// After a filter changed: remember it, and draw the lanes it shows from the top
 function filterChanged() {
+    saveHash();
     updateFilterButtons();
     render({ resetY: true });
 }
@@ -935,7 +983,15 @@ function bindFilters() {
     });
     $('episodesShownOnly').addEventListener('change', (e) => {
         ui.episodesShownOnly = e.target.checked;
+        saveHash();
         renderEpisodes();
+    });
+
+    // A link to this page with other filters, or the hash edited by hand: the page does not reload for that
+    window.addEventListener('hashchange', () => {
+        applyHash();
+        updateNodeFilter();
+        render({ resetY: true });
     });
 }
 
@@ -1223,7 +1279,8 @@ async function boot() {
     $('appVersion').textContent = config.appVersion;
     renderLegend();
     initChart();
-    updateFilterButtons();
+    // The filters of a bookmark or a link, before the first snapshot is drawn
+    applyHash();
     bindToolbar();
     await resync();
     render();
