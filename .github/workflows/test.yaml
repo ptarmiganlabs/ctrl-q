@@ -1,25 +1,25 @@
-# Unit tests (npm test) for every push to a branch in this repository.
+# Unit tests (npm test) for every pull request, every push to main, and manual runs.
 #
-# The job runs on the organisation's self-hosted plabs-ci runners (runner group linux-ci), never on a GitHub-hosted
-# runner, matching the other Ptarmigan Labs repositories.
-#
-# Only `push` and manual runs trigger it, deliberately not `pull_request`: Ctrl-Q is a public repository, and code from
-# pull requests opened from forks must never run on the shared self-hosted pool. Pushes come only from people with
-# write access, and a pull request from a branch in this repository gets its checks from the push run.
-#
-# Note: the linux-ci runner group must allow public repositories and include this repository, otherwise the job waits
-# for a runner that never comes.
+# Ctrl-Q is a public repository, so the job runs on a GitHub-hosted runner, never on the organisation's own runners
+# (plabs-house-rules, rules/ci/public-repositories.md). A hosted runner is a fresh virtual machine for every job, so
+# pull requests opened from forks run here too. GitHub gives them a read-only token and no secrets, and the tests need
+# no more than that.
 name: test
 
 on:
+    pull_request:
     push:
+        branches:
+            - main
     workflow_dispatch:
 
 permissions:
     contents: read
 
+# A newer commit on a pull request cancels the run for the older one. Every other event gets a group of its own, so a
+# run on main is never cancelled (plabs-house-rules, rules/ci/workflows.md).
 concurrency:
-    group: test-${{ github.ref }}
+    group: test-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
     cancel-in-progress: true
 
 env:
@@ -27,22 +27,22 @@ env:
 
 jobs:
     unit-tests:
-        runs-on:
-            group: linux-ci
-            labels: [self-hosted, linux, plabs-ci]
-        # The pool is shared with other repositories; a hung job must not hold a runner for GitHub's 6 h default.
+        runs-on: ubuntu-latest
+        # A hung job must not run for GitHub's 6 h default.
         timeout-minutes: 15
         steps:
             - name: Checkout repository
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.0.0, pinned on 2025-11-14
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
               with:
                   # npm ci runs install scripts, so the token must not be left in .git/config. Nothing here pushes.
                   persist-credentials: false
 
             - name: Install Node.js
-              uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.0.0, pinned on 2025-11-14
+              uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
               with:
                   node-version-file: .nvmrc
+                  # The newest release of that line, not whichever one the runner image has cached
+                  check-latest: true
 
             - name: Install dependencies
               run: npm ci --no-audit --no-fund
