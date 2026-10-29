@@ -99,7 +99,9 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     // End of the current live coverage: the time of the latest successful poll
     let liveTo = null;
     let lastObservationWrite = 0;
-    // End of the last observation line written for the current live range
+    // Start and end of the observation lines written for the current live range. They start where the live range does,
+    // unless this instance began to write the history file later on, see resumeHistory().
+    let observedFrom = null;
     let observedTo = null;
     // Set when the oldest executions had to be evicted from memory; data before it is incomplete
     let incompleteBefore = null;
@@ -107,6 +109,9 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     // avoid appending the same lines again on every start.
     const persisted = new Map();
     let persistedTasks = new Map();
+    // The tasks of the latest metadata load, and what the history status says about the lines read
+    let metaTasks = [];
+    let historyNote = '';
 
     // Problems shown on a source's badge on top of its own state, e.g. failing history writes: source id -> Map(topic ->
     // { state, message, hint }). Kept apart from the state, so that a source resetting its state (the poller, once QRS
@@ -115,6 +120,9 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     const issues = new Map();
     // True while this instance writes the history file
     let writingHistory = false;
+    // True once init() has succeeded. Until then the history store taking its lock over only sets tookOverAtStart.
+    let started = false;
+    let tookOverAtStart = false;
     let closed = false;
 
     for (const id of [SOURCE.QRS, SOURCE.HISTORY]) {
@@ -181,7 +189,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     // are written too (a later line with the final state replaces them), so the file never claims to cover a period
     // while missing an execution in it.
     const persist = (records) => {
-        if (history?.mode() !== 'readwrite') return;
+        if (!writingHistory || history.mode() !== 'readwrite') return;
         const fresh = [];
         for (const r of records) {
             const stored = store.get(r.key) ?? r;
@@ -211,15 +219,16 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     };
 
     const persistTasks = (tasks) => {
-        if (history?.mode() !== 'readwrite') return;
+        if (!writingHistory || history.mode() !== 'readwrite') return;
         const fresh = tasks.filter((t) => persistedTasks.get(t.id) !== taskSignature(t));
         for (const t of fresh) persistedTasks.set(t.id, taskSignature(t));
         history.appendTasks(fresh);
     };
 
     // Write the queued history lines. A failing write shows on the history badge until a later one succeeds, and its
-    // lines stay queued for it. Once the history store stops writing (too many lines waiting, or another instance took
-    // its lock over) the badge says so for good. Never rejects: the history file is not essential.
+    // lines stay queued for it. Once the history store stops writing the badge says so: for good when too many lines
+    // were waiting, and until it takes the lock back (resumeHistory()) when another instance took it over. Never
+    // rejects: the history file is not essential.
     const flushHistory = async () => {
         if (!writingHistory) return;
         try {
@@ -245,6 +254,26 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
             const state = history.mode() === 'readonly' ? 'degraded' : 'error';
             setIssue(SOURCE.HISTORY, 'write', { state, message: history.message(), hint: 'Check --history-dir.' });
         }
+    };
+
+    // The history store took the lock over: the instance that wrote the file has stopped. That may be one that had
+    // taken it from this one, also before flushHistory() noticed. Write from now on, and what this instance has seen
+    // that the file may lack. Observation lines claim only the time from the latest poll on, because the file need not
+    // hold every execution of the time before, e.g. the lines dropped when the store lost the lock. For the same reason
+    // running executions are written again: the new range includes them.
+    const resumeHistory = () => {
+        if (closed || history.mode() !== 'readwrite') return;
+        writingHistory = true;
+        setIssue(SOURCE.HISTORY, 'write', null);
+        setStatus(SOURCE.HISTORY, { state: 'ok', message: [history.message(), historyNote].filter(Boolean).join('; '), hint: '' });
+        persistTasks(metaTasks);
+        for (const rec of store.running()) persisted.delete(rec.key);
+        persist(store.all());
+        if (liveFrom !== null) {
+            observedFrom = liveTo;
+            observedTo = null;
+        }
+        flushHistory();
     };
 
     // The history file cannot be read. Without knowing what it holds nothing is written to it either, so the store is
@@ -292,11 +321,10 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
                 covTo = Math.max(covTo, b);
             }
         }
+        historyNote = loaded.skippedLines ? `${loaded.skippedLines} unreadable line(s) skipped` : '';
         setStatus(SOURCE.HISTORY, {
             state: opened.mode === 'readonly' ? 'degraded' : 'ok',
-            message: [opened.message, loaded.skippedLines ? `${loaded.skippedLines} unreadable line(s) skipped` : '']
-                .filter(Boolean)
-                .join('; '),
+            message: [opened.message, historyNote].filter(Boolean).join('; '),
             records: loaded.records.length,
             lastOkAt: serverNow(),
             coverage: covTo > covFrom ? { fromMs: covFrom, toMs: covTo } : null,
@@ -340,6 +368,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         // 1. QRS metadata. Without it there is nothing to show.
         setStatus(SOURCE.QRS, { state: 'loading' });
         const meta = await qrs.loadMetadata();
+        metaTasks = meta.tasks;
         schedulers = meta.schedulers;
         clusterId = meta.clusterId;
         if (!clusterId) {
@@ -364,6 +393,10 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
                 retentionDays: config.historyRetentionDays,
                 logger,
                 now,
+                onWritable: () => {
+                    if (started) resumeHistory();
+                    else tookOverAtStart = true;
+                },
             });
         }
         try {
@@ -389,7 +422,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
             });
             app.cursor = snap.maxModified ?? snap.serverTime;
 
-            if (history?.mode() === 'readwrite') await persistSnapshot(snap, meta, from);
+            if (writingHistory) await persistSnapshot(snap, meta, from);
             checkEviction();
 
             // Everything so far is in the first snapshot; live deltas start from here
@@ -401,7 +434,11 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
             if (config.pollIntervalMs > 0) {
                 liveFrom = snap.serverTime;
                 liveTo = snap.serverTime;
+                observedFrom = liveFrom;
             }
+            started = true;
+            // The store took the lock over while start-up waited for QRS
+            if (tookOverAtStart) resumeHistory();
         } catch (err) {
             // The command does not start: let the next one write the history
             await history?.close().catch(() => {});
@@ -441,6 +478,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
             qrs.loadMetadata(),
             appIdsWithTags(config.qseow, config.filters.appTags, qrsRequest),
         ]);
+        metaTasks = meta.tasks;
         const lanesBefore = laneChanges;
         const before = JSON.stringify(schedulers);
         schedulers = meta.schedulers;
@@ -472,8 +510,8 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
     // Write the current live range to the history file, if it grew since the last line. It ends at the latest successful
     // poll: what happened after that was not seen, e.g. during an outage or after live updates stopped.
     const writeObservation = () => {
-        if (liveFrom === null || liveTo <= (observedTo ?? liveFrom)) return;
-        history?.appendObservation(liveFrom, liveTo);
+        if (!writingHistory || observedFrom === null || liveTo <= (observedTo ?? observedFrom)) return;
+        history.appendObservation(observedFrom, liveTo);
         observedTo = liveTo;
     };
 
@@ -507,6 +545,7 @@ export function createGanttApp({ config, logger, now = () => Date.now(), request
         coverage.setLive(null);
         liveFrom = Math.max(liveTo, toServerTime(t));
         liveTo = liveFrom;
+        observedFrom = liveFrom;
         observedTo = null;
     };
 

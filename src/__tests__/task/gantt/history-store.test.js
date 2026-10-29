@@ -199,14 +199,113 @@ describe('createHistoryStore', () => {
         await later.close();
     });
 
-    test("two containers with the same process id and computer name do not take over each other's lock", async () => {
-        // Both run Ctrl-Q as process 1. A process id equal to its own no longer passes for a crashed earlier run.
-        writeLock({ pid: 1, host: 'this-computer' });
-        const second = make({ pid: 1, pidAlive: () => true });
+    test("a lock with this computer's name and this process id is left by a crashed earlier run, and taken over at once", async () => {
+        // A container restarted after a crash: the same host name, Ctrl-Q process 1 again, and the crashed run's lock,
+        // refreshed shortly before the crash. One process holds at most one lock, so that one is not alive.
+        writeLock({ pid: 1, host: 'this-computer' }, { refreshedAgo: 20 * 1000 });
+        const restarted = make({ pid: 1, pidAlive: () => true });
 
-        expect((await second.open()).mode).toBe('readonly');
+        expect((await restarted.open()).mode).toBe('readwrite');
+        expect(readLock()).toMatchObject({ pid: 1, host: 'this-computer' });
+        expect(readLock().token).not.toBe('their-token');
+        await restarted.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('a lock lost to an instance with the same computer name and process id is not taken back while that one runs', async () => {
+        // Two containers with the same host name and process id share the directory. The later start takes the lock, as
+        // it would from a crashed earlier run ...
+        const first = make({ pid: 1, pidAlive: () => true });
+        await first.open();
+        const second = make({ pid: 1, pidAlive: () => true });
+        expect((await second.open()).mode).toBe('readwrite');
+
+        // ... and the first gives way at its next heartbeat. It does not take the lock back while the second refreshes
+        // it: the two would take turns writing.
+        await first.heartbeat();
+        expect(first.mode()).toBe('readonly');
+        await second.heartbeat();
+        await first.heartbeat();
+        expect(first.mode()).toBe('readonly');
+        expect(second.mode()).toBe('readwrite');
+        await first.close();
         await second.close();
-        expect(readLock()).toMatchObject({ pid: 1, token: 'their-token' });
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('a store opened read-only tries again on its heartbeat: once the lock is stale it takes it over, and says so', async () => {
+        let now = NOW;
+        writeLock({ pid: 4242, host: 'other-computer' });
+        const info = jest.fn();
+        const onWritable = jest.fn();
+        const intervals = jest.spyOn(globalThis, 'setInterval');
+        const store = make({ now: () => now, logger: { ...silent, info }, onWritable });
+        expect((await store.open()).mode).toBe('readonly');
+        const [beat, every] = intervals.mock.calls.at(-1) ?? [];
+        expect(every).toBe(10 * 1000);
+
+        // Not refreshed for 4 minutes: the other instance may still run. Its lock is only read.
+        const writeFile = jest.spyOn(fsp, 'writeFile');
+        now = NOW + 4 * MIN;
+        await beat();
+        expect(store.mode()).toBe('readonly');
+        expect(writeFile).not.toHaveBeenCalled();
+
+        now = NOW + 6 * MIN;
+        await beat();
+
+        expect(store.mode()).toBe('readwrite');
+        expect(store.message()).toBe(
+            'the Ctrl-Q instance that was writing this history (process 4242 on other-computer) has stopped; this one writes it from now on'
+        );
+        expect(info).toHaveBeenCalledWith(`History file: ${store.message()}`);
+        expect(onWritable).toHaveBeenCalledTimes(1);
+        expect(readLock()).toMatchObject({ pid: process.pid, host: 'this-computer' });
+        store.appendRecords([rec()]);
+        expect(await store.flush()).toBe(1);
+        await store.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('a store whose lock was taken over takes it back once the instance that took it has stopped', async () => {
+        let now = NOW;
+        const store = make({ now: () => now });
+        await store.open();
+        store.appendRecords([rec({ resultId: 'first' })]);
+        await store.flush();
+        writeLock({ pid: 4242, host: 'other-computer' });
+        await store.heartbeat();
+        expect(store.mode()).toBe('readonly');
+        // That instance appended to the file and left its last line torn when it stopped
+        fs.appendFileSync(dayFile(), '{"t":"r","task":"x","s":7,"tr":17');
+
+        now = NOW + 6 * MIN;
+        await store.heartbeat();
+
+        expect(store.mode()).toBe('readwrite');
+        store.appendRecords([rec({ resultId: 'second' })]);
+        expect(await store.flush()).toBe(1);
+        // Looked at the file's tail again, so the line was not glued onto the torn one
+        const loaded = await store.load(NOW - DAY, NOW);
+        expect(loaded.records.map((r) => r.resultId).sort()).toEqual(['first', 'second']);
+        expect(loaded.skippedLines).toBe(1);
+        await store.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
+    });
+
+    test('a store opened again after close() releases its new lock at the next close()', async () => {
+        const store = make();
+        expect((await store.open()).mode).toBe('readwrite');
+        await store.close();
+        expect(fs.existsSync(lockFile())).toBe(false);
+
+        expect((await store.open()).mode).toBe('readwrite');
+        await store.close();
+
+        expect(fs.existsSync(lockFile())).toBe(false);
+        const other = make({ pid: 999999, pidAlive: () => true, hostname: 'other-computer' });
+        expect((await other.open()).mode).toBe('readwrite');
+        await other.close();
     });
 
     test('close() leaves a lock alone that another instance has taken over meanwhile', async () => {

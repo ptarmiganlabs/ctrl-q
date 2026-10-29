@@ -1717,6 +1717,111 @@ describe('failures', () => {
         expect(JSON.parse(fs.readFileSync(lockFile, 'utf8'))).toMatchObject({ token: 'theirs' });
     });
 
+    // The lock of another instance on another computer, last refreshed at NOW unless said otherwise
+    const writeOtherLock = (refreshedAt = NOW) => {
+        const lockFile = path.join(hostDir(), '.lock');
+        fs.mkdirSync(hostDir(), { recursive: true });
+        fs.writeFileSync(lockFile, JSON.stringify({ pid: 4242, host: 'other-computer', token: 'theirs', since: iso(NOW - DAY) }));
+        fs.utimesSync(lockFile, new Date(refreshedAt), new Date(refreshedAt));
+    };
+    const takenOver = /^the Ctrl-Q instance that was writing this history \(process 4242 on other-computer\) has stopped/;
+
+    test('opened read-only, it writes once the other instance has stopped: what it has seen, and the time watched since', async () => {
+        writeOtherLock();
+        const stub = createQrsStub(now);
+        const app = makeApp(stub);
+        await app.init();
+        expect(app.statuses()[1]).toMatchObject({ state: 'degraded', message: expect.stringContaining('opened read-only') });
+
+        // A run starts while the other instance writes the file
+        stub.rows.push(newTaskRow({ status: 2, modifiedAt: NOW + MIN + 600 }));
+        clock = NOW + 2 * MIN;
+        const { records, cursor } = await app.qrs.changesSince(app.cursor);
+        app.cursor = cursor;
+        app.applyQrsChanges(records);
+        app.markLive(clock);
+
+        // The other instance stopped at NOW: 5 minutes later its lock is stale
+        clock = NOW + 6 * MIN;
+        app.markLive(clock);
+        await app.history().heartbeat();
+
+        expect(app.history().mode()).toBe('readwrite');
+        expect(app.statuses()[1]).toMatchObject({ state: 'ok', message: expect.stringMatching(takenOver) });
+        clock = NOW + 8 * MIN;
+        app.markLive(clock);
+        await app.close();
+        const today = historyLines('2026-10-06');
+        // The executions it has seen since start-up, the running one included, and the task names
+        expect(ofType(today, 'r').map((l) => `r:${l.r}`)).toEqual(expect.arrayContaining([CM_KEY, OM_KEY, NEW_KEY]));
+        expect(ofType(today, 'r')).toHaveLength(7);
+        expect(ofType(today, 'task')).toHaveLength(7);
+        // Watched time only from the takeover on: lines the other instance had not written yet may be missing before it
+        expect(ofType(today, 'obs').map((l) => [l.from, l.to])).toEqual([[NOW + 6 * MIN, NOW + 8 * MIN]]);
+    });
+
+    test('opened read-only, it writes when the other instance stops while start-up waits for QRS', async () => {
+        writeOtherLock();
+        const stub = createQrsStub(now);
+        let release;
+        const snapshotSent = new Promise((resolve) => {
+            release = resolve;
+        });
+        const request = async (options, req) => {
+            if (req.path === '/qrs/executionresult/full') await snapshotSent;
+            return stub.request(options, req);
+        };
+        const app = makeApp(stub, makeConfig(), silentLogger, { request });
+
+        const started = app.init();
+        await waitFor(() => app.history()?.mode() === 'readonly');
+        clock = NOW + 6 * MIN;
+        await app.history().heartbeat();
+        expect(app.history().mode()).toBe('readwrite');
+        release();
+        await started;
+
+        expect(app.statuses()[1]).toMatchObject({ state: 'ok', message: expect.stringMatching(takenOver) });
+        await app.close();
+        expect(ofType(historyLines('2026-10-06'), 'r')).toHaveLength(6);
+        expect(ofType(historyLines('2026-10-06'), 'task')).toHaveLength(7);
+    });
+
+    test('a lock taken over and given back before a poll noticed: it writes again, the running executions included', async () => {
+        const stub = createQrsStub(now);
+        const app = makeApp(stub);
+        await app.init();
+        // A run starts while the history file cannot be written, so its line waits
+        const append = jest
+            .spyOn(fsp, 'appendFile')
+            .mockRejectedValue(Object.assign(new Error('ENOSPC: no space left on device, write'), { code: 'ENOSPC' }));
+        stub.rows.push(newTaskRow({ status: 2, modifiedAt: NOW + MIN + 600 }));
+        clock = NOW + 2 * MIN;
+        const { records, cursor } = await app.qrs.changesSince(app.cursor);
+        app.cursor = cursor;
+        app.applyQrsChanges(records);
+        app.markLive(clock);
+        await waitFor(() => app.statuses()[1].state === 'error');
+
+        // Another instance takes the lock over, which drops the waiting lines, and stops soon after
+        writeOtherLock(NOW + 2 * MIN);
+        await app.history().heartbeat();
+        expect(app.history().mode()).toBe('readonly');
+        append.mockRestore();
+        clock = NOW + 8 * MIN;
+        await app.history().heartbeat();
+
+        expect(app.history().mode()).toBe('readwrite');
+        await waitFor(() => app.statuses()[1].state === 'ok');
+        expect(app.statuses()[1].message).toMatch(takenOver);
+        clock = NOW + 9 * MIN;
+        app.markLive(clock);
+        await app.close();
+        const today = historyLines('2026-10-06');
+        expect(ofType(today, 'r').filter((l) => l.r === NEW_RESULT)).toEqual([expect.objectContaining({ s: 2, sp: null })]);
+        expect(ofType(today, 'obs').map((l) => [l.from, l.to])).toEqual([[NOW + 2 * MIN, NOW + 9 * MIN]]);
+    });
+
     test('writes that fail until another instance takes the lock over do not end in "writing again"', async () => {
         const info = jest.fn();
         const app = makeApp(createQrsStub(now), makeConfig(), { ...silentLogger, info });
