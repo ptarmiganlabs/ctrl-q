@@ -1,0 +1,494 @@
+[
+    {
+        "id": "570f641f-6e79-455b-bc1a-533a99bbb5a7",
+        "createdDate": "2026-10-06T06:29:45.254Z",
+        "modifiedDate": "2026-10-06T06:31:10.575Z",
+        "modifiedByUserName": "INTERNAL\\sa_scheduler",
+        "taskID": "966a93e3-5e6d-495a-ac78-a2ba4067a794",
+        "executionID": "81e91df1-baf0-46f5-9f41-bb36a8720c49",
+        "appID": "c7178a65-a153-4f63-bbd7-10990fcffb69",
+        "executingNodeID": "7d1e874c-b148-4371-89ef-e61a4a9210de",
+        "executingNodeName": "sense-node1.example.com",
+        "status": 8,
+        "startTime": "2026-10-06T06:29:45.239Z",
+        "stopTime": "2026-10-06T06:31:10.481Z",
+        "duration": 85242,
+        "fileReferenceID": "b5154ad3-540c-41cf-88d8-0f8b3847751f",
+        "scriptLogAvailable": true,
+        "details": [
+            {
+                "id": "1a28558a-d1ab-409d-afae-509a036da4da",
+                "detailsType": 2,
+                "message": "Changing task state from Triggered to Queued",
+                "detailCreatedDate": "2026-10-06T06:29:45.640Z",
+                "privileges": null
+            },
+            {
+                "id": "07a946ca-6481-42e0-9282-9d57d6d27dd9",
+                "detailsType": 2,
+                "message": "Changing task state to Triggered",
+                "detailCreatedDate": "2026-10-06T06:29:45.239Z",
+                "privileges": null
+            },
+            {
+                "id": "ad3fa6e5-1357-4887-88c3-2f87252750ad",
+                "detailsType": 2,
+                "message": "Reference to scriptlog added",
+                "detailCreatedDate": "2026-10-06T06:31:09.498Z",
+                "privileges": null
+            },
+            {
+                "id": "02987d23-9059-4263-ba9b-e3a361d8e818",
+                "detailsType": 2,
+                "message": "Message from ReloadProvider: Reload failed in Engine. Check engine or script logs.",
+                "detailCreatedDate": "2026-10-06T06:31:09.560Z",
+                "privileges": null
+            },
+            {
+                "id": "16d87e19-1125-4fe5-9f9e-572e9e437b98",
+                "detailsType": 2,
+                "message": "Max retries reached (0)",
+                "detailCreatedDate": "2026-10-06T06:31:10.481Z",
+                "privileges": null
+            },
+            {
+                "id": "ad264a59-d2b2-46a7-9ca4-6e79f7fcd13f",
+                "detailsType": 2,
+                "message": "Changing task state from Queued to Started",
+                "detailCreatedDate": "2026-10-06T06:30:31.688Z",
+                "privileges": null
+            },
+            {
+                "id": "ff8defc2-c4d0-41cb-b259-92112a55026b",
+                "detailsType": 2,
+                "message": "Trying to start task. Sending task to worker scheduler sense-node1.example.com",
+                "detailCreatedDate": "2026-10-06T06:29:45.432Z",
+                "privileges": null
+            },
+            {
+                "id": "27b01270-81e6-4e5d-9a5a-ff2445cac5a1",
+                "detailsType": 2,
+                "message": "Changing task state from Started to FinishedFail",
+                "detailCreatedDate": "2026-10-06T06:31:09.560Z",
+                "privileges": null
+            }
+        ],
+        "scriptLogLocation": "sense-node1.example.com\\Script\\c7178a65-a153-4f63-bbd7-10990fcffb69.20261006T083034.698+0200.1897C331BE006727912C.log",
+        "scriptLogSize": 355610,
+        "privileges": null,
+        "schemaPath": "ExecutionResult"
+    },
+    {
+        "id": "ce0fe8f7-21cb-44aa-a9a5-c8ba264d6b2e",
+        "createdDate": "2026-10-06T06:29:45.254Z",
+        "modifiedDate": "2026-10-06T06:30:32.228Z",
+        "modifiedByUserName": "INTERNAL\\sa_scheduler",
+        "taskID": "a87ae597-be31-4453-be04-5b4f67489d8d",
+        "executionID": "c8581e2a-1a8b-4d0d-a4b3-c00a9873d7d2",
+        "appID": "621dfb6b-96a0-41f6-9989-1df9aaaa6ca8",
+        "executingNodeID": "7d1e874c-b148-4371-89ef-e61a4a9210de",
+        "executingNodeName": "sense-node1.example.com",
+        "status": 8,
+        "startTime": "2026-10-06T06:29:45.223Z",
+        "stopTime": "2026-10-06T06:30:32.031Z",
+        "duration": 46808,
+        "fileReferenceID": "5e4498af-b1a6-46e2-9958-2b7e2aa3cf49",
+        "scriptLogAvailable": true,
+        "details": [
+            {
+                "id": "b9e90196-3277-4dba-83d8-e1e18c8e81a4",
+                "detailsType": 2,
+                "message": "Trying to start task. Sending task to worker scheduler sense-node1.example.com",
+                "detailCreatedDate": "2026-10-06T06:29:45.432Z",
+                "privileges": null
+            },
+            {
+                "id": "520a907a-5f6b-43b0-99f5-f5506fbf1ef5",
+                "detailsType": 2,
+                "message": "Changing task state from Triggered to Started",
+                "detailCreatedDate": "2026-10-06T06:29:45.624Z",
+                "privileges": null
+            },
+            {
+                "id": "5aa95945-1f97-4fa9-ba0c-88e76d2f5542",
+                "detailsType": 2,
+                "message": "Reference to scriptlog added",
+                "detailCreatedDate": "2026-10-06T06:30:31.625Z",
+                "privileges": null
+            },
+            {
+                "id": "d8443884-4e52-4b90-a728-3e9e42bd923e",
+                "detailsType": 2,
+                "message": "Message from ReloadProvider: Reload failed in Engine. Check engine or script logs.",
+                "detailCreatedDate": "2026-10-06T06:30:31.774Z",
+                "privileges": null
+            },
+            {
+                "id": "b8ca8a2e-3a1e-4c92-9c3e-709573d733a0",
+                "detailsType": 2,
+                "message": "Changing task state to Triggered",
+                "detailCreatedDate": "2026-10-06T06:29:45.223Z",
+                "privileges": null
+            },
+            {
+                "id": "f4b8ce38-637d-4249-aa46-d1b65249f36c",
+                "detailsType": 2,
+                "message": "Changing task state from Started to FinishedFail",
+                "detailCreatedDate": "2026-10-06T06:30:31.774Z",
+                "privileges": null
+            },
+            {
+                "id": "a7e0e731-ad7a-49de-8ef7-9552f4c7f5ea",
+                "detailsType": 2,
+                "message": "Max retries reached (0)",
+                "detailCreatedDate": "2026-10-06T06:30:32.031Z",
+                "privileges": null
+            }
+        ],
+        "scriptLogLocation": "sense-node1.example.com\\Script\\621dfb6b-96a0-41f6-9989-1df9aaaa6ca8.20261006T082946.691+0200.E58F2BA568A6CD5FF155.log",
+        "scriptLogSize": 654668,
+        "privileges": null,
+        "schemaPath": "ExecutionResult"
+    },
+    {
+        "id": "db55cd5a-870f-417e-8b2d-b3b39c3f450f",
+        "createdDate": "2026-10-06T06:29:45.282Z",
+        "modifiedDate": "2026-10-06T06:31:21.216Z",
+        "modifiedByUserName": "INTERNAL\\sa_scheduler",
+        "taskID": "0419086f-a935-4358-a356-da2f79069e78",
+        "executionID": "1b2fe88c-4201-4d63-8784-20623e4e2a08",
+        "appID": "378f1b1d-5e53-40ea-89e9-79c30ee24145",
+        "executingNodeID": "7d1e874c-b148-4371-89ef-e61a4a9210de",
+        "executingNodeName": "sense-node1.example.com",
+        "status": 7,
+        "startTime": "2026-10-06T06:29:45.254Z",
+        "stopTime": "2026-10-06T06:31:21.110Z",
+        "duration": 95856,
+        "fileReferenceID": "8cba6044-28e9-46ac-95bb-d90d005ed12a",
+        "scriptLogAvailable": true,
+        "details": [
+            {
+                "id": "d27c6b77-5b43-4fca-81b5-e0fd6ba06c36",
+                "detailsType": 2,
+                "message": "Changing task state to Triggered",
+                "detailCreatedDate": "2026-10-06T06:29:45.254Z",
+                "privileges": null
+            },
+            {
+                "id": "9d1b39f0-1c60-4c81-885c-6a4d5212b4eb",
+                "detailsType": 2,
+                "message": "Changing task state from Queued to Started",
+                "detailCreatedDate": "2026-10-06T06:30:34.513Z",
+                "privileges": null
+            },
+            {
+                "id": "63c27812-9306-4d97-90da-41c725d02ba5",
+                "detailsType": 2,
+                "message": "Reference to scriptlog added",
+                "detailCreatedDate": "2026-10-06T06:31:21.057Z",
+                "privileges": null
+            },
+            {
+                "id": "0182de28-00a5-4067-ae01-11c5d89b38b7",
+                "detailsType": 2,
+                "message": "Trying to start task. Sending task to worker scheduler sense-node1.example.com",
+                "detailCreatedDate": "2026-10-06T06:29:45.464Z",
+                "privileges": null
+            },
+            {
+                "id": "e2e33368-4bdc-4cf0-9708-2c21ad906a19",
+                "detailsType": 2,
+                "message": "Changing task state from Started to FinishedSuccess",
+                "detailCreatedDate": "2026-10-06T06:31:21.161Z",
+                "privileges": null
+            },
+            {
+                "id": "13704f59-0333-406c-93e4-b2c615921a5b",
+                "detailsType": 2,
+                "message": "Changing task state from Triggered to Queued",
+                "detailCreatedDate": "2026-10-06T06:29:45.656Z",
+                "privileges": null
+            }
+        ],
+        "scriptLogLocation": "sense-node1.example.com\\Script\\378f1b1d-5e53-40ea-89e9-79c30ee24145.20261006T083036.400+0200.465A5E70541F65353B54.log",
+        "scriptLogSize": 602768,
+        "privileges": null,
+        "schemaPath": "ExecutionResult"
+    },
+    {
+        "id": "ecf16ca8-ecd9-48fb-a95f-2875dbcdd2c7",
+        "createdDate": "2026-10-06T06:29:45.223Z",
+        "modifiedDate": "2026-10-06T06:31:13.094Z",
+        "modifiedByUserName": "INTERNAL\\sa_scheduler",
+        "taskID": "8d2c5d0c-12e2-4dc8-9832-de1ae367a373",
+        "executionID": "10ee30f6-5b6e-4972-acd6-7cd274952c22",
+        "appID": "f9640fa6-5d33-4429-8171-beefb93b9311",
+        "executingNodeID": "7d1e874c-b148-4371-89ef-e61a4a9210de",
+        "executingNodeName": "sense-node1.example.com",
+        "status": 7,
+        "startTime": "2026-10-06T06:29:45.192Z",
+        "stopTime": "2026-10-06T06:31:12.991Z",
+        "duration": 87799,
+        "fileReferenceID": "d7ada0ff-5b91-42f8-a2a3-ca8e62c3ba4b",
+        "scriptLogAvailable": true,
+        "details": [
+            {
+                "id": "93721db6-0fef-48fb-8b9b-1deea50fc749",
+                "detailsType": 2,
+                "message": "Trying to start task. Sending task to worker scheduler sense-node1.example.com",
+                "detailCreatedDate": "2026-10-06T06:29:45.385Z",
+                "privileges": null
+            },
+            {
+                "id": "08eb8155-44c9-4fd0-80d1-d60a8541c7d8",
+                "detailsType": 2,
+                "message": "Changing task state from Started to FinishedSuccess",
+                "detailCreatedDate": "2026-10-06T06:31:13.054Z",
+                "privileges": null
+            },
+            {
+                "id": "68f4978b-fa75-48fd-9281-be3ed8dba369",
+                "detailsType": 2,
+                "message": "Changing task state from Triggered to Started",
+                "detailCreatedDate": "2026-10-06T06:29:45.609Z",
+                "privileges": null
+            },
+            {
+                "id": "9e781cde-8bc3-4684-bd7b-5450d90b6c2a",
+                "detailsType": 2,
+                "message": "Reference to scriptlog added",
+                "detailCreatedDate": "2026-10-06T06:31:12.951Z",
+                "privileges": null
+            },
+            {
+                "id": "90c1718f-7d4f-4f41-b9a9-24e409ddda62",
+                "detailsType": 2,
+                "message": "Changing task state to Triggered",
+                "detailCreatedDate": "2026-10-06T06:29:45.192Z",
+                "privileges": null
+            }
+        ],
+        "scriptLogLocation": "sense-node1.example.com\\Script\\f9640fa6-5d33-4429-8171-beefb93b9311.20261006T082946.052+0200.B2CC3892091F9487358B.log",
+        "scriptLogSize": 13629,
+        "privileges": null,
+        "schemaPath": "ExecutionResult"
+    },
+    {
+        "id": "8996774c-38f0-47cc-b72a-fc2b0c7eb814",
+        "createdDate": "2026-10-06T06:29:45.223Z",
+        "modifiedDate": "2026-10-06T06:30:34.783Z",
+        "modifiedByUserName": "INTERNAL\\sa_scheduler",
+        "taskID": "60f56836-b6e4-4690-8896-a2262c4ebb8c",
+        "executionID": "24e42338-9627-4c37-b581-0a4dfb37e868",
+        "appID": "db1b2df9-81a9-4f45-811d-904924bc4150",
+        "executingNodeID": "7d1e874c-b148-4371-89ef-e61a4a9210de",
+        "executingNodeName": "sense-node1.example.com",
+        "status": 7,
+        "startTime": "2026-10-06T06:29:45.192Z",
+        "stopTime": "2026-10-06T06:30:34.560Z",
+        "duration": 49368,
+        "fileReferenceID": "f8b4dfcb-9370-410d-918e-58cd25cc7016",
+        "scriptLogAvailable": true,
+        "details": [
+            {
+                "id": "02970560-c50b-4fcc-978d-24ecbba4a66e",
+                "detailsType": 2,
+                "message": "Changing task state to Triggered",
+                "detailCreatedDate": "2026-10-06T06:29:45.208Z",
+                "privileges": null
+            },
+            {
+                "id": "731118fd-06fa-4e8b-aacb-6a347bcc4967",
+                "detailsType": 2,
+                "message": "Changing task state from Triggered to Started",
+                "detailCreatedDate": "2026-10-06T06:29:45.591Z",
+                "privileges": null
+            },
+            {
+                "id": "4f223c10-7cb4-4738-b11e-9d8c06414fe0",
+                "detailsType": 2,
+                "message": "Trying to start task. Sending task to worker scheduler sense-node1.example.com",
+                "detailCreatedDate": "2026-10-06T06:29:45.401Z",
+                "privileges": null
+            },
+            {
+                "id": "0f89aac3-7796-419a-bfa9-f04dec9d4d87",
+                "detailsType": 2,
+                "message": "Reference to scriptlog added",
+                "detailCreatedDate": "2026-10-06T06:30:34.497Z",
+                "privileges": null
+            },
+            {
+                "id": "888b2de5-0c56-401f-a347-81e6f4897f68",
+                "detailsType": 2,
+                "message": "Changing task state from Started to FinishedSuccess",
+                "detailCreatedDate": "2026-10-06T06:30:34.631Z",
+                "privileges": null
+            }
+        ],
+        "scriptLogLocation": "sense-node1.example.com\\Script\\db1b2df9-81a9-4f45-811d-904924bc4150.20261006T082946.018+0200.BC1569DB83716555E0E0.log",
+        "scriptLogSize": 11670,
+        "privileges": null,
+        "schemaPath": "ExecutionResult"
+    },
+    {
+        "id": "8b9b7b3f-c986-4b6f-9b2a-82c13eb1cc0a",
+        "createdDate": "2026-10-06T06:29:45.223Z",
+        "modifiedDate": "2026-10-06T06:30:59.304Z",
+        "modifiedByUserName": "INTERNAL\\sa_scheduler",
+        "taskID": "5fee7b84-76f8-4cc1-ba4f-466d8eefa8be",
+        "executionID": "d1759b15-c19f-4102-9187-a5377c9b632d",
+        "appID": "d683eb71-2a5c-4520-b259-041ca2d90bb0",
+        "executingNodeID": "7d1e874c-b148-4371-89ef-e61a4a9210de",
+        "executingNodeName": "sense-node1.example.com",
+        "status": 7,
+        "startTime": "2026-10-06T06:29:45.192Z",
+        "stopTime": "2026-10-06T06:30:59.180Z",
+        "duration": 73988,
+        "fileReferenceID": "d32a2738-87fc-438f-b710-a1dfc21d9166",
+        "scriptLogAvailable": true,
+        "details": [
+            {
+                "id": "cd127634-d1f6-44e4-912d-d5e282c8db29",
+                "detailsType": 2,
+                "message": "Changing task state to Triggered",
+                "detailCreatedDate": "2026-10-06T06:29:45.192Z",
+                "privileges": null
+            },
+            {
+                "id": "cd25615f-011c-4e8a-8853-e51d89a0dfd4",
+                "detailsType": 2,
+                "message": "Trying to start task. Sending task to worker scheduler sense-node1.example.com",
+                "detailCreatedDate": "2026-10-06T06:29:45.385Z",
+                "privileges": null
+            },
+            {
+                "id": "a9047dc2-731b-4581-aad5-4d9870d8f21d",
+                "detailsType": 2,
+                "message": "Reference to scriptlog added",
+                "detailCreatedDate": "2026-10-06T06:30:59.143Z",
+                "privileges": null
+            },
+            {
+                "id": "9ceb8c1c-0bba-49f0-83da-b701d7904d97",
+                "detailsType": 2,
+                "message": "Changing task state from Triggered to Started",
+                "detailCreatedDate": "2026-10-06T06:29:45.624Z",
+                "privileges": null
+            },
+            {
+                "id": "7fe13cc2-a47f-4b55-960c-222a540441d6",
+                "detailsType": 2,
+                "message": "Changing task state from Started to FinishedSuccess",
+                "detailCreatedDate": "2026-10-06T06:30:59.242Z",
+                "privileges": null
+            }
+        ],
+        "scriptLogLocation": "sense-node1.example.com\\Script\\d683eb71-2a5c-4520-b259-041ca2d90bb0.20261006T082946.044+0200.A00B3B83CCA8B731BC9B.log",
+        "scriptLogSize": 9728,
+        "privileges": null,
+        "schemaPath": "ExecutionResult"
+    },
+    {
+        "id": "7d94c671-1e20-4707-af6b-c3c7910cf29e",
+        "createdDate": "2026-09-30T05:20:30.338Z",
+        "modifiedDate": "2026-09-30T05:20:41.291Z",
+        "modifiedByUserName": "INTERNAL\\sa_scheduler",
+        "taskID": "0359bda0-22dc-4c46-983c-8724266eb4ef",
+        "executionID": "8dc3f99a-d810-48df-9681-230013966395",
+        "appID": "00000000-0000-0000-0000-000000000000",
+        "executingNodeID": "7d1e874c-b148-4371-89ef-e61a4a9210de",
+        "executingNodeName": "sense-node1.example.com",
+        "status": 7,
+        "startTime": "2026-09-30T05:20:30.307Z",
+        "stopTime": "2026-09-30T05:20:41.119Z",
+        "duration": 10812,
+        "fileReferenceID": "00000000-0000-0000-0000-000000000000",
+        "scriptLogAvailable": false,
+        "details": [
+            {
+                "id": "cdf8798a-dea1-4b31-87d2-dff6c5cebb14",
+                "detailsType": 2,
+                "message": "Trying to start task. Sending task to worker scheduler sense-node1.example.com",
+                "detailCreatedDate": "2026-09-30T05:20:30.571Z",
+                "privileges": null
+            },
+            {
+                "id": "a102992e-78cf-4e30-9ffc-8e6f1aa4565a",
+                "detailsType": 2,
+                "message": "Changing task state from Triggered to Started",
+                "detailCreatedDate": "2026-09-30T05:20:31.031Z",
+                "privileges": null
+            },
+            {
+                "id": "50ace77d-cc40-4462-8568-cfc262eb32c7",
+                "detailsType": 2,
+                "message": "Changing task state from Started to FinishedSuccess",
+                "detailCreatedDate": "2026-09-30T05:20:41.217Z",
+                "privileges": null
+            },
+            {
+                "id": "1247b501-1a50-432b-a2bc-a1fe89ea79d4",
+                "detailsType": 2,
+                "message": "Changing task state to Triggered",
+                "detailCreatedDate": "2026-09-30T05:20:30.307Z",
+                "privileges": null
+            }
+        ],
+        "scriptLogLocation": "",
+        "scriptLogSize": -1,
+        "privileges": null,
+        "schemaPath": "ExecutionResult"
+    },
+    {
+        "id": "02f7bc8e-a4d6-48cd-85b2-90ae5c61ba40",
+        "createdDate": "2026-09-09T05:20:30.159Z",
+        "modifiedDate": "2026-09-09T05:20:40.763Z",
+        "modifiedByUserName": "INTERNAL\\sa_scheduler",
+        "taskID": "0359bda0-22dc-4c46-983c-8724266eb4ef",
+        "executionID": "635a1c47-ba01-403e-8aeb-25851bcc0b61",
+        "appID": "00000000-0000-0000-0000-000000000000",
+        "executingNodeID": "7d1e874c-b148-4371-89ef-e61a4a9210de",
+        "executingNodeName": "sense-node1.example.com",
+        "status": 7,
+        "startTime": "2026-09-09T05:20:30.143Z",
+        "stopTime": "2026-09-09T05:20:40.643Z",
+        "duration": 10500,
+        "fileReferenceID": "00000000-0000-0000-0000-000000000000",
+        "scriptLogAvailable": false,
+        "details": [
+            {
+                "id": "2758bae3-5d31-498c-a774-d29a53564964",
+                "detailsType": 2,
+                "message": "Trying to start task. Sending task to worker scheduler sense-node1.example.com",
+                "detailCreatedDate": "2026-09-09T05:20:30.284Z",
+                "privileges": null
+            },
+            {
+                "id": "a8955d9f-89d6-4964-a4f6-a487f5628665",
+                "detailsType": 2,
+                "message": "Changing task state to Triggered",
+                "detailCreatedDate": "2026-09-09T05:20:30.143Z",
+                "privileges": null
+            },
+            {
+                "id": "04d7be14-908f-4d02-95a6-26cb5361d51b",
+                "detailsType": 2,
+                "message": "Changing task state from Triggered to Started",
+                "detailCreatedDate": "2026-09-09T05:20:30.565Z",
+                "privileges": null
+            },
+            {
+                "id": "6192f9f2-87dd-40cf-8a61-5520b6ee771f",
+                "detailsType": 2,
+                "message": "Changing task state from Started to FinishedSuccess",
+                "detailCreatedDate": "2026-09-09T05:20:40.721Z",
+                "privileges": null
+            }
+        ],
+        "scriptLogLocation": "",
+        "scriptLogSize": -1,
+        "privileges": null,
+        "schemaPath": "ExecutionResult"
+    }
+]

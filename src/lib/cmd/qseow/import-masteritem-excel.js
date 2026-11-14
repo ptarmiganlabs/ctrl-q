@@ -4,7 +4,7 @@ import { v4 as uuidCreate } from 'uuid';
 
 import { logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists, sleep } from '../../../globals.js';
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 let importCount = 0;
 
@@ -969,7 +969,7 @@ const importMasterItemFromExcel = async (options) => {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info(`Import master items from definitions in Excel file "${options.file}"`);
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         // Verify Master items Excel file exists
         const excelFileExists = await verifyFileSystemExists(options.file);

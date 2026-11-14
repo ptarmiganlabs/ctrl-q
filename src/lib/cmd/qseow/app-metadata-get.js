@@ -22,7 +22,7 @@ import upath from 'upath';
 
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 import { serializeApp } from '../../util/qseow/serialize-app.js';
 import { getApps } from '../../util/qseow/app.js';
 import { extractIntel } from '../../util/qseow/intel/index.js';
@@ -204,7 +204,7 @@ async function getAppMetadata(options) {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.verbose('Get app metadata');
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         const outputFormat = options.outputFormat || 'json';
         const outputCount = options.outputCount || 'multiple';
