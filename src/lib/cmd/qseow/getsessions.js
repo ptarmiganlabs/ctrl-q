@@ -1,7 +1,7 @@
 import { table } from 'table';
 import { getSessionsFromQseow } from '../../util/qseow/session.js';
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 const consoleTableConfig = {
     border: {
@@ -45,7 +45,7 @@ export async function getSessions(options) {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Get Qlik Sense proxy sessions');
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         const sessionDataArray = await getSessionsFromQseow(options, null);
 

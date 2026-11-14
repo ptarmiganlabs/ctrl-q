@@ -5,7 +5,7 @@ import { QlikSenseApps } from '../../app/class_allapps.js';
 import { getAppColumnPosFromHeaderRow } from '../../util/qseow/lookups.js';
 import { getTagsFromQseow } from '../../util/qseow/tag.js';
 import { getCustomPropertiesFromQseow } from '../../util/qseow/customproperties.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 export async function importAppFromFile(options) {
     try {
@@ -16,7 +16,7 @@ export async function importAppFromFile(options) {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info(`Import apps from definitions in file "${options.fileName}"`);
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         // Get all tags
         const tagsExisting = await getTagsFromQseow(options);

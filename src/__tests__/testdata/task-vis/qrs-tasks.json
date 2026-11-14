@@ -1,0 +1,274 @@
+{
+    "/qrs/reloadtask/full": [
+        {
+            "id": "11111111-1111-4111-8111-111111111111",
+            "name": "Load sales data",
+            "schemaPath": "ReloadTask",
+            "enabled": true,
+            "maxRetries": 0,
+            "taskSessionTimeout": 1440,
+            "isPartialReload": false,
+            "isManuallyTriggered": false,
+            "app": {
+                "id": "a1111111-1111-4111-8111-111111111111",
+                "name": "Sales",
+                "published": true,
+                "stream": { "id": "51111111-1111-4111-8111-111111111111", "name": "Finance" }
+            },
+            "operational": {
+                "lastExecutionResult": {
+                    "status": 7,
+                    "startTime": "2026-10-29T05:00:03.000Z",
+                    "stopTime": "2026-10-29T05:01:10.000Z",
+                    "duration": 67000,
+                    "executingNodeName": "sense-node1.example.com"
+                },
+                "nextExecution": "2026-10-30T05:00:00.000Z"
+            },
+            "tags": [{ "id": "f1111111-1111-4111-8111-111111111111", "name": "Finance" }],
+            "customProperties": []
+        },
+        {
+            "id": "22222222-2222-4222-8222-222222222222",
+            "name": "Transform sales",
+            "schemaPath": "ReloadTask",
+            "enabled": true,
+            "maxRetries": 0,
+            "taskSessionTimeout": 1440,
+            "isPartialReload": false,
+            "isManuallyTriggered": false,
+            "app": { "id": "a2222222-2222-4222-8222-222222222222", "name": "Sales transform", "published": false, "stream": null },
+            "operational": {
+                "lastExecutionResult": {
+                    "status": 8,
+                    "startTime": "2026-10-29T05:01:12.000Z",
+                    "stopTime": "2026-10-29T05:01:40.000Z",
+                    "duration": 28000,
+                    "executingNodeName": "sense-node1.example.com"
+                },
+                "nextExecution": "1753-01-01T00:00:00.000Z"
+            },
+            "tags": [],
+            "customProperties": [{ "definition": { "name": "Owner" }, "value": "Finance team" }]
+        },
+        {
+            "id": "33333333-3333-4333-8333-333333333333",
+            "name": "Publish <img src=x onerror=alert(1)> dashboard",
+            "schemaPath": "ReloadTask",
+            "enabled": true,
+            "maxRetries": 0,
+            "taskSessionTimeout": 1440,
+            "isPartialReload": false,
+            "isManuallyTriggered": false,
+            "app": { "id": "a3333333-3333-4333-8333-333333333333", "name": "Dashboard <b>bold</b>", "published": false, "stream": null },
+            "operational": {
+                "lastExecutionResult": {
+                    "status": 0,
+                    "startTime": "1753-01-01T00:00:00.000Z",
+                    "stopTime": "1753-01-01T00:00:00.000Z",
+                    "duration": 0,
+                    "executingNodeName": ""
+                },
+                "nextExecution": "1753-01-01T00:00:00.000Z"
+            },
+            "tags": [],
+            "customProperties": []
+        },
+        {
+            "id": "44444444-4444-4444-8444-444444444444",
+            "name": "Loop one",
+            "schemaPath": "ReloadTask",
+            "enabled": false,
+            "maxRetries": 0,
+            "taskSessionTimeout": 1440,
+            "isPartialReload": false,
+            "isManuallyTriggered": false,
+            "app": { "id": "a4444444-4444-4444-8444-444444444444", "name": "Loop app one", "published": false, "stream": null },
+            "operational": {
+                "lastExecutionResult": {
+                    "status": 9,
+                    "startTime": "2026-10-28T23:00:00.000Z",
+                    "stopTime": "2026-10-28T23:00:01.000Z",
+                    "duration": 1000,
+                    "executingNodeName": "sense-node1.example.com"
+                },
+                "nextExecution": "1753-01-01T00:00:00.000Z"
+            },
+            "tags": [],
+            "customProperties": []
+        },
+        {
+            "id": "55555555-5555-4555-8555-555555555555",
+            "name": "Loop two",
+            "schemaPath": "ReloadTask",
+            "enabled": true,
+            "maxRetries": 0,
+            "taskSessionTimeout": 1440,
+            "isPartialReload": false,
+            "isManuallyTriggered": false,
+            "app": { "id": "a5555555-5555-4555-8555-555555555555", "name": "Loop app two", "published": false, "stream": null },
+            "operational": {
+                "lastExecutionResult": {
+                    "status": 2,
+                    "startTime": "2026-10-29T06:00:00.000Z",
+                    "stopTime": "1753-01-01T00:00:00.000Z",
+                    "duration": 0,
+                    "executingNodeName": "sense-node1.example.com"
+                },
+                "nextExecution": "1753-01-01T00:00:00.000Z"
+            },
+            "tags": [],
+            "customProperties": []
+        }
+    ],
+    "/qrs/externalprogramtask/full": [
+        {
+            "id": "66666666-6666-4666-8666-666666666666",
+            "name": "Copy files",
+            "schemaPath": "ExternalProgramTask",
+            "enabled": true,
+            "path": "C:\\tools\\copy-files.cmd",
+            "parameters": "",
+            "maxRetries": 0,
+            "taskSessionTimeout": 1440,
+            "operational": {
+                "lastExecutionResult": {
+                    "status": 6,
+                    "startTime": "2026-10-29T04:00:00.000Z",
+                    "stopTime": "2026-10-29T04:02:00.000Z",
+                    "duration": 120000,
+                    "executingNodeName": "sense-node1.example.com"
+                },
+                "nextExecution": "1753-01-01T00:00:00.000Z"
+            },
+            "tags": [],
+            "customProperties": []
+        }
+    ],
+    "/qrs/schemaevent/full": [
+        {
+            "id": "e1111111-1111-4111-8111-111111111111",
+            "name": "Every morning",
+            "enabled": true,
+            "incrementOption": 2,
+            "incrementDescription": "0 0 1 0",
+            "timeZone": "Europe/Stockholm",
+            "reloadTask": { "id": "11111111-1111-4111-8111-111111111111", "name": "Load sales data" },
+            "externalProgramTask": null,
+            "userSyncTask": null,
+            "operational": { "nextExecution": "2026-10-30T05:00:00.000Z", "timesTriggered": 42 }
+        },
+        {
+            "id": "e2222222-2222-4222-8222-222222222222",
+            "name": "Hourly copy",
+            "enabled": false,
+            "incrementOption": 1,
+            "incrementDescription": "0 1 0 0",
+            "timeZone": "UTC",
+            "reloadTask": null,
+            "externalProgramTask": { "id": "66666666-6666-4666-8666-666666666666", "name": "Copy files" },
+            "userSyncTask": null,
+            "operational": { "nextExecution": "1753-01-01T00:00:00.000Z", "timesTriggered": 0 }
+        },
+        {
+            "id": "e3333333-3333-4333-8333-333333333333",
+            "name": "Nightly loop",
+            "enabled": true,
+            "incrementOption": 5,
+            "incrementDescription": "0 0 1 0",
+            "timeZone": "UTC",
+            "reloadTask": { "id": "44444444-4444-4444-8444-444444444444", "name": "Loop one" },
+            "externalProgramTask": null,
+            "userSyncTask": null,
+            "operational": { "nextExecution": "2026-10-29T23:00:00.000Z", "timesTriggered": 7 }
+        }
+    ],
+    "/qrs/compositeevent/full": [
+        {
+            "id": "c1111111-1111-4111-8111-111111111111",
+            "name": "Sales loaded",
+            "enabled": true,
+            "reloadTask": { "id": "22222222-2222-4222-8222-222222222222", "name": "Transform sales" },
+            "externalProgramTask": null,
+            "userSyncTask": null,
+            "compositeRules": [
+                {
+                    "id": "b1111111-1111-4111-8111-111111111111",
+                    "ruleState": 1,
+                    "reloadTask": { "id": "11111111-1111-4111-8111-111111111111", "name": "Load sales data" },
+                    "externalProgramTask": null
+                }
+            ]
+        },
+        {
+            "id": "c2222222-2222-4222-8222-222222222222",
+            "name": "Sales loaded, again",
+            "enabled": true,
+            "reloadTask": { "id": "22222222-2222-4222-8222-222222222222", "name": "Transform sales" },
+            "externalProgramTask": null,
+            "userSyncTask": null,
+            "compositeRules": [
+                {
+                    "id": "b2222222-2222-4222-8222-222222222222",
+                    "ruleState": 1,
+                    "reloadTask": { "id": "11111111-1111-4111-8111-111111111111", "name": "Load sales data" },
+                    "externalProgramTask": null
+                }
+            ]
+        },
+        {
+            "id": "c3333333-3333-4333-8333-333333333333",
+            "name": "Sales and files done",
+            "enabled": true,
+            "reloadTask": { "id": "33333333-3333-4333-8333-333333333333", "name": "Publish <img src=x onerror=alert(1)> dashboard" },
+            "externalProgramTask": null,
+            "userSyncTask": null,
+            "compositeRules": [
+                {
+                    "id": "b3333333-3333-4333-8333-333333333333",
+                    "ruleState": 1,
+                    "reloadTask": { "id": "22222222-2222-4222-8222-222222222222", "name": "Transform sales" },
+                    "externalProgramTask": null
+                },
+                {
+                    "id": "b4444444-4444-4444-8444-444444444444",
+                    "ruleState": 1,
+                    "reloadTask": null,
+                    "externalProgramTask": { "id": "66666666-6666-4666-8666-666666666666", "name": "Copy files" }
+                }
+            ]
+        },
+        {
+            "id": "c4444444-4444-4444-8444-444444444444",
+            "name": "Loop one done",
+            "enabled": true,
+            "reloadTask": { "id": "55555555-5555-4555-8555-555555555555", "name": "Loop two" },
+            "externalProgramTask": null,
+            "userSyncTask": null,
+            "compositeRules": [
+                {
+                    "id": "b5555555-5555-4555-8555-555555555555",
+                    "ruleState": 1,
+                    "reloadTask": { "id": "44444444-4444-4444-8444-444444444444", "name": "Loop one" },
+                    "externalProgramTask": null
+                }
+            ]
+        },
+        {
+            "id": "c5555555-5555-4555-8555-555555555555",
+            "name": "Loop two done",
+            "enabled": true,
+            "reloadTask": { "id": "44444444-4444-4444-8444-444444444444", "name": "Loop one" },
+            "externalProgramTask": null,
+            "userSyncTask": null,
+            "compositeRules": [
+                {
+                    "id": "b6666666-6666-4666-8666-666666666666",
+                    "ruleState": 1,
+                    "reloadTask": { "id": "55555555-5555-4555-8555-555555555555", "name": "Loop two" },
+                    "externalProgramTask": null
+                }
+            ]
+        }
+    ]
+}

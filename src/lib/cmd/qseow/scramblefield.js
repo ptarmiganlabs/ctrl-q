@@ -4,7 +4,7 @@ import { validate as uuidValidate } from 'uuid';
 
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 import { deleteAppById, publishApp, replaceApp, getAppByName, getAppById } from '../../util/qseow/app.js';
 import { getStreamByName, getStreamById } from '../../util/qseow/stream.js';
 
@@ -20,7 +20,7 @@ export async function scrambleField(options) {
         logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         // Keep track of the result of the scramble operation
         const scrambleResult = {

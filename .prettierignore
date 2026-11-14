@@ -1,6 +1,6 @@
 dist
 node_modules/**
-vis-network.min.js
+src/static/vendor/
 package-lock.json
 CHANGELOG.md
 

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Ctrl-Q task network</title>
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="stylesheet" href="/vendor/vis-network/vis-network.min.css" />
+        <link rel="stylesheet" href="/task-vis/styles.css" />
+        <script src="/vendor/vis-network/vis-network.min.js"></script>
+        <script type="module" src="/task-vis/main.js"></script>
+    </head>
+    <body>
+        <header id="header">
+            <div id="logo">
+                <a href="https://ctrl-q.ptarmiganlabs.com" target="_blank" rel="noopener noreferrer">
+                    <img src="/ctrl-q.png" alt="Ctrl-Q logo" height="75" />
+                </a>
+            </div>
+            <div id="info">
+                <!-- Info about the data currently shown in the network diagram -->
+                <div>Reload tasks: <span id="reloadTaskCount"></span></div>
+                <div>External program tasks: <span id="externalProgramTaskCount"></span></div>
+                <div>Schema triggers: <span id="schemaTriggerCount"></span></div>
+                <div>Composite triggers: <span id="compositeTriggerCount"></span></div>
+            </div>
+            <div id="customize">
+                <button type="button" id="refreshNetwork">Refresh</button>
+                <button type="button" id="clusterByHubSize">Cluster by hub size</button>
+                <button type="button" id="clusterOutlier">Cluster leaves</button>
+                <button type="button" id="unclusterAll">Uncluster All</button>
+                <button type="button" id="toggleNetworkConfig">Network config</button>
+                <button type="button" id="toggleLegend">Legend</button>
+            </div>
+        </header>
+
+        <main id="main">
+            <div id="networkConfig" hidden>
+                <!-- vis-network puts its network configuration options here -->
+            </div>
+            <div id="network"></div>
+
+            <div id="nodeLegend">
+                <div id="legendTitle">
+                    <h3>Node Legend</h3>
+                </div>
+
+                <div class="legend-item"><span class="dot status-success"></span><span>Successful task</span></div>
+                <div class="legend-item"><span class="dot status-failed"></span><span>Failed or aborted task</span></div>
+                <div class="legend-item"><span class="dot status-error"></span><span>Aborting/error/reset task</span></div>
+                <div class="legend-item"><span class="dot status-running"></span><span>Triggered/queued/running task</span></div>
+                <div class="legend-item"><span class="dot status-skipped"></span><span>Skipped task</span></div>
+                <div class="legend-item"><span class="dot status-never"></span><span>Never started task</span></div>
+                <hr />
+                <div class="legend-item"><span class="dot trigger-enabled"></span><span>Enabled trigger</span></div>
+                <div class="legend-item"><span class="dot trigger-disabled"></span><span>Disabled trigger</span></div>
+                <hr />
+                <p><strong>Shapes:</strong></p>
+                <table class="legend-table">
+                    <tr>
+                        <td><span class="triangle"></span></td>
+                        <td>Schedule trigger</td>
+                    </tr>
+                    <tr>
+                        <td><span class="hexagon"></span></td>
+                        <td>Composite trigger</td>
+                    </tr>
+                    <tr>
+                        <td><span class="ellipse"></span></td>
+                        <td>External program task</td>
+                    </tr>
+                    <tr>
+                        <td><span class="rounded-rectangle"></span></td>
+                        <td>Reload task</td>
+                    </tr>
+                </table>
+                <hr />
+                <p>Ctrl-Q <span id="appVersion"></span></p>
+                <p>
+                    More info at
+                    <a target="_blank" rel="noopener noreferrer" href="https://ctrl-q.ptarmiganlabs.com">ctrl-q.ptarmiganlabs.com</a><br />
+                    Report bugs
+                    <a target="_blank" rel="noopener noreferrer" href="https://github.com/ptarmiganlabs/ctrl-q/issues/new/choose">here</a
+                    ><br />
+                    Share ideas
+                    <a target="_blank" rel="noopener noreferrer" href="https://github.com/ptarmiganlabs/ctrl-q/discussions/categories/ideas"
+                        >here</a
+                    >
+                </p>
+                <p class="credits">
+                    Network diagram: vis-network, licensed
+                    <a target="_blank" href="/vendor/vis-network/LICENSE-APACHE-2.0.txt">Apache-2.0</a> or
+                    <a target="_blank" href="/vendor/vis-network/LICENSE-MIT.txt">MIT</a>, with
+                    <a target="_blank" href="/vendor/vis-network/LICENSE-bundled.txt">bundled code</a>
+                </p>
+            </div>
+        </main>
+
+        <div id="loadingBar">
+            <div class="outerBorder">
+                <div id="text">0%</div>
+                <div id="border">
+                    <div id="bar"></div>
+                </div>
+            </div>
+            <p id="loadingMessage" hidden></p>
+        </div>
+
+        <div id="nodeInfoModal" class="modal" hidden>
+            <div class="modal-content" role="dialog" aria-labelledby="nodeInfoTitle">
+                <div class="modal-header">
+                    <h2 id="nodeInfoTitle">Node Information</h2>
+                    <button type="button" class="close" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <table id="nodeInfoContent"></table>
+                </div>
+            </div>
+        </div>
+
+        <noscript>This page needs JavaScript.</noscript>
+    </body>
+</html>

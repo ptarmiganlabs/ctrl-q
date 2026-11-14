@@ -6,6 +6,8 @@ import { getStreamById, getStreamByName } from '../qseow/stream.js';
 import { getAppById, getAppByName, appExistById } from '../qseow/app.js';
 import { taskExistById } from './task.js';
 import { tagExistByName } from './tag.js';
+import { validateTaskGanttOptions, parseFlag } from '../../task-gantt/options.js';
+import { isLoopbackHost } from '../web/server.js';
 
 export const qseowSharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
@@ -169,13 +171,52 @@ export const getBookmarkAssertOptions = (options) => {
 };
 
 /**
+ * Validate the web page server options of the qseow task-vis command.
+ *
+ * @param {object} options - Command line options.
+ * @param {object} [context] - Context.
+ * @param {Set<string>} [context.fromEnv] - Names of options whose value came from an environment variable.
+ * @returns {{valid: boolean, error?: string}} Result.
+ */
+export function validateVisTaskOptions(options, { fromEnv = new Set() } = {}) {
+    // Port for the web page server. 0 picks a free port.
+    if (!/^\s*\d+\s*$/.test(String(options.visPort ?? '')) || Number(options.visPort) > 65535) {
+        return { valid: false, error: `--vis-port must be a port number (0-65535), got "${options.visPort}".` };
+    }
+
+    // Other computers can reach a non-loopback host, so it also needs --vis-allow-remote, as in task-gantt
+    const visHost = String(options.visHost || 'localhost');
+    const allowRemote = parseFlag(options.visAllowRemote);
+    if (allowRemote === null) {
+        return { valid: false, error: `--vis-allow-remote must be true or false, got "${options.visAllowRemote}".` };
+    }
+    if (!isLoopbackHost(visHost) && !allowRemote) {
+        const from = fromEnv.has('visHost') ? ' (from CTRLQ_VIS_HOST)' : '';
+        return {
+            valid: false,
+            error: `--vis-host ${visHost}${from} makes the page reachable from other computers. Add --vis-allow-remote to confirm; the page is then protected by a random access token.`,
+        };
+    }
+
+    return { valid: true };
+}
+
+/**
  * Assert options for qseow task-vis command.
  *
  * @param {object} options - Command line options
+ * @param {object} [context] - Context.
+ * @param {Set<string>} [context.fromEnv] - Names of options whose value came from an environment variable.
  *
  * @returns {boolean} - True if options are valid, false otherwise.
  */
-export async function visTaskAssertOptions(options) {
+export async function visTaskAssertOptions(options, { fromEnv } = {}) {
+    const result = validateVisTaskOptions(options, { fromEnv });
+    if (!result.valid) {
+        logger.error(result.error);
+        process.exit(1);
+    }
+
     // Verify all task IDs are valid uuids
     // Warn if they do not exist in the Qlik Sense environment
     if (options.taskId) {
@@ -594,4 +635,22 @@ export async function qseowScrambleFieldAssertOptions(options) {
         logger.error('Invalid options, exiting.');
         process.exit(1);
     }
+}
+
+/**
+ * Assert options for the qseow task-gantt command. Exits the process if any option is invalid.
+ *
+ * @param {object} options - Command line options.
+ * @param {object} [context] - Context, e.g. which options came from environment variables (see validateTaskGanttOptions).
+ * @returns {object} The command configuration (see validateTaskGanttOptions).
+ */
+export function taskGanttAssertOptions(options, context) {
+    const result = validateTaskGanttOptions(options, context);
+    if (!result.ok) {
+        for (const error of result.errors) {
+            logger.error(error);
+        }
+        process.exit(1);
+    }
+    return result.config;
 }
