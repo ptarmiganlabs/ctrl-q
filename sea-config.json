@@ -1,8 +1,8 @@
-{ 
-    "main": "build.cjs", 
+{
+    "main": "build.cjs",
     "output": "sea-prep.blob",
     "disableExperimentalSEAWarning": true,
-    "assets": { 
+    "assets": {
         "package.json": "./package.json",
         "/404.html": "./src/static/404.html",
         "/android-chrome-192x192.png": "./src/static/android-chrome-192x192.png",
@@ -22,6 +22,19 @@
         "enigma_schema_12.1477.0.json": "./node_modules/enigma.js/schemas/12.1477.0.json",
         "enigma_schema_12.1657.0.json": "./node_modules/enigma.js/schemas/12.1657.0.json",
         "enigma_schema_12.1823.0.json": "./node_modules/enigma.js/schemas/12.1823.0.json",
-        "enigma_schema_12.2015.0.json": "./node_modules/enigma.js/schemas/12.2015.0.json"
-    }    
+        "enigma_schema_12.2015.0.json": "./node_modules/enigma.js/schemas/12.2015.0.json",
+        "/static/task-gantt/index.html": "./src/static/task-gantt/index.html",
+        "/static/task-gantt/styles.css": "./src/static/task-gantt/styles.css",
+        "/static/task-gantt/main.js": "./src/static/task-gantt/main.js",
+        "/static/task-gantt/chart.js": "./src/static/task-gantt/chart.js",
+        "/static/task-gantt/store.js": "./src/static/task-gantt/store.js",
+        "/static/task-gantt/format.js": "./src/static/task-gantt/format.js",
+        "/lib/task-gantt/shared/sweep.js": "./src/lib/task-gantt/shared/sweep.js",
+        "/static/vendor/echarts/echarts.min.js": "./src/static/vendor/echarts/echarts.min.js",
+        "/static/vendor/echarts/LICENSE.txt": "./src/static/vendor/echarts/LICENSE.txt",
+        "/static/vendor/echarts/NOTICE.txt": "./src/static/vendor/echarts/NOTICE.txt",
+        "/static/vendor/echarts/LICENSE-d3.txt": "./src/static/vendor/echarts/LICENSE-d3.txt",
+        "/static/vendor/echarts/LICENSE-zrender.txt": "./src/static/vendor/echarts/LICENSE-zrender.txt",
+        "/static/vendor/echarts/LICENSE-tslib.txt": "./src/static/vendor/echarts/LICENSE-tslib.txt"
+    }
 }

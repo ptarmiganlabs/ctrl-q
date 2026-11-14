@@ -4,7 +4,7 @@ import { table } from 'table';
 import { setupEnigmaConnection, addTrafficLogging } from '../../util/qseow/enigma_util.js';
 import { getApps } from '../../util/qseow/app.js';
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 const consoleTableConfig = {
     border: {
@@ -46,7 +46,7 @@ export async function getVariable(options) {
 
         logger.verbose(`Ctrl-Q was started as a stand-alone binary: ${isSea}`);
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         // Get IDs of all apps that should be processed
         const apps = await getApps(options, options.appId, options.appTag);

@@ -8,7 +8,7 @@ import { logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists } from
 import { QlikSenseTasks } from '../../task/class_alltasks.js';
 import { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } from '../../util/qseow/lookups.js';
 import { getTagsFromQseow } from '../../util/qseow/tag.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 const consoleTableConfig = {
     border: {
@@ -112,7 +112,7 @@ export async function getTask(options) {
     logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
     logger.verbose('Get tasks');
-    logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+    logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
     // Get all tags
     const tags = await getTags(options);

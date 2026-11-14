@@ -6,6 +6,7 @@ import { getStreamById, getStreamByName } from '../qseow/stream.js';
 import { getAppById, getAppByName, appExistById } from '../qseow/app.js';
 import { taskExistById } from './task.js';
 import { tagExistByName } from './tag.js';
+import { validateTaskGanttOptions } from '../../task-gantt/options.js';
 
 export const qseowSharedParamAssertOptions = async (options) => {
     // Ensure that parameters common to all commands are valid
@@ -594,4 +595,22 @@ export async function qseowScrambleFieldAssertOptions(options) {
         logger.error('Invalid options, exiting.');
         process.exit(1);
     }
+}
+
+/**
+ * Assert options for the qseow task-gantt command. Exits the process if any option is invalid.
+ *
+ * @param {object} options - Command line options.
+ * @param {object} [context] - Context, e.g. which options came from environment variables (see validateTaskGanttOptions).
+ * @returns {object} The command configuration (see validateTaskGanttOptions).
+ */
+export function taskGanttAssertOptions(options, context) {
+    const result = validateTaskGanttOptions(options, context);
+    if (!result.ok) {
+        for (const error of result.errors) {
+            logger.error(error);
+        }
+        process.exit(1);
+    }
+    return result.config;
 }

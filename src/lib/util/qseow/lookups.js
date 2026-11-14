@@ -52,6 +52,8 @@ export const mapTaskExecutionStatus = new Map([
     [10, 'Retry'],
     [11, 'Error'],
     [12, 'Reset'],
+    [13, 'DistributionQueue'],
+    [14, 'DistributionRunning'],
     ['NeverStarted', 0],
     ['Triggered', 1],
     ['Started', 2],
@@ -64,7 +66,9 @@ export const mapTaskExecutionStatus = new Map([
     ['Skipped', 9],
     ['Retry', 10],
     ['Error', 11],
-    ['Reset', 11],
+    ['Reset', 12],
+    ['DistributionQueue', 13],
+    ['DistributionRunning', 14],
 ]);
 
 export const mapTaskType = new Map([
@@ -72,10 +76,12 @@ export const mapTaskType = new Map([
     [1, 'ExternalProgram'],
     [2, 'UserSync'],
     [3, 'Distribute'],
+    [4, 'Preload'],
     ['Reload', 0],
     ['ExternalProgram', 1],
     ['UserSync', 2],
     ['Distribute', 3],
+    ['Preload', 4],
 ]);
 
 // Used to find the column position in the source csv/Excel file containing the task definition
