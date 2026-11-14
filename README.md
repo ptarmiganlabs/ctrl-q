@@ -20,6 +20,10 @@
 <a href="https://github.com/sponsors/ptarmiganlabs">❤️ Sponsor</a>
 </p>
 
+<p align="center">
+  <img src="docs/img/ctrl-q-demo.gif" alt="Ctrl-Q in a terminal: master-item-import reads master measures and dimensions from an Excel file, first as a dry run, then creating all ten in a Qlik Sense app" width="880">
+</p>
+
 Ctrl-Q makes life easier for Qlik Sense admins and developers. It is a cross-platform command
 line tool for interacting with client-managed Qlik Sense Enterprise on Windows, designed to be
 easily extended when new features are needed.
@@ -40,11 +44,5 @@ Other ways to help:
 _Maintained by [Göran Sander](https://github.com/mountaindude) and supported by [Ptarmigan Labs](https://ptarmiganlabs.com)._
 
 ---
-
-<p align="center">
-Here Ctrl-Q imports Sense apps from .qvf files and creates reload tasks based on definitions in an Excel file:
-
-<img src="docs/terminal_captures/ctrl-q_qseow-task-import_apps-1.gif" width="800">
-</p>
 
 Ctrl-Q has its own documentation site at [https://ctrl-q.ptarmiganlabs.com](https://ctrl-q.ptarmiganlabs.com).
