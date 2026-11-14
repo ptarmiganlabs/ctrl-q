@@ -90,13 +90,14 @@ export async function extGetTasksFromQseow(_, logger) {
             }
 
             result = await axios.request(axiosConfig);
-            logger.debug(`GET RELOAD TASK: Result=result.status`);
+            logger.debug(`GET RELOAD TASK: Result=${result.status}`);
 
             tasks = tasks.concat(JSON.parse(result.data));
             logger.verbose(`GET RELOAD TASK: # tasks: ${tasks.length}`);
         } catch (err) {
             catchLog('GET TASKS FROM QSEOW 1', err);
             reject(err);
+            return;
         }
         try {
             // Get external program tasks
@@ -114,13 +115,14 @@ export async function extGetTasksFromQseow(_, logger) {
             }
 
             result = await axios.request(axiosConfig);
-            logger.debug(`GET EXT PROGRAM TASK: Result=result.status`);
+            logger.debug(`GET EXT PROGRAM TASK: Result=${result.status}`);
 
             tasks = tasks.concat(JSON.parse(result.data));
             logger.verbose(`GET EXT PROGRAM TASK: # tasks: ${tasks.length}`);
         } catch (err) {
             catchLog('GET EXTERNAL PROGRAM TASKS FROM QSEOW 1', err);
             reject(err);
+            return;
         }
 
         // TODO
@@ -128,10 +130,17 @@ export async function extGetTasksFromQseow(_, logger) {
         const anonymizeTaskNames = false;
 
         _.clear();
-        for (let i = 0; i < tasks.length; i += 1) {
-            if (tasks[i].schemaPath === 'ReloadTask' || tasks[i].schemaPath === 'ExternalProgramTask') {
-                _.addTask('from_qseow', tasks[i], anonymizeTaskNames);
+        try {
+            for (let i = 0; i < tasks.length; i += 1) {
+                if (tasks[i].schemaPath === 'ReloadTask' || tasks[i].schemaPath === 'ExternalProgramTask') {
+                    await _.addTask('from_qseow', tasks[i], anonymizeTaskNames);
+                }
             }
+        } catch (err) {
+            // An error thrown here would otherwise never reach the caller, as this function runs inside a promise executor
+            catchLog('ADD TASKS FROM QSEOW', err);
+            reject(err);
+            return;
         }
         resolve(_.taskList);
     });

@@ -67,6 +67,25 @@ export const mapTaskExecutionStatus = new Map([
     ['Reset', 11],
 ]);
 
+// Icon shown before a task's last execution status in task-get's table and tree output. Other statuses get ❔
+export const mapTaskExecutionStatusIcon = new Map([
+    ['FinishedSuccess', '✅'],
+    ['FinishedFail', '❌'],
+    ['Skipped', '🚫'],
+    ['Aborted', '🛑'],
+    ['NeverStarted', '💤'],
+]);
+
+/**
+ * Icon to show before a task's last execution status.
+ *
+ * @param {string} status - The task's last status, as named by mapTaskExecutionStatus, or ? when it is missing or unknown.
+ * @returns {string} The icon for the status, or ❔ when it has none.
+ */
+export function getTaskExecutionStatusIcon(status) {
+    return mapTaskExecutionStatusIcon.get(status) ?? '❔';
+}
+
 export const mapTaskType = new Map([
     [0, 'Reload'],
     [1, 'ExternalProgram'],

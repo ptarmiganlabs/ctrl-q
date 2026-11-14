@@ -61,11 +61,8 @@ export class QlikSenseTask {
                 this.taskCustomProperties = task.customProperties;
                 this.taskCustomPropertiesFriendly = task.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`);
 
-                if (task?.operational?.lastExecutionResult?.status) {
-                    this.taskLastStatus = mapTaskExecutionStatus.get(task?.operational?.lastExecutionResult?.status);
-                } else {
-                    this.taskLastStatus = '?';
-                }
+                // A missing status, or one the lookup doesn't know, is shown as ?
+                this.taskLastStatus = mapTaskExecutionStatus.get(task?.operational?.lastExecutionResult?.status) ?? '?';
 
                 this.completeTaskObject = task;
                 this.taskType = 0;
@@ -104,11 +101,8 @@ export class QlikSenseTask {
                 this.taskCustomProperties = task.customProperties;
                 this.taskCustomPropertiesFriendly = task.customProperties.map((cp) => `${cp.definition.name}=${cp.value}`);
 
-                if (task?.operational?.lastExecutionResult?.status) {
-                    this.taskLastStatus = mapTaskExecutionStatus.get(task?.operational?.lastExecutionResult?.status);
-                } else {
-                    this.taskLastStatus = '?';
-                }
+                // A missing status, or one the lookup doesn't know, is shown as ?
+                this.taskLastStatus = mapTaskExecutionStatus.get(task?.operational?.lastExecutionResult?.status) ?? '?';
 
                 this.completeTaskObject = task;
                 this.taskType = 1;

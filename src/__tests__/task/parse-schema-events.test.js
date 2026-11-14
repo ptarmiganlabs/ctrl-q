@@ -121,11 +121,7 @@ describe('extParseSchemaEvents — single schema event, reload task', () => {
         ctx = makeContext();
         logger = makeLogger();
         schemaRow = makeSchemaRow({ name: 'Daily at midnight', tz: 'UTC' });
-        result = extParseSchemaEvents(
-            ctx,
-            { ...baseParam, taskRows: [schemaRow], taskType: 'reload', nodesWithEvents: new Set() },
-            logger
-        );
+        result = extParseSchemaEvents(ctx, { ...baseParam, taskRows: [schemaRow], taskType: 'reload', nodesWithEvents: new Set() }, logger);
     });
 
     test('returns array with one schema event', () => {

@@ -1,6 +1,7 @@
 import { Command, Option } from 'commander';
 import { logger, appVersion, setLoggingLevel, setCliOptions } from './globals.js';
 import { logStartupInfo } from './lib/util/log.js';
+import { aliasDeprecatedJwtEnvVar, usesJwtAuth } from './lib/util/jwt-env.js';
 
 // Import command setup functions
 // QSEoW
@@ -43,6 +44,10 @@ program.configureHelp({
     sortSubcommands: true,
 });
 
+// CTRLQ_JWT is the deprecated name of CTRLQ_AUTH_JWT. Alias it before the command line is parsed,
+// so that Commander applies it like any other environment variable
+const jwtEnvWarning = aliasDeprecatedJwtEnvVar();
+
 /**
  * Top level async function.
  * Workaround to deal with the fact that Node.js doesn't currently support top level async functions...
@@ -64,6 +69,11 @@ program.configureHelp({
             // Set log level & show startup info
             setLoggingLevel(options.logLevel);
             logStartupInfo(options, actionCommand._name, actionCommand._description);
+
+            // Only a command that authenticates with a JWT is concerned by CTRLQ_JWT
+            if (jwtEnvWarning && usesJwtAuth(actionCommand)) {
+                logger.warn(jwtEnvWarning);
+            }
 
             logger.verbose(`About to call action handler for subcommand: ${actionCommand.name()}`);
         });

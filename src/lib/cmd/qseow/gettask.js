@@ -6,7 +6,13 @@ import { stringify } from 'csv-stringify';
 import yesno from 'yesno';
 import { logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists } from '../../../globals.js';
 import { QlikSenseTasks } from '../../task/class_alltasks.js';
-import { mapEventType, mapIncrementOption, mapDaylightSavingTime, mapRuleState } from '../../util/qseow/lookups.js';
+import {
+    mapEventType,
+    mapIncrementOption,
+    mapDaylightSavingTime,
+    mapRuleState,
+    getTaskExecutionStatusIcon,
+} from '../../util/qseow/lookups.js';
 import { getTagsFromQseow } from '../../util/qseow/tag.js';
 import { catchLog } from '../../util/log.js';
 
@@ -96,7 +102,7 @@ function compareTable(a, b) {
 }
 
 // Exported for unit testing
-export { cleanupTaskTree, compareTree, compareTable };
+export { cleanupTaskTree, compareTree, compareTable, parseTable };
 
 /**
  * CLI command: qseow get-task
@@ -119,6 +125,10 @@ export async function getTask(options) {
 
     // Get reload and external program tasks
     const qlikSenseTasks = await getTaskModelFromQseow(options);
+    if (!qlikSenseTasks) {
+        // Why is already logged
+        return false;
+    }
 
     // What should we do with the retrieved task data?
     // return outputTaskData(options, qlikSenseTasks, tags);
@@ -232,19 +242,7 @@ async function parseTable(options, qlikSenseTasks, tags) {
             // Get icon for task status
             let taskStatus = '';
             if (task.taskLastStatus) {
-                if (task.taskLastStatus === 'FinishedSuccess') {
-                    taskStatus = `✅ ${task.taskLastStatus}`;
-                } else if (task.taskLastStatus === 'FinishedFail') {
-                    taskStatus = `❌ ${task.taskLastStatus}`;
-                } else if (task.taskLastStatus === 'Skipped') {
-                    taskStatus = `🚫 ${task.taskLastStatus}`;
-                } else if (task.taskLastStatus === 'Aborted') {
-                    taskStatus = `🛑 ${task.taskLastStatus}`;
-                } else if (task.taskLastStatus === 'Never started') {
-                    taskStatus = `💤 ${task.taskLastStatus}`;
-                } else {
-                    taskStatus = `❔ ${task.taskLastStatus}`;
-                }
+                taskStatus = `${getTaskExecutionStatusIcon(task.taskLastStatus)} ${task.taskLastStatus}`;
             }
 
             if (task.completeTaskObject.schemaPath === 'ReloadTask') {

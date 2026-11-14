@@ -26,9 +26,13 @@ export function setupGetTaskCommand(qseow) {
                     newOptions.taskType = ['reload', 'ext-program'];
                 }
 
-                await getTask(newOptions);
+                // Exit with an error code when the command fails, so that a script running Ctrl-Q can tell
+                if (!(await getTask(newOptions))) {
+                    process.exitCode = 1;
+                }
             } catch (err) {
                 catchLog('GET TASK', err);
+                process.exitCode = 1;
             }
         })
         .addOption(
@@ -83,7 +87,9 @@ export function setupGetTaskCommand(qseow) {
                 .default('./cert/root.pem')
                 .env('CTRLQ_ROOT_CERT_FILE')
         )
-        .addOption(new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_JWT'))
+        .addOption(
+            new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_AUTH_JWT')
+        )
         .addOption(
             new Option('--task-type <type...>', 'type of tasks to include').choices(['reload', 'ext-program']).env('CTRLQ_TASK_TYPE')
         )

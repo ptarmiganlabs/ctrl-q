@@ -126,7 +126,10 @@ export const masterItemMeasureDeleteAssertOptions = (options) => {
 
 export function validateMasterItemDimDeleteOptions(options) {
     if (options.deleteAll === undefined && options.idType === undefined && options.masterItem === undefined) {
-        return { valid: false, error: 'Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --master-item' };
+        return {
+            valid: false,
+            error: 'Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --master-item',
+        };
     }
 
     if (options.deleteAll === undefined) {
@@ -347,7 +350,10 @@ export function validateTaskImportOptions(options) {
     }
 
     if (options.fileType === 'excel' && options.sheetName === undefined) {
-        return { valid: false, error: 'Invalid combination of options.\nWhen importing from Excel file you must also specify the --sheet-name option.' };
+        return {
+            valid: false,
+            error: 'Invalid combination of options.\nWhen importing from Excel file you must also specify the --sheet-name option.',
+        };
     }
 
     return { valid: true };
@@ -401,7 +407,10 @@ export function validateVariableDeleteOptions(options) {
     }
 
     if (options.deleteAll === undefined && options.idType === undefined && options.variable === undefined) {
-        return { valid: false, error: 'Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --variable' };
+        return {
+            valid: false,
+            error: 'Mandatory options missing.\nEither --delete-all should be specified, or both of --id-type and --variable',
+        };
     }
 
     if (options.deleteAll === undefined) {

@@ -171,12 +171,16 @@ describe('QlikSenseTask.init — from_qseow ReloadTask', () => {
         expect(t.taskLastStatus).toBe('FinishedSuccess'); // status 7
 
         const t2 = new QlikSenseTask();
-        await t2.init('from_qseow', makeQseowReloadTask({
-            operational: {
-                ...makeQseowReloadTask().operational,
-                lastExecutionResult: { ...makeQseowReloadTask().operational.lastExecutionResult, status: 8 },
-            },
-        }), false);
+        await t2.init(
+            'from_qseow',
+            makeQseowReloadTask({
+                operational: {
+                    ...makeQseowReloadTask().operational,
+                    lastExecutionResult: { ...makeQseowReloadTask().operational.lastExecutionResult, status: 8 },
+                },
+            }),
+            false
+        );
         expect(t2.taskLastStatus).toBe('FinishedFail');
     });
 
@@ -198,6 +202,30 @@ describe('QlikSenseTask.init — from_qseow ReloadTask', () => {
         expect(t.taskLastStatus).toBe('?');
     });
 
+    test('should map status 0 to NeverStarted rather than "?"', async () => {
+        const t = new QlikSenseTask();
+        const task = makeQseowReloadTask();
+        task.operational.lastExecutionResult.status = 0;
+        await t.init('from_qseow', task, false);
+        expect(t.taskLastStatus).toBe('NeverStarted');
+    });
+
+    test('should return "?" when status is null', async () => {
+        const t = new QlikSenseTask();
+        const task = makeQseowReloadTask();
+        task.operational.lastExecutionResult.status = null;
+        await t.init('from_qseow', task, false);
+        expect(t.taskLastStatus).toBe('?');
+    });
+
+    test('should return "?" for a status code the lookup does not know', async () => {
+        const t = new QlikSenseTask();
+        const task = makeQseowReloadTask();
+        task.operational.lastExecutionResult.status = 99;
+        await t.init('from_qseow', task, false);
+        expect(t.taskLastStatus).toBe('?');
+    });
+
     test('should map tags and custom properties to friendly strings', async () => {
         const t = new QlikSenseTask();
         await t.init('from_qseow', makeQseowReloadTask(), false);
@@ -208,9 +236,13 @@ describe('QlikSenseTask.init — from_qseow ReloadTask', () => {
 
     test('should set appStream to empty string when app is unpublished', async () => {
         const t = new QlikSenseTask();
-        await t.init('from_qseow', makeQseowReloadTask({
-            app: { id: 'a1', name: 'Private', published: false, stream: { name: 'ShouldBeIgnored' } },
-        }), false);
+        await t.init(
+            'from_qseow',
+            makeQseowReloadTask({
+                app: { id: 'a1', name: 'Private', published: false, stream: { name: 'ShouldBeIgnored' } },
+            }),
+            false
+        );
         expect(t.appStream).toBe('');
     });
 
@@ -257,6 +289,36 @@ describe('QlikSenseTask.init — from_qseow ExternalProgramTask', () => {
 
         expect(t.taskLastExecutionStartTimestamp).toBe('2024-06-15T23:00:00.000Z');
         expect(t.taskLastExecutionDuration).toBe('0:01:00'); // 1 min
+    });
+
+    test('should map status 0 to NeverStarted rather than "?"', async () => {
+        const t = new QlikSenseTask();
+        const task = makeQseowExtProgramTask();
+        task.operational.lastExecutionResult.status = 0;
+        await t.init('from_qseow', task, false);
+        expect(t.taskLastStatus).toBe('NeverStarted');
+    });
+
+    test('should return "?" when status is missing or null', async () => {
+        const missing = new QlikSenseTask();
+        const taskMissing = makeQseowExtProgramTask();
+        delete taskMissing.operational.lastExecutionResult.status;
+        await missing.init('from_qseow', taskMissing, false);
+        expect(missing.taskLastStatus).toBe('?');
+
+        const isNull = new QlikSenseTask();
+        const taskNull = makeQseowExtProgramTask();
+        taskNull.operational.lastExecutionResult.status = null;
+        await isNull.init('from_qseow', taskNull, false);
+        expect(isNull.taskLastStatus).toBe('?');
+    });
+
+    test('should return "?" for a status code the lookup does not know', async () => {
+        const t = new QlikSenseTask();
+        const task = makeQseowExtProgramTask();
+        task.operational.lastExecutionResult.status = 99;
+        await t.init('from_qseow', task, false);
+        expect(t.taskLastStatus).toBe('?');
     });
 
     test('should anonymize ext-program task names', async () => {

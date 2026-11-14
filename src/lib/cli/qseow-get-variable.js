@@ -77,7 +77,9 @@ export function setpQseowGetVariableCommand(qseow) {
                 .default('./cert/root.pem')
                 .env('CTRLQ_ROOT_CERT_FILE')
         )
-        .addOption(new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_JWT'))
+        .addOption(
+            new Option('--auth-jwt <jwt>', 'JSON Web Token (JWT) to use for authentication with Qlik Sense server').env('CTRLQ_AUTH_JWT')
+        )
         .addOption(
             new Option('--id-type <type>', 'type of identifier passed in the --variable option')
                 .choices(['id', 'name'])
