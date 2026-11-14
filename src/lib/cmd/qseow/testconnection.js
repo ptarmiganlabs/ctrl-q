@@ -1,6 +1,6 @@
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { getAboutFromQseow } from '../../util/qseow/about.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 /**
  * Tests a connection to a client-managed Qlik Sense Enterprise (QSEoW) server.
@@ -17,7 +17,7 @@ export async function testConnection(options) {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info(`Testing connection to Qlik Sense server ${options.host} on port ${options.port}`);
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         const aboutInfo = await getAboutFromQseow(options);
 

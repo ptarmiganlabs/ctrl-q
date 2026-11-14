@@ -8,7 +8,7 @@ import sea from 'node:sea';
 import { appVersion, logger, setLoggingLevel, isSea, execPath, verifyFileSystemExists, verifySeaAssetExists } from '../../../globals.js';
 import { QlikSenseTasks } from '../../task/class_alltasks.js';
 import { findCircularTaskChains } from '../../task/find_circular_task_chain.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 // js: 'application/javascript',
 const MIME_TYPES = {
@@ -478,7 +478,7 @@ export async function visTask(options) {
     logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
     logger.verbose('Visulise tasks');
-    logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+    logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
     logger.verbose(`Path to html files: ${STATIC_PATH}`);
 
