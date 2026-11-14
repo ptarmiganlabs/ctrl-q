@@ -1,6 +1,6 @@
 import { deleteSessionsFromQSEoWIds } from '../../util/qseow/session.js';
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 /**
  *  Delete Qlik Sense proxy sessions
@@ -15,7 +15,7 @@ export async function deleteSessions(options) {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info('Delete Qlik Sense proxy sessions');
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         logger.info(`Deleting sessions on proxy "${options.hostProxy}", virtual proxy "${options.sessionVirtualProxy}"`);
         const deleteResult = await deleteSessionsFromQSEoWIds(options);

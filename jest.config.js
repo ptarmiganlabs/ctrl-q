@@ -30,6 +30,8 @@ const config = {
     // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
     moduleNameMapper: {
         '^node:sea$': '<rootDir>/src/__mocks__/node/sea.js',
+        // The task-gantt page imports the shared sweep module from the URL Ctrl-Q serves it at
+        '^\\./lib/sweep\\.js$': '<rootDir>/src/lib/task-gantt/shared/sweep.js',
     },
 
     // Use this configuration option to add custom reporters to Jest

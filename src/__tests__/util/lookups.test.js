@@ -126,7 +126,7 @@ describe('mapRuleState', () => {
 
 /**
  * Tests for mapTaskExecutionStatus - bidirectional mapping for task execution status codes
- * Full mapping: 0=NeverStarted through 12=Reset
+ * Full mapping: 0=NeverStarted through 14=DistributionRunning (13-14 added in QSEoW May 2026 enums)
  * Critical for task monitoring and state display
  */
 describe('mapTaskExecutionStatus', () => {
@@ -148,6 +148,8 @@ describe('mapTaskExecutionStatus', () => {
         expect(mapTaskExecutionStatus.get(10)).toBe('Retry');
         expect(mapTaskExecutionStatus.get(11)).toBe('Error');
         expect(mapTaskExecutionStatus.get(12)).toBe('Reset');
+        expect(mapTaskExecutionStatus.get(13)).toBe('DistributionQueue');
+        expect(mapTaskExecutionStatus.get(14)).toBe('DistributionRunning');
     });
 
     test('should map all string status names', () => {
@@ -163,17 +165,25 @@ describe('mapTaskExecutionStatus', () => {
         expect(mapTaskExecutionStatus.get('Skipped')).toBe(9);
         expect(mapTaskExecutionStatus.get('Retry')).toBe(10);
         expect(mapTaskExecutionStatus.get('Error')).toBe(11);
-        expect(mapTaskExecutionStatus.get('Reset')).toBe(11);
+        expect(mapTaskExecutionStatus.get('Reset')).toBe(12);
+        expect(mapTaskExecutionStatus.get('DistributionQueue')).toBe(13);
+        expect(mapTaskExecutionStatus.get('DistributionRunning')).toBe(14);
+    });
+
+    test('should round-trip every status code', () => {
+        for (let code = 0; code <= 14; code += 1) {
+            expect(mapTaskExecutionStatus.get(mapTaskExecutionStatus.get(code))).toBe(code);
+        }
     });
 });
 
 /**
  * Tests for mapTaskType - bidirectional mapping for task types
- * Values: Reload, ExternalProgram, UserSync, Distribute
+ * Values: Reload, ExternalProgram, UserSync, Distribute, Preload
  */
 describe('mapTaskType', () => {
     test('should have correct number of entries', () => {
-        expect(mapTaskType.size).toBe(8);
+        expect(mapTaskType.size).toBe(10);
     });
 
     test('should map numeric values to strings', () => {
@@ -181,6 +191,7 @@ describe('mapTaskType', () => {
         expect(mapTaskType.get(1)).toBe('ExternalProgram');
         expect(mapTaskType.get(2)).toBe('UserSync');
         expect(mapTaskType.get(3)).toBe('Distribute');
+        expect(mapTaskType.get(4)).toBe('Preload');
     });
 
     test('should map string values to numbers', () => {
@@ -188,6 +199,7 @@ describe('mapTaskType', () => {
         expect(mapTaskType.get('ExternalProgram')).toBe(1);
         expect(mapTaskType.get('UserSync')).toBe(2);
         expect(mapTaskType.get('Distribute')).toBe(3);
+        expect(mapTaskType.get('Preload')).toBe(4);
     });
 });
 

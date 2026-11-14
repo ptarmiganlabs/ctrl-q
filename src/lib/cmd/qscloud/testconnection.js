@@ -1,6 +1,6 @@
 import { logger, setLoggingLevel, isSea, execPath } from '../../../globals.js';
 import { getQscloudCurrentUser } from '../../util/qscloud/user.js';
-import { catchLog } from '../../util/log.js';
+import { catchLog, redactOptions } from '../../util/log.js';
 
 /**
  * Tests a connection to a Qlik Sense Cloud tenant and retrieves user information.
@@ -23,7 +23,7 @@ export async function qscloudTestConnection(options) {
         logger.verbose(`Ctrl-Q was started from ${execPath}`);
 
         logger.info(`Testing connection to Qlik Sense Cloud tenant "${options.tenantHost}"`);
-        logger.debug(`Options: ${JSON.stringify(options, null, 2)}`);
+        logger.debug(`Options: ${JSON.stringify(redactOptions(options), null, 2)}`);
 
         // Get info about user associated with the auth JWT
         const userInfo = await getQscloudCurrentUser(options);
