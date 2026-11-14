@@ -21,6 +21,21 @@ export function sanitizeVirtualProxy(virtualProxy) {
     return virtualProxy;
 }
 
+/**
+ * Whether the certificate of the Sense server must be valid, as set by the --secure option.
+ *
+ * Commander passes values from the command line and environment variables as strings ('true', 'false'), while the
+ * option's default and callers in code pass booleans. Only false and 'false' turn the check off; any other value,
+ * including a missing one, keeps it on.
+ *
+ * @param {object} options - Ctrl-Q options.
+ * @param {boolean|string} [options.secure] - Value of the --secure option.
+ * @returns {boolean} true if invalid certificates must be rejected.
+ */
+export function rejectUnauthorized(options) {
+    return !(options.secure === false || String(options.secure).trim().toLowerCase() === 'false');
+}
+
 // Function to set up connection to Qlik Sense Repository Service (QRS)
 export function setupQrsConnection(options, param) {
     // Ensure correct auth info is present
@@ -75,12 +90,15 @@ export function setupQrsConnection(options, param) {
         newPath = param.path.replace(/^\//, '');
     }
 
+    // Check the certificate of the server unless --secure is false, for both authentication types
+    const secure = rejectUnauthorized(options);
+
     let axiosConfig;
     // Should certificates be used for authentication?
     if (options.authType === 'cert') {
         logger.debug(`Using certificates for authentication with QRS`);
         logger.debug(`QRS host: ${options.host}`);
-        logger.debug(`Reject unauthorized certificate: ${options.secure}`);
+        logger.debug(`Reject unauthorized certificate: ${secure}`);
 
         // Get certificate paths
         // If specified in the param object, use those paths
@@ -101,7 +119,7 @@ export function setupQrsConnection(options, param) {
         }
 
         const httpsAgent = new https.Agent({
-            rejectUnauthorized: options.secure !== 'false',
+            rejectUnauthorized: secure,
             cert: readCert(fileCert),
             key: readCert(fileCertKey),
             ca: readCert(fileCertCA),
@@ -122,10 +140,11 @@ export function setupQrsConnection(options, param) {
         };
     } else if (options.authType === 'jwt') {
         logger.verbose(`Using JWT for authentication with QRS`);
+        logger.debug(`Reject unauthorized certificate: ${secure}`);
 
+        // No CA is given: the certificate of the Sense proxy is checked against the CAs Node.js trusts
         const httpsAgent = new https.Agent({
-            // rejectUnauthorized: options.secure !== 'false',
-            rejectUnauthorized: false,
+            rejectUnauthorized: secure,
         });
 
         axiosConfig = {
